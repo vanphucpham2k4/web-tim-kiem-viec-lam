@@ -1,0 +1,128 @@
+@model List<Unicareer.Models.TinTuyenDung>
+
+@{
+    ViewData["Title"] = "Tin da dang";
+}
+
+<div class="row mb-4">
+    <div class="col-12 text-end">
+        <a href="/Recruiter/Recruiter/DangTinTuyenDung" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Dang tin moi
+        </a>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="input-group">
+            <input type="text" class="form-control" id="timKiemInput" placeholder="Tim kiem theo tieu de...">
+            <button class="btn btn-outline-secondary" type="button">
+                <i class="bi bi-search"></i>
+            </button>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <select class="form-select" id="locTrangThai">
+            <option value="">Tat ca trang thai</option>
+            <option value="Dang tuyen">Dang tuyen</option>
+            <option value="Het han">Het han</option>
+            <option value="Da dong">Da dong</option>
+        </select>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ma</th>
+                                <th>Tieu de</th>
+                                <th>Vi tri</th>
+                                <th>Ngay dang</th>
+                                <th>Han nop</th>
+                                <th>Luot UT</th>
+                                <th>Trang thai</th>
+                                <th>Thao tac</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var tin in Model)
+                            {
+                                var trangThai = tin.HanNop >= DateTime.Now ? "Dang tuyen" : "Het han";
+                                var badgeClass = trangThai == "Dang tuyen" ? "bg-success" : "bg-secondary";
+                                
+                                <tr>
+                                    <td>@tin.MaTinTuyenDung</td>
+                                    <td>
+                                        <strong>@tin.TieuDe</strong><br/>
+                                        <small class="text-muted">@tin.LoaiCongViec</small>
+                                    </td>
+                                    <td>@tin.ViTri</td>
+                                    <td>@tin.NgayDang.ToString("dd/MM/yyyy")</td>
+                                    <td>@tin.HanNop.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        <span class="badge bg-primary">@tin.SoLuongUngTuyen</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge @badgeClass">@trangThai</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" title="Xem">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-warning" title="Sua">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" title="Xoa">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h6 class="card-title text-muted mb-2">Tong tin dang</h6>
+                <h2 class="mb-0 text-primary">@Model.Count</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h6 class="card-title text-muted mb-2">Dang tuyen</h6>
+                <h2 class="mb-0 text-success">@Model.Count(t => t.HanNop >= DateTime.Now)</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h6 class="card-title text-muted mb-2">Het han</h6>
+                <h2 class="mb-0 text-secondary">@Model.Count(t => t.HanNop < DateTime.Now)</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h6 class="card-title text-muted mb-2">Tong ung tuyen</h6>
+                <h2 class="mb-0 text-info">@Model.Sum(t => t.SoLuongUngTuyen)</h2>
+            </div>
+        </div>
+    </div>
+</div>
+

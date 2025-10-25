@@ -1,0 +1,277 @@
+@model List<Unicareer.Models.UngVien>
+
+@{
+    ViewData["Title"] = "Quan ly Ung vien";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h3>Danh sach Ung vien</h3>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="input-group">
+            <input type="text" class="form-control" id="timKiemInput" placeholder="Tim kiem theo ho ten, email...">
+            <button class="btn btn-outline-secondary" type="button" id="btnTimKiem">
+                <i class="bi bi-search"></i> Tim kiem
+            </button>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <select class="form-select" id="locNganhNghe">
+            <option value="">Tat ca nganh nghe</option>
+            <option value="Cong nghe thong tin">Cong nghe thong tin</option>
+            <option value="Kinh doanh">Kinh doanh</option>
+            <option value="Ke toan - Tai chinh">Ke toan - Tai chinh</option>
+            <option value="Nhan su">Nhan su</option>
+            <option value="Thiet ke do hoa">Thiet ke do hoa</option>
+            <option value="Truyen thong - Media">Truyen thong - Media</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <select class="form-select" id="locKinhNghiem">
+            <option value="">Tat ca kinh nghiem</option>
+            <option value="Fresher">Fresher</option>
+            <option value="1 nam">1 nam</option>
+            <option value="2 nam">2 nam</option>
+            <option value="3 nam">3 nam</option>
+            <option value="4 nam">4 nam +</option>
+        </select>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="bangUngVien">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ma</th>
+                                <th>Ho ten</th>
+                                <th>Email / SDT</th>
+                                <th>Ngay sinh</th>
+                                <th>Dia chi</th>
+                                <th>Nganh nghe</th>
+                                <th>Kinh nghiem</th>
+                                <th>So lan UT</th>
+                                <th>Thao tac</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var uv in Model)
+                            {
+                                var tuoi = DateTime.Now.Year - uv.NgaySinh.Year;
+                                
+                                <tr data-ma="@uv.MaUngVien" data-nganh="@uv.NganhNghe" data-kinhnghiem="@uv.KinhNghiem">
+                                    <td>@uv.MaUngVien</td>
+                                    <td>
+                                        <strong>@uv.HoTen</strong>
+                                        <br/>
+                                        <small class="text-muted">@uv.GioiTinh, @tuoi tuoi</small>
+                                    </td>
+                                    <td>
+                                        @uv.Email<br/>
+                                        <small class="text-muted">@uv.SoDienThoai</small>
+                                    </td>
+                                    <td>@uv.NgaySinh.ToString("dd/MM/yyyy")</td>
+                                    <td>@uv.DiaChi</td>
+                                    <td><span class="badge border border-dark text-dark">@uv.NganhNghe</span></td>
+                                    <td><span class="badge border border-dark text-dark">@uv.KinhNghiem</span></td>
+                                    <td><span class="badge border border-dark text-dark">@uv.SoLanUngTuyen</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-dark btn-xem" 
+                                                data-ma="@uv.MaUngVien"
+                                                data-hoten="@uv.HoTen"
+                                                data-email="@uv.Email"
+                                                data-sdt="@uv.SoDienThoai"
+                                                data-ngaysinh="@uv.NgaySinh.ToString("dd/MM/yyyy")"
+                                                data-gioitinh="@uv.GioiTinh"
+                                                data-diachi="@uv.DiaChi"
+                                                data-hocvan="@uv.HocVan"
+                                                data-kinhnghiem="@uv.KinhNghiem"
+                                                data-kynang="@uv.KyNang"
+                                                data-nganhnghe="@uv.NganhNghe"
+                                                data-linkcv="@uv.LinkCV"
+                                                data-soluong="@uv.SoLanUngTuyen"
+                                                data-ngaydk="@uv.NgayDangKy.ToString("dd/MM/yyyy")">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary btn-cv" 
+                                                data-linkcv="@uv.LinkCV"
+                                                title="Xem CV">
+                                            <i class="bi bi-file-earmark-pdf"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger btn-xoa" data-ma="@uv.MaUngVien">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Thong ke -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card border">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-2">Tong ung vien</h6>
+                <h2 class="mb-0">@Model.Count</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-2">Ung vien IT</h6>
+                <h2 class="mb-0">@Model.Count(u => u.NganhNghe == "Cong nghe thong tin")</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-2">Tong ung tuyen</h6>
+                <h2 class="mb-0">@Model.Sum(u => u.SoLanUngTuyen)</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-2">TB ung tuyen/nguoi</h6>
+                <h2 class="mb-0">@((int)Model.Average(u => u.SoLanUngTuyen))</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Xem chi tiet -->
+<div class="modal fade" id="xemChiTietModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Thong tin Ung vien</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Thong tin ca nhan</h6>
+                        <p><strong>Ho ten:</strong> <span id="chiTietHoTen"></span></p>
+                        <p><strong>Ngay sinh:</strong> <span id="chiTietNgaySinh"></span></p>
+                        <p><strong>Gioi tinh:</strong> <span id="chiTietGioiTinh"></span></p>
+                        <p><strong>Dia chi:</strong> <span id="chiTietDiaChi"></span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Lien he</h6>
+                        <p><strong>Email:</strong> <span id="chiTietEmail"></span></p>
+                        <p><strong>So dien thoai:</strong> <span id="chiTietSDT"></span></p>
+                        <p><strong>Link CV:</strong> <a href="#" id="chiTietLinkCV" target="_blank">Xem CV</a></p>
+                    </div>
+                </div>
+                <hr/>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6 class="text-primary">Thong tin nghe nghiep</h6>
+                        <p><strong>Hoc van:</strong> <span id="chiTietHocVan"></span></p>
+                        <p><strong>Nganh nghe:</strong> <span id="chiTietNganhNghe"></span></p>
+                        <p><strong>Kinh nghiem:</strong> <span id="chiTietKinhNghiem"></span></p>
+                        <p><strong>Ky nang:</strong> <span id="chiTietKyNang"></span></p>
+                        <p><strong>So lan ung tuyen:</strong> <span id="chiTietSoLuong"></span></p>
+                        <p><strong>Ngay dang ky:</strong> <span id="chiTietNgayDK"></span></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Dong</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Tim kiem va loc
+            $('#btnTimKiem, #timKiemInput').on('click keyup', function(e) {
+                if (e.type === 'keyup' && e.keyCode !== 13) return;
+                locDuLieu();
+            });
+
+            $('#locNganhNghe, #locKinhNghiem').on('change', function() {
+                locDuLieu();
+            });
+
+            function locDuLieu() {
+                var tuKhoa = $('#timKiemInput').val().toLowerCase();
+                var nganhNghe = $('#locNganhNghe').val();
+                var kinhNghiem = $('#locKinhNghiem').val();
+
+                $('#bangUngVien tbody tr').each(function() {
+                    var row = $(this);
+                    var hoTen = row.find('td:eq(1)').text().toLowerCase();
+                    var email = row.find('td:eq(2)').text().toLowerCase();
+                    var nganhRow = row.data('nganh');
+                    var knRow = row.data('kinhnghiem');
+                    
+                    var khopTuKhoa = tuKhoa === '' || hoTen.includes(tuKhoa) || email.includes(tuKhoa);
+                    var khopNganh = nganhNghe === '' || nganhRow === nganhNghe;
+                    var khopKN = kinhNghiem === '' || knRow.includes(kinhNghiem.replace(' +', ''));
+                    
+                    if (khopTuKhoa && khopNganh && khopKN) {
+                        row.show();
+                    } else {
+                        row.hide();
+                    }
+                });
+            }
+
+            // Xem chi tiet
+            $('.btn-xem').click(function() {
+                $('#chiTietHoTen').text($(this).data('hoten'));
+                $('#chiTietNgaySinh').text($(this).data('ngaysinh'));
+                $('#chiTietGioiTinh').text($(this).data('gioitinh'));
+                $('#chiTietDiaChi').text($(this).data('diachi'));
+                $('#chiTietEmail').text($(this).data('email'));
+                $('#chiTietSDT').text($(this).data('sdt'));
+                $('#chiTietLinkCV').attr('href', $(this).data('linkcv'));
+                $('#chiTietHocVan').text($(this).data('hocvan'));
+                $('#chiTietNganhNghe').text($(this).data('nganhnghe'));
+                $('#chiTietKinhNghiem').text($(this).data('kinhnghiem'));
+                $('#chiTietKyNang').text($(this).data('kynang'));
+                $('#chiTietSoLuong').text($(this).data('soluong'));
+                $('#chiTietNgayDK').text($(this).data('ngaydk'));
+
+                $('#xemChiTietModal').modal('show');
+            });
+
+            // Xem CV
+            $('.btn-cv').click(function() {
+                var linkCV = $(this).data('linkcv');
+                window.open(linkCV, '_blank');
+            });
+
+            // Xoa ung vien
+            $('.btn-xoa').click(function() {
+                var ma = $(this).data('ma');
+                if (confirm('Ban co chac chan muon xoa ung vien nay?')) {
+                    alert('Da xoa ung vien ma ' + ma);
+                    $(this).closest('tr').fadeOut();
+                }
+            });
+        });
+    </script>
+}
+

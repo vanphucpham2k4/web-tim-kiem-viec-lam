@@ -1,0 +1,138 @@
+@{
+    ViewData["Title"] = "Tong quan";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-info border-0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <h4 class="alert-heading"><i class="bi bi-info-circle"></i> Chao mung!</h4>
+            <p class="mb-0">Quan ly hieu qua cac tin tuyen dung va ung vien cua ban.</p>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Tin da dang</h6>
+                        <h2 class="mb-0">12</h2>
+                    </div>
+                    <div style="font-size: 2.5rem; color: #3498db;">
+                        <i class="bi bi-file-earmark-text"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Don ung tuyen</h6>
+                        <h2 class="mb-0">156</h2>
+                    </div>
+                    <div style="font-size: 2.5rem; color: #2ecc71;">
+                        <i class="bi bi-inbox"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Luot xem</h6>
+                        <h2 class="mb-0">1,234</h2>
+                    </div>
+                    <div style="font-size: 2.5rem; color: #9b59b6;">
+                        <i class="bi bi-eye"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">UV phu hop</h6>
+                        <h2 class="mb-0">45</h2>
+                    </div>
+                    <div style="font-size: 2.5rem; color: #e74c3c;">
+                        <i class="bi bi-person-check"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <a href="/Recruiter/Recruiter/DangTinTuyenDung" class="btn btn-primary btn-lg w-100">
+            <i class="bi bi-plus-circle"></i> Dang tin tuyen dung moi
+        </a>
+    </div>
+    <div class="col-md-6 mb-3">
+        <a href="/Recruiter/Recruiter/TinDaDang" class="btn btn-outline-secondary btn-lg w-100">
+            <i class="bi bi-list-task"></i> Quan ly tin da dang
+        </a>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title mb-4">
+                    <i class="bi bi-graph-up text-primary"></i>
+                    Thong ke tuan nay
+                </h4>
+                <canvas id="chartTuanNay" height="80"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Simple chart for demo
+        var ctx = document.getElementById('chartTuanNay').getContext('2d');
+        var chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+                datasets: [{
+                    label: 'Luot xem tin',
+                    data: [65, 89, 80, 81, 96, 105, 94],
+                    borderColor: '#3498db',
+                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                    tension: 0.4
+                }, {
+                    label: 'Don ung tuyen',
+                    data: [12, 19, 15, 17, 22, 24, 20],
+                    borderColor: '#2ecc71',
+                    backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                }
+            }
+        });
+    </script>
+}
+

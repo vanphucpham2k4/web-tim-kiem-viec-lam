@@ -1,0 +1,146 @@
+@using Unicareer.Models
+
+@{
+    ViewData["Title"] = "Tổng quan";
+    
+    // Lay du lieu mockdata
+    var danhSachUngVien = UngVien.LayDanhSachUngVien();
+    var danhSachNhaTuyenDung = NhaTuyenDung.LayDanhSachNhaTuyenDung();
+    var danhSachTinTuyenDung = TinTuyenDung.LayDanhSachTinTuyenDung();
+    var danhSachTinUngTuyen = TinUngTuyen.LayDanhSachTinUngTuyen();
+    
+    var tongUsers = danhSachUngVien.Count + danhSachNhaTuyenDung.Count;
+    var tinMoi = danhSachTinTuyenDung.Count(t => (DateTime.Now - t.NgayDang).Days <= 7);
+    var ungTuyenMoi = danhSachTinUngTuyen.Count(t => (DateTime.Now - t.NgayUngTuyen).Days <= 7);
+    var choXuLy = danhSachTinUngTuyen.Count(t => t.TrangThaiXuLy == "Dang xem xet");
+}
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h4 class="mb-2">Chào mừng đến với Admin Panel</h4>
+                <p class="text-muted mb-0">Quản lý hệ thống tuyển dụng Unicareer</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="card shadow-sm mb-3">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-2">Tổng người dùng</h6>
+                <h2 class="mb-0 text-dark">@tongUsers</h2>
+                <small class="text-muted">@danhSachUngVien.Count UV + @danhSachNhaTuyenDung.Count NTD</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm mb-3">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-2">Tin tuyển dụng</h6>
+                <h2 class="mb-0 text-dark">@danhSachTinTuyenDung.Count</h2>
+                <small class="text-muted">@tinMoi tin mới tuần này</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm mb-3">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-2">Ứng tuyển mới</h6>
+                <h2 class="mb-0 text-dark">@ungTuyenMoi</h2>
+                <small class="text-muted">7 ngày gần đây</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm mb-3">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-2">Chờ xử lý</h6>
+                <h2 class="mb-0 text-dark">@choXuLy</h2>
+                <small class="text-muted">Đang xem xét</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <h4 class="mb-3">Truy cập nhanh</h4>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <a asp-area="Admin" asp-controller="Admin" asp-action="Dashboard" class="text-decoration-none">
+            <div class="card shadow-sm mb-3 h-100 border-0" style="transition: transform 0.2s;">
+                <div class="card-body">
+                    <h5 class="card-title text-dark"><i class="bi bi-graph-up"></i> Số liệu phân tích</h5>
+                    <p class="card-text text-muted mb-0">Xem thống kê và báo cáo chi tiết</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a asp-area="Admin" asp-controller="Admin" asp-action="UngVien" class="text-decoration-none">
+            <div class="card shadow-sm mb-3 h-100 border-0" style="transition: transform 0.2s;">
+                <div class="card-body">
+                    <h5 class="card-title text-dark"><i class="bi bi-person"></i> Quản lý ứng viên</h5>
+                    <p class="card-text text-muted mb-0">Quản lý tài khoản ứng viên</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a asp-area="Admin" asp-controller="Admin" asp-action="NhaTuyenDung" class="text-decoration-none">
+            <div class="card shadow-sm mb-3 h-100 border-0" style="transition: transform 0.2s;">
+                <div class="card-body">
+                    <h5 class="card-title text-dark"><i class="bi bi-building"></i> Quản lý nhà tuyển dụng</h5>
+                    <p class="card-text text-muted mb-0">Quản lý tài khoản công ty</p>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <a asp-area="Admin" asp-controller="Admin" asp-action="TinTuyenDung" class="text-decoration-none">
+            <div class="card shadow-sm mb-3 h-100 border-0" style="transition: transform 0.2s;">
+                <div class="card-body">
+                    <h5 class="card-title text-dark"><i class="bi bi-newspaper"></i> Tin tuyển dụng</h5>
+                    <p class="card-text text-muted mb-0">Quản lý các tin tuyển dụng</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a asp-area="Admin" asp-controller="Admin" asp-action="TinUngTuyen" class="text-decoration-none">
+            <div class="card shadow-sm mb-3 h-100 border-0" style="transition: transform 0.2s;">
+                <div class="card-body">
+                    <h5 class="card-title text-dark"><i class="bi bi-person-check"></i> Tin ứng tuyển</h5>
+                    <p class="card-text text-muted mb-0">Quản lý hồ sơ ứng tuyển</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a asp-area="Admin" asp-controller="Admin" asp-action="NganhNghe" class="text-decoration-none">
+            <div class="card shadow-sm mb-3 h-100 border-0" style="transition: transform 0.2s;">
+                <div class="card-body">
+                    <h5 class="card-title text-dark"><i class="bi bi-briefcase"></i> Ngành nghề</h5>
+                    <p class="card-text text-muted mb-0">Quản lý danh mục ngành nghề</p>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<style>
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    }
+</style>
+

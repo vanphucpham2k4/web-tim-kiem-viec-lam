@@ -1,0 +1,271 @@
+@model List<Unicareer.Models.LoaiCongViec>
+
+@{
+    ViewData["Title"] = "Quan ly Loai cong viec";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h3>Danh sach Loai cong viec</h3>
+            <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#themLoaiCongViecModal">
+                <i class="bi bi-plus-circle"></i> Them loai cong viec
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="input-group">
+            <input type="text" class="form-control" id="timKiemInput" placeholder="Tim kiem theo ten loai cong viec...">
+            <button class="btn btn-outline-secondary" type="button" id="btnTimKiem">
+                <i class="bi bi-search"></i> Tim kiem
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="bangLoaiCongViec">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ma</th>
+                                <th>Ten loai cong viec</th>
+                                <th>Mo ta</th>
+                                <th>So luong vi tri</th>
+                                <th>Muc luong TB</th>
+                                <th>Ngay tao</th>
+                                <th>Thao tac</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var loaiCongViec in Model)
+                            {
+                                <tr data-ma="@loaiCongViec.MaLoaiCongViec">
+                                    <td>@loaiCongViec.MaLoaiCongViec</td>
+                                    <td><strong>@loaiCongViec.TenLoaiCongViec</strong></td>
+                                    <td>
+                                        <span class="text-muted">
+                                            @(loaiCongViec.MoTa.Length > 50 ? loaiCongViec.MoTa.Substring(0, 50) + "..." : loaiCongViec.MoTa)
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge border border-dark text-dark">@loaiCongViec.SoLuongViTri vi tri</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge border border-dark text-dark">@loaiCongViec.MucLuongTrungBinh</span>
+                                    </td>
+                                    <td>@loaiCongViec.NgayTao.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-dark btn-sua" 
+                                                data-ma="@loaiCongViec.MaLoaiCongViec"
+                                                data-ten="@loaiCongViec.TenLoaiCongViec"
+                                                data-mota="@loaiCongViec.MoTa"
+                                                data-soluong="@loaiCongViec.SoLuongViTri"
+                                                data-luong="@loaiCongViec.MucLuongTrungBinh">
+                                            <i class="bi bi-pencil"></i> Sua
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger btn-xoa" data-ma="@loaiCongViec.MaLoaiCongViec">
+                                            <i class="bi bi-trash"></i> Xoa
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Thong ke -->
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card border">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-2">Tong loai cong viec</h6>
+                <h2 class="mb-0">@Model.Count</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-2">Tong vi tri</h6>
+                <h2 class="mb-0">@Model.Sum(l => l.SoLuongViTri)</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-2">Trung binh vi tri/loai</h6>
+                <h2 class="mb-0">@((int)Model.Average(l => l.SoLuongViTri))</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Them loai cong viec -->
+<div class="modal fade" id="themLoaiCongViecModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Them loai cong viec moi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formThemLoaiCongViec">
+                    <div class="mb-3">
+                        <label class="form-label">Ten loai cong viec</label>
+                        <input type="text" class="form-control" id="tenLoaiCongViecMoi" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mo ta</label>
+                        <textarea class="form-control" id="moTaMoi" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">So luong vi tri</label>
+                        <input type="number" class="form-control" id="soLuongViTriMoi" value="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Muc luong trung binh</label>
+                        <input type="text" class="form-control" id="mucLuongMoi" placeholder="VD: 10-20 trieu" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Huy</button>
+                <button type="button" class="btn btn-dark" id="btnLuuLoaiCongViec">Luu</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Sua loai cong viec -->
+<div class="modal fade" id="suaLoaiCongViecModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Sua loai cong viec</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formSuaLoaiCongViec">
+                    <input type="hidden" id="maLoaiCongViecSua">
+                    <div class="mb-3">
+                        <label class="form-label">Ten loai cong viec</label>
+                        <input type="text" class="form-control" id="tenLoaiCongViecSua" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mo ta</label>
+                        <textarea class="form-control" id="moTaSua" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">So luong vi tri</label>
+                        <input type="number" class="form-control" id="soLuongViTriSua" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Muc luong trung binh</label>
+                        <input type="text" class="form-control" id="mucLuongSua" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Huy</button>
+                <button type="button" class="btn btn-dark" id="btnCapNhatLoaiCongViec">Cap nhat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Tim kiem
+            $('#btnTimKiem, #timKiemInput').on('click keyup', function(e) {
+                if (e.type === 'keyup' && e.keyCode !== 13) return;
+                
+                var tuKhoa = $('#timKiemInput').val().toLowerCase();
+                locDuLieu(tuKhoa);
+            });
+
+            function locDuLieu(tuKhoa) {
+                $('#bangLoaiCongViec tbody tr').each(function() {
+                    var row = $(this);
+                    var ten = row.find('td:eq(1)').text().toLowerCase();
+                    
+                    if (tuKhoa === '' || ten.includes(tuKhoa)) {
+                        row.show();
+                    } else {
+                        row.hide();
+                    }
+                });
+            }
+
+            // Them loai cong viec
+            $('#btnLuuLoaiCongViec').click(function() {
+                var tenLoaiCongViec = $('#tenLoaiCongViecMoi').val();
+                var moTa = $('#moTaMoi').val();
+                var soLuongViTri = $('#soLuongViTriMoi').val();
+                var mucLuong = $('#mucLuongMoi').val();
+
+                if (!tenLoaiCongViec || !moTa || !mucLuong) {
+                    alert('Vui long nhap day du thong tin!');
+                    return;
+                }
+
+                alert('Da them loai cong viec: ' + tenLoaiCongViec);
+                $('#themLoaiCongViecModal').modal('hide');
+                $('#formThemLoaiCongViec')[0].reset();
+                
+                // Trong thuc te, ban se goi API de luu vao database
+            });
+
+            // Sua loai cong viec
+            $('.btn-sua').click(function() {
+                var ma = $(this).data('ma');
+                var ten = $(this).data('ten');
+                var moTa = $(this).data('mota');
+                var soLuong = $(this).data('soluong');
+                var luong = $(this).data('luong');
+
+                $('#maLoaiCongViecSua').val(ma);
+                $('#tenLoaiCongViecSua').val(ten);
+                $('#moTaSua').val(moTa);
+                $('#soLuongViTriSua').val(soLuong);
+                $('#mucLuongSua').val(luong);
+
+                $('#suaLoaiCongViecModal').modal('show');
+            });
+
+            $('#btnCapNhatLoaiCongViec').click(function() {
+                var ma = $('#maLoaiCongViecSua').val();
+                var ten = $('#tenLoaiCongViecSua').val();
+
+                alert('Da cap nhat loai cong viec ma ' + ma + ': ' + ten);
+                $('#suaLoaiCongViecModal').modal('hide');
+                
+                // Trong thuc te, ban se goi API de cap nhat database
+            });
+
+            // Xoa loai cong viec
+            $('.btn-xoa').click(function() {
+                var ma = $(this).data('ma');
+                if (confirm('Ban co chac chan muon xoa loai cong viec nay?')) {
+                    alert('Da xoa loai cong viec ma ' + ma);
+                    $(this).closest('tr').fadeOut();
+                    
+                    // Trong thuc te, ban se goi API de xoa khoi database
+                }
+            });
+        });
+    </script>
+}
+

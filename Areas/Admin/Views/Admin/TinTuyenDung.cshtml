@@ -1,0 +1,302 @@
+@model List<Unicareer.Models.TinTuyenDung>
+
+@{
+    ViewData["Title"] = "Quan ly Tin tuyen dung";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h3>Danh sach Tin tuyen dung</h3>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="input-group">
+            <input type="text" class="form-control" id="timKiemInput" placeholder="Tim kiem theo tieu de, cong ty...">
+            <button class="btn btn-outline-secondary" type="button" id="btnTimKiem">
+                <i class="bi bi-search"></i> Tim kiem
+            </button>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <select class="form-select" id="locNganhNghe">
+            <option value="">Tat ca nganh nghe</option>
+            <option value="Cong nghe thong tin">Cong nghe thong tin</option>
+            <option value="Kinh doanh">Kinh doanh</option>
+            <option value="Ke toan - Tai chinh">Ke toan - Tai chinh</option>
+            <option value="Nhan su">Nhan su</option>
+            <option value="Thiet ke do hoa">Thiet ke do hoa</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <select class="form-select" id="locLoaiCongViec">
+            <option value="">Tat ca loai cong viec</option>
+            <option value="Full-time">Full-time</option>
+            <option value="Part-time">Part-time</option>
+            <option value="Internship">Internship</option>
+            <option value="Remote">Remote</option>
+        </select>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="bangTinTuyenDung">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ma</th>
+                                <th>Tieu de</th>
+                                <th>Cong ty</th>
+                                <th>Vi tri</th>
+                                <th>Muc luong</th>
+                                <th>Dia diem</th>
+                                <th>Loai CV</th>
+                                <th>So ung tuyen</th>
+                                <th>Han nop</th>
+                                <th>Thao tac</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var tin in Model)
+                            {
+                                var soNgayConLai = (tin.HanNop - DateTime.Now).Days;
+                                var hanNopClass = soNgayConLai <= 7 ? "text-danger" : (soNgayConLai <= 14 ? "text-warning" : "");
+                                
+                                <tr data-ma="@tin.MaTinTuyenDung" data-nganh="@tin.NganhNghe" data-loai="@tin.LoaiCongViec">
+                                    <td>@tin.MaTinTuyenDung</td>
+                                    <td><strong>@tin.TieuDe</strong></td>
+                                    <td>@tin.CongTy</td>
+                                    <td>@tin.ViTri</td>
+                                    <td><span class="badge border border-dark text-dark">@tin.MucLuong</span></td>
+                                    <td>@tin.DiaDiem</td>
+                                    <td><span class="badge border border-dark text-dark">@tin.LoaiCongViec</span></td>
+                                    <td><span class="badge border border-dark text-dark">@tin.SoLuongUngTuyen</span></td>
+                                    <td class="@hanNopClass">
+                                        @tin.HanNop.ToString("dd/MM/yyyy")
+                                        <br/>
+                                        <small>(@soNgayConLai ngay)</small>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-secondary btn-xem" data-ma="@tin.MaTinTuyenDung">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-dark btn-sua" 
+                                                data-ma="@tin.MaTinTuyenDung"
+                                                data-tieude="@tin.TieuDe"
+                                                data-congty="@tin.CongTy"
+                                                data-vitri="@tin.ViTri"
+                                                data-mucluong="@tin.MucLuong"
+                                                data-diadiem="@tin.DiaDiem"
+                                                data-loaicv="@tin.LoaiCongViec"
+                                                data-nganhnghe="@tin.NganhNghe"
+                                                data-hannop="@tin.HanNop.ToString("yyyy-MM-dd")">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger btn-xoa" data-ma="@tin.MaTinTuyenDung">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Thong ke -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card border">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-2">Tong tin tuyen dung</h6>
+                <h2 class="mb-0">@Model.Count</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-2">Tong ung tuyen</h6>
+                <h2 class="mb-0">@Model.Sum(t => t.SoLuongUngTuyen)</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-2">TB ung tuyen/tin</h6>
+                <h2 class="mb-0">@((int)Model.Average(t => t.SoLuongUngTuyen))</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-2">Sap het han</h6>
+                <h2 class="mb-0">@Model.Count(t => (t.HanNop - DateTime.Now).Days <= 7)</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Sua tin tuyen dung -->
+<div class="modal fade" id="suaTinTuyenDungModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Sua tin tuyen dung</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formSuaTinTuyenDung">
+                    <input type="hidden" id="maTinTuyenDungSua">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Tieu de</label>
+                            <input type="text" class="form-control" id="tieuDeSua" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Cong ty</label>
+                            <input type="text" class="form-control" id="congTySua" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Vi tri</label>
+                            <input type="text" class="form-control" id="viTriSua" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Muc luong</label>
+                            <input type="text" class="form-control" id="mucLuongSua" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Dia diem</label>
+                            <input type="text" class="form-control" id="diaDiemSua" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Loai cong viec</label>
+                            <select class="form-select" id="loaiCongViecSua">
+                                <option value="Full-time">Full-time</option>
+                                <option value="Part-time">Part-time</option>
+                                <option value="Internship">Internship</option>
+                                <option value="Remote">Remote</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Nganh nghe</label>
+                            <input type="text" class="form-control" id="nganhNgheSua" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Han nop</label>
+                            <input type="date" class="form-control" id="hanNopSua" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Huy</button>
+                <button type="button" class="btn btn-dark" id="btnCapNhatTinTuyenDung">Cap nhat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Tim kiem va loc
+            $('#btnTimKiem, #timKiemInput').on('click keyup', function(e) {
+                if (e.type === 'keyup' && e.keyCode !== 13) return;
+                locDuLieu();
+            });
+
+            $('#locNganhNghe, #locLoaiCongViec').on('change', function() {
+                locDuLieu();
+            });
+
+            function locDuLieu() {
+                var tuKhoa = $('#timKiemInput').val().toLowerCase();
+                var nganhNghe = $('#locNganhNghe').val();
+                var loaiCongViec = $('#locLoaiCongViec').val();
+
+                $('#bangTinTuyenDung tbody tr').each(function() {
+                    var row = $(this);
+                    var tieuDe = row.find('td:eq(1)').text().toLowerCase();
+                    var congTy = row.find('td:eq(2)').text().toLowerCase();
+                    var nganhRow = row.data('nganh');
+                    var loaiRow = row.data('loai');
+                    
+                    var khopTuKhoa = tuKhoa === '' || tieuDe.includes(tuKhoa) || congTy.includes(tuKhoa);
+                    var khopNganh = nganhNghe === '' || nganhRow === nganhNghe;
+                    var khopLoai = loaiCongViec === '' || loaiRow === loaiCongViec;
+                    
+                    if (khopTuKhoa && khopNganh && khopLoai) {
+                        row.show();
+                    } else {
+                        row.hide();
+                    }
+                });
+            }
+
+            // Sua tin tuyen dung
+            $('.btn-sua').click(function() {
+                var ma = $(this).data('ma');
+                var tieuDe = $(this).data('tieude');
+                var congTy = $(this).data('congty');
+                var viTri = $(this).data('vitri');
+                var mucLuong = $(this).data('mucluong');
+                var diaDiem = $(this).data('diadiem');
+                var loaiCongViec = $(this).data('loaicv');
+                var nganhNghe = $(this).data('nganhnghe');
+                var hanNop = $(this).data('hannop');
+
+                $('#maTinTuyenDungSua').val(ma);
+                $('#tieuDeSua').val(tieuDe);
+                $('#congTySua').val(congTy);
+                $('#viTriSua').val(viTri);
+                $('#mucLuongSua').val(mucLuong);
+                $('#diaDiemSua').val(diaDiem);
+                $('#loaiCongViecSua').val(loaiCongViec);
+                $('#nganhNgheSua').val(nganhNghe);
+                $('#hanNopSua').val(hanNop);
+
+                $('#suaTinTuyenDungModal').modal('show');
+            });
+
+            $('#btnCapNhatTinTuyenDung').click(function() {
+                var ma = $('#maTinTuyenDungSua').val();
+                var tieuDe = $('#tieuDeSua').val();
+
+                alert('Da cap nhat tin tuyen dung ma ' + ma + ': ' + tieuDe);
+                $('#suaTinTuyenDungModal').modal('hide');
+            });
+
+            // Xem chi tiet
+            $('.btn-xem').click(function() {
+                var ma = $(this).data('ma');
+                alert('Xem chi tiet tin tuyen dung ma ' + ma);
+            });
+
+            // Xoa tin tuyen dung
+            $('.btn-xoa').click(function() {
+                var ma = $(this).data('ma');
+                if (confirm('Ban co chac chan muon xoa tin tuyen dung nay?')) {
+                    alert('Da xoa tin tuyen dung ma ' + ma);
+                    $(this).closest('tr').fadeOut();
+                }
+            });
+        });
+    </script>
+}
+

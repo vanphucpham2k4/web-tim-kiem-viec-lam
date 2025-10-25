@@ -1,0 +1,341 @@
+@model List<Unicareer.Models.TinUngTuyen>
+
+@{
+    ViewData["Title"] = "Quan ly Tin ung tuyen";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h3>Danh sach Tin ung tuyen</h3>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="input-group">
+            <input type="text" class="form-control" id="timKiemInput" placeholder="Tim kiem theo ho ten, email...">
+            <button class="btn btn-outline-secondary" type="button" id="btnTimKiem">
+                <i class="bi bi-search"></i> Tim kiem
+            </button>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <select class="form-select" id="locTrangThai">
+            <option value="">Tat ca trang thai</option>
+            <option value="Dang xem xet">Dang xem xet</option>
+            <option value="Cho phong van">Cho phong van</option>
+            <option value="Da phong van">Da phong van</option>
+            <option value="Tuyen dung">Tuyen dung</option>
+            <option value="Tu choi">Tu choi</option>
+        </select>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="bangTinUngTuyen">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ma</th>
+                                <th>Ho ten</th>
+                                <th>Email / SDT</th>
+                                <th>Vi tri ung tuyen</th>
+                                <th>Cong ty</th>
+                                <th>Trang thai</th>
+                                <th>Ngay ung tuyen</th>
+                                <th>Thao tac</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var tin in Model)
+                            {
+                                string badgeClass = tin.TrangThaiXuLy switch
+                                {
+                                    "Tuyen dung" => "border border-success text-success",
+                                    "Tu choi" => "border border-danger text-danger",
+                                    "Da phong van" => "border border-info text-info",
+                                    "Cho phong van" => "border border-warning text-warning",
+                                    _ => "border border-dark text-dark"
+                                };
+
+                                <tr data-ma="@tin.MaTinUngTuyen" data-trangthai="@tin.TrangThaiXuLy">
+                                    <td>@tin.MaTinUngTuyen</td>
+                                    <td><strong>@tin.HoTen</strong></td>
+                                    <td>
+                                        @tin.Email<br/>
+                                        <small class="text-muted">@tin.SoDienThoai</small>
+                                    </td>
+                                    <td>@tin.ViTriUngTuyen</td>
+                                    <td>@tin.CongTy</td>
+                                    <td>
+                                        <span class="badge @badgeClass">@tin.TrangThaiXuLy</span>
+                                    </td>
+                                    <td>@tin.NgayUngTuyen.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-dark btn-xem" 
+                                                data-ma="@tin.MaTinUngTuyen"
+                                                data-hoten="@tin.HoTen"
+                                                data-email="@tin.Email"
+                                                data-sdt="@tin.SoDienThoai"
+                                                data-vitri="@tin.ViTriUngTuyen"
+                                                data-congty="@tin.CongTy"
+                                                data-trangthai="@tin.TrangThaiXuLy"
+                                                data-linkcv="@tin.LinkCV"
+                                                data-ghichu="@tin.GhiChu"
+                                                data-ngayut="@tin.NgayUngTuyen.ToString("dd/MM/yyyy HH:mm")">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary btn-sua-trangthai" 
+                                                data-ma="@tin.MaTinUngTuyen"
+                                                data-hoten="@tin.HoTen"
+                                                data-trangthai="@tin.TrangThaiXuLy">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary btn-cv" 
+                                                data-linkcv="@tin.LinkCV"
+                                                title="Xem CV">
+                                            <i class="bi bi-file-earmark-pdf"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger btn-xoa" data-ma="@tin.MaTinUngTuyen">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Thong ke -->
+<div class="row mt-4">
+    <div class="col-md-2">
+        <div class="card border">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-2 small">Tong ung tuyen</h6>
+                <h3 class="mb-0">@Model.Count</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-2 small">Dang xem xet</h6>
+                <h3 class="mb-0">@Model.Count(t => t.TrangThaiXuLy == "Dang xem xet")</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-2 small">Cho phong van</h6>
+                <h3 class="mb-0">@Model.Count(t => t.TrangThaiXuLy == "Cho phong van")</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-2 small">Da phong van</h6>
+                <h3 class="mb-0">@Model.Count(t => t.TrangThaiXuLy == "Da phong van")</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-2 small">Tuyen dung</h6>
+                <h3 class="mb-0">@Model.Count(t => t.TrangThaiXuLy == "Tuyen dung")</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-2 small">Tu choi</h6>
+                <h3 class="mb-0">@Model.Count(t => t.TrangThaiXuLy == "Tu choi")</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Xem chi tiet -->
+<div class="modal fade" id="xemChiTietModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chi tiet tin ung tuyen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Ho ten:</strong> <span id="chiTietHoTen"></span></p>
+                        <p><strong>Email:</strong> <span id="chiTietEmail"></span></p>
+                        <p><strong>So dien thoai:</strong> <span id="chiTietSDT"></span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Vi tri ung tuyen:</strong> <span id="chiTietViTri"></span></p>
+                        <p><strong>Cong ty:</strong> <span id="chiTietCongTy"></span></p>
+                        <p><strong>Ngay ung tuyen:</strong> <span id="chiTietNgayUT"></span></p>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <p><strong>Trang thai xu ly:</strong> <span id="chiTietTrangThai" class="badge"></span></p>
+                        <p><strong>Link CV:</strong> <a href="#" id="chiTietLinkCV" target="_blank">Xem CV</a></p>
+                        <p><strong>Ghi chu:</strong></p>
+                        <p id="chiTietGhiChu" class="text-muted"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Dong</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cap nhat trang thai -->
+<div class="modal fade" id="suaTrangThaiModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cap nhat trang thai xu ly</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formSuaTrangThai">
+                    <input type="hidden" id="maTinUngTuyenSua">
+                    <p><strong>Ung vien:</strong> <span id="hoTenSua"></span></p>
+                    <div class="mb-3">
+                        <label class="form-label">Trang thai xu ly</label>
+                        <select class="form-select" id="trangThaiSua">
+                            <option value="Dang xem xet">Dang xem xet</option>
+                            <option value="Cho phong van">Cho phong van</option>
+                            <option value="Da phong van">Da phong van</option>
+                            <option value="Tuyen dung">Tuyen dung</option>
+                            <option value="Tu choi">Tu choi</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Huy</button>
+                <button type="button" class="btn btn-dark" id="btnCapNhatTrangThai">Cap nhat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Tim kiem va loc
+            $('#btnTimKiem, #timKiemInput').on('click keyup', function(e) {
+                if (e.type === 'keyup' && e.keyCode !== 13) return;
+                locDuLieu();
+            });
+
+            $('#locTrangThai').on('change', function() {
+                locDuLieu();
+            });
+
+            function locDuLieu() {
+                var tuKhoa = $('#timKiemInput').val().toLowerCase();
+                var trangThai = $('#locTrangThai').val();
+
+                $('#bangTinUngTuyen tbody tr').each(function() {
+                    var row = $(this);
+                    var hoTen = row.find('td:eq(1)').text().toLowerCase();
+                    var email = row.find('td:eq(2)').text().toLowerCase();
+                    var trangThaiRow = row.data('trangthai');
+                    
+                    var khopTuKhoa = tuKhoa === '' || hoTen.includes(tuKhoa) || email.includes(tuKhoa);
+                    var khopTrangThai = trangThai === '' || trangThaiRow === trangThai;
+                    
+                    if (khopTuKhoa && khopTrangThai) {
+                        row.show();
+                    } else {
+                        row.hide();
+                    }
+                });
+            }
+
+            // Xem chi tiet
+            $('.btn-xem').click(function() {
+                $('#chiTietHoTen').text($(this).data('hoten'));
+                $('#chiTietEmail').text($(this).data('email'));
+                $('#chiTietSDT').text($(this).data('sdt'));
+                $('#chiTietViTri').text($(this).data('vitri'));
+                $('#chiTietCongTy').text($(this).data('congty'));
+                $('#chiTietNgayUT').text($(this).data('ngayut'));
+                $('#chiTietTrangThai').text($(this).data('trangthai'));
+                $('#chiTietLinkCV').attr('href', $(this).data('linkcv'));
+                $('#chiTietGhiChu').text($(this).data('ghichu'));
+
+                $('#xemChiTietModal').modal('show');
+            });
+
+            // Sua trang thai
+            $('.btn-sua-trangthai').click(function() {
+                var ma = $(this).data('ma');
+                var hoTen = $(this).data('hoten');
+                var trangThai = $(this).data('trangthai');
+
+                $('#maTinUngTuyenSua').val(ma);
+                $('#hoTenSua').text(hoTen);
+                $('#trangThaiSua').val(trangThai);
+
+                $('#suaTrangThaiModal').modal('show');
+            });
+
+            $('#btnCapNhatTrangThai').click(function() {
+                var ma = $('#maTinUngTuyenSua').val();
+                var trangThai = $('#trangThaiSua').val();
+
+                alert('Da cap nhat trang thai tin ung tuyen ma ' + ma + ' thanh: ' + trangThai);
+                $('#suaTrangThaiModal').modal('hide');
+                
+                // Cap nhat badge trong bang
+                var row = $('tr[data-ma="' + ma + '"]');
+                row.data('trangthai', trangThai);
+                var badge = row.find('td:eq(5) .badge');
+                badge.text(trangThai);
+                
+                // Cap nhat class cua badge
+                badge.removeClass();
+                badge.addClass('badge');
+                if (trangThai === 'Tuyen dung') badge.addClass('border border-success text-success');
+                else if (trangThai === 'Tu choi') badge.addClass('border border-danger text-danger');
+                else if (trangThai === 'Da phong van') badge.addClass('border border-info text-info');
+                else if (trangThai === 'Cho phong van') badge.addClass('border border-warning text-warning');
+                else badge.addClass('border border-dark text-dark');
+            });
+
+            // Xem CV
+            $('.btn-cv').click(function() {
+                var linkCV = $(this).data('linkcv');
+                window.open(linkCV, '_blank');
+            });
+
+            // Xoa tin ung tuyen
+            $('.btn-xoa').click(function() {
+                var ma = $(this).data('ma');
+                if (confirm('Ban co chac chan muon xoa tin ung tuyen nay?')) {
+                    alert('Da xoa tin ung tuyen ma ' + ma);
+                    $(this).closest('tr').fadeOut();
+                }
+            });
+        });
+    </script>
+}
+

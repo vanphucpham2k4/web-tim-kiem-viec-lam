@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Admin Panel</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Unicareer.styles.css" asp-append-version="true" />
+    <style>
+        body {
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        .admin-top-header {
+            background-color: #212121;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        .admin-top-header .brand {
+            display: flex;
+            align-items: center;
+            color: #ffffff;
+            font-size: 1.25rem;
+            font-weight: 500;
+            text-decoration: none;
+            margin-right: 40px;
+        }
+        .admin-top-header .brand img {
+            height: 24px;
+            margin-right: 8px;
+        }
+        .admin-top-header .search-box {
+            flex: 1;
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+        }
+        .admin-top-header .search-box input {
+            width: 100%;
+            background-color: #121212;
+            border: 1px solid #303030;
+            border-radius: 2px;
+            color: #ffffff;
+            padding: 10px 16px;
+            font-size: 0.875rem;
+        }
+        .admin-top-header .search-box input:focus {
+            outline: none;
+            border-color: #1976d2;
+            background-color: #0f0f0f;
+        }
+        .admin-top-header .search-box input::placeholder {
+            color: #717171;
+        }
+        .search-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: #2d2d2d;
+            border: 1px solid #404040;
+            border-radius: 4px;
+            margin-top: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            z-index: 1001;
+            display: none;
+        }
+        .search-suggestions.show {
+            display: block;
+        }
+        .search-suggestion-item {
+            padding: 12px 16px;
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+        .search-suggestion-item:hover {
+            background-color: #383838;
+            color: #ffffff;
+        }
+        .search-suggestion-item i {
+            font-size: 1.1rem;
+            color: #9e9e9e;
+        }
+        .search-suggestion-item .suggestion-text {
+            flex: 1;
+        }
+        .search-suggestion-item .suggestion-title {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        .search-suggestion-item .suggestion-path {
+            font-size: 0.75rem;
+            color: #9e9e9e;
+            margin-top: 2px;
+        }
+        .search-no-results {
+            padding: 16px;
+            text-align: center;
+            color: #9e9e9e;
+            font-size: 0.875rem;
+        }
+        .admin-top-header .header-icons {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 40px;
+        }
+        .admin-top-header .header-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+            cursor: pointer;
+            font-size: 1.25rem;
+        }
+        .admin-top-header .header-icon:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+        .admin-top-header .user-menu-wrapper {
+            position: relative;
+            margin-left: 8px;
+        }
+        .admin-top-header .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .admin-top-header .user-avatar:hover {
+            transform: scale(1.1);
+        }
+        .user-dropdown {
+            position: absolute;
+            top: calc(100% + 12px);
+            right: 0;
+            width: 280px;
+            background-color: #2d2d2d;
+            border: 1px solid #404040;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            z-index: 1002;
+            display: none;
+            overflow: hidden;
+        }
+        .user-dropdown.show {
+            display: block;
+            animation: dropdownFadeIn 0.2s ease;
+        }
+        @@keyframes dropdownFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .user-dropdown-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .user-avatar-large {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: rgba(255,255,255,0.2);
+            border: 2px solid #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+        .user-info {
+            flex: 1;
+        }
+        .user-name {
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
+        .user-email {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.75rem;
+        }
+        .user-dropdown-divider {
+            height: 1px;
+            background-color: #404040;
+            margin: 8px 0;
+        }
+        .user-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: #e0e0e0;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+        .user-dropdown-item:hover {
+            background-color: #383838;
+            color: #ffffff;
+        }
+        .user-dropdown-item i {
+            font-size: 1.1rem;
+            color: #9e9e9e;
+            width: 20px;
+        }
+        .user-dropdown-item.logout {
+            color: #ff6b6b;
+        }
+        .user-dropdown-item.logout:hover {
+            background-color: rgba(255,107,107,0.1);
+            color: #ff6b6b;
+        }
+        .user-dropdown-item.logout i {
+            color: #ff6b6b;
+        }
+        .admin-sidebar {
+            min-height: calc(100vh - 64px);
+            background: linear-gradient(180deg, #1a1a1a 0%, #2d2d2d 100%);
+            padding: 20px 0;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        .admin-sidebar .nav-link {
+            color: #e0e0e0;
+            padding: 15px 25px;
+            border-left: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .admin-sidebar .nav-link:hover {
+            background-color: rgba(255,255,255,0.1);
+            border-left-color: #ffffff;
+            color: #ffffff;
+        }
+        .admin-sidebar .nav-link.active {
+            background-color: rgba(255,255,255,0.15);
+            border-left-color: #ffffff;
+            color: #ffffff;
+            font-weight: 500;
+        }
+        .admin-sidebar .nav-link.has-submenu {
+            cursor: pointer;
+        }
+        .admin-sidebar .submenu {
+            background-color: rgba(0,0,0,0.2);
+        }
+        .admin-sidebar .submenu .nav-link {
+            padding: 10px 25px 10px 45px;
+            font-size: 0.9rem;
+            color: #bdbdbd;
+        }
+        .admin-sidebar .submenu .nav-link:hover {
+            color: #ffffff;
+        }
+        .admin-header {
+            background-color: #ffffff;
+            color: #2d2d2d;
+            padding: 20px 30px;
+            margin-bottom: 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        }
+        .admin-content {
+            padding: 30px;
+            background-color: #f5f5f5;
+            min-height: calc(100vh - 144px);
+        }
+        .main-wrapper {
+            margin-top: 64px;
+        }
+        .admin-sidebar h4 {
+            color: #ffffff;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+        .admin-sidebar hr {
+            border-color: rgba(255,255,255,0.1);
+            margin: 15px 20px;
+        }
+        .admin-sidebar .bi {
+            margin-right: 8px;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Header -->
+    <div class="admin-top-header">
+        <a href="#" class="brand">
+            <i class="bi bi-grid-3x3-gap-fill"></i>
+            <span class="ms-2">Unicareer Admin</span>
+        </a>
+        
+        <div class="search-box">
+            <input type="text" id="adminSearchInput" placeholder="Tìm kiếm menu trong sidebar..." autocomplete="off">
+            <div class="search-suggestions" id="searchSuggestions"></div>
+        </div>
+        
+        <div class="header-icons">
+            <div class="user-menu-wrapper">
+                <div class="user-avatar" id="userAvatar" title="Admin">
+                    A
+                </div>
+                <div class="user-dropdown" id="userDropdown">
+                    <div class="user-dropdown-header">
+                        <div class="user-avatar-large">A</div>
+                        <div class="user-info">
+                            <div class="user-name">Admin</div>
+                            <div class="user-email">admin@unicareer.com</div>
+                        </div>
+                    </div>
+                    <div class="user-dropdown-divider"></div>
+                    <a href="#" class="user-dropdown-item">
+                        <i class="bi bi-person-circle"></i>
+                        <span>Thông tin tài khoản</span>
+                    </a>
+                    <a href="#" class="user-dropdown-item">
+                        <i class="bi bi-gear"></i>
+                        <span>Cài đặt</span>
+                    </a>
+                    <div class="user-dropdown-divider"></div>
+                    <a href="/Account/Logout" class="user-dropdown-item logout">
+                        <i class="bi bi-box-arrow-right"></i>
+                        <span>Đăng xuất</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid main-wrapper">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 admin-sidebar">
+                <div class="text-center mb-4">
+                    <h4>Admin Panel</h4>
+                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link" asp-area="Admin" asp-controller="Admin" asp-action="Index">
+                        <i class="bi bi-speedometer2"></i> Tổng quan
+                    </a>
+                    <a class="nav-link" asp-area="Admin" asp-controller="Admin" asp-action="Dashboard">
+                        <i class="bi bi-graph-up"></i> Số liệu phân tích
+                    </a>
+                    
+                    <!-- Menu Nguoi dung co submenu -->
+                    <a class="nav-link has-submenu" data-bs-toggle="collapse" href="#menuNguoiDung" role="button" aria-expanded="false">
+                        <i class="bi bi-people"></i> Người dùng
+                        <i class="bi bi-chevron-down float-end"></i>
+                    </a>
+                    <div class="collapse submenu" id="menuNguoiDung">
+                        <nav class="nav flex-column">
+                            <a class="nav-link" asp-area="Admin" asp-controller="Admin" asp-action="UngVien">
+                                <i class="bi bi-person"></i> Ứng viên
+                            </a>
+                            <a class="nav-link" asp-area="Admin" asp-controller="Admin" asp-action="NhaTuyenDung">
+                                <i class="bi bi-building"></i> Nhà tuyển dụng
+                            </a>
+                        </nav>
+                    </div>
+                    
+                    <a class="nav-link" asp-area="Admin" asp-controller="Admin" asp-action="NganhNghe">
+                        <i class="bi bi-briefcase"></i> Quản lý Ngành nghề
+                    </a>
+                    <a class="nav-link" asp-area="Admin" asp-controller="Admin" asp-action="LoaiCongViec">
+                        <i class="bi bi-clock-history"></i> Quản lý Loại công việc
+                    </a>
+                    
+                    <!-- Menu Tuyen dung co submenu -->
+                    <a class="nav-link has-submenu" data-bs-toggle="collapse" href="#menuTuyenDung" role="button" aria-expanded="false">
+                        <i class="bi bi-file-earmark-text"></i> Tuyển dụng
+                        <i class="bi bi-chevron-down float-end"></i>
+                    </a>
+                    <div class="collapse submenu" id="menuTuyenDung">
+                        <nav class="nav flex-column">
+                            <a class="nav-link" asp-area="Admin" asp-controller="Admin" asp-action="TinTuyenDung">
+                                <i class="bi bi-newspaper"></i> Tin tuyển dụng
+                            </a>
+                            <a class="nav-link" asp-area="Admin" asp-controller="Admin" asp-action="TinUngTuyen">
+                                <i class="bi bi-person-check"></i> Tin ứng tuyển
+                            </a>
+                        </nav>
+                    </div>
+                    
+                    <a class="nav-link" asp-area="Admin" asp-controller="Admin" asp-action="Settings">
+                        <i class="bi bi-gear"></i> Cài đặt
+                    </a>
+                    <hr class="bg-light" />
+                    <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
+                        <i class="bi bi-arrow-left"></i> Về trang chủ
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-10 p-0">
+                <div class="admin-header">
+                    <h2>@ViewData["Title"]</h2>
+                </div>
+                <div class="admin-content">
+                    @RenderBody()
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    
+    <script>
+        // Search functionality with dropdown suggestions
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('adminSearchInput');
+            const suggestionsBox = document.getElementById('searchSuggestions');
+            
+            // Define all menu items with their info
+            const menuItems = [
+                { title: 'Tổng quan', icon: 'bi-speedometer2', path: 'Trang chủ', url: '/Admin/Admin/Index' },
+                { title: 'Số liệu phân tích', icon: 'bi-graph-up', path: 'Dashboard', url: '/Admin/Admin/Dashboard' },
+                { title: 'Ứng viên', icon: 'bi-person', path: 'Người dùng > Ứng viên', url: '/Admin/Admin/UngVien' },
+                { title: 'Nhà tuyển dụng', icon: 'bi-building', path: 'Người dùng > Nhà tuyển dụng', url: '/Admin/Admin/NhaTuyenDung' },
+                { title: 'Quản lý Ngành nghề', icon: 'bi-briefcase', path: 'Danh mục', url: '/Admin/Admin/NganhNghe' },
+                { title: 'Quản lý Loại công việc', icon: 'bi-clock-history', path: 'Danh mục', url: '/Admin/Admin/LoaiCongViec' },
+                { title: 'Tin tuyển dụng', icon: 'bi-newspaper', path: 'Tuyển dụng > Tin tuyển dụng', url: '/Admin/Admin/TinTuyenDung' },
+                { title: 'Tin ứng tuyển', icon: 'bi-person-check', path: 'Tuyển dụng > Tin ứng tuyển', url: '/Admin/Admin/TinUngTuyen' },
+                { title: 'Cài đặt', icon: 'bi-gear', path: 'Hệ thống', url: '/Admin/Admin/Settings' }
+            ];
+            
+            // Search input handler
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                
+                if (searchTerm === '') {
+                    suggestionsBox.classList.remove('show');
+                    suggestionsBox.innerHTML = '';
+                    return;
+                }
+                
+                // Filter menu items
+                const results = menuItems.filter(item => 
+                    item.title.toLowerCase().includes(searchTerm) ||
+                    item.path.toLowerCase().includes(searchTerm)
+                );
+                
+                // Display results
+                if (results.length > 0) {
+                    suggestionsBox.innerHTML = results.map(item => `
+                        <a href="${item.url}" class="search-suggestion-item">
+                            <i class="bi ${item.icon}"></i>
+                            <div class="suggestion-text">
+                                <div class="suggestion-title">${item.title}</div>
+                                <div class="suggestion-path">${item.path}</div>
+                            </div>
+                        </a>
+                    `).join('');
+                    suggestionsBox.classList.add('show');
+                } else {
+                    suggestionsBox.innerHTML = '<div class="search-no-results">Không tìm thấy kết quả</div>';
+                    suggestionsBox.classList.add('show');
+                }
+            });
+            
+            // Close suggestions when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+                    suggestionsBox.classList.remove('show');
+                }
+            });
+            
+            // Focus search input on keyboard shortcut (Ctrl+K or Cmd+K)
+            document.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    searchInput.focus();
+                }
+            });
+            
+            // Clear search when Escape is pressed
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    this.value = '';
+                    suggestionsBox.classList.remove('show');
+                    suggestionsBox.innerHTML = '';
+                    this.blur();
+                }
+            });
+            
+            // User dropdown toggle
+            const userAvatar = document.getElementById('userAvatar');
+            const userDropdown = document.getElementById('userDropdown');
+            
+            userAvatar.addEventListener('click', function(e) {
+                e.stopPropagation();
+                userDropdown.classList.toggle('show');
+            });
+            
+            // Close user dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!userAvatar.contains(e.target) && !userDropdown.contains(e.target)) {
+                    userDropdown.classList.remove('show');
+                }
+            });
+            
+            // Close user dropdown when Escape is pressed
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    userDropdown.classList.remove('show');
+                }
+            });
+        });
+    </script>
+    
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
+

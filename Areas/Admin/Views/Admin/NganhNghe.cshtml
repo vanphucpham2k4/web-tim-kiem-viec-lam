@@ -1,0 +1,255 @@
+@model List<Unicareer.Models.NganhNghe>
+
+@{
+    ViewData["Title"] = "Quan ly Nganh nghe";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h3>Danh sach Nganh nghe</h3>
+            <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#themNganhNgheModal">
+                <i class="bi bi-plus-circle"></i> Them nganh nghe
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="input-group">
+            <input type="text" class="form-control" id="timKiemInput" placeholder="Tim kiem theo ten nganh nghe...">
+            <button class="btn btn-outline-secondary" type="button" id="btnTimKiem">
+                <i class="bi bi-search"></i> Tim kiem
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="bangNganhNghe">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ma</th>
+                                <th>Ten nganh nghe</th>
+                                <th>Mo ta</th>
+                                <th>So luong cong viec</th>
+                                <th>Ngay tao</th>
+                                <th>Thao tac</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var nganhNghe in Model)
+                            {
+                                <tr data-ma="@nganhNghe.MaNganhNghe">
+                                    <td>@nganhNghe.MaNganhNghe</td>
+                                    <td><strong>@nganhNghe.TenNganhNghe</strong></td>
+                                    <td>
+                                        <span class="text-muted">
+                                            @(nganhNghe.MoTa.Length > 60 ? nganhNghe.MoTa.Substring(0, 60) + "..." : nganhNghe.MoTa)
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge border border-dark text-dark">@nganhNghe.SoLuongCongViec viec</span>
+                                    </td>
+                                    <td>@nganhNghe.NgayTao.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-dark btn-sua" 
+                                                data-ma="@nganhNghe.MaNganhNghe"
+                                                data-ten="@nganhNghe.TenNganhNghe"
+                                                data-mota="@nganhNghe.MoTa"
+                                                data-soluong="@nganhNghe.SoLuongCongViec">
+                                            <i class="bi bi-pencil"></i> Sua
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger btn-xoa" data-ma="@nganhNghe.MaNganhNghe">
+                                            <i class="bi bi-trash"></i> Xoa
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Thong ke -->
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card border">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-2">Tong nganh nghe</h6>
+                <h2 class="mb-0">@Model.Count</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-2">Tong cong viec</h6>
+                <h2 class="mb-0">@Model.Sum(n => n.SoLuongCongViec)</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border">
+            <div class="card-body">
+                <h6 class="card-title text-muted mb-2">Trung binh cong viec/nganh</h6>
+                <h2 class="mb-0">@((int)Model.Average(n => n.SoLuongCongViec))</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Them nganh nghe -->
+<div class="modal fade" id="themNganhNgheModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Them nganh nghe moi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formThemNganhNghe">
+                    <div class="mb-3">
+                        <label class="form-label">Ten nganh nghe</label>
+                        <input type="text" class="form-control" id="tenNganhNgheMoi" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mo ta</label>
+                        <textarea class="form-control" id="moTaMoi" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">So luong cong viec</label>
+                        <input type="number" class="form-control" id="soLuongCongViecMoi" value="0" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Huy</button>
+                <button type="button" class="btn btn-dark" id="btnLuuNganhNghe">Luu</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Sua nganh nghe -->
+<div class="modal fade" id="suaNganhNgheModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Sua nganh nghe</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formSuaNganhNghe">
+                    <input type="hidden" id="maNganhNgheSua">
+                    <div class="mb-3">
+                        <label class="form-label">Ten nganh nghe</label>
+                        <input type="text" class="form-control" id="tenNganhNgheSua" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mo ta</label>
+                        <textarea class="form-control" id="moTaSua" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">So luong cong viec</label>
+                        <input type="number" class="form-control" id="soLuongCongViecSua" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Huy</button>
+                <button type="button" class="btn btn-dark" id="btnCapNhatNganhNghe">Cap nhat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Tim kiem
+            $('#btnTimKiem, #timKiemInput').on('click keyup', function(e) {
+                if (e.type === 'keyup' && e.keyCode !== 13) return;
+                
+                var tuKhoa = $('#timKiemInput').val().toLowerCase();
+                locDuLieu(tuKhoa);
+            });
+
+            function locDuLieu(tuKhoa) {
+                $('#bangNganhNghe tbody tr').each(function() {
+                    var row = $(this);
+                    var ten = row.find('td:eq(1)').text().toLowerCase();
+                    
+                    if (tuKhoa === '' || ten.includes(tuKhoa)) {
+                        row.show();
+                    } else {
+                        row.hide();
+                    }
+                });
+            }
+
+            // Them nganh nghe
+            $('#btnLuuNganhNghe').click(function() {
+                var tenNganhNghe = $('#tenNganhNgheMoi').val();
+                var moTa = $('#moTaMoi').val();
+                var soLuongCongViec = $('#soLuongCongViecMoi').val();
+
+                if (!tenNganhNghe || !moTa) {
+                    alert('Vui long nhap day du thong tin!');
+                    return;
+                }
+
+                alert('Da them nganh nghe: ' + tenNganhNghe);
+                $('#themNganhNgheModal').modal('hide');
+                $('#formThemNganhNghe')[0].reset();
+                
+                // Trong thuc te, ban se goi API de luu vao database
+            });
+
+            // Sua nganh nghe
+            $('.btn-sua').click(function() {
+                var ma = $(this).data('ma');
+                var ten = $(this).data('ten');
+                var moTa = $(this).data('mota');
+                var soLuong = $(this).data('soluong');
+
+                $('#maNganhNgheSua').val(ma);
+                $('#tenNganhNgheSua').val(ten);
+                $('#moTaSua').val(moTa);
+                $('#soLuongCongViecSua').val(soLuong);
+
+                $('#suaNganhNgheModal').modal('show');
+            });
+
+            $('#btnCapNhatNganhNghe').click(function() {
+                var ma = $('#maNganhNgheSua').val();
+                var ten = $('#tenNganhNgheSua').val();
+
+                alert('Da cap nhat nganh nghe ma ' + ma + ': ' + ten);
+                $('#suaNganhNgheModal').modal('hide');
+                
+                // Trong thuc te, ban se goi API de cap nhat database
+            });
+
+            // Xoa nganh nghe
+            $('.btn-xoa').click(function() {
+                var ma = $(this).data('ma');
+                if (confirm('Ban co chac chan muon xoa nganh nghe nay?')) {
+                    alert('Da xoa nganh nghe ma ' + ma);
+                    $(this).closest('tr').fadeOut();
+                    
+                    // Trong thuc te, ban se goi API de xoa khoi database
+                }
+            });
+        });
+    </script>
+}
+

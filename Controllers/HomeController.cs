@@ -15,7 +15,8 @@ namespace Unicareer.Controllers
 
         public IActionResult Index()
         {
-            return View();
+            var danhSachTinTuyenDung = TinTuyenDung.LayDanhSachTinTuyenDung();
+            return View(danhSachTinTuyenDung);
         }
 
         public IActionResult Privacy()
