@@ -538,15 +538,6 @@
                     <option value="Freelance">Tự do</option>
                 </select>
             </div>
-            <div class="col-md-2">
-                <select class="form-select form-select-sm" id="filterHocVan">
-                    <option value="">Học vấn</option>
-                    <option value="Trung cấp">Trung cấp</option>
-                    <option value="Cao đẳng">Cao đẳng</option>
-                    <option value="Đại học">Đại học</option>
-                    <option value="Sau đại học">Sau đại học</option>
-                </select>
-            </div>
         </div>
     </div>
     
@@ -681,7 +672,7 @@
             });
             
             // Filter functionality
-            $('#filterNganhNghe, #filterCapBac, #filterKinhNghiem, #filterMucLuong, #filterLoaiCongViec, #filterHocVan').on('change', function() {
+            $('#filterNganhNghe, #filterCapBac, #filterKinhNghiem, #filterMucLuong, #filterLoaiCongViec').on('change', function() {
                 filterJobs();
             });
             
