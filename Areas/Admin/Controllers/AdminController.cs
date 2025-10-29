@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Unicareer.Models;
 
 namespace Unicareer.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = $"{SD.Role_Admin}")]
     public class AdminController : Controller
     {
         public IActionResult Index()

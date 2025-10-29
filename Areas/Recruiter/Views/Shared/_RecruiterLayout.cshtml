@@ -1,3 +1,7 @@
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<Unicareer.Models.ApplicationUser> SignInManager
+@inject UserManager<Unicareer.Models.ApplicationUser> UserManager
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -241,6 +245,10 @@
         }
 
         .user-profile {
+            position: relative;
+        }
+
+        .user-profile > a {
             display: flex;
             align-items: center;
             gap: 12px;
@@ -250,8 +258,42 @@
             transition: all 0.3s ease;
         }
 
-        .user-profile:hover {
+        .user-profile > a:hover {
             background: #f5f5f5;
+        }
+
+        .user-profile .dropdown-menu {
+            margin-top: 10px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            border: none;
+        }
+
+        .user-profile .dropdown-item {
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+        }
+
+        .user-profile .dropdown-item:hover {
+            background: #f5f5f5;
+            padding-left: 25px;
+        }
+
+        .user-profile .dropdown-item i {
+            margin-right: 10px;
+            width: 20px;
+        }
+
+        .user-profile .dropdown-item.text-danger:hover {
+            background: #ffe5e5;
+            color: #dc3545 !important;
+        }
+
+        .user-profile form button {
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
         }
 
         .user-avatar {
@@ -426,13 +468,72 @@
                 <span class="notification-badge">5</span>
             </button>
 
-            <div class="user-profile">
-                <div class="user-avatar">FS</div>
-                <div class="user-info">
-                    <div class="user-name">FPT Software</div>
-                    <div class="user-role">Nhà Tuyển Dụng</div>
+            @if (SignInManager.IsSignedIn(User))
+            {
+                var currentUser = await UserManager.GetUserAsync(User);
+                var roles = await UserManager.GetRolesAsync(currentUser);
+                var roleName = roles.FirstOrDefault() ?? "User";
+                
+                // Lấy chữ cái đầu của tên để làm avatar
+                var initials = "NT";
+                if (!string.IsNullOrEmpty(currentUser?.HoTen))
+                {
+                    var nameParts = currentUser.HoTen.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    if (nameParts.Length >= 2)
+                    {
+                        // Lấy chữ cái đầu của họ và tên
+                        initials = $"{nameParts[0][0]}{nameParts[^1][0]}".ToUpper();
+                    }
+                    else if (nameParts.Length == 1)
+                    {
+                        initials = nameParts[0].Substring(0, Math.Min(2, nameParts[0].Length)).ToUpper();
+                    }
+                }
+
+                // Chuyển đổi role sang tiếng Việt
+                var roleDisplay = roleName switch
+                {
+                    "Admin" => "Quản trị viên",
+                    "NhaTuyenDung" => "Nhà tuyển dụng",
+                    "UngVien" => "Ứng viên",
+                    _ => roleName
+                };
+
+                <div class="user-profile dropdown">
+                    <a href="#" class="d-flex align-items-center gap-2" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none;">
+                        <div class="user-avatar">@initials</div>
+                        <div class="user-info">
+                            <div class="user-name">@currentUser?.HoTen</div>
+                            <div class="user-role">@roleDisplay</div>
+                        </div>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-person"></i> Thông tin tài khoản</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-building"></i> Thông tin công ty</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-gear"></i> Cài đặt</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/"><i class="bi bi-house"></i> Về trang chủ</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                <button type="submit" class="dropdown-item text-danger">
+                                    <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
                 </div>
-            </div>
+            }
+            else
+            {
+                <div class="user-profile">
+                    <div class="user-avatar">?</div>
+                    <div class="user-info">
+                        <div class="user-name">Guest</div>
+                        <div class="user-role">Visitor</div>
+                    </div>
+                </div>
+            }
         </div>
     </header>
 

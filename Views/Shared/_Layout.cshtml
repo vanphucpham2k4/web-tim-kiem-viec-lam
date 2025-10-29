@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<Unicareer.Models.ApplicationUser> SignInManager
+@inject UserManager<Unicareer.Models.ApplicationUser> UserManager
+
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
@@ -53,6 +57,23 @@
             color: var(--primary-color);
             background: #fff5eb;
         }
+
+        .top-header .nav-link-recruiter {
+            background: linear-gradient(135deg, #9c27b0 0%, #ba68c8 100%);
+            color: #fff !important;
+            box-shadow: 0 4px 12px rgba(156, 39, 176, 0.3);
+        }
+
+        .top-header .nav-link-recruiter:hover {
+            background: linear-gradient(135deg, #7b1fa2 0%, #9c27b0 100%);
+            color: #fff !important;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(156, 39, 176, 0.4);
+        }
+
+        .top-header .nav-link-recruiter i {
+            font-size: 16px;
+        }
         
         .user-actions a {
             color: #333;
@@ -63,6 +84,31 @@
         
         .user-actions a:hover {
             color: var(--primary-color);
+        }
+
+        .user-actions .admin-link {
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: #fff !important;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+        }
+
+        .user-actions .admin-link:hover {
+            background: linear-gradient(135deg, #ee5a6f 0%, #ff6b6b 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(255, 107, 107, 0.4);
+        }
+
+        .user-actions .admin-link i {
+            font-size: 16px;
         }
         
         .user-dropdown {
@@ -85,6 +131,70 @@
             content: '\25BC';
             font-size: 10px;
             margin-left: 5px;
+        }
+
+        .user-actions .btn {
+            border-radius: 25px;
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 2px solid;
+        }
+
+        .user-actions .btn i {
+            font-size: 16px;
+        }
+
+        /* Nút Đăng nhập - Style outline tím */
+        .user-actions .btn-login {
+            background-color: transparent;
+            border-color: #9c27b0;
+            color: #9c27b0;
+        }
+
+        .user-actions .btn-login:hover {
+            background-color: #f3e5f5;
+            border-color: #9c27b0;
+            color: #9c27b0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(156, 39, 176, 0.3);
+        }
+
+        /* Nút Đăng ký - Style đầy tím */
+        .user-actions .btn-register {
+            background-color: #9c27b0;
+            border-color: #9c27b0;
+            color: #fff;
+        }
+
+        .user-actions .btn-register:hover {
+            background-color: #7b1fa2;
+            border-color: #7b1fa2;
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(156, 39, 176, 0.4);
+        }
+
+        /* Xóa các style cũ */
+        .user-actions .btn-primary,
+        .user-actions .btn-outline-primary {
+            display: none;
+        }
+
+        .dropdown-item button {
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+            color: inherit;
+        }
+
+        .dropdown-item button:hover {
+            background: none;
         }
     </style>
 </head>
@@ -115,25 +225,69 @@
                                 <li class="nav-item">
                                     <a class="nav-link" href="/Home/CongTy">CÔNG TY</a>
                                 </li>
+                                @if (SignInManager.IsSignedIn(User) && User.IsInRole(Unicareer.Models.SD.Role_NhaTuyenDung))
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link nav-link-recruiter" asp-area="Recruiter" asp-controller="Recruiter" asp-action="Index">
+                                            <i class="bi bi-building"></i> QUẢN LÝ TUYỂN DỤNG
+                                        </a>
+                                    </li>
+                                }
                             </ul>
                         </div>
                     </nav>
                     
                     <!-- User Actions -->
                     <div class="user-actions">
-                        <a href="#"><i class="bi bi-building"></i> Quản lý tuyển dụng</a>
-                        <div class="user-dropdown dropdown">
-                            <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Xin chào: Phạm Văn Phúc
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            var currentUser = await UserManager.GetUserAsync(User);
+                            @if (User.IsInRole(Unicareer.Models.SD.Role_Admin))
+                            {
+                                <a asp-area="Admin" asp-controller="Admin" asp-action="Index" class="admin-link">
+                                    <i class="bi bi-speedometer2"></i> Quản trị hệ thống
+                                </a>
+                            }
+                            
+                            <div class="user-dropdown dropdown">
+                                <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-person-circle"></i> Xin chào: @currentUser?.HoTen
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="#"><i class="bi bi-person"></i> Thông tin tài khoản</a></li>
+                                    @if (User.IsInRole(Unicareer.Models.SD.Role_UngVien))
+                                    {
+                                        <li><a class="dropdown-item" href="#"><i class="bi bi-file-text"></i> CV của tôi</a></li>
+                                        <li><a class="dropdown-item" href="#"><i class="bi bi-heart"></i> Việc làm đã lưu</a></li>
+                                        <li><a class="dropdown-item" href="#"><i class="bi bi-clock-history"></i> Lịch sử ứng tuyển</a></li>
+                                    }
+                                    else if (User.IsInRole(Unicareer.Models.SD.Role_NhaTuyenDung))
+                                    {
+                                        <li><a class="dropdown-item" asp-area="Recruiter" asp-controller="Recruiter" asp-action="TinDaDang"><i class="bi bi-file-earmark-text"></i> Tin đã đăng</a></li>
+                                        <li><a class="dropdown-item" asp-area="Recruiter" asp-controller="Recruiter" asp-action="DangTinTuyenDung"><i class="bi bi-plus-circle"></i> Đăng tin mới</a></li>
+                                    }
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                            <button type="submit" class="dropdown-item">
+                                                <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        }
+                        else
+                        {
+                            <a asp-controller="Account" asp-action="Login" class="btn btn-login">
+                                <i class="bi bi-box-arrow-in-right"></i>
+                                <span>Đăng nhập</span>
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="#"><i class="bi bi-person"></i> Thông tin tài khoản</a></li>
-                                <li><a class="dropdown-item" href="#"><i class="bi bi-file-text"></i> CV của tôi</a></li>
-                                <li><a class="dropdown-item" href="#"><i class="bi bi-heart"></i> Việc làm đã lưu</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="#"><i class="bi bi-box-arrow-right"></i> Đăng xuất</a></li>
-                            </ul>
-                        </div>
+                            <a asp-controller="Account" asp-action="Register" class="btn btn-register ms-2">
+                                <i class="bi bi-person-plus"></i>
+                                <span>Đăng ký</span>
+                            </a>
+                        }
                     </div>
                 </div>
             </div>

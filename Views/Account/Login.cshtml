@@ -1,0 +1,140 @@
+@model Unicareer.Models.ViewModels.LoginViewModel
+
+@{
+    ViewData["Title"] = "Đăng nhập";
+}
+
+<style>
+    .auth-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 40px 0;
+    }
+
+    .auth-card {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        border: none;
+    }
+
+    .auth-card .card-body {
+        padding: 50px 40px;
+    }
+
+    .auth-title {
+        color: #333;
+        font-weight: 700;
+        font-size: 28px;
+        margin-bottom: 30px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 8px;
+    }
+
+    .form-control {
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 15px;
+        transition: all 0.3s;
+    }
+
+    .form-control:focus {
+        border-color: #9c27b0;
+        box-shadow: 0 0 0 0.2rem rgba(156, 39, 176, 0.15);
+    }
+
+    .btn-auth {
+        background: linear-gradient(135deg, #9c27b0 0%, #ba68c8 100%);
+        border: none;
+        border-radius: 10px;
+        padding: 14px;
+        font-size: 16px;
+        font-weight: 700;
+        color: #fff;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3);
+    }
+
+    .btn-auth:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(156, 39, 176, 0.4);
+        background: linear-gradient(135deg, #7b1fa2 0%, #9c27b0 100%);
+    }
+
+    .auth-link {
+        color: #9c27b0;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .auth-link:hover {
+        color: #7b1fa2;
+        text-decoration: underline;
+    }
+
+    .form-check-input:checked {
+        background-color: #9c27b0;
+        border-color: #9c27b0;
+    }
+</style>
+
+<div class="auth-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="card auth-card">
+                    <div class="card-body">
+                        <h2 class="text-center auth-title">
+                            <i class="bi bi-box-arrow-in-right text-primary"></i> Đăng nhập
+                        </h2>
+                    
+                    <form asp-action="Login" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        
+                        <input type="hidden" asp-for="ReturnUrl" />
+
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label"></label>
+                            <input asp-for="Email" class="form-control" placeholder="Nhập email" autofocus />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="MatKhau" class="form-label"></label>
+                            <input asp-for="MatKhau" class="form-control" placeholder="Nhập mật khẩu" />
+                            <span asp-validation-for="MatKhau" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input asp-for="GhiNho" class="form-check-input" />
+                            <label asp-for="GhiNho" class="form-check-label"></label>
+                        </div>
+
+                        <div class="d-grid gap-2 mb-3">
+                            <button type="submit" class="btn btn-auth">
+                                <i class="bi bi-box-arrow-in-right"></i> Đăng nhập
+                            </button>
+                        </div>
+
+                        <div class="text-center">
+                            <p class="mb-0">Chưa có tài khoản? <a asp-action="Register" class="auth-link">Đăng ký ngay</a></p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+

@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Unicareer.Models;
 
 namespace Unicareer.Areas.Recruiter.Controllers
 {
     [Area("Recruiter")]
+    [Authorize(Roles = $"{SD.Role_NhaTuyenDung}")]
     public class RecruiterController : Controller
     {
         // GET: Trang chu nha tuyen dung
