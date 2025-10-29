@@ -68,11 +68,11 @@
                                 
                                 <tr data-ma="@tin.MaTinTuyenDung" data-nganh="@tin.NganhNghe" data-loai="@tin.LoaiCongViec">
                                     <td>@tin.MaTinTuyenDung</td>
-                                    <td><strong>@tin.TieuDe</strong></td>
+                                    <td><strong>@tin.TenViecLam</strong></td>
                                     <td>@tin.CongTy</td>
                                     <td>@tin.ViTri</td>
-                                    <td><span class="badge border border-dark text-dark">@tin.MucLuong</span></td>
-                                    <td>@tin.DiaDiem</td>
+                                    <td><span class="badge border border-dark text-dark">@tin.MucLuongThapNhat-@tin.MucLuongCaoNhat trieu</span></td>
+                                    <td>@tin.TinhThanhPho</td>
                                     <td><span class="badge border border-dark text-dark">@tin.LoaiCongViec</span></td>
                                     <td><span class="badge border border-dark text-dark">@tin.SoLuongUngTuyen</span></td>
                                     <td class="@hanNopClass">
@@ -86,11 +86,12 @@
                                         </button>
                                         <button class="btn btn-sm btn-outline-dark btn-sua" 
                                                 data-ma="@tin.MaTinTuyenDung"
-                                                data-tieude="@tin.TieuDe"
+                                                data-tenviec="@tin.TenViecLam"
                                                 data-congty="@tin.CongTy"
                                                 data-vitri="@tin.ViTri"
-                                                data-mucluong="@tin.MucLuong"
-                                                data-diadiem="@tin.DiaDiem"
+                                                data-mucluongthap="@tin.MucLuongThapNhat"
+                                                data-mucluongcao="@tin.MucLuongCaoNhat"
+                                                data-tinhthanh="@tin.TinhThanhPho"
                                                 data-loaicv="@tin.LoaiCongViec"
                                                 data-nganhnghe="@tin.NganhNghe"
                                                 data-hannop="@tin.HanNop.ToString("yyyy-MM-dd")">
@@ -159,8 +160,8 @@
                     <input type="hidden" id="maTinTuyenDungSua">
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Tieu de</label>
-                            <input type="text" class="form-control" id="tieuDeSua" required>
+                            <label class="form-label">Ten viec lam</label>
+                            <input type="text" class="form-control" id="tenViecSua" required>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Cong ty</label>
@@ -173,15 +174,21 @@
                             <input type="text" class="form-control" id="viTriSua" required>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Muc luong</label>
-                            <input type="text" class="form-control" id="mucLuongSua" required>
+                            <label class="form-label">Muc luong thap nhat (trieu)</label>
+                            <input type="number" class="form-control" id="mucLuongThapSua" required>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Dia diem</label>
-                            <input type="text" class="form-control" id="diaDiemSua" required>
+                            <label class="form-label">Muc luong cao nhat (trieu)</label>
+                            <input type="number" class="form-control" id="mucLuongCaoSua" required>
                         </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Tinh/Thanh pho</label>
+                            <input type="text" class="form-control" id="tinhThanhSua" required>
+                        </div>
+                    </div>
+                    <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Loai cong viec</label>
                             <select class="form-select" id="loaiCongViecSua">
@@ -189,15 +196,16 @@
                                 <option value="Part-time">Part-time</option>
                                 <option value="Internship">Internship</option>
                                 <option value="Remote">Remote</option>
+                                <option value="Hybrid">Hybrid</option>
                             </select>
                         </div>
-                    </div>
-                    <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Nganh nghe</label>
                             <input type="text" class="form-control" id="nganhNgheSua" required>
                         </div>
-                        <div class="col-md-6 mb-3">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
                             <label class="form-label">Han nop</label>
                             <input type="date" class="form-control" id="hanNopSua" required>
                         </div>
@@ -252,21 +260,23 @@
             // Sua tin tuyen dung
             $('.btn-sua').click(function() {
                 var ma = $(this).data('ma');
-                var tieuDe = $(this).data('tieude');
+                var tenViec = $(this).data('tenviec');
                 var congTy = $(this).data('congty');
                 var viTri = $(this).data('vitri');
-                var mucLuong = $(this).data('mucluong');
-                var diaDiem = $(this).data('diadiem');
+                var mucLuongThap = $(this).data('mucluongthap');
+                var mucLuongCao = $(this).data('mucluongcao');
+                var tinhThanh = $(this).data('tinhthanh');
                 var loaiCongViec = $(this).data('loaicv');
                 var nganhNghe = $(this).data('nganhnghe');
                 var hanNop = $(this).data('hannop');
 
                 $('#maTinTuyenDungSua').val(ma);
-                $('#tieuDeSua').val(tieuDe);
+                $('#tenViecSua').val(tenViec);
                 $('#congTySua').val(congTy);
                 $('#viTriSua').val(viTri);
-                $('#mucLuongSua').val(mucLuong);
-                $('#diaDiemSua').val(diaDiem);
+                $('#mucLuongThapSua').val(mucLuongThap);
+                $('#mucLuongCaoSua').val(mucLuongCao);
+                $('#tinhThanhSua').val(tinhThanh);
                 $('#loaiCongViecSua').val(loaiCongViec);
                 $('#nganhNgheSua').val(nganhNghe);
                 $('#hanNopSua').val(hanNop);
@@ -276,9 +286,9 @@
 
             $('#btnCapNhatTinTuyenDung').click(function() {
                 var ma = $('#maTinTuyenDungSua').val();
-                var tieuDe = $('#tieuDeSua').val();
+                var tenViec = $('#tenViecSua').val();
 
-                alert('Da cap nhat tin tuyen dung ma ' + ma + ': ' + tieuDe);
+                alert('Da cap nhat tin tuyen dung ma ' + ma + ': ' + tenViec);
                 $('#suaTinTuyenDungModal').modal('hide');
             });
 

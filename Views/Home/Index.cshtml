@@ -1,573 +1,494 @@
-﻿@model List<Unicareer.Models.TinTuyenDung>
-@{
-    ViewData["Title"] = "Viec lam";
+﻿@{
+    ViewData["Title"] = "Unicareer - Nền tảng tìm việc làm cho sinh viên";
 }
 
 <style>
-    .hero-section {
-        background: linear-gradient(135deg, #ff7b00 0%, #ff9933 100%);
-        padding: 60px 0;
-        margin-bottom: 30px;
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --accent-color: #667eea;
+        --accent-dark: #764ba2;
+        --text-primary: #2d3748;
+        --text-secondary: #718096;
     }
     
-    .search-box {
-        background: white;
-        border-radius: 10px;
-        padding: 15px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    body {
+        background: #fff;
     }
     
-    .search-box input {
-        border: 1px solid #ddd;
-        outline: none;
-        padding: 12px 20px;
-        font-size: 15px;
-        border-radius: 5px;
-    }
-    
-    .search-box input:focus {
-        border-color: var(--primary-color);
-        box-shadow: none;
-    }
-    
-    .search-box .input-group-text {
-        border: 1px solid #ddd;
-        border-right: 0;
-        border-radius: 5px 0 0 5px;
-    }
-    
-    .search-box .input-group .form-control {
-        border-radius: 0 5px 5px 0;
-    }
-    
-    .search-box .input-group .form-control:focus {
-        box-shadow: none;
-        border-color: #ddd;
-    }
-    
-    .search-box select {
-        border: 1px solid #ddd;
-        outline: none;
-        padding: 12px 15px;
-        font-size: 15px;
-        border-radius: 5px;
-        background: white;
-        cursor: pointer;
-    }
-    
-    .search-box select:focus {
-        border-color: var(--primary-color);
-        box-shadow: none;
-    }
-    
-    .search-box .form-select:focus {
-        box-shadow: none;
-    }
-    
-    .search-box .btn-search {
-        background: #333;
+    /* Hero Section */
+    .hero-landing {
+        background: var(--primary-gradient);
+        padding: 120px 0 100px;
+        position: relative;
+        overflow: hidden;
         color: white;
-        border: none;
-        padding: 12px 50px;
-        border-radius: 5px;
-        font-weight: 600;
-        text-transform: uppercase;
     }
     
-    .search-box .btn-search:hover {
-        background: #000;
+    .hero-landing::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        opacity: 0.3;
     }
     
-    .filter-bar {
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
-        margin-bottom: 30px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    .hero-content {
+        position: relative;
+        z-index: 1;
     }
     
-    .filter-bar select {
-        border: 1px solid #ddd;
-        padding: 8px 12px;
-        border-radius: 5px;
-        font-size: 14px;
+    .hero-landing h1 {
+        font-size: 56px;
+        font-weight: 800;
+        margin-bottom: 24px;
+        line-height: 1.2;
+        text-shadow: 0 2px 20px rgba(0,0,0,0.1);
     }
     
-    .breadcrumb {
-        background: transparent;
-        padding: 15px 0;
-        margin: 0;
-        font-size: 14px;
-    }
-    
-    .job-card {
-        background: white;
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 15px;
-        transition: all 0.3s;
-        cursor: pointer;
-    }
-    
-    .job-card:hover {
-        border-color: #ff7b00;
-        box-shadow: 0 4px 20px rgba(255,123,0,0.1);
-        transform: translateY(-2px);
-    }
-    
-    .job-logo {
-        width: 60px;
-        height: 60px;
-        background: #f5f5f5;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        color: #ff7b00;
+    .hero-landing p {
         font-size: 20px;
+        margin-bottom: 40px;
+        opacity: 0.95;
+        line-height: 1.6;
     }
     
-    .job-title {
+    .btn-hero {
+        padding: 16px 48px;
         font-size: 18px;
-        font-weight: 600;
-        color: #333;
-        margin-bottom: 8px;
+        font-weight: 700;
+        border-radius: 50px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+        border: none;
     }
     
-    .job-company {
-        color: #666;
-        font-size: 14px;
+    .btn-hero-primary {
+        background: white;
+        color: var(--accent-color);
+    }
+    
+    .btn-hero-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+        color: var(--accent-dark);
+    }
+    
+    .btn-hero-outline {
+        background: transparent;
+        color: white;
+        border: 3px solid white;
+    }
+    
+    .btn-hero-outline:hover {
+        background: white;
+        color: var(--accent-color);
+        transform: translateY(-3px);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+    }
+    
+    .hero-image {
+        position: relative;
+        animation: float 6s ease-in-out infinite;
+    }
+    
+    @@keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-20px); }
+    }
+    
+    /* Stats Section */
+    .stats-section {
+        padding: 80px 0;
+        background: #f7fafc;
+    }
+    
+    .stat-card {
+        text-align: center;
+        padding: 40px 20px;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 12px 40px rgba(102, 126, 234, 0.15);
+        border-color: var(--accent-color);
+    }
+    
+    .stat-number {
+        font-size: 48px;
+        font-weight: 800;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
         margin-bottom: 10px;
     }
     
-    .job-meta {
-        display: flex;
-        gap: 15px;
-        flex-wrap: wrap;
-        font-size: 13px;
-        color: #888;
-    }
-    
-    .job-meta i {
-        color: #ff7b00;
-        margin-right: 5px;
-    }
-    
-    .badge-hot {
-        background: #ff7b00;
-        color: white;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 12px;
+    .stat-label {
+        font-size: 18px;
+        color: var(--text-secondary);
         font-weight: 600;
     }
     
-    .sidebar-section {
+    /* Features Section */
+    .features-section {
+        padding: 100px 0;
         background: white;
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 20px;
     }
     
-    .sidebar-section h5 {
-        font-size: 16px;
-        font-weight: 600;
-        margin-bottom: 15px;
-        color: #333;
+    .section-title {
+        text-align: center;
+        margin-bottom: 70px;
     }
     
-    .location-item {
-        padding: 8px 0;
-        border-bottom: 1px solid #f0f0f0;
-        font-size: 14px;
-        color: #666;
+    .section-title h2 {
+        font-size: 42px;
+        font-weight: 800;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 16px;
     }
     
-    .location-item:last-child {
-        border-bottom: none;
+    .section-title p {
+        font-size: 18px;
+        color: var(--text-secondary);
+        max-width: 600px;
+        margin: 0 auto;
     }
     
-    .location-item:hover {
-        color: #ff7b00;
+    .feature-card {
+        text-align: center;
+        padding: 40px 30px;
+        border-radius: 20px;
+        transition: all 0.3s ease;
+        height: 100%;
     }
     
-    .quick-job-item {
-        display: flex;
-        align-items: start;
-        padding: 12px 0;
-        border-bottom: 1px solid #f0f0f0;
+    .feature-card:hover {
+        background: #f7fafc;
+        transform: translateY(-5px);
     }
     
-    .quick-job-item:last-child {
-        border-bottom: none;
-    }
-    
-    .quick-job-logo {
-        width: 45px;
-        height: 45px;
-        background: #f5f5f5;
-        border-radius: 6px;
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 24px;
+        background: var(--primary-gradient);
+        border-radius: 20px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: bold;
-        color: #ff7b00;
-        font-size: 14px;
-        margin-right: 12px;
-        flex-shrink: 0;
+        font-size: 36px;
+        color: white;
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        transition: all 0.3s ease;
     }
     
-    .quick-job-info h6 {
-        font-size: 14px;
-        font-weight: 600;
-        margin-bottom: 4px;
-        color: #333;
+    .feature-card:hover .feature-icon {
+        transform: scale(1.1) rotate(5deg);
     }
     
-    .quick-job-info p {
-        font-size: 12px;
-        color: #888;
-        margin: 0;
+    .feature-card h4 {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 16px;
     }
     
-    .count-badge {
-        background: #f0f0f0;
-        color: #666;
-        padding: 2px 8px;
-        border-radius: 10px;
-        font-size: 12px;
-        margin-left: auto;
+    .feature-card p {
+        font-size: 16px;
+        color: var(--text-secondary);
+        line-height: 1.7;
     }
     
-    .suggestion-section {
-        background: white;
-        padding: 15px 20px;
-        margin-bottom: 30px;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    /* How It Works Section */
+    .how-it-works {
+        padding: 100px 0;
+        background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
     }
     
-    .suggestion-section strong {
-        color: #333;
-        margin-right: 15px;
-        font-size: 14px;
+    .step-card {
+        text-align: center;
+        position: relative;
+        padding: 40px 30px;
     }
     
-    .suggestion-tag {
-        display: inline-block;
-        padding: 6px 15px;
-        margin: 5px 8px 5px 0;
-        background: #fff;
-        border: 1px solid #ddd;
-        border-radius: 20px;
-        color: #666;
-        text-decoration: none;
-        font-size: 13px;
-        transition: all 0.3s;
+    .step-number {
+        width: 70px;
+        height: 70px;
+        margin: 0 auto 24px;
+        background: var(--secondary-gradient);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        font-weight: 800;
+        color: white;
+        box-shadow: 0 8px 25px rgba(245, 87, 108, 0.3);
+        position: relative;
+        z-index: 1;
     }
     
-    .suggestion-tag:hover {
-        background: #fff5eb;
-        border-color: var(--primary-color);
-        color: var(--primary-color);
+    .step-card h4 {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 12px;
     }
+    
+    .step-card p {
+        font-size: 15px;
+        color: var(--text-secondary);
+        line-height: 1.7;
+    }
+    
+    /* CTA Section */
+    .cta-section {
+        padding: 100px 0;
+        background: var(--primary-gradient);
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .cta-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        opacity: 0.3;
+    }
+    
+    .cta-content {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+    }
+    
+    .cta-section h2 {
+        font-size: 42px;
+        font-weight: 800;
+        margin-bottom: 20px;
+    }
+    
+    .cta-section p {
+        font-size: 20px;
+        margin-bottom: 40px;
+        opacity: 0.95;
+    }
+    
+    /* Animation */
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .animate-fade-in {
+        animation: fadeInUp 0.8s ease backwards;
+    }
+    
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
 </style>
 
-<!-- Hero Section with Search -->
-<div class="hero-section">
-    <div class="container-fluid px-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-10">
-                <div class="search-box">
-                    <form id="searchForm">
-                        <div class="row g-2 align-items-center">
-                            <div class="col-md-5">
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white border-end-0">
-                                        <i class="bi bi-search text-muted"></i>
-                                    </span>
-                                    <input type="text" class="form-control border-start-0" 
-                                           placeholder="Tim kiem viec lam, chuc vu, ky nang, cong ty..."
-                                           id="searchInput">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <select class="form-select" id="searchTinhThanh">
-                                    <option value="">Tinh/Thanh Pho</option>
-                                    <option value="Ha Noi">Ha Noi</option>
-                                    <option value="TP Ho Chi Minh">TP Ho Chi Minh</option>
-                                    <option value="Da Nang">Da Nang</option>
-                                    <option value="Hai Phong">Hai Phong</option>
-                                    <option value="Can Tho">Can Tho</option>
-                                    <option value="Binh Duong">Binh Duong</option>
-                                    <option value="Dong Nai">Dong Nai</option>
-                                    <option value="Bac Ninh">Bac Ninh</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <select class="form-select" id="searchQuanHuyen">
-                                    <option value="">Quan/Huyen</option>
-                                    <option value="Quan 1">Quan 1</option>
-                                    <option value="Quan 3">Quan 3</option>
-                                    <option value="Quan 5">Quan 5</option>
-                                    <option value="Quan 7">Quan 7</option>
-                                    <option value="Quan 10">Quan 10</option>
-                                    <option value="Cau Giay">Cau Giay</option>
-                                    <option value="Dong Da">Dong Da</option>
-                                    <option value="Hai Ba Trung">Hai Ba Trung</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <button type="submit" class="btn btn-search w-100">
-                                    <i class="bi bi-search me-2"></i>TIM KIEM
-                                </button>
-                            </div>
-                        </div>
-                    </form>
+<!-- Hero Section -->
+<div class="hero-landing">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 hero-content">
+                <h1 class="animate-fade-in">Tìm Công Việc Mơ Ước Của Bạn</h1>
+                <p class="animate-fade-in delay-1">Kết nối sinh viên với hàng nghìn cơ hội việc làm từ các doanh nghiệp hàng đầu. Bắt đầu sự nghiệp của bạn ngay hôm nay!</p>
+                <div class="animate-fade-in delay-2">
+                    <a href="/Home/TimViec" class="btn btn-hero btn-hero-primary me-3">
+                        <i class="bi bi-search me-2"></i>Tìm việc ngay
+                    </a>
+                    <a href="#features" class="btn btn-hero btn-hero-outline">
+                        <i class="bi bi-info-circle me-2"></i>Tìm hiểu thêm
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="hero-image animate-fade-in delay-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 400" style="width: 100%; max-width: 500px;">
+                        <rect x="50" y="50" width="400" height="300" rx="20" fill="#ffffff" opacity="0.1"/>
+                        <rect x="70" y="70" width="360" height="40" rx="10" fill="#ffffff" opacity="0.2"/>
+                        <rect x="70" y="130" width="150" height="80" rx="10" fill="#ffffff" opacity="0.15"/>
+                        <rect x="240" y="130" width="190" height="80" rx="10" fill="#ffffff" opacity="0.15"/>
+                        <rect x="70" y="230" width="360" height="100" rx="10" fill="#ffffff" opacity="0.2"/>
+                        <circle cx="100" cy="290" r="20" fill="#ffffff" opacity="0.3"/>
+                        <circle cx="400" cy="290" r="30" fill="#ffffff" opacity="0.25"/>
+                    </svg>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Main Content -->
-<div class="container-fluid px-5">
-    <!-- Filter Bar -->
-    <div class="filter-bar">
-        <div class="row g-3">
-            <div class="col-md-2">
-                <select class="form-select form-select-sm" id="filterNganhNghe">
-                    <option value="">Nganh nghe</option>
-                    <option value="Cong nghe thong tin">Cong nghe thong tin</option>
-                    <option value="Kinh doanh">Kinh doanh</option>
-                    <option value="Ke toan - Tai chinh">Ke toan - Tai chinh</option>
-                    <option value="Thiet ke do hoa">Thiet ke do hoa</option>
-                    <option value="Nhan su">Nhan su</option>
-                    <option value="Truyen thong - Media">Truyen thong - Media</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <select class="form-select form-select-sm" id="filterCapBac">
-                    <option value="">Cap bac</option>
-                    <option value="Intern">Thuc tap sinh</option>
-                    <option value="Junior">Nhan vien</option>
-                    <option value="Senior">Nhan vien cap cao</option>
-                    <option value="Manager">Quan ly</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <select class="form-select form-select-sm" id="filterKinhNghiem">
-                    <option value="">Kinh nghiem</option>
-                    <option value="Khong yeu cau">Khong yeu cau</option>
-                    <option value="Duoi 1 nam">Duoi 1 nam</option>
-                    <option value="1-3 nam">1-3 nam</option>
-                    <option value="Tren 3 nam">Tren 3 nam</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <select class="form-select form-select-sm" id="filterMucLuong">
-                    <option value="">Muc luong</option>
-                    <option value="Duoi 10 trieu">Duoi 10 trieu</option>
-                    <option value="10-15 trieu">10-15 trieu</option>
-                    <option value="15-25 trieu">15-25 trieu</option>
-                    <option value="Tren 25 trieu">Tren 25 trieu</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <select class="form-select form-select-sm" id="filterLoaiCongViec">
-                    <option value="">Loai cong viec</option>
-                    <option value="Full-time">Toan thoi gian</option>
-                    <option value="Part-time">Ban thoi gian</option>
-                    <option value="Internship">Thuc tap</option>
-                    <option value="Freelance">Tu do</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <select class="form-select form-select-sm" id="filterHocVan">
-                    <option value="">Hoc van</option>
-                    <option value="Trung cap">Trung cap</option>
-                    <option value="Cao dang">Cao dang</option>
-                    <option value="Dai hoc">Dai hoc</option>
-                    <option value="Sau dai hoc">Sau dai hoc</option>
-                </select>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Suggestion Section -->
-    <div class="suggestion-section">
-        <strong>Goi Y Tim Kiem:</strong>
-        <a href="#" class="suggestion-tag">Viec lam thuc tap</a>
-        <a href="#" class="suggestion-tag">Viec lam theo truong</a>
-        <a href="#" class="suggestion-tag">Viec lam online</a>
-        <a href="#" class="suggestion-tag">Viec lam thoi vu</a>
-        <a href="#" class="suggestion-tag">Viec lam Full Time</a>
-        <a href="#" class="suggestion-tag">Viec lam moi nhat</a>
-    </div>
-    
-    <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="/">Unicareer</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Viec lam</li>
-        </ol>
-    </nav>
-    
-    <div class="row">
-        <!-- Job List -->
-        <div class="col-lg-8">
-            <h4 class="mb-3 fw-bold">VIEC LAM</h4>
-            <p class="text-muted mb-4">Tuyen dung Viec lam cho cac ung vien co nhu cau. Hang ngan cong viec tu cac nha tuyen dung uy tin co tren Unicareer.vn</p>
-            
-            <div class="mb-3">
-                <strong>Co <span id="jobCount">@Model.Count</span> viec lam duoc tim thay</strong>
-            </div>
-            
-            <div id="jobList">
-                @foreach (var job in Model)
-                {
-                    <div class="job-card" data-nganh="@job.NganhNghe" data-loai="@job.LoaiCongViec" data-luong="@job.MucLuong">
-                        <div class="d-flex">
-                            <div class="job-logo">
-                                @job.CongTy.Substring(0, 1)
-                            </div>
-                            <div class="flex-grow-1 ms-3">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <h5 class="job-title">@job.TieuDe</h5>
-                                        <div class="job-company">
-                                            <i class="bi bi-building"></i> @job.CongTy
-                                        </div>
-                                    </div>
-                                    @if (job.SoLuongUngTuyen > 50)
-                                    {
-                                        <span class="badge-hot">Thoa thuan</span>
-                                    }
-                                </div>
-                                <div class="job-meta">
-                                    <span><i class="bi bi-cash"></i> @job.MucLuong</span>
-                                    <span><i class="bi bi-geo-alt"></i> @job.DiaDiem</span>
-                                    <span><i class="bi bi-clock"></i> @job.LoaiCongViec</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
-        
-        <!-- Sidebar -->
-        <div class="col-lg-4">
-            <!-- Viec lam 2025 -->
-            <div class="sidebar-section">
-                <h5><i class="bi bi-calendar-check me-2"></i>Viec lam 2025</h5>
-                <div>
-                    <a href="#" class="location-item d-block text-decoration-none">Ha Noi</a>
-                    <a href="#" class="location-item d-block text-decoration-none">Ho Chi Minh</a>
-                    <a href="#" class="location-item d-block text-decoration-none">Da Nang</a>
-                    <a href="#" class="location-item d-block text-decoration-none">Hai Phong</a>
-                    <a href="#" class="location-item d-block text-decoration-none">Bac Ninh</a>
-                    <a href="#" class="location-item d-block text-decoration-none">Thai Nguyen</a>
-                    <a href="#" class="location-item d-block text-decoration-none">Hung Yen</a>
+<!-- Stats Section -->
+<div class="stats-section">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="stat-card animate-fade-in">
+                    <div class="stat-number">1000+</div>
+                    <div class="stat-label">Việc làm</div>
                 </div>
             </div>
-            
-            <!-- Viec lam tuyen gap -->
-            <div class="sidebar-section">
-                <h5><i class="bi bi-lightning-charge me-2"></i>Viec lam tuyen gap</h5>
-                <div>
-                    @foreach (var job in Model.OrderByDescending(x => x.SoLuongUngTuyen).Take(5))
-                    {
-                        <div class="quick-job-item">
-                            <div class="quick-job-logo">
-                                @job.CongTy.Substring(0, 1)
-                            </div>
-                            <div class="quick-job-info flex-grow-1">
-                                <h6>@(job.TieuDe.Length > 40 ? job.TieuDe.Substring(0, 40) + "..." : job.TieuDe)</h6>
-                                <p><i class="bi bi-geo-alt-fill"></i> @job.DiaDiem</p>
-                            </div>
-                        </div>
-                    }
+            <div class="col-md-3">
+                <div class="stat-card animate-fade-in delay-1">
+                    <div class="stat-number">500+</div>
+                    <div class="stat-label">Nhà tuyển dụng</div>
                 </div>
             </div>
-            
-            <!-- Nhan vien du toan noi that -->
-            <div class="sidebar-section">
-                <h5><i class="bi bi-star me-2"></i>Nhan Vien Du Toan Noi That</h5>
-                <div class="quick-job-item">
-                    <div class="quick-job-logo">A</div>
-                    <div class="quick-job-info flex-grow-1">
-                        <h6>Nhan Vien Du Toan Noi That</h6>
-                        <p><i class="bi bi-geo-alt-fill"></i> Ho Chi Minh</p>
-                    </div>
+            <div class="col-md-3">
+                <div class="stat-card animate-fade-in delay-2">
+                    <div class="stat-number">5000+</div>
+                    <div class="stat-label">Ứng viên</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card animate-fade-in delay-3">
+                    <div class="stat-number">95%</div>
+                    <div class="stat-label">Tỷ lệ thành công</div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-@section Scripts {
-    <script>
-        $(document).ready(function() {
-            // Search functionality
-            $('#searchForm').on('submit', function(e) {
-                e.preventDefault();
-                filterJobs();
-            });
-            
-            $('#searchInput').on('keyup', function() {
-                filterJobs();
-            });
-            
-            // Filter functionality
-            $('#filterNganhNghe, #filterCapBac, #filterKinhNghiem, #filterMucLuong, #filterLoaiCongViec, #filterHocVan').on('change', function() {
-                filterJobs();
-            });
-            
-            function filterJobs() {
-                var searchText = $('#searchInput').val().toLowerCase();
-                var searchTinhThanh = $('#searchTinhThanh').val().toLowerCase();
-                var searchQuanHuyen = $('#searchQuanHuyen').val().toLowerCase();
-                var nganhNghe = $('#filterNganhNghe').val();
-                var loaiCongViec = $('#filterLoaiCongViec').val();
-                var mucLuong = $('#filterMucLuong').val();
-                
-                var visibleCount = 0;
-                
-                $('.job-card').each(function() {
-                    var card = $(this);
-                    var jobNganh = card.data('nganh') || '';
-                    var jobLoai = card.data('loai') || '';
-                    var jobLuong = card.data('luong') || '';
-                    var jobText = card.text().toLowerCase();
-                    
-                    var matchSearch = searchText === '' || jobText.includes(searchText);
-                    var matchTinhThanh = searchTinhThanh === '' || jobText.includes(searchTinhThanh);
-                    var matchQuanHuyen = searchQuanHuyen === '' || jobText.includes(searchQuanHuyen);
-                    var matchNganh = nganhNghe === '' || jobNganh === nganhNghe;
-                    var matchLoai = loaiCongViec === '' || jobLoai === loaiCongViec;
-                    
-                    // Simple salary range matching
-                    var matchLuong = mucLuong === '' || true; // Simplified for demo
-                    
-                    if (matchSearch && matchTinhThanh && matchQuanHuyen && matchNganh && matchLoai && matchLuong) {
-                        card.show();
-                        visibleCount++;
-                    } else {
-                        card.hide();
-                    }
-                });
-                
-                $('#jobCount').text(visibleCount);
-            }
-            
-            // Listen to location filters in hero section
-            $('#searchTinhThanh, #searchQuanHuyen').on('change', function() {
-                filterJobs();
-            });
-        });
-    </script>
-}
+<!-- Features Section -->
+<div class="features-section" id="features">
+    <div class="container">
+        <div class="section-title">
+            <h2>Tại Sao Chọn Unicareer?</h2>
+            <p>Chúng tôi cung cấp những tính năng tốt nhất để giúp bạn tìm được công việc phù hợp</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-search"></i>
+                    </div>
+                    <h4>Tìm Kiếm Thông Minh</h4>
+                    <p>Hệ thống tìm kiếm thông minh giúp bạn dễ dàng tìm được công việc phù hợp với kỹ năng và sở thích.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <h4>Nhà Tuyển Dụng Uy Tín</h4>
+                    <p>Kết nối với hàng trăm doanh nghiệp hàng đầu đang tìm kiếm những tài năng trẻ như bạn.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-lightning-charge"></i>
+                    </div>
+                    <h4>Ứng Tuyển Nhanh Chóng</h4>
+                    <p>Chỉ cần vài cú click chuột là bạn đã có thể ứng tuyển vào những vị trí công việc yêu thích.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h4>An Toàn & Bảo Mật</h4>
+                    <p>Thông tin của bạn được bảo mật tuyệt đối với công nghệ mã hóa hiện đại nhất.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-bell"></i>
+                    </div>
+                    <h4>Thông Báo Tức Thì</h4>
+                    <p>Nhận thông báo ngay khi có công việc mới phù hợp hoặc nhà tuyển dụng xem hồ sơ của bạn.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-headset"></i>
+                    </div>
+                    <h4>Hỗ Trợ 24/7</h4>
+                    <p>Đội ngũ hỗ trợ của chúng tôi luôn sẵn sàng giúp đỡ bạn mọi lúc, mọi nơi.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<div class="how-it-works">
+    <div class="container">
+        <div class="section-title">
+            <h2>Cách Hoạt Động</h2>
+            <p>Chỉ 3 bước đơn giản để bắt đầu tìm việc làm của bạn</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h4>Tạo Tài Khoản</h4>
+                    <p>Đăng ký tài khoản miễn phí và tạo hồ sơ cá nhân để các nhà tuyển dụng có thể tìm thấy bạn.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h4>Tìm Kiếm Việc Làm</h4>
+                    <p>Duyệt qua hàng nghìn công việc và lọc theo ngành nghề, địa điểm, mức lương phù hợp.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h4>Ứng Tuyển & Nhận Việc</h4>
+                    <p>Nộp đơn ứng tuyển trực tuyến và chờ nhà tuyển dụng liên hệ với bạn.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA Section -->
+<div class="cta-section">
+    <div class="container">
+        <div class="cta-content">
+            <h2>Sẵn Sàng Bắt Đầu Sự Nghiệp Của Bạn?</h2>
+            <p>Hãy tham gia cùng hàng nghìn sinh viên đã tìm được công việc mơ ước qua Unicareer</p>
+            <a href="/Home/TimViec" class="btn btn-hero btn-hero-primary">
+                <i class="bi bi-rocket-takeoff me-2"></i>Khám phá ngay
+            </a>
+        </div>
+    </div>
+</div>

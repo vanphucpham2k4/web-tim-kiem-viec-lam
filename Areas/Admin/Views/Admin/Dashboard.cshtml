@@ -407,8 +407,8 @@
                     </div>
                     <div class="card-body">
                         @{
-                            var topDiaDiem = danhSachTinTuyenDung.GroupBy(t => t.DiaDiem)
-                                .Select(g => new { DiaDiem = g.Key, SoLuong = g.Count() })
+                            var topDiaDiem = danhSachTinTuyenDung.GroupBy(t => t.TinhThanhPho)
+                                .Select(g => new { TinhThanhPho = g.Key, SoLuong = g.Count() })
                                 .OrderByDescending(x => x.SoLuong)
                                 .Take(5);
                         }
@@ -417,7 +417,7 @@
                             var phanTram = (item.SoLuong * 100.0 / tongTinTuyenDung);
                             <div class="mb-3">
                                 <div class="d-flex justify-content-between mb-1">
-                                    <span><i class="bi bi-geo-alt-fill text-primary"></i> @item.DiaDiem</span>
+                                    <span><i class="bi bi-geo-alt-fill text-primary"></i> @item.TinhThanhPho</span>
                                     <strong>@item.SoLuong tin</strong>
                                 </div>
                                 <div class="progress">
@@ -483,9 +483,9 @@
                                         var soNgay = (tin.HanNop - DateTime.Now).Days;
                                         var colorClass = soNgay <= 3 ? "danger" : "warning";
                                         <tr>
-                                            <td>@tin.TieuDe</td>
+                                            <td>@tin.TenViecLam</td>
                                             <td>@tin.CongTy</td>
-                                            <td><i class="bi bi-geo-alt"></i> @tin.DiaDiem</td>
+                                            <td><i class="bi bi-geo-alt"></i> @tin.TinhThanhPho</td>
                                             <td>@tin.HanNop.ToString("dd/MM/yyyy")</td>
                                             <td><span class="badge bg-@colorClass">@soNgay ngay</span></td>
                                             <td><span class="badge bg-info">@tin.SoLuongUngTuyen</span></td>
@@ -660,7 +660,7 @@
                                 <div class="d-flex justify-content-between">
                                     <div>
                                         <i class="bi bi-newspaper text-info"></i>
-                                        <strong>@danhSachTinTuyenDung.OrderByDescending(t => t.NgayDang).First().TieuDe</strong>
+                                        <strong>@danhSachTinTuyenDung.OrderByDescending(t => t.NgayDang).First().TenViecLam</strong>
                                     </div>
                                     <small class="text-muted">@danhSachTinTuyenDung.OrderByDescending(t => t.NgayDang).First().NgayDang.ToString("dd/MM HH:mm")</small>
                                 </div>
