@@ -20,38 +20,328 @@
     var tiLeThanhCong = tongTinUngTuyen > 0 ? (tongUngTuyenThanhCong * 100.0 / tongTinUngTuyen) : 0;
 }
 
-<div class="row mb-4">
-    <div class="col-12">
-        <h3>So lieu phan tich he thong</h3>
-        <p class="text-muted">Cap nhat: @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
+<style>
+    .dashboard-header-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        color: white;
+        animation: slideIn 0.6s ease-out;
+    }
+
+    .dashboard-header-card h3 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .dashboard-header-card p {
+        color: rgba(255,255,255,0.9);
+        font-size: 1rem;
+    }
+
+    .dashboard-stat-card {
+        border-radius: 20px;
+        border: none;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        animation: fadeInUp 0.6s ease-out;
+        margin-bottom: 20px;
+    }
+
+    .dashboard-stat-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+    }
+
+    .dashboard-stat-card.primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .dashboard-stat-card.success {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+
+    .dashboard-stat-card.info {
+        background: linear-gradient(135deg, #3494e6 0%, #ec6ead 100%);
+    }
+
+    .dashboard-stat-card.warning {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .dashboard-stat-card .card-body {
+        padding: 25px;
+    }
+
+    .dashboard-stat-card h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .dashboard-stat-card .card-footer {
+        padding: 12px 25px;
+        font-size: 0.9rem;
+    }
+
+    .modern-data-card {
+        border-radius: 20px;
+        border: none;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+        background: white;
+    }
+
+    .modern-data-card:hover {
+        box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        transform: translateY(-5px);
+    }
+
+    .modern-data-card .card-header {
+        border: none;
+        padding: 20px 25px;
+        font-weight: 600;
+        border-radius: 0;
+    }
+
+    .modern-data-card .card-header h5 {
+        margin: 0;
+        font-size: 1.1rem;
+    }
+
+    .modern-data-card .card-header i {
+        margin-right: 8px;
+    }
+
+    .modern-data-card .card-body {
+        padding: 25px;
+    }
+
+    .modern-tabs {
+        border: none;
+        background: white;
+        padding: 10px;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        margin-bottom: 30px;
+    }
+
+    .modern-tabs .nav-link {
+        border: none;
+        color: #6c757d;
+        font-weight: 500;
+        padding: 12px 20px;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        margin: 0 5px;
+    }
+
+    .modern-tabs .nav-link:hover {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .modern-tabs .nav-link.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .modern-tabs .nav-link i {
+        margin-right: 8px;
+    }
+
+    .stat-box {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .stat-box:hover {
+        transform: scale(1.05);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    .stat-box h3 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .progress-modern {
+        height: 30px;
+        border-radius: 15px;
+        overflow: hidden;
+        background: #e9ecef;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .progress-modern .progress-bar {
+        font-weight: 600;
+        line-height: 30px;
+        border-radius: 15px;
+        background: linear-gradient(90deg, #11998e 0%, #38ef7d 100%);
+        box-shadow: 0 2px 10px rgba(17, 153, 142, 0.3);
+    }
+
+    .activity-item {
+        padding: 15px 0;
+        border-bottom: 1px solid #f0f0f0;
+        transition: all 0.3s ease;
+    }
+
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+
+    .activity-item:hover {
+        background: #f8f9fa;
+        padding-left: 10px;
+        border-radius: 10px;
+    }
+
+    .chart-card {
+        border-radius: 20px;
+        border: none;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        background: white;
+        margin-bottom: 20px;
+    }
+
+    .chart-card .card-header {
+        border: none;
+        padding: 20px 25px;
+        font-weight: 600;
+    }
+
+    .chart-card .card-body {
+        padding: 25px;
+    }
+
+    .modern-table {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .modern-table thead {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .modern-table thead th {
+        border: none;
+        padding: 15px;
+        font-weight: 600;
+    }
+
+    .modern-table tbody tr {
+        transition: all 0.3s ease;
+    }
+
+    .modern-table tbody tr:hover {
+        background: #f8f9fa;
+        transform: scale(1.01);
+    }
+
+    .modern-table tbody td {
+        padding: 15px;
+        vertical-align: middle;
+    }
+
+    .category-item {
+        padding: 12px 0;
+        border-bottom: 1px solid #f0f0f0;
+        transition: all 0.3s ease;
+    }
+
+    .category-item:last-child {
+        border-bottom: none;
+    }
+
+    .category-item:hover {
+        background: linear-gradient(90deg, #f8f9fa 0%, #e9ecef 100%);
+        padding-left: 10px;
+        border-radius: 8px;
+    }
+
+    .category-item .badge {
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+    }
+
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<!-- Page Header -->
+<div class="dashboard-header-card">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h3><i class="bi bi-bar-chart-line-fill"></i> Số liệu phân tích hệ thống</h3>
+            <p class="mb-0"><i class="bi bi-clock"></i> Cập nhật: @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
+        </div>
+        <div>
+            <i class="bi bi-graph-up-arrow" style="font-size: 4rem; opacity: 0.3;"></i>
+        </div>
     </div>
 </div>
 
-<!-- Tabs -->
-<ul class="nav nav-tabs mb-4" id="dashboardTabs" role="tablist">
+<!-- Modern Tabs -->
+<ul class="nav modern-tabs" id="dashboardTabs" role="tablist">
     <li class="nav-item" role="presentation">
         <button class="nav-link active" id="tong-quan-tab" data-bs-toggle="tab" data-bs-target="#tong-quan" type="button">
-            <i class="bi bi-speedometer2"></i> Tong quan
+            <i class="bi bi-speedometer2"></i> Tổng quan
         </button>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="nguoi-dung-tab" data-bs-toggle="tab" data-bs-target="#nguoi-dung" type="button">
-            <i class="bi bi-people"></i> Nguoi dung
+            <i class="bi bi-people"></i> Người dùng
         </button>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="tuyen-dung-tab" data-bs-toggle="tab" data-bs-target="#tuyen-dung" type="button">
-            <i class="bi bi-file-earmark-text"></i> Tuyen dung
+            <i class="bi bi-file-earmark-text"></i> Tuyển dụng
         </button>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="danh-muc-tab" data-bs-toggle="tab" data-bs-target="#danh-muc" type="button">
-            <i class="bi bi-list-ul"></i> Danh muc
+            <i class="bi bi-list-ul"></i> Danh mục
         </button>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="he-thong-tab" data-bs-toggle="tab" data-bs-target="#he-thong" type="button">
-            <i class="bi bi-gear"></i> He thong
+            <i class="bi bi-gear"></i> Hệ thống
         </button>
     </li>
 </ul>
@@ -64,11 +354,11 @@
         <!-- Cards thong ke tong quan -->
         <div class="row mb-4">
             <div class="col-md-3">
-                <div class="card text-white bg-primary">
+                <div class="card dashboard-stat-card primary text-white">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <h6 class="card-title mb-0">Ung vien</h6>
+                                <h6 class="card-title mb-0">Ứng viên</h6>
                                 <h2 class="mt-2 mb-0">@tongUngVien</h2>
                             </div>
                             <div>
@@ -76,17 +366,17 @@
                             </div>
                         </div>
                     </div>
-                    <div class="card-footer bg-transparent border-light">
-                        <small>Dang ky tren he thong</small>
+                    <div class="card-footer bg-transparent border-0">
+                        <small><i class="bi bi-check-circle"></i> Đăng ký trên hệ thống</small>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card text-white bg-success">
+                <div class="card dashboard-stat-card success text-white">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <h6 class="card-title mb-0">Nha tuyen dung</h6>
+                                <h6 class="card-title mb-0">Nhà tuyển dụng</h6>
                                 <h2 class="mt-2 mb-0">@tongNhaTuyenDung</h2>
                             </div>
                             <div>
@@ -94,17 +384,17 @@
                             </div>
                         </div>
                     </div>
-                    <div class="card-footer bg-transparent border-light">
-                        <small>Cong ty dang ky</small>
+                    <div class="card-footer bg-transparent border-0">
+                        <small><i class="bi bi-briefcase"></i> Công ty đăng ký</small>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card text-white bg-info">
+                <div class="card dashboard-stat-card info text-white">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <h6 class="card-title mb-0">Tin tuyen dung</h6>
+                                <h6 class="card-title mb-0">Tin tuyển dụng</h6>
                                 <h2 class="mt-2 mb-0">@tongTinTuyenDung</h2>
                             </div>
                             <div>
@@ -112,17 +402,17 @@
                             </div>
                         </div>
                     </div>
-                    <div class="card-footer bg-transparent border-light">
-                        <small>Dang hoat dong</small>
+                    <div class="card-footer bg-transparent border-0">
+                        <small><i class="bi bi-activity"></i> Đang hoạt động</small>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card text-white bg-warning">
+                <div class="card dashboard-stat-card warning text-white">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <h6 class="card-title mb-0">Tin ung tuyen</h6>
+                                <h6 class="card-title mb-0">Tin ứng tuyển</h6>
                                 <h2 class="mt-2 mb-0">@tongTinUngTuyen</h2>
                             </div>
                             <div>
@@ -130,8 +420,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="card-footer bg-transparent border-light">
-                        <small>Da nhan duoc</small>
+                    <div class="card-footer bg-transparent border-0">
+                        <small><i class="bi bi-inbox"></i> Đã nhận được</small>
                     </div>
                 </div>
             </div>
@@ -140,18 +430,18 @@
         <!-- Thong ke nhanh -->
         <div class="row mb-4">
             <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0"><i class="bi bi-graph-up"></i> Ty le tuyen dung</h5>
+                <div class="modern-data-card">
+                    <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                        <h5 class="mb-0"><i class="bi bi-graph-up"></i> Tỷ lệ tuyển dụng</h5>
                     </div>
                     <div class="card-body">
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <div class="d-flex justify-content-between mb-2">
-                                <span>Tuyen dung thanh cong</span>
-                                <strong>@tongUngTuyenThanhCong / @tongTinUngTuyen</strong>
+                                <span style="font-weight: 600;">Tuyển dụng thành công</span>
+                                <strong style="color: #667eea;">@tongUngTuyenThanhCong / @tongTinUngTuyen</strong>
                             </div>
-                            <div class="progress" style="height: 25px;">
-                                <div class="progress-bar bg-success" role="progressbar" style="width: @tiLeThanhCong%" aria-valuenow="@tiLeThanhCong" aria-valuemin="0" aria-valuemax="100">
+                            <div class="progress-modern">
+                                <div class="progress-bar" role="progressbar" style="width: @tiLeThanhCong%" aria-valuenow="@tiLeThanhCong" aria-valuemin="0" aria-valuemax="100">
                                     @tiLeThanhCong.ToString("F1")%
                                 </div>
                             </div>
@@ -159,41 +449,45 @@
                         <hr/>
                         <div class="row text-center">
                             <div class="col-4">
-                                <h4 class="text-success">@danhSachTinUngTuyen.Count(t => t.TrangThaiXuLy == "Tuyen dung")</h4>
-                                <small>Tuyen dung</small>
+                                <div class="stat-box" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white;">
+                                    <h3 class="mb-1">@danhSachTinUngTuyen.Count(t => t.TrangThaiXuLy == "Tuyen dung")</h3>
+                                    <small>Tuyển dụng</small>
+                                </div>
                             </div>
                             <div class="col-4">
-                                <h4 class="text-warning">@danhSachTinUngTuyen.Count(t => t.TrangThaiXuLy == "Cho phong van")</h4>
-                                <small>Cho PV</small>
+                                <div class="stat-box" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+                                    <h3 class="mb-1">@danhSachTinUngTuyen.Count(t => t.TrangThaiXuLy == "Cho phong van")</h3>
+                                    <small>Chờ PV</small>
+                                </div>
                             </div>
                             <div class="col-4">
-                                <h4 class="text-danger">@danhSachTinUngTuyen.Count(t => t.TrangThaiXuLy == "Tu choi")</h4>
-                                <small>Tu choi</small>
+                                <div class="stat-box" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
+                                    <h3 class="mb-1">@danhSachTinUngTuyen.Count(t => t.TrangThaiXuLy == "Tu choi")</h3>
+                                    <small>Từ chối</small>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0"><i class="bi bi-activity"></i> Hoat dong gan day</h5>
+                <div class="modern-data-card">
+                    <div class="card-header" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white;">
+                        <h5 class="mb-0"><i class="bi bi-activity"></i> Hoạt động gần đây</h5>
                     </div>
                     <div class="card-body">
-                        <div class="list-group list-group-flush">
-                            @foreach (var tinUT in danhSachTinUngTuyen.OrderByDescending(t => t.NgayUngTuyen).Take(5))
-                            {
-                                <div class="list-group-item px-0">
-                                    <div class="d-flex justify-content-between">
-                                        <div>
-                                            <strong>@tinUT.HoTen</strong> ung tuyen
-                                            <small class="text-muted">@tinUT.ViTriUngTuyen</small>
-                                        </div>
-                                        <small class="text-muted">@tinUT.NgayUngTuyen.ToString("dd/MM HH:mm")</small>
+                        @foreach (var tinUT in danhSachTinUngTuyen.OrderByDescending(t => t.NgayUngTuyen).Take(5))
+                        {
+                            <div class="activity-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong style="color: #667eea;">@tinUT.HoTen</strong> ứng tuyển
+                                        <small class="text-muted d-block">@tinUT.ViTriUngTuyen</small>
                                     </div>
+                                    <small class="text-muted"><i class="bi bi-clock"></i> @tinUT.NgayUngTuyen.ToString("dd/MM HH:mm")</small>
                                 </div>
-                            }
-                        </div>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
@@ -202,19 +496,19 @@
         <!-- Bieu do duong -->
         <div class="row">
             <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0"><i class="bi bi-graph-up-arrow"></i> Xu huong dang ky nguoi dung</h5>
+                <div class="chart-card">
+                    <div class="card-header" style="background: linear-gradient(135deg, #3494e6 0%, #ec6ead 100%); color: white;">
+                        <h5 class="mb-0"><i class="bi bi-graph-up-arrow"></i> Xu hướng đăng ký người dùng</h5>
                     </div>
                     <div class="card-body">
                         <canvas id="userTrendChart" height="250"></canvas>
                     </div>
                 </div>
             </div>
-    <div class="col-md-6">
-        <div class="card">
-                    <div class="card-header bg-warning text-dark">
-                        <h5 class="mb-0"><i class="bi bi-graph-up-arrow"></i> Xu huong ung tuyen</h5>
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <div class="card-header" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+                        <h5 class="mb-0"><i class="bi bi-graph-up-arrow"></i> Xu hướng ứng tuyển</h5>
                     </div>
                     <div class="card-body">
                         <canvas id="applicationTrendChart" height="250"></canvas>
@@ -228,76 +522,74 @@
     <div class="tab-pane fade" id="nguoi-dung" role="tabpanel">
         <div class="row mb-4">
             <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">Thong ke Ung vien</h5>
+                <div class="modern-data-card">
+                    <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                        <h5 class="mb-0"><i class="bi bi-person-badge"></i> Thống kê Ứng viên</h5>
                     </div>
                     <div class="card-body">
-                        <table class="table table-sm">
+                        <table class="table table-sm table-borderless">
                             <tr>
-                                <td>Tong ung vien:</td>
-                                <td><strong>@danhSachUngVien.Count</strong></td>
+                                <td><i class="bi bi-people-fill text-primary"></i> Tổng ứng viên:</td>
+                                <td><strong style="color: #667eea;">@danhSachUngVien.Count</strong></td>
                             </tr>
                             <tr>
-                                <td>Ung vien IT:</td>
-                                <td><strong>@danhSachUngVien.Count(u => u.NganhNghe == "Cong nghe thong tin")</strong></td>
+                                <td><i class="bi bi-code-slash text-info"></i> Ứng viên IT:</td>
+                                <td><strong style="color: #667eea;">@danhSachUngVien.Count(u => u.NganhNghe == "Cong nghe thong tin")</strong></td>
                             </tr>
                             <tr>
-                                <td>Ung vien Kinh doanh:</td>
-                                <td><strong>@danhSachUngVien.Count(u => u.NganhNghe == "Kinh doanh")</strong></td>
+                                <td><i class="bi bi-briefcase-fill text-success"></i> Ứng viên Kinh doanh:</td>
+                                <td><strong style="color: #667eea;">@danhSachUngVien.Count(u => u.NganhNghe == "Kinh doanh")</strong></td>
                             </tr>
                             <tr>
-                                <td>TB ung tuyen/nguoi:</td>
-                                <td><strong>@((int)danhSachUngVien.Average(u => u.SoLanUngTuyen))</strong></td>
+                                <td><i class="bi bi-graph-up text-warning"></i> TB ứng tuyển/người:</td>
+                                <td><strong style="color: #667eea;">@((int)danhSachUngVien.Average(u => u.SoLanUngTuyen))</strong></td>
                             </tr>
                         </table>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">Thong ke NTD</h5>
+                <div class="modern-data-card">
+                    <div class="card-header" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white;">
+                        <h5 class="mb-0"><i class="bi bi-building"></i> Thống kê NTD</h5>
                     </div>
                     <div class="card-body">
-                        <table class="table table-sm">
+                        <table class="table table-sm table-borderless">
                             <tr>
-                                <td>Tong cong ty:</td>
-                                <td><strong>@danhSachNhaTuyenDung.Count</strong></td>
+                                <td><i class="bi bi-building-fill text-success"></i> Tổng công ty:</td>
+                                <td><strong style="color: #11998e;">@danhSachNhaTuyenDung.Count</strong></td>
                             </tr>
                             <tr>
-                                <td>Cong ty IT:</td>
-                                <td><strong>@danhSachNhaTuyenDung.Count(n => n.LinhVuc.Contains("Cong nghe"))</strong></td>
+                                <td><i class="bi bi-code-square text-info"></i> Công ty IT:</td>
+                                <td><strong style="color: #11998e;">@danhSachNhaTuyenDung.Count(n => n.LinhVuc.Contains("Cong nghe"))</strong></td>
                             </tr>
                             <tr>
-                                <td>Tong tin dang:</td>
-                                <td><strong>@danhSachNhaTuyenDung.Sum(n => n.SoTinDaDang)</strong></td>
+                                <td><i class="bi bi-file-earmark-text text-primary"></i> Tổng tin đăng:</td>
+                                <td><strong style="color: #11998e;">@danhSachNhaTuyenDung.Sum(n => n.SoTinDaDang)</strong></td>
                             </tr>
                             <tr>
-                                <td>TB tin/cong ty:</td>
-                                <td><strong>@((int)danhSachNhaTuyenDung.Average(n => n.SoTinDaDang))</strong></td>
+                                <td><i class="bi bi-graph-up-arrow text-warning"></i> TB tin/công ty:</td>
+                                <td><strong style="color: #11998e;">@((int)danhSachNhaTuyenDung.Average(n => n.SoTinDaDang))</strong></td>
                             </tr>
                         </table>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0">Top NTD hoat dong</h5>
+                <div class="modern-data-card">
+                    <div class="card-header" style="background: linear-gradient(135deg, #3494e6 0%, #ec6ead 100%); color: white;">
+                        <h5 class="mb-0"><i class="bi bi-trophy"></i> Top NTD hoạt động</h5>
                     </div>
                     <div class="card-body">
-                        <div class="list-group list-group-flush">
-                            @foreach (var ntd in danhSachNhaTuyenDung.OrderByDescending(n => n.SoTinDaDang).Take(5))
-                            {
-                                <div class="list-group-item px-0 py-2">
-                                    <div class="d-flex justify-content-between">
-                                        <small>@ntd.TenCongTy</small>
-                                        <span class="badge bg-primary">@ntd.SoTinDaDang tin</span>
-                                    </div>
+                        @foreach (var ntd in danhSachNhaTuyenDung.OrderByDescending(n => n.SoTinDaDang).Take(5))
+                        {
+                            <div class="category-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span><i class="bi bi-building-fill" style="color: #3494e6;"></i> @ntd.TenCongTy</span>
+                                    <span class="badge" style="background: linear-gradient(135deg, #3494e6 0%, #ec6ead 100%);">@ntd.SoTinDaDang tin</span>
                                 </div>
-                            }
-                        </div>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
@@ -306,11 +598,11 @@
         <!-- Bieu do duong cho Nguoi dung -->
         <div class="row">
             <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0"><i class="bi bi-graph-up-arrow"></i> Xu huong dang ky nguoi dung theo thang</h5>
-            </div>
-            <div class="card-body">
+                <div class="chart-card">
+                    <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                        <h5 class="mb-0"><i class="bi bi-graph-up-arrow"></i> Xu hướng đăng ký người dùng theo tháng</h5>
+                    </div>
+                    <div class="card-body">
                         <canvas id="userRegistrationChart" height="80"></canvas>
                     </div>
                 </div>
@@ -323,9 +615,9 @@
         <!-- Bieu do duong cho Tuyen dung -->
         <div class="row mb-4">
             <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0"><i class="bi bi-graph-up-arrow"></i> Xu huong tuyen dung va ung tuyen theo thang</h5>
+                <div class="chart-card">
+                    <div class="card-header" style="background: linear-gradient(135deg, #3494e6 0%, #ec6ead 100%); color: white;">
+                        <h5 class="mb-0"><i class="bi bi-graph-up-arrow"></i> Xu hướng tuyển dụng và ứng tuyển theo tháng</h5>
                     </div>
                     <div class="card-body">
                         <canvas id="recruitmentTrendChart" height="80"></canvas>
@@ -336,9 +628,9 @@
         
         <div class="row mb-4">
             <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0">Tin tuyen dung theo nganh</h5>
+                <div class="modern-data-card">
+                    <div class="card-header" style="background: linear-gradient(135deg, #3494e6 0%, #ec6ead 100%); color: white;">
+                        <h5 class="mb-0"><i class="bi bi-briefcase"></i> Tin tuyển dụng theo ngành</h5>
                     </div>
                     <div class="card-body">
                         @{
@@ -351,12 +643,12 @@
                         {
                             var phanTram = (item.SoLuong * 100.0 / tongTinTuyenDung);
                             <div class="mb-3">
-                                <div class="d-flex justify-content-between mb-1">
-                                    <span>@item.NganhNghe</span>
-                                    <strong>@item.SoLuong tin</strong>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span style="font-weight: 600;"><i class="bi bi-tag-fill" style="color: #3494e6;"></i> @item.NganhNghe</span>
+                                    <strong style="color: #3494e6;">@item.SoLuong tin</strong>
                                 </div>
-                                <div class="progress">
-                                    <div class="progress-bar bg-info" style="width: @phanTram%">@phanTram.ToString("F0")%</div>
+                                <div class="progress-modern">
+                                    <div class="progress-bar" style="width: @phanTram%; background: linear-gradient(90deg, #3494e6 0%, #ec6ead 100%);">@phanTram.ToString("F0")%</div>
                                 </div>
                             </div>
                         }
@@ -364,9 +656,9 @@
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-warning text-dark">
-                        <h5 class="mb-0">Trang thai ung tuyen</h5>
+                <div class="modern-data-card">
+                    <div class="card-header" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+                        <h5 class="mb-0"><i class="bi bi-clipboard-check"></i> Trạng thái ứng tuyển</h5>
                     </div>
                     <div class="card-body">
                         @{
@@ -377,20 +669,20 @@
                         @foreach (var item in trangThaiGroups)
                         {
                             var phanTram = (item.SoLuong * 100.0 / tongTinUngTuyen);
-                            var colorClass = item.TrangThai switch {
-                                "Tuyen dung" => "success",
-                                "Tu choi" => "danger",
-                                "Cho phong van" => "warning",
-                                "Da phong van" => "info",
-                                _ => "secondary"
+                            var gradientColor = item.TrangThai switch {
+                                "Tuyen dung" => "background: linear-gradient(90deg, #11998e 0%, #38ef7d 100%);",
+                                "Tu choi" => "background: linear-gradient(90deg, #fa709a 0%, #fee140 100%);",
+                                "Cho phong van" => "background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);",
+                                "Da phong van" => "background: linear-gradient(90deg, #3494e6 0%, #ec6ead 100%);",
+                                _ => "background: linear-gradient(90deg, #9ca3af 0%, #6b7280 100%);"
                             };
                             <div class="mb-3">
-                                <div class="d-flex justify-content-between mb-1">
-                                    <span>@item.TrangThai</span>
-                                    <strong>@item.SoLuong tin</strong>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span style="font-weight: 600;"><i class="bi bi-check-circle"></i> @item.TrangThai</span>
+                                    <strong style="color: #f5576c;">@item.SoLuong tin</strong>
                                 </div>
-                                <div class="progress">
-                                    <div class="progress-bar bg-@colorClass" style="width: @phanTram%">@phanTram.ToString("F0")%</div>
+                                <div class="progress-modern">
+                                    <div class="progress-bar" style="width: @phanTram%; @gradientColor">@phanTram.ToString("F0")%</div>
                                 </div>
                             </div>
                         }
@@ -401,9 +693,9 @@
         
         <div class="row mb-4">
             <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0"><i class="bi bi-geo-alt"></i> Top khu vuc tin tuyen dung</h5>
+                <div class="modern-data-card">
+                    <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                        <h5 class="mb-0"><i class="bi bi-geo-alt"></i> Top khu vực tin tuyển dụng</h5>
                     </div>
                     <div class="card-body">
                         @{
@@ -416,22 +708,22 @@
                         {
                             var phanTram = (item.SoLuong * 100.0 / tongTinTuyenDung);
                             <div class="mb-3">
-                                <div class="d-flex justify-content-between mb-1">
-                                    <span><i class="bi bi-geo-alt-fill text-primary"></i> @item.TinhThanhPho</span>
-                                    <strong>@item.SoLuong tin</strong>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span style="font-weight: 600;"><i class="bi bi-geo-alt-fill" style="color: #667eea;"></i> @item.TinhThanhPho</span>
+                                    <strong style="color: #667eea;">@item.SoLuong tin</strong>
                                 </div>
-                                <div class="progress">
-                                    <div class="progress-bar bg-primary" style="width: @phanTram%">@phanTram.ToString("F0")%</div>
+                                <div class="progress-modern">
+                                    <div class="progress-bar" style="width: @phanTram%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);">@phanTram.ToString("F0")%</div>
                                 </div>
                             </div>
                         }
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="card">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0"><i class="bi bi-geo-alt"></i> Top khu vuc ung vien</h5>
+            <div class="col-md-6">
+                <div class="modern-data-card">
+                    <div class="card-header" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white;">
+                        <h5 class="mb-0"><i class="bi bi-geo-alt"></i> Top khu vực ứng viên</h5>
                     </div>
                     <div class="card-body">
                         @{
@@ -444,12 +736,12 @@
                         {
                             var phanTram = (item.SoLuong * 100.0 / tongUngVien);
                             <div class="mb-3">
-                                <div class="d-flex justify-content-between mb-1">
-                                    <span><i class="bi bi-geo-alt-fill text-success"></i> @item.DiaChi</span>
-                                    <strong>@item.SoLuong UV</strong>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span style="font-weight: 600;"><i class="bi bi-geo-alt-fill" style="color: #11998e;"></i> @item.DiaChi</span>
+                                    <strong style="color: #11998e;">@item.SoLuong UV</strong>
                                 </div>
-                                <div class="progress">
-                                    <div class="progress-bar bg-success" style="width: @phanTram%">@phanTram.ToString("F0")%</div>
+                                <div class="progress-modern">
+                                    <div class="progress-bar" style="width: @phanTram%; background: linear-gradient(90deg, #11998e 0%, #38ef7d 100%);">@phanTram.ToString("F0")%</div>
                                 </div>
                             </div>
                         }
@@ -460,39 +752,39 @@
         
         <div class="row">
             <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header bg-danger text-white">
-                        <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Tin tuyen dung sap het han</h5>
-            </div>
-            <div class="card-body">
+                <div class="modern-data-card">
+                    <div class="card-header" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
+                        <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Tin tuyển dụng sắp hết hạn</h5>
+                    </div>
+                    <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-hover">
-                    <thead>
-                        <tr>
-                                        <th>Tieu de</th>
-                                        <th>Cong ty</th>
-                                        <th>Dia diem</th>
-                                        <th>Han nop</th>
-                                        <th>So ngay con lai</th>
-                                        <th>So ung tuyen</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                            <table class="modern-table table">
+                                <thead>
+                                    <tr>
+                                        <th>Tiêu đề</th>
+                                        <th>Công ty</th>
+                                        <th>Địa điểm</th>
+                                        <th>Hạn nộp</th>
+                                        <th>Số ngày còn lại</th>
+                                        <th>Số ứng tuyển</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
                                     @foreach (var tin in danhSachTinTuyenDung.Where(t => (t.HanNop - DateTime.Now).Days <= 7).OrderBy(t => t.HanNop).Take(5))
                                     {
                                         var soNgay = (tin.HanNop - DateTime.Now).Days;
-                                        var colorClass = soNgay <= 3 ? "danger" : "warning";
+                                        var gradientBadge = soNgay <= 3 ? "background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);" : "background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);";
                                         <tr>
-                                            <td>@tin.TenViecLam</td>
+                                            <td><strong>@tin.TenViecLam</strong></td>
                                             <td>@tin.CongTy</td>
-                                            <td><i class="bi bi-geo-alt"></i> @tin.TinhThanhPho</td>
+                                            <td><i class="bi bi-geo-alt" style="color: #667eea;"></i> @tin.TinhThanhPho</td>
                                             <td>@tin.HanNop.ToString("dd/MM/yyyy")</td>
-                                            <td><span class="badge bg-@colorClass">@soNgay ngay</span></td>
-                                            <td><span class="badge bg-info">@tin.SoLuongUngTuyen</span></td>
-                        </tr>
+                                            <td><span class="badge" style="@gradientBadge color: white;">@soNgay ngày</span></td>
+                                            <td><span class="badge" style="background: linear-gradient(135deg, #3494e6 0%, #ec6ead 100%); color: white;">@tin.SoLuongUngTuyen</span></td>
+                                        </tr>
                                     }
-                    </tbody>
-                </table>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -505,9 +797,9 @@
         <!-- Bieu do duong cho Danh muc -->
         <div class="row mb-4">
             <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0"><i class="bi bi-graph-up-arrow"></i> Xu huong phat trien danh muc theo thang</h5>
+                <div class="chart-card">
+                    <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                        <h5 class="mb-0"><i class="bi bi-graph-up-arrow"></i> Xu hướng phát triển danh mục theo tháng</h5>
                     </div>
                     <div class="card-body">
                         <canvas id="categoryGrowthChart" height="80"></canvas>
@@ -518,22 +810,22 @@
         
         <div class="row">
             <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">Nganh nghe</h5>
+                <div class="modern-data-card">
+                    <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                        <h5 class="mb-0"><i class="bi bi-bookmark-star"></i> Ngành nghề</h5>
                     </div>
                     <div class="card-body">
                         <div class="row mb-3">
                             <div class="col-6">
-                                <div class="text-center p-3 bg-light rounded">
-                                    <h3 class="text-primary">@danhSachNganhNghe.Count</h3>
-                                    <small>Tong nganh</small>
+                                <div class="stat-box" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                                    <h3>@danhSachNganhNghe.Count</h3>
+                                    <small>Tổng ngành</small>
                                 </div>
                             </div>
                             <div class="col-6">
-                                <div class="text-center p-3 bg-light rounded">
-                                    <h3 class="text-success">@danhSachNganhNghe.Sum(n => n.SoLuongCongViec)</h3>
-                                    <small>Tong CV</small>
+                                <div class="stat-box" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white;">
+                                    <h3>@danhSachNganhNghe.Sum(n => n.SoLuongCongViec)</h3>
+                                    <small>Tổng CV</small>
                                 </div>
                             </div>
                         </div>
@@ -541,9 +833,11 @@
                         <div style="max-height: 250px; overflow-y: auto;">
                             @foreach (var nganh in danhSachNganhNghe.OrderByDescending(n => n.SoLuongCongViec))
                             {
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>@nganh.TenNganhNghe</span>
-                                    <span class="badge bg-primary">@nganh.SoLuongCongViec</span>
+                                <div class="category-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span><i class="bi bi-tag-fill" style="color: #667eea;"></i> @nganh.TenNganhNghe</span>
+                                        <span class="badge" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">@nganh.SoLuongCongViec</span>
+                                    </div>
                                 </div>
                             }
                         </div>
@@ -551,22 +845,22 @@
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">Loai cong viec</h5>
+                <div class="modern-data-card">
+                    <div class="card-header" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white;">
+                        <h5 class="mb-0"><i class="bi bi-briefcase"></i> Loại công việc</h5>
                     </div>
                     <div class="card-body">
                         <div class="row mb-3">
                             <div class="col-6">
-                                <div class="text-center p-3 bg-light rounded">
-                                    <h3 class="text-success">@danhSachLoaiCongViec.Count</h3>
-                                    <small>Tong loai</small>
+                                <div class="stat-box" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white;">
+                                    <h3>@danhSachLoaiCongViec.Count</h3>
+                                    <small>Tổng loại</small>
                                 </div>
                             </div>
                             <div class="col-6">
-                                <div class="text-center p-3 bg-light rounded">
-                                    <h3 class="text-info">@danhSachLoaiCongViec.Sum(l => l.SoLuongViTri)</h3>
-                                    <small>Tong vi tri</small>
+                                <div class="stat-box" style="background: linear-gradient(135deg, #3494e6 0%, #ec6ead 100%); color: white;">
+                                    <h3>@danhSachLoaiCongViec.Sum(l => l.SoLuongViTri)</h3>
+                                    <small>Tổng vị trí</small>
                                 </div>
                             </div>
                         </div>
@@ -574,26 +868,28 @@
                         <div style="max-height: 250px; overflow-y: auto;">
                             @foreach (var loai in danhSachLoaiCongViec.OrderByDescending(l => l.SoLuongViTri))
                             {
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>@loai.TenLoaiCongViec</span>
-                                    <span class="badge bg-success">@loai.SoLuongViTri</span>
+                                <div class="category-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span><i class="bi bi-briefcase-fill" style="color: #11998e;"></i> @loai.TenLoaiCongViec</span>
+                                        <span class="badge" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">@loai.SoLuongViTri</span>
+                                    </div>
                                 </div>
                             }
                         </div>
                     </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
     <!-- Tab He thong -->
     <div class="tab-pane fade" id="he-thong" role="tabpanel">
         <!-- Bieu do duong cho He thong -->
         <div class="row mb-4">
             <div class="col-md-12">
-        <div class="card">
-                    <div class="card-header bg-dark text-white">
-                        <h5 class="mb-0"><i class="bi bi-graph-up-arrow"></i> Hoat dong he thong theo thang</h5>
+                <div class="chart-card">
+                    <div class="card-header" style="background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%); color: white;">
+                        <h5 class="mb-0"><i class="bi bi-graph-up-arrow"></i> Hoạt động hệ thống theo tháng</h5>
                     </div>
                     <div class="card-body">
                         <canvas id="systemActivityChart" height="80"></canvas>
@@ -604,66 +900,64 @@
         
         <div class="row">
             <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-dark text-white">
-                        <h5 class="mb-0">Thong tin he thong</h5>
-            </div>
-            <div class="card-body">
-                <dl class="row">
-                            <dt class="col-sm-4">Phien ban:</dt>
-                            <dd class="col-sm-8">1.0.0</dd>
+                <div class="modern-data-card">
+                    <div class="card-header" style="background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%); color: white;">
+                        <h5 class="mb-0"><i class="bi bi-info-circle"></i> Thông tin hệ thống</h5>
+                    </div>
+                    <div class="card-body">
+                        <dl class="row mb-2">
+                            <dt class="col-sm-5"><i class="bi bi-bookmark-check-fill" style="color: #667eea;"></i> Phiên bản:</dt>
+                            <dd class="col-sm-7"><strong style="color: #667eea;">1.0.0</strong></dd>
                             
-                            <dt class="col-sm-4">Server:</dt>
-                            <dd class="col-sm-8">.NET 8.0</dd>
+                            <dt class="col-sm-5"><i class="bi bi-server" style="color: #11998e;"></i> Server:</dt>
+                            <dd class="col-sm-7"><strong style="color: #11998e;">.NET 8.0</strong></dd>
                             
-                            <dt class="col-sm-4">Database:</dt>
-                            <dd class="col-sm-8">SQL Server</dd>
+                            <dt class="col-sm-5"><i class="bi bi-database" style="color: #3494e6;"></i> Database:</dt>
+                            <dd class="col-sm-7"><strong style="color: #3494e6;">SQL Server</strong></dd>
                             
-                            <dt class="col-sm-4">Thoi gian uptime:</dt>
-                            <dd class="col-sm-8">2 ngay 5 gio</dd>
+                            <dt class="col-sm-5"><i class="bi bi-clock-history" style="color: #f093fb;"></i> Thời gian uptime:</dt>
+                            <dd class="col-sm-7"><strong style="color: #f093fb;">2 ngày 5 giờ</strong></dd>
                             
-                            <dt class="col-sm-4">Tong users:</dt>
-                            <dd class="col-sm-8"><strong>@(tongUngVien + tongNhaTuyenDung)</strong></dd>
+                            <dt class="col-sm-5"><i class="bi bi-people-fill" style="color: #fa709a;"></i> Tổng users:</dt>
+                            <dd class="col-sm-7"><strong style="color: #fa709a;">@(tongUngVien + tongNhaTuyenDung)</strong></dd>
                             
-                            <dt class="col-sm-4">Tong du lieu:</dt>
-                            <dd class="col-sm-8"><strong>@(tongTinTuyenDung + tongTinUngTuyen) records</strong></dd>
-                </dl>
+                            <dt class="col-sm-5"><i class="bi bi-file-earmark-bar-graph" style="color: #11998e;"></i> Tổng dữ liệu:</dt>
+                            <dd class="col-sm-7"><strong style="color: #11998e;">@(tongTinTuyenDung + tongTinUngTuyen) records</strong></dd>
+                        </dl>
                     </div>
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-secondary text-white">
-                        <h5 class="mb-0">Hoat dong gan day</h5>
+                <div class="modern-data-card">
+                    <div class="card-header" style="background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%); color: white;">
+                        <h5 class="mb-0"><i class="bi bi-activity"></i> Hoạt động gần đây</h5>
                     </div>
                     <div class="card-body">
-                        <div class="list-group list-group-flush">
-                            <div class="list-group-item px-0">
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <i class="bi bi-person-plus text-success"></i>
-                                        <strong>@danhSachUngVien.OrderByDescending(u => u.NgayDangKy).First().HoTen</strong> dang ky
-                                    </div>
-                                    <small class="text-muted">@danhSachUngVien.OrderByDescending(u => u.NgayDangKy).First().NgayDangKy.ToString("dd/MM HH:mm")</small>
+                        <div class="activity-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-person-plus" style="color: #11998e; font-size: 1.2rem;"></i>
+                                    <strong style="color: #667eea;">@danhSachUngVien.OrderByDescending(u => u.NgayDangKy).First().HoTen</strong> đăng ký
                                 </div>
+                                <small class="text-muted"><i class="bi bi-clock"></i> @danhSachUngVien.OrderByDescending(u => u.NgayDangKy).First().NgayDangKy.ToString("dd/MM HH:mm")</small>
                             </div>
-                            <div class="list-group-item px-0">
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <i class="bi bi-building text-primary"></i>
-                                        <strong>@danhSachNhaTuyenDung.OrderByDescending(n => n.NgayDangKy).First().TenCongTy</strong> dang ky
-                                    </div>
-                                    <small class="text-muted">@danhSachNhaTuyenDung.OrderByDescending(n => n.NgayDangKy).First().NgayDangKy.ToString("dd/MM HH:mm")</small>
+                        </div>
+                        <div class="activity-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-building" style="color: #667eea; font-size: 1.2rem;"></i>
+                                    <strong style="color: #667eea;">@danhSachNhaTuyenDung.OrderByDescending(n => n.NgayDangKy).First().TenCongTy</strong> đăng ký
                                 </div>
+                                <small class="text-muted"><i class="bi bi-clock"></i> @danhSachNhaTuyenDung.OrderByDescending(n => n.NgayDangKy).First().NgayDangKy.ToString("dd/MM HH:mm")</small>
                             </div>
-                            <div class="list-group-item px-0">
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <i class="bi bi-newspaper text-info"></i>
-                                        <strong>@danhSachTinTuyenDung.OrderByDescending(t => t.NgayDang).First().TenViecLam</strong>
-                                    </div>
-                                    <small class="text-muted">@danhSachTinTuyenDung.OrderByDescending(t => t.NgayDang).First().NgayDang.ToString("dd/MM HH:mm")</small>
+                        </div>
+                        <div class="activity-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-newspaper" style="color: #3494e6; font-size: 1.2rem;"></i>
+                                    <strong style="color: #3494e6;">@danhSachTinTuyenDung.OrderByDescending(t => t.NgayDang).First().TenViecLam</strong>
                                 </div>
+                                <small class="text-muted"><i class="bi bi-clock"></i> @danhSachTinTuyenDung.OrderByDescending(t => t.NgayDang).First().NgayDang.ToString("dd/MM HH:mm")</small>
                             </div>
                         </div>
                     </div>

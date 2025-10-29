@@ -4,241 +4,558 @@
     ViewData["Title"] = "Dang tuyen dung";
 }
 
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+    }
+
+    .page-header h1 {
+        font-weight: 700;
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .page-header p {
+        opacity: 0.95;
+        font-size: 1.1rem;
+    }
+
+    .form-section {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 25px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        border: 1px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+
+    .form-section:hover {
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        transform: translateY(-2px);
+    }
+
+    .form-section h4 {
+        color: #2d3748;
+        font-weight: 600;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid #667eea;
+        display: inline-block;
+    }
+
+    .form-section h4 i {
+        color: #667eea;
+        margin-right: 10px;
+        font-size: 1.3rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #4a5568;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+    }
+
+    .required-label::after {
+        content: " *";
+        color: #e53e3e;
+        font-weight: bold;
+    }
+
+    .form-control, .form-select {
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        outline: none;
+    }
+
+    .form-control:hover, .form-select:hover {
+        border-color: #cbd5e0;
+    }
+
+    .input-group .btn {
+        border-radius: 0 10px 10px 0;
+        padding: 12px 24px;
+        font-weight: 600;
+    }
+
+    .input-group .form-control {
+        border-radius: 10px 0 0 10px;
+    }
+
+    .text-muted {
+        font-size: 0.875rem;
+        color: #718096 !important;
+        margin-top: 5px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 12px;
+        padding: 14px 40px;
+        font-weight: 600;
+        font-size: 1.05rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    }
+
+    .btn-secondary {
+        background: #718096;
+        border: none;
+        border-radius: 12px;
+        padding: 14px 40px;
+        font-weight: 600;
+        font-size: 1.05rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+        background: #4a5568;
+        transform: translateY(-2px);
+    }
+
+    .btn-outline-primary {
+        border: 2px solid #667eea;
+        color: #667eea;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-outline-primary:hover {
+        background: #667eea;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* Animate form sections on load */
+    .form-section {
+        animation: slideUp 0.5s ease forwards;
+        opacity: 0;
+    }
+
+    .form-section:nth-child(1) { animation-delay: 0.1s; }
+    .form-section:nth-child(2) { animation-delay: 0.2s; }
+    .form-section:nth-child(3) { animation-delay: 0.3s; }
+    .form-section:nth-child(4) { animation-delay: 0.4s; }
+    .form-section:nth-child(5) { animation-delay: 0.5s; }
+
+    @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="page-header">
+    <h1><i class="bi bi-file-earmark-plus"></i> Đăng tin tuyển dụng mới</h1>
+    <p>Điền thông tin chi tiết để thu hút ứng viên chất lượng</p>
+</div>
+
 <div class="row">
     <div class="col-12">
-        <div class="form-section">
-            <form asp-action="DangTinTuyenDung" method="post" enctype="multipart/form-data" id="formDangTin">
-                
-                <!-- Ten viec lam -->
+        <form asp-action="DangTinTuyenDung" method="post" enctype="multipart/form-data" id="formDangTin">
+            
+            <!-- Ten viec lam -->
+            <div class="form-section">
+                <h4><i class="bi bi-briefcase-fill"></i> Thông tin cơ bản</h4>
                 <div class="mb-4">
-                    <label class="form-label required-label">Ten viec lam</label>
+                    <label class="form-label required-label">Tên vị trí tuyển dụng</label>
                     <input type="text" class="form-control" name="TenViecLam" required 
-                           placeholder="Vi du: Tuyen dung Lap trinh vien Full-stack">
+                           placeholder="Ví dụ: Senior Full-stack Developer">
                 </div>
+            </div>
 
-                <!-- Mo ta cong viec -->
-                <div class="form-section">
-                    <h4><i class="bi bi-file-text"></i> Mo ta cong viec</h4>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label required-label">Nganh Nghe</label>
-                            <select class="form-select" name="NganhNghe" required>
-                                <option value="">Chon nganh nghe</option>
-                                <option value="Cong nghe thong tin">Cong nghe thong tin</option>
-                                <option value="Kinh doanh">Kinh doanh</option>
-                                <option value="Ke toan - Tai chinh">Ke toan - Tai chinh</option>
-                                <option value="Nhan su">Nhan su</option>
-                                <option value="Marketing">Marketing</option>
-                                <option value="Thiet ke do hoa">Thiet ke do hoa</option>
-                                <option value="Truyen thong - Media">Truyen thong - Media</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Nganh nghe chi tiet</label>
-                            <select class="form-select" name="NganhNgheChiTiet">
-                                <option value="">Chon nganh nghe chi tiet</option>
-                                <option value="Web Developer">Web Developer</option>
-                                <option value="Mobile Developer">Mobile Developer</option>
-                                <option value="Data Analyst">Data Analyst</option>
-                                <option value="UI/UX Designer">UI/UX Designer</option>
-                            </select>
-                        </div>
+            <!-- Mo ta cong viec -->
+            <div class="form-section">
+                <h4><i class="bi bi-file-text"></i> Mô tả công việc</h4>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label required-label">Ngành nghề</label>
+                        <select class="form-select" name="NganhNghe" required>
+                            <option value="">Chọn ngành nghề</option>
+                            <option value="Cong nghe thong tin">Công nghệ thông tin</option>
+                            <option value="Kinh doanh">Kinh doanh</option>
+                            <option value="Ke toan - Tai chinh">Kế toán - Tài chính</option>
+                            <option value="Nhan su">Nhân sự</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Thiet ke do hoa">Thiết kế đồ họa</option>
+                            <option value="Truyen thong - Media">Truyền thông - Media</option>
+                        </select>
                     </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label required-label">Hinh thuc lam viec</label>
-                            <select class="form-select" name="LoaiCongViec" required>
-                                <option value="">Chon hinh thuc</option>
-                                <option value="Full-time">Full-time</option>
-                                <option value="Part-time">Part-time</option>
-                                <option value="Internship">Internship</option>
-                                <option value="Remote">Remote</option>
-                                <option value="Hybrid">Hybrid</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Kinh nghiem lam viec</label>
-                            <select class="form-select" name="KinhNghiem">
-                                <option value="">Chon kinh nghiem</option>
-                                <option value="Khong yeu cau">Khong yeu cau</option>
-                                <option value="Duoi 1 nam">Duoi 1 nam</option>
-                                <option value="1-2 nam">1-2 nam</option>
-                                <option value="2-5 nam">2-5 nam</option>
-                                <option value="Tren 5 nam">Tren 5 nam</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label required-label">Vi tri</label>
-                            <select class="form-select" name="ViTri" required>
-                                <option value="">Chon vi tri</option>
-                                <option value="Nhan vien">Nhan vien</option>
-                                <option value="Truong nhom">Truong nhom</option>
-                                <option value="Quan ly">Quan ly</option>
-                                <option value="Giam doc">Giam doc</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Ngoai ngu</label>
-                            <select class="form-select" name="NgoaiNgu">
-                                <option value="">Chon ngoai ngu</option>
-                                <option value="Khong yeu cau">Khong yeu cau</option>
-                                <option value="Tieng Anh">Tieng Anh</option>
-                                <option value="Tieng Nhat">Tieng Nhat</option>
-                                <option value="Tieng Han">Tieng Han</option>
-                                <option value="Tieng Trung">Tieng Trung</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Tu khoa</label>
-                            <input type="text" class="form-control" name="TuKhoa" 
-                                   placeholder="Chon hoac nhap tu khoa roi nhan enter.">
-                            <small class="text-muted">Vi du: ReactJS, NodeJS, .NET Core</small>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Ky nang</label>
-                            <input type="text" class="form-control" name="KyNang" 
-                                   placeholder="Chon ky nang.">
-                            <small class="text-muted">Vi du: Teamwork, Communication, Problem Solving</small>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label required-label">Mo ta cong viec</label>
-                        <textarea class="form-control ckeditor" name="MoTa" rows="5" required></textarea>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Ngành nghề chi tiết</label>
+                        <select class="form-select" name="NganhNgheChiTiet">
+                            <option value="">Chọn ngành nghề chi tiết</option>
+                            <option value="Web Developer">Web Developer</option>
+                            <option value="Mobile Developer">Mobile Developer</option>
+                            <option value="Data Analyst">Data Analyst</option>
+                            <option value="UI/UX Designer">UI/UX Designer</option>
+                        </select>
                     </div>
                 </div>
 
-                <!-- Yeu cau cong viec -->
-                <div class="form-section">
-                    <h4><i class="bi bi-clipboard-check"></i> Yeu cau cong viec</h4>
-                    <div class="mb-3">
-                        <textarea class="form-control ckeditor" name="YeuCau" rows="5" required></textarea>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label required-label">Hình thức làm việc</label>
+                        <select class="form-select" name="LoaiCongViec" required>
+                            <option value="">Chọn hình thức</option>
+                            <option value="Full-time">Full-time</option>
+                            <option value="Part-time">Part-time</option>
+                            <option value="Internship">Internship</option>
+                            <option value="Remote">Remote</option>
+                            <option value="Hybrid">Hybrid</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Kinh nghiệm làm việc</label>
+                        <select class="form-select" name="KinhNghiem">
+                            <option value="">Chọn kinh nghiệm</option>
+                            <option value="Khong yeu cau">Không yêu cầu</option>
+                            <option value="Duoi 1 nam">Dưới 1 năm</option>
+                            <option value="1-2 nam">1-2 năm</option>
+                            <option value="2-5 nam">2-5 năm</option>
+                            <option value="Tren 5 nam">Trên 5 năm</option>
+                        </select>
                     </div>
                 </div>
 
-                <!-- Quyen loi -->
-                <div class="form-section">
-                    <h4><i class="bi bi-gift"></i> Quyen loi</h4>
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Muc Luong Thap Nhat (Trieu dong)</label>
-                            <input type="number" class="form-control" name="MucLuongThapNhat" min="0" value="0">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Muc Luong Cao Nhat (Trieu dong)</label>
-                            <input type="number" class="form-control" name="MucLuongCaoNhat" min="0" value="0">
-                        </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label required-label">Vị trí</label>
+                        <select class="form-select" name="ViTri" required>
+                            <option value="">Chọn vị trí</option>
+                            <option value="Nhan vien">Nhân viên</option>
+                            <option value="Truong nhom">Trưởng nhóm</option>
+                            <option value="Quan ly">Quản lý</option>
+                            <option value="Giam doc">Giám đốc</option>
+                        </select>
                     </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Thong tin them</label>
-                        <textarea class="form-control ckeditor" name="QuyenLoi" rows="4"></textarea>
-                        <small class="text-muted">Cac quyen loi khac nhu: bao hiem, thuong, du lich...</small>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Ngoại ngữ</label>
+                        <select class="form-select" name="NgoaiNgu">
+                            <option value="">Chọn ngoại ngữ</option>
+                            <option value="Khong yeu cau">Không yêu cầu</option>
+                            <option value="Tieng Anh">Tiếng Anh</option>
+                            <option value="Tieng Nhat">Tiếng Nhật</option>
+                            <option value="Tieng Han">Tiếng Hàn</option>
+                            <option value="Tieng Trung">Tiếng Trung</option>
+                        </select>
                     </div>
                 </div>
 
-                <!-- Thong Tin Lien He -->
-                <div class="form-section">
-                    <h4><i class="bi bi-telephone"></i> Thong Tin Lien He</h4>
-                    
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Nguoi lien he</label>
-                            <input type="text" class="form-control" name="NguoiLienHe" 
-                                   placeholder="Nguyen Van A">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label required-label">Email lien he</label>
-                            <input type="email" class="form-control" name="EmailLienHe" required
-                                   placeholder="tuyendung@company.com">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Dien thoai lien he</label>
-                            <input type="tel" class="form-control" name="SDTLienHe" 
-                                   placeholder="0312345656">
-                        </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Từ khóa</label>
+                        <input type="text" class="form-control" name="TuKhoa" 
+                               placeholder="Nhập từ khóa liên quan đến công việc">
+                        <small class="text-muted"><i class="bi bi-lightbulb"></i> Ví dụ: ReactJS, NodeJS, .NET Core</small>
                     </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label required-label">Lam viec o Tinh/Thanh pho</label>
-                            <select class="form-select" name="TinhThanhPho" id="tinhThanhPho" required>
-                                <option value="">Chon tinh/thanh pho</option>
-                                <option value="Ha Noi">Ha Noi</option>
-                                <option value="TP Ho Chi Minh">TP Ho Chi Minh</option>
-                                <option value="Da Nang">Da Nang</option>
-                                <option value="Hai Phong">Hai Phong</option>
-                                <option value="Can Tho">Can Tho</option>
-                                <option value="Binh Duong">Binh Duong</option>
-                                <option value="Dong Nai">Dong Nai</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Phuong/Xa</label>
-                            <select class="form-select" name="PhuongXa" id="phuongXa">
-                                <option value="">Chon phuong/xa</option>
-                            </select>
-                        </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Kỹ năng</label>
+                        <input type="text" class="form-control" name="KyNang" 
+                               placeholder="Nhập kỹ năng cần thiết">
+                        <small class="text-muted"><i class="bi bi-lightbulb"></i> Ví dụ: Teamwork, Communication, Problem Solving</small>
                     </div>
+                </div>
 
-                    <div class="mb-3">
-                        <label class="form-label required-label">Dia chi lam viec</label>
+                <div class="mb-3">
+                    <label class="form-label required-label">Mô tả công việc chi tiết</label>
+                    <textarea class="form-control ckeditor" name="MoTa" rows="5" required 
+                              placeholder="Nhập mô tả chi tiết về công việc, trách nhiệm, nhiệm vụ..."></textarea>
+                </div>
+            </div>
+
+            <!-- Yeu cau cong viec -->
+            <div class="form-section">
+                <h4><i class="bi bi-clipboard-check"></i> Yêu cầu công việc</h4>
+                <div class="mb-3">
+                    <label class="form-label">Các yêu cầu đối với ứng viên</label>
+                    <textarea class="form-control ckeditor" name="YeuCau" rows="5" required
+                              placeholder="Nhập các yêu cầu về học vấn, kinh nghiệm, kỹ năng cần thiết..."></textarea>
+                </div>
+            </div>
+
+            <!-- Quyen loi -->
+            <div class="form-section">
+                <h4><i class="bi bi-gift"></i> Quyền lợi</h4>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Mức lương thấp nhất (Triệu đồng)</label>
+                        <input type="number" class="form-control" name="MucLuongThapNhat" min="0" value="0"
+                               placeholder="VD: 10">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Mức lương cao nhất (Triệu đồng)</label>
+                        <input type="number" class="form-control" name="MucLuongCaoNhat" min="0" value="0"
+                               placeholder="VD: 20">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Thông tin thêm về quyền lợi</label>
+                    <textarea class="form-control ckeditor" name="QuyenLoi" rows="4"
+                              placeholder="Mô tả các quyền lợi khác như bảo hiểm, thưởng, du lịch..."></textarea>
+                    <small class="text-muted"><i class="bi bi-info-circle"></i> Các quyền lợi khác như: bảo hiểm, thưởng, du lịch...</small>
+                </div>
+            </div>
+
+            <!-- Thong Tin Lien He -->
+            <div class="form-section">
+                <h4><i class="bi bi-telephone"></i> Thông tin liên hệ</h4>
+                
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Người liên hệ</label>
+                        <input type="text" class="form-control" name="NguoiLienHe" 
+                               placeholder="Nguyễn Văn A">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label required-label">Email liên hệ</label>
+                        <input type="email" class="form-control" name="EmailLienHe" required
+                               placeholder="tuyendung@company.com">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Điện thoại liên hệ</label>
+                        <input type="tel" class="form-control" name="SDTLienHe" 
+                               placeholder="0312345656">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label required-label">Làm việc tại Tỉnh/Thành phố</label>
+                        <select class="form-select" name="TinhThanhPho" id="tinhThanhPho" required>
+                            <option value="">Chọn tỉnh/thành phố</option>
+                            <option value="Ha Noi">Hà Nội</option>
+                            <option value="TP Ho Chi Minh">TP Hồ Chí Minh</option>
+                            <option value="Da Nang">Đà Nẵng</option>
+                            <option value="Hai Phong">Hải Phòng</option>
+                            <option value="Can Tho">Cần Thơ</option>
+                            <option value="Binh Duong">Bình Dương</option>
+                            <option value="Dong Nai">Đồng Nai</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Quận/Huyện</label>
+                        <select class="form-select" name="PhuongXa" id="phuongXa">
+                            <option value="">Chọn quận/huyện</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label required-label">Địa chỉ làm việc</label>
+                    <div class="input-group">
                         <input type="text" class="form-control" name="DiaChiLamViec" required
-                               id="diaChiInput" placeholder="123 Nguyen Hue, Quan 1">
-                        <small class="text-muted">
-                            De tang do tin cay cua dia chi, hay sua vi tri dang tin tren ban do bang cach 
-                            <i class="bi bi-geo-alt-fill text-primary"></i> keo den dung vi tri lam viec
-                        </small>
+                               id="diaChiInput" placeholder="123 Nguyễn Huệ, Quận 1">
+                        <button type="button" class="btn btn-outline-primary" id="btnSearchAddress">
+                            <i class="bi bi-search"></i> Tìm trên bản đồ
+                        </button>
                     </div>
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle"></i> Kéo marker 📍 trên bản đồ để chọn vị trí chính xác hoặc click vào bản đồ
+                    </small>
+                </div>
 
-                    <!-- Map -->
+                <!-- Hidden fields for coordinates -->
+                <input type="hidden" name="Latitude" id="latitude" value="21.028511">
+                <input type="hidden" name="Longitude" id="longitude" value="105.804817">
+
+                <!-- Map Container -->
+                <div class="map-container">
                     <div id="map"></div>
-                </div>
-
-                <!-- Anh van phong/cua hang -->
-                <div class="form-section">
-                    <h4><i class="bi bi-images"></i> Anh van phong/cua hang</h4>
-                    <div class="mb-3">
-                        <input type="file" class="form-control" name="AnhVanPhong" 
-                               accept="image/*" multiple>
-                        <small class="text-muted">Co the chon nhieu anh. Dinh dang: JPG, PNG, GIF</small>
+                    <div class="map-info">
+                        <i class="bi bi-geo-alt-fill text-danger"></i>
+                        <span id="currentCoords">21.028511, 105.804817</span>
                     </div>
                 </div>
+            </div>
 
-                <!-- Han tuyen dung -->
-                <div class="form-section">
-                    <h4><i class="bi bi-calendar-event"></i> Han tuyen dung</h4>
-                    <div class="mb-3">
-                        <input type="date" class="form-control" name="HanNop" required
-                               min="@DateTime.Now.ToString("yyyy-MM-dd")">
-                    </div>
+            <!-- Anh van phong/cua hang -->
+            <div class="form-section">
+                <h4><i class="bi bi-images"></i> Ảnh văn phòng/cửa hàng</h4>
+                <div class="mb-3">
+                    <label class="form-label">Tải lên hình ảnh</label>
+                    <input type="file" class="form-control" name="AnhVanPhong" 
+                           accept="image/*" multiple>
+                    <small class="text-muted"><i class="bi bi-info-circle"></i> Có thể chọn nhiều ảnh. Định dạng: JPG, PNG, GIF</small>
                 </div>
+            </div>
 
-                <!-- Submit buttons -->
-                <div class="text-center mt-4">
-                    <button type="submit" class="btn btn-primary btn-lg px-5">
-                        <i class="bi bi-check-circle"></i> Dang tin tuyen dung
-                    </button>
-                    <button type="button" class="btn btn-secondary btn-lg ms-2 px-5" onclick="window.history.back()">
-                        <i class="bi bi-x-circle"></i> Huy
-                    </button>
+            <!-- Han tuyen dung -->
+            <div class="form-section">
+                <h4><i class="bi bi-calendar-event"></i> Hạn tuyển dụng</h4>
+                <div class="mb-3">
+                    <label class="form-label required-label">Ngày hết hạn nộp hồ sơ</label>
+                    <input type="date" class="form-control" name="HanNop" required
+                           min="@DateTime.Now.ToString("yyyy-MM-dd")">
+                    <small class="text-muted"><i class="bi bi-clock-history"></i> Chọn ngày cuối cùng nhận hồ sơ ứng tuyển</small>
                 </div>
+            </div>
 
-            </form>
+            <!-- Submit buttons -->
+            <div class="text-center mt-5 mb-4">
+                <button type="submit" class="btn btn-primary btn-lg px-5 me-3">
+                    <i class="bi bi-check-circle"></i> Đăng tin tuyển dụng
+                </button>
+                <button type="button" class="btn btn-secondary btn-lg px-5" onclick="window.history.back()">
+                    <i class="bi bi-x-circle"></i> Hủy
+                </button>
+            </div>
+
+        </form>
         </div>
     </div>
 </div>
 
 @section Scripts {
+    <style>
+        .map-container {
+            position: relative;
+            margin-top: 15px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+            border: 2px solid #e2e8f0;
+        }
+
+        #map {
+            height: 500px;
+            border-radius: 16px;
+        }
+
+        .map-info {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+            padding: 12px 18px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            z-index: 1000;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border: 2px solid #e2e8f0;
+        }
+
+        .map-info i {
+            font-size: 1.2rem;
+            margin-right: 5px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @@keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Custom marker popup */
+        .leaflet-popup-content-wrapper {
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            border: 2px solid #667eea;
+        }
+
+        .leaflet-popup-content {
+            margin: 15px;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        /* Marker animation */
+        @@keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .leaflet-marker-icon.marker-pulse {
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        /* Custom marker styling */
+        .custom-marker {
+            background: none;
+            border: none;
+        }
+
+        .marker-pin {
+            width: 35px;
+            height: 35px;
+            border-radius: 50% 50% 50% 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: absolute;
+            transform: rotate(-45deg);
+            left: 50%;
+            top: 50%;
+            margin: -17.5px 0 0 -17.5px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.6);
+        }
+
+        .marker-pin::after {
+            content: '';
+            width: 16px;
+            height: 16px;
+            margin: 9.5px 0 0 9.5px;
+            background: #fff;
+            position: absolute;
+            border-radius: 50%;
+        }
+
+        /* Pulse animation */
+        .marker-pulse-ring {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(102, 126, 234, 0.3);
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            margin: -25px 0 0 -25px;
+            animation: pulsate 1.5s ease-out infinite;
+        }
+
+        @@keyframes pulsate {
+            0% {
+                transform: scale(0.5, 0.5);
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.5, 1.5);
+                opacity: 0;
+            }
+        }
+    </style>
+
     <script>
         $(document).ready(function() {
             // Initialize CKEditor 5 for all textareas with class ckeditor
@@ -266,21 +583,102 @@
             }
 
             // Initialize Leaflet Map
-            var map = L.map('map').setView([21.028511, 105.804817], 13); // Ha Noi coordinates
+            var map = L.map('map').setView([21.028511, 105.804817], 13);
             
+            // Add tile layer with better styling
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                maxZoom: 19
             }).addTo(map);
 
+            // Fix Leaflet default marker icon path
+            delete L.Icon.Default.prototype._getIconUrl;
+            L.Icon.Default.mergeOptions({
+                iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+                iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+                shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png'
+            });
+
+            // Create custom marker icon with pulse effect
+            var customIcon = L.divIcon({
+                className: 'custom-marker',
+                html: '<div class="marker-pulse-ring"></div><div class="marker-pin"></div>',
+                iconSize: [40, 40],
+                iconAnchor: [20, 40],
+                popupAnchor: [0, -40]
+            });
+
+            // Create draggable marker with custom icon
             var marker = L.marker([21.028511, 105.804817], {
-                draggable: true
+                draggable: true,
+                icon: customIcon,
+                title: 'Kéo tôi để chọn vị trí'
             }).addTo(map);
+
+            // Add popup to marker
+            marker.bindPopup('<strong>📍 Vị trí làm việc</strong><br>Kéo marker để điều chỉnh vị trí chính xác').openPopup();
+
+            // Function to update coordinates
+            function updateCoordinates(lat, lng) {
+                $('#latitude').val(lat.toFixed(6));
+                $('#longitude').val(lng.toFixed(6));
+                $('#currentCoords').text(lat.toFixed(6) + ', ' + lng.toFixed(6));
+            }
 
             // Update marker position when dragged
             marker.on('dragend', function(e) {
                 var position = marker.getLatLng();
-                console.log('New position:', position);
-                // TODO: Save lat/lng to hidden fields
+                updateCoordinates(position.lat, position.lng);
+                
+                // Show notification
+                marker.bindPopup('<strong>✓ Vị trí đã cập nhật</strong><br>Lat: ' + position.lat.toFixed(6) + '<br>Lng: ' + position.lng.toFixed(6)).openPopup();
+            });
+
+            // Update marker when clicking on map
+            map.on('click', function(e) {
+                marker.setLatLng(e.latlng);
+                updateCoordinates(e.latlng.lat, e.latlng.lng);
+                marker.bindPopup('<strong>✓ Vị trí đã cập nhật</strong><br>Lat: ' + e.latlng.lat.toFixed(6) + '<br>Lng: ' + e.latlng.lng.toFixed(6)).openPopup();
+            });
+
+            // Search address button
+            $('#btnSearchAddress').click(function() {
+                var address = $('#diaChiInput').val();
+                var city = $('#tinhThanhPho').val();
+                
+                if (!address) {
+                    alert('Vui lòng nhập địa chỉ!');
+                    return;
+                }
+
+                // Simple geocoding using Nominatim
+                var searchQuery = address + (city ? ', ' + city : '') + ', Vietnam';
+                
+                $.ajax({
+                    url: 'https://nominatim.openstreetmap.org/search',
+                    data: {
+                        q: searchQuery,
+                        format: 'json',
+                        limit: 1
+                    },
+                    success: function(data) {
+                        if (data && data.length > 0) {
+                            var lat = parseFloat(data[0].lat);
+                            var lon = parseFloat(data[0].lon);
+                            
+                            map.setView([lat, lon], 16);
+                            marker.setLatLng([lat, lon]);
+                            updateCoordinates(lat, lon);
+                            
+                            marker.bindPopup('<strong>📍 Tìm thấy địa chỉ</strong><br>' + data[0].display_name).openPopup();
+                        } else {
+                            alert('Không tìm thấy địa chỉ. Vui lòng thử lại!');
+                        }
+                    },
+                    error: function() {
+                        alert('Có lỗi xảy ra khi tìm kiếm địa chỉ!');
+                    }
+                });
             });
 
             // Update map when city changes
@@ -291,12 +689,15 @@
                     'TP Ho Chi Minh': [10.762622, 106.660172],
                     'Da Nang': [16.047079, 108.206230],
                     'Hai Phong': [20.844892, 106.687973],
-                    'Can Tho': [10.045162, 105.746857]
+                    'Can Tho': [10.045162, 105.746857],
+                    'Binh Duong': [10.980273, 106.652199],
+                    'Dong Nai': [10.951172, 107.036759]
                 };
                 
                 if (coordinates[city]) {
                     map.setView(coordinates[city], 13);
                     marker.setLatLng(coordinates[city]);
+                    updateCoordinates(coordinates[city][0], coordinates[city][1]);
                 }
 
                 // Update districts based on city
@@ -323,18 +724,32 @@
                 }
             }
 
+            // Allow Enter key to search address
+            $('#diaChiInput').keypress(function(e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    $('#btnSearchAddress').click();
+                }
+            });
+
             // Form validation
             $('#formDangTin').submit(function(e) {
                 var valid = true;
                 
                 // Check required fields
                 if (!$('input[name="TenViecLam"]').val()) {
-                    alert('Vui long nhap ten viec lam!');
+                    alert('Vui lòng nhập tên việc làm!');
                     valid = false;
                 }
 
                 if (!valid) {
                     e.preventDefault();
+                } else {
+                    // Show success message
+                    console.log('Form data:', {
+                        latitude: $('#latitude').val(),
+                        longitude: $('#longitude').val()
+                    });
                 }
             });
         });

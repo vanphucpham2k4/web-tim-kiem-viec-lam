@@ -1,0 +1,491 @@
+@model Unicareer.Models.NhaTuyenDung
+@{
+    ViewData["Title"] = Model.TenCongTy;
+    var danhSachViecLam = ViewBag.DanhSachViecLam as List<Unicareer.Models.TinTuyenDung>;
+}
+
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --accent-color: #667eea;
+        --accent-dark: #764ba2;
+        --text-primary: #2d3748;
+        --text-secondary: #718096;
+    }
+    
+    body {
+        background: #f7fafc;
+    }
+    
+    .company-header {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border: 1px solid #e2e8f0;
+    }
+    
+    .company-logo-large {
+        width: 120px;
+        height: 120px;
+        background: linear-gradient(135deg, #f5f7fa 0%, #e8ebf0 100%);
+        border-radius: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: var(--accent-color);
+        font-size: 48px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+    }
+    
+    .company-title {
+        font-size: 36px;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin-bottom: 12px;
+    }
+    
+    .company-meta {
+        display: flex;
+        gap: 30px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+    }
+    
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--text-secondary);
+        font-size: 15px;
+        font-weight: 500;
+    }
+    
+    .meta-item i {
+        color: var(--accent-color);
+        font-size: 20px;
+    }
+    
+    .company-stats-large {
+        display: flex;
+        gap: 30px;
+        margin-top: 30px;
+        padding-top: 30px;
+        border-top: 2px solid #e2e8f0;
+    }
+    
+    .stat-card {
+        flex: 1;
+        text-align: center;
+        padding: 20px;
+        background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+        border-radius: 16px;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+    }
+    
+    .stat-card .number {
+        font-size: 32px;
+        font-weight: 800;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 8px;
+    }
+    
+    .stat-card .label {
+        font-size: 14px;
+        color: var(--text-secondary);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .section-card {
+        background: white;
+        border-radius: 20px;
+        padding: 35px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        border: 1px solid #e2e8f0;
+    }
+    
+    .section-title {
+        font-size: 24px;
+        font-weight: 800;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .section-title i {
+        font-size: 28px;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .company-description {
+        color: var(--text-secondary);
+        font-size: 15px;
+        line-height: 1.8;
+    }
+    
+    .company-description h5 {
+        color: var(--text-primary);
+        font-weight: 700;
+        margin-top: 20px;
+        margin-bottom: 12px;
+        font-size: 18px;
+    }
+    
+    .company-description ul {
+        padding-left: 20px;
+    }
+    
+    .company-description ul li {
+        margin-bottom: 8px;
+    }
+    
+    .job-card {
+        background: white;
+        border: 2px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 20px;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .job-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: var(--primary-gradient);
+        opacity: 0.03;
+        transition: all 0.4s ease;
+    }
+    
+    .job-card:hover::before {
+        left: 0;
+    }
+    
+    .job-card:hover {
+        border-color: var(--accent-color);
+        box-shadow: 0 12px 40px rgba(102, 126, 234, 0.15);
+        transform: translateY(-4px);
+    }
+    
+    .job-title {
+        font-size: 19px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 12px;
+        transition: color 0.3s ease;
+    }
+    
+    .job-card:hover .job-title {
+        color: var(--accent-color);
+    }
+    
+    .job-meta {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        font-size: 14px;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+    
+    .job-meta span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .job-meta i {
+        color: var(--accent-color);
+        font-size: 16px;
+    }
+    
+    .badge-hot {
+        background: var(--secondary-gradient);
+        color: white;
+        padding: 6px 16px;
+        border-radius: 25px;
+        font-size: 12px;
+        font-weight: 700;
+        box-shadow: 0 4px 15px rgba(245, 87, 108, 0.3);
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        position: absolute;
+        top: 20px;
+        right: 20px;
+    }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        margin-top: 20px;
+    }
+    
+    .info-item {
+        padding: 16px;
+        background: #f7fafc;
+        border-radius: 12px;
+        border-left: 4px solid var(--accent-color);
+    }
+    
+    .info-label {
+        font-size: 13px;
+        color: var(--text-secondary);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+    }
+    
+    .info-value {
+        font-size: 15px;
+        color: var(--text-primary);
+        font-weight: 700;
+    }
+    
+    .no-jobs {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-secondary);
+    }
+    
+    .no-jobs i {
+        font-size: 64px;
+        color: #e2e8f0;
+        margin-bottom: 20px;
+    }
+    
+    .breadcrumb {
+        background: transparent;
+        padding: 15px 0;
+        margin: 0;
+        font-size: 14px;
+    }
+    
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .job-card {
+        animation: fadeInUp 0.5s ease backwards;
+    }
+    
+    .job-card:nth-child(1) { animation-delay: 0.05s; }
+    .job-card:nth-child(2) { animation-delay: 0.1s; }
+    .job-card:nth-child(3) { animation-delay: 0.15s; }
+    .job-card:nth-child(4) { animation-delay: 0.2s; }
+    .job-card:nth-child(5) { animation-delay: 0.25s; }
+</style>
+
+<div class="container-fluid px-5 py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Unicareer</a></li>
+            <li class="breadcrumb-item"><a href="/Home/CongTy">Công ty</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.TenCongTy</li>
+        </ol>
+    </nav>
+    
+    <!-- Company Header -->
+    <div class="company-header">
+        <div class="row align-items-center">
+            <div class="col-auto">
+                <div class="company-logo-large">
+                    @Model.TenCongTy.Substring(0, 1)
+                </div>
+            </div>
+            <div class="col">
+                <h1 class="company-title">@Model.TenCongTy</h1>
+                <div class="company-meta">
+                    <div class="meta-item">
+                        <i class="bi bi-briefcase-fill"></i>
+                        <span>@Model.LinhVuc</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="bi bi-geo-alt-fill"></i>
+                        <span>@Model.TinhThanhPho, @Model.QuanHuyen</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.Website))
+                    {
+                        <div class="meta-item">
+                            <i class="bi bi-globe"></i>
+                            <a href="@Model.Website" target="_blank" style="color: var(--accent-color); text-decoration: none; font-weight: 600;">
+                                Website
+                            </a>
+                        </div>
+                    }
+                </div>
+                
+                <div class="company-stats-large">
+                    <div class="stat-card">
+                        <div class="number">@Model.SoTinDaDang</div>
+                        <div class="label">Vị trí tuyển dụng</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">@Model.SoUngVienNhan</div>
+                        <div class="label">Ứng viên đã nhận</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">@((DateTime.Now - Model.NgayDangKy).Days / 30)</div>
+                        <div class="label">Tháng trên Unicareer</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Left Column -->
+        <div class="col-lg-8">
+            <!-- Company Description -->
+            <div class="section-card">
+                <h2 class="section-title">
+                    <i class="bi bi-info-circle-fill"></i>
+                    Giới thiệu về công ty
+                </h2>
+                <div class="company-description">
+                    @Html.Raw(Model.MoTa)
+                </div>
+            </div>
+            
+            <!-- Jobs -->
+            <div class="section-card">
+                <h2 class="section-title">
+                    <i class="bi bi-briefcase-fill"></i>
+                    Các vị trí đang tuyển dụng (@(danhSachViecLam?.Count ?? 0))
+                </h2>
+                
+                @if (danhSachViecLam != null && danhSachViecLam.Any())
+                {
+                    foreach (var job in danhSachViecLam)
+                    {
+                        var mucLuongDisplay = job.MucLuongThapNhat == 0 && job.MucLuongCaoNhat == 0 ? "Thỏa thuận" : $"{job.MucLuongThapNhat}-{job.MucLuongCaoNhat} triệu";
+                        <a href="/Home/ChiTietViecLam/@job.MaTinTuyenDung" class="text-decoration-none" style="color: inherit;">
+                            <div class="job-card">
+                                @if (job.SoLuongUngTuyen > 50)
+                                {
+                                    <span class="badge-hot">Hot</span>
+                                }
+                                <h5 class="job-title">@job.TenViecLam</h5>
+                                <div class="job-meta">
+                                    <span><i class="bi bi-cash"></i> @mucLuongDisplay</span>
+                                    <span><i class="bi bi-geo-alt"></i> @job.TinhThanhPho</span>
+                                    <span><i class="bi bi-clock"></i> @job.LoaiCongViec</span>
+                                    <span><i class="bi bi-calendar-check"></i> Hạn nộp: @job.HanNop.ToString("dd/MM/yyyy")</span>
+                                </div>
+                            </div>
+                        </a>
+                    }
+                }
+                else
+                {
+                    <div class="no-jobs">
+                        <i class="bi bi-inbox"></i>
+                        <p style="font-size: 16px; margin-top: 15px;">Công ty hiện không có vị trí tuyển dụng nào</p>
+                    </div>
+                }
+            </div>
+        </div>
+        
+        <!-- Right Column -->
+        <div class="col-lg-4">
+            <!-- Contact Info -->
+            <div class="section-card">
+                <h2 class="section-title" style="font-size: 20px;">
+                    <i class="bi bi-telephone-fill"></i>
+                    Thông tin liên hệ
+                </h2>
+                
+                <div class="info-grid" style="grid-template-columns: 1fr;">
+                    <div class="info-item">
+                        <div class="info-label">Người liên hệ</div>
+                        <div class="info-value">@Model.NguoiDaiDien</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Chức vụ</div>
+                        <div class="info-value">@Model.ChucVu</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Email</div>
+                        <div class="info-value" style="word-break: break-all;">@Model.Email</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Số điện thoại</div>
+                        <div class="info-value">@Model.SoDienThoai</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Địa chỉ</div>
+                        <div class="info-value">@Model.DiaChi</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Stats -->
+            <div class="section-card">
+                <h2 class="section-title" style="font-size: 20px;">
+                    <i class="bi bi-bar-chart-fill"></i>
+                    Thống kê
+                </h2>
+                
+                <div style="margin-top: 20px;">
+                    <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: var(--text-secondary); font-weight: 600;">Vị trí tuyển dụng</span>
+                            <span style="font-size: 24px; font-weight: 800; color: var(--accent-color);">@Model.SoTinDaDang</span>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: var(--text-secondary); font-weight: 600;">Ứng viên đã nhận</span>
+                            <span style="font-size: 24px; font-weight: 800; color: var(--accent-color);">@Model.SoUngVienNhan</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: var(--text-secondary); font-weight: 600;">Ngày tham gia</span>
+                            <span style="font-size: 16px; font-weight: 700; color: var(--text-primary);">@Model.NgayDangKy.ToString("dd/MM/yyyy")</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

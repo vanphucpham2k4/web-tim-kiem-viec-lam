@@ -13,8 +13,8 @@ namespace Unicareer.Models
         public string NguoiDaiDien { get; set; } = string.Empty;
         public string ChucVu { get; set; } = string.Empty;
         public string LinhVuc { get; set; } = string.Empty;
-        public string QuyMo { get; set; } = string.Empty;
         public string MoTa { get; set; } = string.Empty;
+        public string Logo { get; set; } = string.Empty;
         public int SoTinDaDang { get; set; }
         public int SoUngVienNhan { get; set; }
         public DateTime NgayDangKy { get; set; }
@@ -37,8 +37,17 @@ namespace Unicareer.Models
                     NguoiDaiDien = "Nguyen Van An",
                     ChucVu = "HR Manager",
                     LinhVuc = "Cong nghe thong tin",
-                    QuyMo = "10000+ nhan vien",
-                    MoTa = "Cong ty hang dau ve giai phap cong nghe va dich vu IT tai Viet Nam",
+                    MoTa = @"<p>FPT Software là công ty thành viên của Tập đoàn FPT, được thành lập từ năm 1999. Sau hơn 20 năm phát triển, FPT Software đã trở thành công ty cung cấp dịch vụ phần mềm hàng đầu tại Việt Nam và khu vực.</p>
+                    <p>Với hơn 30,000 nhân viên tại 83 văn phòng trên toàn cầu, FPT Software cung cấp các dịch vụ chuyển đổi số, tư vấn công nghệ, phát triển phần mềm và các giải pháp công nghệ tiên tiến cho các tập đoàn lớn trên thế giới.</p>
+                    <h5>Lĩnh vực hoạt động:</h5>
+                    <ul>
+                        <li>Phát triển phần mềm cho doanh nghiệp</li>
+                        <li>Chuyển đổi số (Digital Transformation)</li>
+                        <li>Cloud Computing & Big Data</li>
+                        <li>AI & Machine Learning</li>
+                        <li>IoT Solutions</li>
+                    </ul>",
+                    Logo = "https://inkythuatso.com/uploads/images/2021/11/logo-fpt-inkythuatso-01-10-09-16-42.jpg",
                     SoTinDaDang = 45,
                     SoUngVienNhan = 380,
                     NgayDangKy = DateTime.Now.AddMonths(-18)
@@ -56,7 +65,6 @@ namespace Unicareer.Models
                     NguoiDaiDien = "Tran Thi Binh",
                     ChucVu = "Truong phong Tuyen dung",
                     LinhVuc = "San xuat thuc pham",
-                    QuyMo = "5000-10000 nhan vien",
                     MoTa = "Cong ty sua hang dau Viet Nam va khu vuc",
                     SoTinDaDang = 28,
                     SoUngVienNhan = 245,
@@ -75,8 +83,17 @@ namespace Unicareer.Models
                     NguoiDaiDien = "Le Van Cuong",
                     ChucVu = "Talent Acquisition Lead",
                     LinhVuc = "Thuong mai dien tu",
-                    QuyMo = "1000-5000 nhan vien",
-                    MoTa = "San thuong mai dien tu hang dau Viet Nam",
+                    MoTa = @"<p>Tiki là sàn thương mại điện tử hàng đầu Việt Nam, được thành lập năm 2010. Tiki cam kết mang đến trải nghiệm mua sắm tốt nhất với hàng triệu sản phẩm chính hãng, giao hàng nhanh chóng và dịch vụ khách hàng xuất sắc.</p>
+                    <p>Với phương châm 'Tiki - Tích điểm đổi quà', Tiki không ngừng cải tiến và phát triển để trở thành điểm đến tin cậy của người tiêu dùng Việt Nam.</p>
+                    <h5>Dịch vụ nổi bật:</h5>
+                    <ul>
+                        <li>TikiNOW - Giao hàng nhanh 2h</li>
+                        <li>Tiki Trading - Hệ thống kho hàng hiện đại</li>
+                        <li>Tiki Insurance - Bảo hiểm trực tuyến</li>
+                        <li>Tiki Smart Logistics</li>
+                        <li>Hàng triệu sản phẩm chính hãng</li>
+                    </ul>",
+                    Logo = "",
                     SoTinDaDang = 52,
                     SoUngVienNhan = 428,
                     NgayDangKy = DateTime.Now.AddMonths(-15)
@@ -94,8 +111,17 @@ namespace Unicareer.Models
                     NguoiDaiDien = "Pham Thi Dung",
                     ChucVu = "Senior HR",
                     LinhVuc = "Cong nghe - Game - Truyen thong",
-                    QuyMo = "1000-5000 nhan vien",
-                    MoTa = "Tap doan cong nghe hang dau Viet Nam voi cac san pham Zalo, Zing",
+                    MoTa = @"<p>VNG Corporation là tập đoàn công nghệ hàng đầu Việt Nam, được thành lập năm 2004. VNG đã tạo ra nhiều sản phẩm công nghệ phổ biến như Zalo, Zing MP3, ZaloPay và các game online nổi tiếng.</p>
+                    <p>Với sứ mệnh 'Make the Internet Change Vietnamese Lives', VNG không ngừng đổi mới và phát triển các sản phẩm công nghệ phục vụ hàng triệu người dùng Việt Nam.</p>
+                    <h5>Sản phẩm chính:</h5>
+                    <ul>
+                        <li>Zalo - Ứng dụng nhắn tin hàng đầu Việt Nam</li>
+                        <li>ZaloPay - Ví điện tử</li>
+                        <li>Zing MP3 - Nền tảng nghe nhạc trực tuyến</li>
+                        <li>Game Online - Đột Kích, Võ Lâm Truyền Kỳ</li>
+                        <li>Cloud & AI Solutions</li>
+                    </ul>",
+                    Logo = "",
                     SoTinDaDang = 38,
                     SoUngVienNhan = 312,
                     NgayDangKy = DateTime.Now.AddMonths(-20)
@@ -113,7 +139,6 @@ namespace Unicareer.Models
                     NguoiDaiDien = "Hoang Van Dung",
                     ChucVu = "Recruitment Manager",
                     LinhVuc = "Thuong mai dien tu",
-                    QuyMo = "1000-5000 nhan vien",
                     MoTa = "Nen tang mua sam truc tuyen hang dau DNA",
                     SoTinDaDang = 34,
                     SoUngVienNhan = 278,
@@ -132,7 +157,6 @@ namespace Unicareer.Models
                     NguoiDaiDien = "Vo Thi Huong",
                     ChucVu = "Giam doc Nhan su",
                     LinhVuc = "Vien thong - Cong nghe",
-                    QuyMo = "10000+ nhan vien",
                     MoTa = "Tap doan vien thong hang dau Viet Nam",
                     SoTinDaDang = 41,
                     SoUngVienNhan = 356,
@@ -151,7 +175,6 @@ namespace Unicareer.Models
                     NguoiDaiDien = "Dang Van Giau",
                     ChucVu = "HR Specialist",
                     LinhVuc = "Truyen thong - Bao chi",
-                    QuyMo = "500-1000 nhan vien",
                     MoTa = "Bao dien tu so 1 Viet Nam",
                     SoTinDaDang = 15,
                     SoUngVienNhan = 142,
@@ -170,8 +193,17 @@ namespace Unicareer.Models
                     NguoiDaiDien = "Bui Thi Hoa",
                     ChucVu = "Head of Talent Acquisition",
                     LinhVuc = "Fintech - Thanh toan dien tu",
-                    QuyMo = "1000-5000 nhan vien",
-                    MoTa = "Ung dung vi dien tu hang dau Viet Nam",
+                    MoTa = @"<p>MoMo là ứng dụng ví điện tử và thanh toán di động hàng đầu Việt Nam, được thành lập năm 2007. Với sứ mệnh 'Thanh toán điện tử cho mọi người', MoMo đã kết nối hàng triệu người dùng với các dịch vụ tài chính tiện lợi.</p>
+                    <p>MoMo không chỉ là ví điện tử mà còn là siêu ứng dụng tài chính, cung cấp đa dạng dịch vụ từ thanh toán, chuyển tiền đến đầu tư và bảo hiểm.</p>
+                    <h5>Dịch vụ chính:</h5>
+                    <ul>
+                        <li>Thanh toán QR Code tại hàng triệu điểm</li>
+                        <li>Chuyển tiền miễn phí</li>
+                        <li>Đầu tư - Tiết kiệm - Bảo hiểm</li>
+                        <li>Mua sắm trực tuyến</li>
+                        <li>Thanh toán hóa đơn, nạp thẻ</li>
+                    </ul>",
+                    Logo = "",
                     SoTinDaDang = 47,
                     SoUngVienNhan = 391,
                     NgayDangKy = DateTime.Now.AddMonths(-14)
@@ -189,7 +221,6 @@ namespace Unicareer.Models
                     NguoiDaiDien = "Ngo Van Khanh",
                     ChucVu = "HR Director",
                     LinhVuc = "Dien tu - Cong nghe",
-                    QuyMo = "10000+ nhan vien",
                     MoTa = "Tap doan dien tu hang dau the gioi",
                     SoTinDaDang = 36,
                     SoUngVienNhan = 298,
@@ -208,8 +239,17 @@ namespace Unicareer.Models
                     NguoiDaiDien = "Duong Thi Lan",
                     ChucVu = "Senior Recruiter",
                     LinhVuc = "Thuong mai dien tu",
-                    QuyMo = "1000-5000 nhan vien",
-                    MoTa = "Nen tang mua sam truc tuyen hang dau DNA",
+                    MoTa = @"<p>Shopee là nền tảng thương mại điện tử hàng đầu khu vực Đông Nam Á và Đài Loan, trực thuộc Sea Group (NYSE: SE). Shopee được thành lập tại Singapore năm 2015 và chính thức ra mắt tại Việt Nam vào năm 2016.</p>
+                    <p>Với hệ thống logistics mạnh mẽ và nền tảng thanh toán an toàn, Shopee mang đến trải nghiệm mua sắm trực tuyến thuận tiện, an toàn và thú vị cho người tiêu dùng.</p>
+                    <h5>Điểm nổi bật:</h5>
+                    <ul>
+                        <li>Miễn phí vận chuyển toàn quốc</li>
+                        <li>Shopee Mall - Sản phẩm chính hãng 100%</li>
+                        <li>Shopee Food - Giao đồ ăn</li>
+                        <li>ShopeePay - Ví điện tử</li>
+                        <li>Chương trình khuyến mãi hấp dẫn</li>
+                    </ul>",
+                    Logo = "",
                     SoTinDaDang = 58,
                     SoUngVienNhan = 485,
                     NgayDangKy = DateTime.Now.AddMonths(-12)
@@ -227,7 +267,6 @@ namespace Unicareer.Models
                     NguoiDaiDien = "Ly Van Long",
                     ChucVu = "HR Manager",
                     LinhVuc = "F&B - Nha hang - Ca phe",
-                    QuyMo = "1000-5000 nhan vien",
                     MoTa = "Chuoi ca phe hang dau Viet Nam",
                     SoTinDaDang = 22,
                     SoUngVienNhan = 186,
@@ -246,13 +285,24 @@ namespace Unicareer.Models
                     NguoiDaiDien = "Trinh Thi Mai",
                     ChucVu = "Talent Manager",
                     LinhVuc = "Tu van - Kiem toan",
-                    QuyMo = "500-1000 nhan vien",
                     MoTa = "Cong ty tu van va kiem toan quoc te hang dau",
                     SoTinDaDang = 19,
                     SoUngVienNhan = 157,
                     NgayDangKy = DateTime.Now.AddMonths(-32)
                 }
             };
+        }
+
+        public static NhaTuyenDung? LayNhaTuyenDungTheoId(int id)
+        {
+            var danhSach = LayDanhSachNhaTuyenDung();
+            return danhSach.FirstOrDefault(n => n.MaNhaTuyenDung == id);
+        }
+
+        public static NhaTuyenDung? LayNhaTuyenDungTheoTen(string tenCongTy)
+        {
+            var danhSach = LayDanhSachNhaTuyenDung();
+            return danhSach.FirstOrDefault(n => n.TenCongTy.Equals(tenCongTy, StringComparison.OrdinalIgnoreCase));
         }
     }
 }

@@ -1,26 +1,39 @@
 @model List<Unicareer.Models.LoaiCongViec>
 
 @{
-    ViewData["Title"] = "Quan ly Loai cong viec";
+    ViewData["Title"] = "Quản lý Loại công việc";
 }
 
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center">
-            <h3>Danh sach Loai cong viec</h3>
-            <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#themLoaiCongViecModal">
-                <i class="bi bi-plus-circle"></i> Them loai cong viec
-            </button>
+<div class="page-header-section mb-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-header-card">
+                <div class="header-icon">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <div class="header-content">
+                    <h3 class="header-title">Danh sách Loại công việc</h3>
+                    <p class="header-subtitle">Quản lý các loại hình công việc trong hệ thống</p>
+                </div>
+                <button class="btn btn-light ms-auto px-4" data-bs-toggle="modal" data-bs-target="#themLoaiCongViecModal">
+                    <i class="bi bi-plus-circle me-2"></i>Thêm mới
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="row mb-3">
-    <div class="col-md-6">
-        <div class="input-group">
-            <input type="text" class="form-control" id="timKiemInput" placeholder="Tim kiem theo ten loai cong viec...">
-            <button class="btn btn-outline-secondary" type="button" id="btnTimKiem">
-                <i class="bi bi-search"></i> Tim kiem
+<div class="filter-section mb-4">
+    <div class="row g-3">
+        <div class="col-lg-10 col-md-9">
+            <div class="search-wrapper">
+                <i class="bi bi-search search-icon"></i>
+                <input type="text" class="form-control search-input" id="timKiemInput" placeholder="Tìm kiếm theo tên loại công việc...">
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-3">
+            <button class="btn btn-primary w-100 filter-btn" type="button" id="btnTimKiem">
+                <i class="bi bi-funnel-fill me-2"></i>Tìm kiếm
             </button>
         </div>
     </div>
@@ -28,162 +41,416 @@
 
 <div class="row">
     <div class="col-12">
-        <div class="card">
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover" id="bangLoaiCongViec">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Ma</th>
-                                <th>Ten loai cong viec</th>
-                                <th>Mo ta</th>
-                                <th>So luong vi tri</th>
-                                <th>Muc luong TB</th>
-                                <th>Ngay tao</th>
-                                <th>Thao tac</th>
+        <div class="data-table-card">
+            <div class="table-responsive">
+                <table class="table table-hover modern-table" id="bangLoaiCongViec">
+                    <thead>
+                        <tr>
+                            <th width="10%">Mã</th>
+                            <th width="20%">Tên loại CV</th>
+                            <th width="30%">Mô tả</th>
+                            <th width="15%">Số lượng vị trí</th>
+                            <th width="12%">Mức lương TB</th>
+                            <th width="13%">Ngày tạo</th>
+                            <th width="15%">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var loaiCongViec in Model)
+                        {
+                            <tr data-ma="@loaiCongViec.MaLoaiCongViec">
+                                <td>@loaiCongViec.MaLoaiCongViec</td>
+                                <td><strong>@loaiCongViec.TenLoaiCongViec</strong></td>
+                                <td>
+                                    <span class="text-muted">
+                                        @(loaiCongViec.MoTa.Length > 50 ? loaiCongViec.MoTa.Substring(0, 50) + "..." : loaiCongViec.MoTa)
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">@loaiCongViec.SoLuongViTri vị trí</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">@loaiCongViec.MucLuongTrungBinh</span>
+                                </td>
+                                <td>@loaiCongViec.NgayTao.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary btn-sua" 
+                                            data-ma="@loaiCongViec.MaLoaiCongViec"
+                                            data-ten="@loaiCongViec.TenLoaiCongViec"
+                                            data-mota="@loaiCongViec.MoTa"
+                                            data-soluong="@loaiCongViec.SoLuongViTri"
+                                            data-luong="@loaiCongViec.MucLuongTrungBinh"
+                                            title="Sửa">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger btn-xoa" data-ma="@loaiCongViec.MaLoaiCongViec" title="Xóa">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var loaiCongViec in Model)
-                            {
-                                <tr data-ma="@loaiCongViec.MaLoaiCongViec">
-                                    <td>@loaiCongViec.MaLoaiCongViec</td>
-                                    <td><strong>@loaiCongViec.TenLoaiCongViec</strong></td>
-                                    <td>
-                                        <span class="text-muted">
-                                            @(loaiCongViec.MoTa.Length > 50 ? loaiCongViec.MoTa.Substring(0, 50) + "..." : loaiCongViec.MoTa)
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="badge border border-dark text-dark">@loaiCongViec.SoLuongViTri vi tri</span>
-                                    </td>
-                                    <td>
-                                        <span class="badge border border-dark text-dark">@loaiCongViec.MucLuongTrungBinh</span>
-                                    </td>
-                                    <td>@loaiCongViec.NgayTao.ToString("dd/MM/yyyy")</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-dark btn-sua" 
-                                                data-ma="@loaiCongViec.MaLoaiCongViec"
-                                                data-ten="@loaiCongViec.TenLoaiCongViec"
-                                                data-mota="@loaiCongViec.MoTa"
-                                                data-soluong="@loaiCongViec.SoLuongViTri"
-                                                data-luong="@loaiCongViec.MucLuongTrungBinh">
-                                            <i class="bi bi-pencil"></i> Sua
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-danger btn-xoa" data-ma="@loaiCongViec.MaLoaiCongViec">
-                                            <i class="bi bi-trash"></i> Xoa
-                                        </button>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Thong ke -->
-<div class="row mt-4">
-    <div class="col-md-4">
-        <div class="card border">
-            <div class="card-body">
-                <h6 class="card-title text-muted mb-2">Tong loai cong viec</h6>
-                <h2 class="mb-0">@Model.Count</h2>
+<!-- Thống kê -->
+<div class="row stats-section mt-4">
+    <div class="col-lg-4 col-md-6 mb-3">
+        <div class="mini-stat-card stat-purple">
+            <div class="stat-icon">
+                <i class="bi bi-clock-history"></i>
+            </div>
+            <div class="stat-info">
+                <h6 class="stat-label">Tổng loại CV</h6>
+                <h3 class="stat-number">@Model.Count</h3>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card border">
-            <div class="card-body">
-                <h6 class="card-title text-muted mb-2">Tong vi tri</h6>
-                <h2 class="mb-0">@Model.Sum(l => l.SoLuongViTri)</h2>
+    <div class="col-lg-4 col-md-6 mb-3">
+        <div class="mini-stat-card stat-blue">
+            <div class="stat-icon">
+                <i class="bi bi-diagram-3"></i>
+            </div>
+            <div class="stat-info">
+                <h6 class="stat-label">Tổng vị trí</h6>
+                <h3 class="stat-number">@Model.Sum(l => l.SoLuongViTri)</h3>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card border">
-            <div class="card-body">
-                <h6 class="card-title text-muted mb-2">Trung binh vi tri/loai</h6>
-                <h2 class="mb-0">@((int)Model.Average(l => l.SoLuongViTri))</h2>
+    <div class="col-lg-4 col-md-6 mb-3">
+        <div class="mini-stat-card stat-green">
+            <div class="stat-icon">
+                <i class="bi bi-graph-up-arrow"></i>
+            </div>
+            <div class="stat-info">
+                <h6 class="stat-label">TB vị trí/loại</h6>
+                <h3 class="stat-number">@((int)Model.Average(l => l.SoLuongViTri))</h3>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal Them loai cong viec -->
+<!-- Modal Thêm loại công việc -->
 <div class="modal fade" id="themLoaiCongViecModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Them loai cong viec moi</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Thêm loại công việc mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form id="formThemLoaiCongViec">
                     <div class="mb-3">
-                        <label class="form-label">Ten loai cong viec</label>
+                        <label class="form-label fw-bold">Tên loại công việc</label>
                         <input type="text" class="form-control" id="tenLoaiCongViecMoi" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Mo ta</label>
+                        <label class="form-label fw-bold">Mô tả</label>
                         <textarea class="form-control" id="moTaMoi" rows="3" required></textarea>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">So luong vi tri</label>
+                        <label class="form-label fw-bold">Số lượng vị trí</label>
                         <input type="number" class="form-control" id="soLuongViTriMoi" value="0" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Muc luong trung binh</label>
-                        <input type="text" class="form-control" id="mucLuongMoi" placeholder="VD: 10-20 trieu" required>
+                        <label class="form-label fw-bold">Mức lương trung bình</label>
+                        <input type="text" class="form-control" id="mucLuongMoi" placeholder="VD: 10-20 triệu" required>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Huy</button>
-                <button type="button" class="btn btn-dark" id="btnLuuLoaiCongViec">Luu</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="btnLuuLoaiCongViec">
+                    <i class="bi bi-check-circle me-2"></i>Lưu
+                </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal Sua loai cong viec -->
+<!-- Modal Sửa loại công việc -->
 <div class="modal fade" id="suaLoaiCongViecModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Sua loai cong viec</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Sửa loại công việc</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form id="formSuaLoaiCongViec">
                     <input type="hidden" id="maLoaiCongViecSua">
                     <div class="mb-3">
-                        <label class="form-label">Ten loai cong viec</label>
+                        <label class="form-label fw-bold">Tên loại công việc</label>
                         <input type="text" class="form-control" id="tenLoaiCongViecSua" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Mo ta</label>
+                        <label class="form-label fw-bold">Mô tả</label>
                         <textarea class="form-control" id="moTaSua" rows="3" required></textarea>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">So luong vi tri</label>
+                        <label class="form-label fw-bold">Số lượng vị trí</label>
                         <input type="number" class="form-control" id="soLuongViTriSua" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Muc luong trung binh</label>
+                        <label class="form-label fw-bold">Mức lương trung bình</label>
                         <input type="text" class="form-control" id="mucLuongSua" required>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Huy</button>
-                <button type="button" class="btn btn-dark" id="btnCapNhatLoaiCongViec">Cap nhat</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="btnCapNhatLoaiCongViec">
+                    <i class="bi bi-check-circle me-2"></i>Cập nhật
+                </button>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .page-header-card {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        border-radius: 16px;
+        padding: 28px 32px;
+        color: white;
+        box-shadow: 0 8px 24px rgba(250, 112, 154, 0.25);
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    
+    .page-header-card .header-icon {
+        width: 64px;
+        height: 64px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        backdrop-filter: blur(10px);
+    }
+    
+    .page-header-card .header-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+    
+    .page-header-card .header-subtitle {
+        font-size: 0.95rem;
+        opacity: 0.95;
+        margin: 0;
+    }
+    
+    .page-header-card .btn-light {
+        background: rgba(255, 255, 255, 0.95);
+        border: none;
+        color: #fa709a;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .page-header-card .btn-light:hover {
+        background: white;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+    
+    .filter-section {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+    
+    .search-wrapper {
+        position: relative;
+    }
+    
+    .search-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #667eea;
+        font-size: 1.1rem;
+        z-index: 1;
+    }
+    
+    .search-input {
+        padding-left: 45px;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        height: 48px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+    
+    .search-input:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .filter-btn {
+        height: 48px;
+        border-radius: 12px;
+        font-weight: 600;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        transition: all 0.3s ease;
+    }
+    
+    .filter-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    .data-table-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+    
+    .modern-table {
+        margin-bottom: 0;
+    }
+    
+    .modern-table thead {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+    
+    .modern-table thead th {
+        border: none;
+        padding: 18px 16px;
+        font-weight: 700;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #495057;
+    }
+    
+    .modern-table tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #f1f3f5;
+    }
+    
+    .modern-table tbody tr:hover {
+        background: linear-gradient(90deg, rgba(250, 112, 154, 0.05) 0%, transparent 100%);
+        transform: scale(1.01);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .modern-table tbody td {
+        padding: 16px;
+        vertical-align: middle;
+        border: none;
+    }
+    
+    .modern-table .badge {
+        padding: 6px 12px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        border-radius: 8px;
+    }
+    
+    .modern-table .btn {
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .modern-table .btn:hover {
+        transform: translateY(-2px);
+    }
+    
+    .mini-stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .mini-stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+    }
+    
+    .mini-stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+    
+    .stat-purple::before {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
+    
+    .stat-blue::before {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .stat-green::before {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    }
+    
+    .mini-stat-card .stat-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    .stat-purple .stat-icon {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
+    
+    .stat-blue .stat-icon {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .stat-green .stat-icon {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    }
+    
+    .stat-info {
+        flex: 1;
+    }
+    
+    .stat-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        font-weight: 600;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .stat-number {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #212529;
+        margin: 0;
+    }
+</style>
 
 @section Scripts {
     <script>
@@ -217,15 +484,13 @@
                 var mucLuong = $('#mucLuongMoi').val();
 
                 if (!tenLoaiCongViec || !moTa || !mucLuong) {
-                    alert('Vui long nhap day du thong tin!');
+                    alert('Vui lòng nhập đầy đủ thông tin!');
                     return;
                 }
 
-                alert('Da them loai cong viec: ' + tenLoaiCongViec);
+                alert('Đã thêm loại công việc: ' + tenLoaiCongViec);
                 $('#themLoaiCongViecModal').modal('hide');
                 $('#formThemLoaiCongViec')[0].reset();
-                
-                // Trong thuc te, ban se goi API de luu vao database
             });
 
             // Sua loai cong viec
@@ -249,20 +514,16 @@
                 var ma = $('#maLoaiCongViecSua').val();
                 var ten = $('#tenLoaiCongViecSua').val();
 
-                alert('Da cap nhat loai cong viec ma ' + ma + ': ' + ten);
+                alert('Đã cập nhật loại công việc mã ' + ma + ': ' + ten);
                 $('#suaLoaiCongViecModal').modal('hide');
-                
-                // Trong thuc te, ban se goi API de cap nhat database
             });
 
             // Xoa loai cong viec
             $('.btn-xoa').click(function() {
                 var ma = $(this).data('ma');
-                if (confirm('Ban co chac chan muon xoa loai cong viec nay?')) {
-                    alert('Da xoa loai cong viec ma ' + ma);
+                if (confirm('Bạn có chắc chắn muốn xóa loại công việc này?')) {
+                    alert('Đã xóa loại công việc mã ' + ma);
                     $(this).closest('tr').fadeOut();
-                    
-                    // Trong thuc te, ban se goi API de xoa khoi database
                 }
             });
         });

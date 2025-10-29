@@ -1,6 +1,6 @@
 @model List<Unicareer.Models.TinTuyenDung>
 @{
-    ViewData["Title"] = "Việc làm";
+    ViewData["Title"] = "Việc làm thực tập";
 }
 
 <style>
@@ -246,6 +246,18 @@
         letter-spacing: 0.5px;
         text-transform: uppercase;
     }
+
+    .badge-internship {
+        background: var(--success-gradient);
+        color: white;
+        padding: 6px 16px;
+        border-radius: 25px;
+        font-size: 12px;
+        font-weight: 700;
+        box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
     
     .sidebar-section {
         background: white;
@@ -443,7 +455,7 @@
                                         <i class="bi bi-search text-muted"></i>
                                     </span>
                                     <input type="text" class="form-control border-start-0" 
-                                           placeholder="Tìm kiếm việc làm, chức vụ, kỹ năng, công ty..."
+                                           placeholder="Tìm kiếm vị trí thực tập, kỹ năng, công ty..."
                                            id="searchInput">
                                 </div>
                             </div>
@@ -491,7 +503,7 @@
     <!-- Filter Bar -->
     <div class="filter-bar">
         <div class="row g-3">
-            <div class="col-md-2">
+            <div class="col-md-3">
                 <select class="form-select form-select-sm" id="filterNganhNghe">
                     <option value="">Ngành nghề</option>
                     <option value="Công nghệ thông tin">Công nghệ thông tin</option>
@@ -502,49 +514,29 @@
                     <option value="Truyền thông - Media">Truyền thông - Media</option>
                 </select>
             </div>
-            <div class="col-md-2">
-                <select class="form-select form-select-sm" id="filterCapBac">
-                    <option value="">Cấp bậc</option>
-                    <option value="Intern">Thực tập sinh</option>
-                    <option value="Junior">Nhân viên</option>
-                    <option value="Senior">Nhân viên cấp cao</option>
-                    <option value="Manager">Quản lý</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <select class="form-select form-select-sm" id="filterKinhNghiem">
-                    <option value="">Kinh nghiệm</option>
-                    <option value="Không yêu cầu">Không yêu cầu</option>
-                    <option value="Dưới 1 năm">Dưới 1 năm</option>
-                    <option value="1-3 năm">1-3 năm</option>
-                    <option value="Trên 3 năm">Trên 3 năm</option>
-                </select>
-            </div>
-            <div class="col-md-2">
+            <div class="col-md-3">
                 <select class="form-select form-select-sm" id="filterMucLuong">
-                    <option value="">Mức lương</option>
-                    <option value="Dưới 10 triệu">Dưới 10 triệu</option>
-                    <option value="10-15 triệu">10-15 triệu</option>
-                    <option value="15-25 triệu">15-25 triệu</option>
-                    <option value="Trên 25 triệu">Trên 25 triệu</option>
+                    <option value="">Mức phụ cấp</option>
+                    <option value="Dưới 5 triệu">Dưới 5 triệu</option>
+                    <option value="5-7 triệu">5-7 triệu</option>
+                    <option value="7-10 triệu">7-10 triệu</option>
+                    <option value="Trên 10 triệu">Trên 10 triệu</option>
                 </select>
             </div>
-            <div class="col-md-2">
-                <select class="form-select form-select-sm" id="filterLoaiCongViec">
-                    <option value="">Loại công việc</option>
-                    <option value="Full-time">Toàn thời gian</option>
-                    <option value="Part-time">Bán thời gian</option>
-                    <option value="Internship">Thực tập</option>
-                    <option value="Freelance">Tự do</option>
+            <div class="col-md-3">
+                <select class="form-select form-select-sm" id="filterThoiGian">
+                    <option value="">Thời gian thực tập</option>
+                    <option value="1-3 tháng">1-3 tháng</option>
+                    <option value="3-6 tháng">3-6 tháng</option>
+                    <option value="Trên 6 tháng">Trên 6 tháng</option>
                 </select>
             </div>
-            <div class="col-md-2">
-                <select class="form-select form-select-sm" id="filterHocVan">
-                    <option value="">Học vấn</option>
-                    <option value="Trung cấp">Trung cấp</option>
-                    <option value="Cao đẳng">Cao đẳng</option>
-                    <option value="Đại học">Đại học</option>
-                    <option value="Sau đại học">Sau đại học</option>
+            <div class="col-md-3">
+                <select class="form-select form-select-sm" id="filterDiaDiem">
+                    <option value="">Địa điểm</option>
+                    <option value="Hà Nội">Hà Nội</option>
+                    <option value="TP Hồ Chí Minh">TP Hồ Chí Minh</option>
+                    <option value="Đà Nẵng">Đà Nẵng</option>
                 </select>
             </div>
         </div>
@@ -553,30 +545,30 @@
     <!-- Suggestion Section -->
     <div class="suggestion-section">
         <strong>Gợi Ý Tìm Kiếm:</strong>
-        <a href="#" class="suggestion-tag">Việc làm thực tập</a>
-        <a href="#" class="suggestion-tag">Việc làm theo trường</a>
-        <a href="#" class="suggestion-tag">Việc làm online</a>
-        <a href="#" class="suggestion-tag">Việc làm thời vụ</a>
-        <a href="#" class="suggestion-tag">Việc làm Full Time</a>
-        <a href="#" class="suggestion-tag">Việc làm mới nhất</a>
+        <a href="#" class="suggestion-tag">Thực tập IT</a>
+        <a href="#" class="suggestion-tag">Thực tập Marketing</a>
+        <a href="#" class="suggestion-tag">Thực tập kinh doanh</a>
+        <a href="#" class="suggestion-tag">Thực tập thiết kế</a>
+        <a href="#" class="suggestion-tag">Thực tập Data</a>
+        <a href="#" class="suggestion-tag">Thực tập có lương</a>
     </div>
     
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="/">Unicareer</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Việc làm</li>
+            <li class="breadcrumb-item active" aria-current="page">Việc làm thực tập</li>
         </ol>
     </nav>
     
     <div class="row">
         <!-- Job List -->
         <div class="col-lg-8">
-            <h4 class="page-title">VIỆC LÀM</h4>
-            <p class="text-muted mb-4" style="font-size: 15px; line-height: 1.6;">Tuyển dụng Việc làm cho các ứng viên có nhu cầu. Hàng ngàn công việc từ các nhà tuyển dụng uy tín có trên Unicareer.vn</p>
+            <h4 class="page-title">VIỆC LÀM THỰC TẬP</h4>
+            <p class="text-muted mb-4" style="font-size: 15px; line-height: 1.6;">Tìm kiếm cơ hội thực tập tại các công ty hàng đầu. Bắt đầu sự nghiệp của bạn với những vị trí thực tập chất lượng trên Unicareer.vn</p>
             
             <div class="mb-4">
-                <strong style="color: var(--text-primary);">Có <span class="job-count-badge" id="jobCount">@Model.Count</span> việc làm được tìm thấy</strong>
+                <strong style="color: var(--text-primary);">Có <span class="job-count-badge" id="jobCount">@Model.Count</span> vị trí thực tập được tìm thấy</strong>
             </div>
             
             <div id="jobList">
@@ -599,13 +591,14 @@
                                         </div>
                                         @if (job.SoLuongUngTuyen > 50)
                                         {
-                                            <span class="badge-hot">Hot</span>
+                                            <span class="badge-internship">Nhiều người quan tâm</span>
                                         }
                                     </div>
                                     <div class="job-meta">
                                         <span><i class="bi bi-cash"></i> @mucLuongDisplay</span>
                                         <span><i class="bi bi-geo-alt"></i> @job.TinhThanhPho</span>
                                         <span><i class="bi bi-clock"></i> @job.LoaiCongViec</span>
+                                        <span><i class="bi bi-calendar-check"></i> @job.NgayDang.ToString("dd/MM/yyyy")</span>
                                     </div>
                                 </div>
                             </div>
@@ -617,9 +610,9 @@
         
         <!-- Sidebar -->
         <div class="col-lg-4">
-            <!-- Việc làm 2025 -->
+            <!-- Việc làm thực tập 2025 -->
             <div class="sidebar-section">
-                <h5><i class="bi bi-calendar-check me-2"></i>Việc làm 2025</h5>
+                <h5><i class="bi bi-calendar-check me-2"></i>Thực tập 2025</h5>
                 <div>
                     <a href="#" class="location-item d-block text-decoration-none">Hà Nội</a>
                     <a href="#" class="location-item d-block text-decoration-none">Hồ Chí Minh</a>
@@ -631,9 +624,9 @@
                 </div>
             </div>
             
-            <!-- Việc làm tuyển gấp -->
+            <!-- Thực tập được quan tâm nhất -->
             <div class="sidebar-section">
-                <h5><i class="bi bi-lightning-charge me-2"></i>Việc làm tuyển gấp</h5>
+                <h5><i class="bi bi-lightning-charge me-2"></i>Được quan tâm nhất</h5>
                 <div>
                     @foreach (var job in Model.OrderByDescending(x => x.SoLuongUngTuyen).Take(5))
                     {
@@ -652,15 +645,14 @@
                 </div>
             </div>
             
-            <!-- Nhân viên dự toán nội thất -->
+            <!-- Lợi ích khi thực tập -->
             <div class="sidebar-section">
-                <h5><i class="bi bi-star me-2"></i>Nhân Viên Dự Toán Nội Thất</h5>
-                <div class="quick-job-item">
-                    <div class="quick-job-logo">A</div>
-                    <div class="quick-job-info flex-grow-1">
-                        <h6>Nhân Viên Dự Toán Nội Thất</h6>
-                        <p><i class="bi bi-geo-alt-fill"></i> Hồ Chí Minh</p>
-                    </div>
+                <h5><i class="bi bi-star me-2"></i>Lợi Ích Khi Thực Tập</h5>
+                <div style="font-size: 14px; color: var(--text-secondary); line-height: 1.8;">
+                    <p><i class="bi bi-check-circle-fill" style="color: var(--accent-color);"></i> Tích lũy kinh nghiệm thực tế</p>
+                    <p><i class="bi bi-check-circle-fill" style="color: var(--accent-color);"></i> Học hỏi từ chuyên gia</p>
+                    <p><i class="bi bi-check-circle-fill" style="color: var(--accent-color);"></i> Mở rộng mạng lưới quan hệ</p>
+                    <p><i class="bi bi-check-circle-fill" style="color: var(--accent-color);"></i> Cơ hội trở thành nhân viên chính thức</p>
                 </div>
             </div>
         </div>
@@ -681,7 +673,7 @@
             });
             
             // Filter functionality
-            $('#filterNganhNghe, #filterCapBac, #filterKinhNghiem, #filterMucLuong, #filterLoaiCongViec, #filterHocVan').on('change', function() {
+            $('#filterNganhNghe, #filterMucLuong, #filterThoiGian, #filterDiaDiem').on('change', function() {
                 filterJobs();
             });
             
@@ -690,7 +682,6 @@
                 var searchTinhThanh = $('#searchTinhThanh').val().toLowerCase();
                 var searchQuanHuyen = $('#searchQuanHuyen').val().toLowerCase();
                 var nganhNghe = $('#filterNganhNghe').val();
-                var loaiCongViec = $('#filterLoaiCongViec').val();
                 var mucLuong = $('#filterMucLuong').val();
                 
                 var visibleCount = 0;
@@ -698,7 +689,6 @@
                 $('.job-card').each(function() {
                     var card = $(this);
                     var jobNganh = card.data('nganh') || '';
-                    var jobLoai = card.data('loai') || '';
                     var jobLuong = card.data('luong') || '';
                     var jobText = card.text().toLowerCase();
                     
@@ -706,12 +696,11 @@
                     var matchTinhThanh = searchTinhThanh === '' || jobText.includes(searchTinhThanh);
                     var matchQuanHuyen = searchQuanHuyen === '' || jobText.includes(searchQuanHuyen);
                     var matchNganh = nganhNghe === '' || jobNganh === nganhNghe;
-                    var matchLoai = loaiCongViec === '' || jobLoai === loaiCongViec;
                     
                     // Simple salary range matching
                     var matchLuong = mucLuong === '' || true; // Simplified for demo
                     
-                    if (matchSearch && matchTinhThanh && matchQuanHuyen && matchNganh && matchLoai && matchLuong) {
+                    if (matchSearch && matchTinhThanh && matchQuanHuyen && matchNganh && matchLuong) {
                         card.show();
                         visibleCount++;
                     } else {

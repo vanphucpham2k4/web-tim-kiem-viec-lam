@@ -1,189 +1,208 @@
 @model List<Unicareer.Models.NhaTuyenDung>
 
 @{
-    ViewData["Title"] = "Quan ly Nha tuyen dung";
+    ViewData["Title"] = "Quản lý Nhà tuyển dụng";
 }
 
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center">
-            <h3>Danh sach Nha tuyen dung</h3>
-        </div>
-    </div>
-</div>
-
-<div class="row mb-3">
-    <div class="col-md-3">
-        <div class="input-group">
-            <input type="text" class="form-control" id="timKiemInput" placeholder="Tim kiem theo ten cong ty, email...">
-            <button class="btn btn-outline-secondary" type="button" id="btnTimKiem">
-                <i class="bi bi-search"></i>
-            </button>
-        </div>
-    </div>
-    <div class="col-md-2">
-        <select class="form-select" id="locTinhThanhPho">
-            <option value="">Tat ca tinh/TP</option>
-            <option value="Ha Noi">Ha Noi</option>
-            <option value="TP Ho Chi Minh">TP Ho Chi Minh</option>
-            <option value="Da Nang">Da Nang</option>
-            <option value="Hai Phong">Hai Phong</option>
-            <option value="Can Tho">Can Tho</option>
-        </select>
-    </div>
-    <div class="col-md-2">
-        <select class="form-select" id="locQuanHuyen">
-            <option value="">Tat ca quan/huyen</option>
-            <option value="Quan 1">Quan 1</option>
-            <option value="Quan 3">Quan 3</option>
-            <option value="Quan 4">Quan 4</option>
-            <option value="Quan 7">Quan 7</option>
-            <option value="Tan Binh">Tan Binh</option>
-            <option value="Tan Phu">Tan Phu</option>
-            <option value="Binh Thanh">Binh Thanh</option>
-            <option value="Ba Dinh">Ba Dinh</option>
-            <option value="Cau Giay">Cau Giay</option>
-        </select>
-    </div>
-    <div class="col-md-2">
-        <select class="form-select" id="locLinhVuc">
-            <option value="">Tat ca linh vuc</option>
-            <option value="Cong nghe thong tin">Cong nghe thong tin</option>
-            <option value="Thuong mai dien tu">Thuong mai dien tu</option>
-            <option value="Vien thong">Vien thong</option>
-            <option value="Tu van">Tu van</option>
-            <option value="San xuat">San xuat</option>
-            <option value="F&B">F&B</option>
-        </select>
-    </div>
-    <div class="col-md-3">
-        <select class="form-select" id="locQuyMo">
-            <option value="">Tat ca quy mo</option>
-            <option value="500-1000">500-1000 nhan vien</option>
-            <option value="1000-5000">1000-5000 nhan vien</option>
-            <option value="5000-10000">5000-10000 nhan vien</option>
-            <option value="10000+">10000+ nhan vien</option>
-        </select>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover" id="bangNhaTuyenDung">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Ma</th>
-                                <th>Ten cong ty</th>
-                                <th>Nguoi dai dien</th>
-                                <th>Email / SDT</th>
-                                <th>Tinh/TP</th>
-                                <th>Quan/Huyen</th>
-                                <th>Linh vuc</th>
-                                <th>Quy mo</th>
-                                <th>Tin dang</th>
-                                <th>UV nhan</th>
-                                <th>Thao tac</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var ntd in Model)
-                            {
-                                <tr data-ma="@ntd.MaNhaTuyenDung" data-tinhthanhpho="@ntd.TinhThanhPho" data-quanhuyen="@ntd.QuanHuyen" data-linhvuc="@ntd.LinhVuc" data-quymo="@ntd.QuyMo">
-                                    <td>@ntd.MaNhaTuyenDung</td>
-                                    <td>
-                                        <strong>@ntd.TenCongTy</strong>
-                                        <br/>
-                                        <small><a href="@ntd.Website" target="_blank" class="text-muted">@ntd.Website</a></small>
-                                    </td>
-                                    <td>
-                                        @ntd.NguoiDaiDien
-                                        <br/>
-                                        <small class="text-muted">@ntd.ChucVu</small>
-                                    </td>
-                                    <td>
-                                        @ntd.Email<br/>
-                                        <small class="text-muted">@ntd.SoDienThoai</small>
-                                    </td>
-                                    <td><span class="badge border border-primary text-primary">@ntd.TinhThanhPho</span></td>
-                                    <td><span class="badge border border-info text-info">@ntd.QuanHuyen</span></td>
-                                    <td><span class="badge border border-dark text-dark">@ntd.LinhVuc</span></td>
-                                    <td><span class="badge border border-dark text-dark">@ntd.QuyMo</span></td>
-                                    <td><span class="badge border border-dark text-dark">@ntd.SoTinDaDang</span></td>
-                                    <td><span class="badge border border-dark text-dark">@ntd.SoUngVienNhan</span></td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-dark btn-xem" 
-                                                data-ma="@ntd.MaNhaTuyenDung"
-                                                data-tencongty="@ntd.TenCongTy"
-                                                data-email="@ntd.Email"
-                                                data-sdt="@ntd.SoDienThoai"
-                                                data-diachi="@ntd.DiaChi"
-                                                data-tinhthanhpho="@ntd.TinhThanhPho"
-                                                data-quanhuyen="@ntd.QuanHuyen"
-                                                data-website="@ntd.Website"
-                                                data-nguoidaidien="@ntd.NguoiDaiDien"
-                                                data-chucvu="@ntd.ChucVu"
-                                                data-linhvuc="@ntd.LinhVuc"
-                                                data-quymo="@ntd.QuyMo"
-                                                data-mota="@ntd.MoTa"
-                                                data-sotindadang="@ntd.SoTinDaDang"
-                                                data-soungviennhan="@ntd.SoUngVienNhan"
-                                                data-ngaydk="@ntd.NgayDangKy.ToString("dd/MM/yyyy")">
-                                            <i class="bi bi-eye"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-secondary btn-tin" 
-                                                data-ma="@ntd.MaNhaTuyenDung"
-                                                data-ten="@ntd.TenCongTy"
-                                                title="Xem tin tuyen dung">
-                                            <i class="bi bi-newspaper"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-danger btn-xoa" data-ma="@ntd.MaNhaTuyenDung">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+<div class="page-header-section mb-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-header-card">
+                <div class="header-icon">
+                    <i class="bi bi-building"></i>
+                </div>
+                <div class="header-content">
+                    <h3 class="header-title">Danh sách Nhà tuyển dụng</h3>
+                    <p class="header-subtitle">Quản lý và theo dõi các công ty đăng ký trên hệ thống</p>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Thong ke -->
-<div class="row mt-4">
-    <div class="col-md-3">
-        <div class="card border">
-            <div class="card-body">
-                <h6 class="card-title text-muted mb-2">Tong NTD</h6>
-                <h2 class="mb-0">@Model.Count</h2>
+<div class="filter-section mb-4">
+    <div class="row g-3">
+        <div class="col-lg-3 col-md-6">
+            <div class="search-wrapper">
+                <i class="bi bi-search search-icon"></i>
+                <input type="text" class="form-control search-input" id="timKiemInput" placeholder="Tìm kiếm theo tên công ty, email...">
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-6">
+            <div class="filter-select-wrapper">
+                <i class="bi bi-geo-alt filter-icon"></i>
+                <select class="form-select filter-select" id="locTinhThanhPho">
+                    <option value="">Tất cả tỉnh/TP</option>
+                    <option value="Ha Noi">Hà Nội</option>
+                    <option value="TP Ho Chi Minh">TP Hồ Chí Minh</option>
+                    <option value="Da Nang">Đà Nẵng</option>
+                    <option value="Hai Phong">Hải Phòng</option>
+                    <option value="Can Tho">Cần Thơ</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-6">
+            <div class="filter-select-wrapper">
+                <i class="bi bi-map filter-icon"></i>
+                <select class="form-select filter-select" id="locQuanHuyen">
+                    <option value="">Tất cả quận/huyện</option>
+                    <option value="Quan 1">Quận 1</option>
+                    <option value="Quan 3">Quận 3</option>
+                    <option value="Quan 4">Quận 4</option>
+                    <option value="Quan 7">Quận 7</option>
+                    <option value="Tan Binh">Tân Bình</option>
+                    <option value="Ba Dinh">Ba Đình</option>
+                    <option value="Cau Giay">Cầu Giấy</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-6">
+            <div class="filter-select-wrapper">
+                <i class="bi bi-briefcase filter-icon"></i>
+                <select class="form-select filter-select" id="locLinhVuc">
+                    <option value="">Tất cả lĩnh vực</option>
+                    <option value="Cong nghe thong tin">Công nghệ thông tin</option>
+                    <option value="Thuong mai dien tu">Thương mại điện tử</option>
+                    <option value="Vien thong">Viễn thông</option>
+                    <option value="Tu van">Tư vấn</option>
+                    <option value="San xuat">Sản xuất</option>
+                    <option value="F&B">F&B</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-lg-1 col-md-6">
+            <button class="btn btn-primary w-100 filter-btn" type="button" id="btnTimKiem">
+                <i class="bi bi-funnel-fill"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="data-table-card">
+            <div class="table-responsive">
+                <table class="table table-hover modern-table" id="bangNhaTuyenDung">
+                    <thead>
+                        <tr>
+                            <th>Mã</th>
+                            <th>Tên công ty</th>
+                            <th>Người đại diện</th>
+                            <th>Email / SĐT</th>
+                            <th>Tỉnh/TP</th>
+                            <th>Quận/Huyện</th>
+                            <th>Lĩnh vực</th>
+                            <th>Tin đăng</th>
+                            <th>UV nhận</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var ntd in Model)
+                        {
+                            <tr data-ma="@ntd.MaNhaTuyenDung" data-tinhthanhpho="@ntd.TinhThanhPho" data-quanhuyen="@ntd.QuanHuyen" data-linhvuc="@ntd.LinhVuc">
+                                <td>@ntd.MaNhaTuyenDung</td>
+                                <td>
+                                    <strong>@ntd.TenCongTy</strong>
+                                    <br/>
+                                    <small><a href="@ntd.Website" target="_blank" class="text-primary"><i class="bi bi-link-45deg"></i> @ntd.Website</a></small>
+                                </td>
+                                <td>
+                                    @ntd.NguoiDaiDien
+                                    <br/>
+                                    <small class="text-muted">@ntd.ChucVu</small>
+                                </td>
+                                <td>
+                                    <i class="bi bi-envelope"></i> @ntd.Email<br/>
+                                    <small class="text-muted"><i class="bi bi-telephone"></i> @ntd.SoDienThoai</small>
+                                </td>
+                                <td><span class="badge bg-primary">@ntd.TinhThanhPho</span></td>
+                                <td><span class="badge bg-info">@ntd.QuanHuyen</span></td>
+                                <td><span class="badge bg-secondary">@ntd.LinhVuc</span></td>
+                                <td><span class="badge bg-success">@ntd.SoTinDaDang</span></td>
+                                <td><span class="badge bg-warning text-dark">@ntd.SoUngVienNhan</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-info btn-xem" 
+                                            data-ma="@ntd.MaNhaTuyenDung"
+                                            data-tencongty="@ntd.TenCongTy"
+                                            data-email="@ntd.Email"
+                                            data-sdt="@ntd.SoDienThoai"
+                                            data-diachi="@ntd.DiaChi"
+                                            data-tinhthanhpho="@ntd.TinhThanhPho"
+                                            data-quanhuyen="@ntd.QuanHuyen"
+                                            data-website="@ntd.Website"
+                                            data-nguoidaidien="@ntd.NguoiDaiDien"
+                                            data-chucvu="@ntd.ChucVu"
+                                            data-linhvuc="@ntd.LinhVuc"
+                                            data-mota="@ntd.MoTa"
+                                            data-sotindadang="@ntd.SoTinDaDang"
+                                            data-soungviennhan="@ntd.SoUngVienNhan"
+                                            data-ngaydk="@ntd.NgayDangKy.ToString("dd/MM/yyyy")"
+                                            title="Xem">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary btn-tin" 
+                                            data-ma="@ntd.MaNhaTuyenDung"
+                                            data-ten="@ntd.TenCongTy"
+                                            title="Xem tin tuyển dụng">
+                                        <i class="bi bi-newspaper"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger btn-xoa" data-ma="@ntd.MaNhaTuyenDung" title="Xóa">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border">
-            <div class="card-body">
-                <h6 class="card-title text-muted mb-2">Tong tin dang</h6>
-                <h2 class="mb-0">@Model.Sum(n => n.SoTinDaDang)</h2>
+</div>
+
+<!-- Thống kê -->
+<div class="row stats-section mt-4">
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="mini-stat-card stat-purple">
+            <div class="stat-icon">
+                <i class="bi bi-building"></i>
+            </div>
+            <div class="stat-info">
+                <h6 class="stat-label">Tổng NTD</h6>
+                <h3 class="stat-number">@Model.Count</h3>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border">
-            <div class="card-body">
-                <h6 class="card-title text-muted mb-2">Tong UV nhan</h6>
-                <h2 class="mb-0">@Model.Sum(n => n.SoUngVienNhan)</h2>
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="mini-stat-card stat-blue">
+            <div class="stat-icon">
+                <i class="bi bi-file-earmark-text"></i>
+            </div>
+            <div class="stat-info">
+                <h6 class="stat-label">Tổng tin đăng</h6>
+                <h3 class="stat-number">@Model.Sum(n => n.SoTinDaDang)</h3>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border">
-            <div class="card-body">
-                <h6 class="card-title text-muted mb-2">TB tin/NTD</h6>
-                <h2 class="mb-0">@((int)Model.Average(n => n.SoTinDaDang))</h2>
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="mini-stat-card stat-green">
+            <div class="stat-icon">
+                <i class="bi bi-person-check"></i>
+            </div>
+            <div class="stat-info">
+                <h6 class="stat-label">Tổng UV nhận</h6>
+                <h3 class="stat-number">@Model.Sum(n => n.SoUngVienNhan)</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="mini-stat-card stat-orange">
+            <div class="stat-icon">
+                <i class="bi bi-graph-up-arrow"></i>
+            </div>
+            <div class="stat-info">
+                <h6 class="stat-label">TB tin/NTD</h6>
+                <h3 class="stat-number">@((int)Model.Average(n => n.SoTinDaDang))</h3>
             </div>
         </div>
     </div>
@@ -193,64 +212,327 @@
 <div class="modal fade" id="xemChiTietModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Thong tin Nha tuyen dung</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-building me-2"></i>Thông tin Nhà tuyển dụng</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="row">
                     <div class="col-md-6">
-                        <h6 class="text-primary">Thong tin cong ty</h6>
-                        <p><strong>Ten cong ty:</strong> <span id="chiTietTenCongTy"></span></p>
+                        <h6 class="text-primary mb-3"><i class="bi bi-building"></i> Thông tin công ty</h6>
+                        <p><strong>Tên công ty:</strong> <span id="chiTietTenCongTy"></span></p>
                         <p><strong>Email:</strong> <span id="chiTietEmail"></span></p>
-                        <p><strong>So dien thoai:</strong> <span id="chiTietSDT"></span></p>
+                        <p><strong>Số điện thoại:</strong> <span id="chiTietSDT"></span></p>
                         <p><strong>Website:</strong> <a href="#" id="chiTietWebsite" target="_blank"></a></p>
-                        <p><strong>Dia chi:</strong> <span id="chiTietDiaChi"></span></p>
-                        <p><strong>Tinh/Thanh pho:</strong> <span id="chiTietTinhThanhPho" class="badge border border-primary text-primary"></span></p>
-                        <p><strong>Quan/Huyen:</strong> <span id="chiTietQuanHuyen" class="badge border border-info text-info"></span></p>
+                        <p><strong>Địa chỉ:</strong> <span id="chiTietDiaChi"></span></p>
+                        <p><strong>Tỉnh/Thành phố:</strong> <span id="chiTietTinhThanhPho" class="badge bg-primary"></span></p>
+                        <p><strong>Quận/Huyện:</strong> <span id="chiTietQuanHuyen" class="badge bg-info"></span></p>
                     </div>
                     <div class="col-md-6">
-                        <h6 class="text-primary">Nguoi dai dien</h6>
-                        <p><strong>Ho ten:</strong> <span id="chiTietNguoiDaiDien"></span></p>
-                        <p><strong>Chuc vu:</strong> <span id="chiTietChucVu"></span></p>
-                        <p><strong>Linh vuc:</strong> <span id="chiTietLinhVuc"></span></p>
-                        <p><strong>Quy mo:</strong> <span id="chiTietQuyMo"></span></p>
-                        <p><strong>Ngay dang ky:</strong> <span id="chiTietNgayDK"></span></p>
+                        <h6 class="text-primary mb-3"><i class="bi bi-person-badge"></i> Người đại diện</h6>
+                        <p><strong>Họ tên:</strong> <span id="chiTietNguoiDaiDien"></span></p>
+                        <p><strong>Chức vụ:</strong> <span id="chiTietChucVu"></span></p>
+                        <p><strong>Lĩnh vực:</strong> <span id="chiTietLinhVuc"></span></p>
+                        <p><strong>Ngày đăng ký:</strong> <span id="chiTietNgayDK"></span></p>
                     </div>
                 </div>
                 <hr/>
                 <div class="row mt-3">
                     <div class="col-12">
-                        <h6 class="text-primary">Gioi thieu</h6>
-                        <p id="chiTietMoTa"></p>
+                        <h6 class="text-primary mb-3"><i class="bi bi-info-circle"></i> Giới thiệu</h6>
+                        <p id="chiTietMoTa" class="text-muted"></p>
                     </div>
                 </div>
                 <hr/>
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="card bg-light">
+                        <div class="card bg-light border-0">
                             <div class="card-body text-center">
-                                <h3 id="chiTietSoTin" class="text-primary">0</h3>
-                                <p class="mb-0">Tin tuyen dung da dang</p>
+                                <h3 id="chiTietSoTin" class="text-primary mb-0">0</h3>
+                                <p class="mb-0 mt-2 small">Tin tuyển dụng đã đăng</p>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="card bg-light">
+                        <div class="card bg-light border-0">
                             <div class="card-body text-center">
-                                <h3 id="chiTietSoUV" class="text-success">0</h3>
-                                <p class="mb-0">Ung vien da nhan</p>
+                                <h3 id="chiTietSoUV" class="text-success mb-0">0</h3>
+                                <p class="mb-0 mt-2 small">Ứng viên đã nhận</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Dong</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .page-header-card {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        border-radius: 16px;
+        padding: 28px 32px;
+        color: white;
+        box-shadow: 0 8px 24px rgba(79, 172, 254, 0.25);
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    
+    .page-header-card .header-icon {
+        width: 64px;
+        height: 64px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        backdrop-filter: blur(10px);
+    }
+    
+    .page-header-card .header-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+    
+    .page-header-card .header-subtitle {
+        font-size: 0.95rem;
+        opacity: 0.95;
+        margin: 0;
+    }
+    
+    .filter-section {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+    
+    .search-wrapper {
+        position: relative;
+    }
+    
+    .search-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #667eea;
+        font-size: 1.1rem;
+        z-index: 1;
+    }
+    
+    .search-input {
+        padding-left: 45px;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        height: 48px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+    
+    .search-input:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .filter-select-wrapper {
+        position: relative;
+    }
+    
+    .filter-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #667eea;
+        font-size: 1.05rem;
+        z-index: 1;
+        pointer-events: none;
+    }
+    
+    .filter-select {
+        padding-left: 45px;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        height: 48px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+    
+    .filter-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .filter-btn {
+        height: 48px;
+        border-radius: 12px;
+        font-weight: 600;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        transition: all 0.3s ease;
+    }
+    
+    .filter-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    .data-table-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+    
+    .modern-table {
+        margin-bottom: 0;
+    }
+    
+    .modern-table thead {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+    
+    .modern-table thead th {
+        border: none;
+        padding: 18px 16px;
+        font-weight: 700;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #495057;
+    }
+    
+    .modern-table tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #f1f3f5;
+    }
+    
+    .modern-table tbody tr:hover {
+        background: linear-gradient(90deg, rgba(79, 172, 254, 0.05) 0%, transparent 100%);
+        transform: scale(1.01);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .modern-table tbody td {
+        padding: 16px;
+        vertical-align: middle;
+        border: none;
+    }
+    
+    .modern-table .badge {
+        padding: 6px 12px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        border-radius: 8px;
+    }
+    
+    .modern-table .btn {
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .modern-table .btn:hover {
+        transform: translateY(-2px);
+    }
+    
+    .mini-stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .mini-stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+    }
+    
+    .mini-stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+    
+    .stat-purple::before {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    
+    .stat-blue::before {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    
+    .stat-green::before {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    }
+    
+    .stat-orange::before {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
+    
+    .mini-stat-card .stat-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    .stat-purple .stat-icon {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    
+    .stat-blue .stat-icon {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    
+    .stat-green .stat-icon {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    }
+    
+    .stat-orange .stat-icon {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
+    
+    .stat-info {
+        flex: 1;
+    }
+    
+    .stat-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        font-weight: 600;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .stat-number {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #212529;
+        margin: 0;
+    }
+</style>
 
 @section Scripts {
     <script>
@@ -261,7 +543,7 @@
                 locDuLieu();
             });
 
-            $('#locTinhThanhPho, #locQuanHuyen, #locLinhVuc, #locQuyMo').on('change', function() {
+            $('#locTinhThanhPho, #locQuanHuyen, #locLinhVuc').on('change', function() {
                 locDuLieu();
             });
 
@@ -270,7 +552,6 @@
                 var tinhThanhPho = $('#locTinhThanhPho').val();
                 var quanHuyen = $('#locQuanHuyen').val();
                 var linhVuc = $('#locLinhVuc').val();
-                var quyMo = $('#locQuyMo').val();
 
                 $('#bangNhaTuyenDung tbody tr').each(function() {
                     var row = $(this);
@@ -279,15 +560,13 @@
                     var tinhThanhPhoRow = row.data('tinhthanhpho');
                     var quanHuyenRow = row.data('quanhuyen');
                     var linhVucRow = row.data('linhvuc');
-                    var quyMoRow = row.data('quymo');
                     
                     var khopTuKhoa = tuKhoa === '' || tenCongTy.includes(tuKhoa) || email.includes(tuKhoa);
                     var khopTinhThanhPho = tinhThanhPho === '' || tinhThanhPhoRow === tinhThanhPho;
                     var khopQuanHuyen = quanHuyen === '' || quanHuyenRow === quanHuyen;
                     var khopLinhVuc = linhVuc === '' || linhVucRow.includes(linhVuc);
-                    var khopQuyMo = quyMo === '' || quyMoRow.includes(quyMo);
                     
-                    if (khopTuKhoa && khopTinhThanhPho && khopQuanHuyen && khopLinhVuc && khopQuyMo) {
+                    if (khopTuKhoa && khopTinhThanhPho && khopQuanHuyen && khopLinhVuc) {
                         row.show();
                     } else {
                         row.hide();
@@ -307,7 +586,6 @@
                 $('#chiTietNguoiDaiDien').text($(this).data('nguoidaidien'));
                 $('#chiTietChucVu').text($(this).data('chucvu'));
                 $('#chiTietLinhVuc').text($(this).data('linhvuc'));
-                $('#chiTietQuyMo').text($(this).data('quymo'));
                 $('#chiTietMoTa').text($(this).data('mota'));
                 $('#chiTietSoTin').text($(this).data('sotindadang'));
                 $('#chiTietSoUV').text($(this).data('soungviennhan'));
@@ -320,19 +598,18 @@
             $('.btn-tin').click(function() {
                 var ma = $(this).data('ma');
                 var ten = $(this).data('ten');
-                alert('Xem cac tin tuyen dung cua ' + ten);
-                // Trong thuc te, chuyen den trang tin tuyen dung voi filter theo cong ty
+                alert('Xem các tin tuyển dụng của ' + ten);
+                // Trong thực tế, chuyển đến trang tin tuyển dụng với filter theo công ty
             });
 
             // Xoa nha tuyen dung
             $('.btn-xoa').click(function() {
                 var ma = $(this).data('ma');
-                if (confirm('Ban co chac chan muon xoa nha tuyen dung nay?')) {
-                    alert('Da xoa nha tuyen dung ma ' + ma);
+                if (confirm('Bạn có chắc chắn muốn xóa nhà tuyển dụng này?')) {
+                    alert('Đã xóa nhà tuyển dụng mã ' + ma);
                     $(this).closest('tr').fadeOut();
                 }
             });
         });
     </script>
 }
-

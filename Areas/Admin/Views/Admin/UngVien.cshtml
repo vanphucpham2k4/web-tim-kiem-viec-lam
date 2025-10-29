@@ -4,65 +4,83 @@
     ViewData["Title"] = "Quan ly Ung vien";
 }
 
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center">
-            <h3>Danh sach Ung vien</h3>
+<div class="page-header-section mb-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-header-card">
+                <div class="header-icon">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <div class="header-content">
+                    <h3 class="header-title">Danh sách Ứng viên</h3>
+                    <p class="header-subtitle">Quản lý và theo dõi thông tin ứng viên đăng ký trên hệ thống</p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="row mb-3">
-    <div class="col-md-4">
-        <div class="input-group">
-            <input type="text" class="form-control" id="timKiemInput" placeholder="Tim kiem theo ho ten, email...">
-            <button class="btn btn-outline-secondary" type="button" id="btnTimKiem">
-                <i class="bi bi-search"></i> Tim kiem
+<div class="filter-section mb-4">
+    <div class="row g-3">
+        <div class="col-lg-4 col-md-6">
+            <div class="search-wrapper">
+                <i class="bi bi-search search-icon"></i>
+                <input type="text" class="form-control search-input" id="timKiemInput" placeholder="Tìm kiếm theo họ tên, email...">
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="filter-select-wrapper">
+                <i class="bi bi-briefcase filter-icon"></i>
+                <select class="form-select filter-select" id="locNganhNghe">
+                    <option value="">Tất cả ngành nghề</option>
+                    <option value="Cong nghe thong tin">Công nghệ thông tin</option>
+                    <option value="Kinh doanh">Kinh doanh</option>
+                    <option value="Ke toan - Tai chinh">Kế toán - Tài chính</option>
+                    <option value="Nhan su">Nhân sự</option>
+                    <option value="Thiet ke do hoa">Thiết kế đồ họa</option>
+                    <option value="Truyen thong - Media">Truyền thông - Media</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="filter-select-wrapper">
+                <i class="bi bi-award filter-icon"></i>
+                <select class="form-select filter-select" id="locKinhNghiem">
+                    <option value="">Tất cả kinh nghiệm</option>
+                    <option value="Fresher">Fresher</option>
+                    <option value="1 nam">1 năm</option>
+                    <option value="2 nam">2 năm</option>
+                    <option value="3 nam">3 năm</option>
+                    <option value="4 nam">4 năm +</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-6">
+            <button class="btn btn-primary w-100 filter-btn" type="button" id="btnTimKiem">
+                <i class="bi bi-funnel-fill"></i> Lọc
             </button>
         </div>
-    </div>
-    <div class="col-md-3">
-        <select class="form-select" id="locNganhNghe">
-            <option value="">Tat ca nganh nghe</option>
-            <option value="Cong nghe thong tin">Cong nghe thong tin</option>
-            <option value="Kinh doanh">Kinh doanh</option>
-            <option value="Ke toan - Tai chinh">Ke toan - Tai chinh</option>
-            <option value="Nhan su">Nhan su</option>
-            <option value="Thiet ke do hoa">Thiet ke do hoa</option>
-            <option value="Truyen thong - Media">Truyen thong - Media</option>
-        </select>
-    </div>
-    <div class="col-md-3">
-        <select class="form-select" id="locKinhNghiem">
-            <option value="">Tat ca kinh nghiem</option>
-            <option value="Fresher">Fresher</option>
-            <option value="1 nam">1 nam</option>
-            <option value="2 nam">2 nam</option>
-            <option value="3 nam">3 nam</option>
-            <option value="4 nam">4 nam +</option>
-        </select>
     </div>
 </div>
 
 <div class="row">
     <div class="col-12">
-        <div class="card">
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover" id="bangUngVien">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Ma</th>
-                                <th>Ho ten</th>
-                                <th>Email / SDT</th>
-                                <th>Ngay sinh</th>
-                                <th>Dia chi</th>
-                                <th>Nganh nghe</th>
-                                <th>Kinh nghiem</th>
-                                <th>So lan UT</th>
-                                <th>Thao tac</th>
-                            </tr>
-                        </thead>
+        <div class="data-table-card">
+            <div class="table-responsive">
+                <table class="table table-hover modern-table" id="bangUngVien">
+                    <thead>
+                        <tr>
+                            <th>Mã</th>
+                            <th>Họ tên</th>
+                            <th>Email / SĐT</th>
+                            <th>Ngày sinh</th>
+                            <th>Địa chỉ</th>
+                            <th>Ngành nghề</th>
+                            <th>Kinh nghiệm</th>
+                            <th>Số lần UT</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
                         <tbody>
                             @foreach (var uv in Model)
                             {
@@ -122,36 +140,48 @@
 </div>
 
 <!-- Thong ke -->
-<div class="row mt-4">
-    <div class="col-md-3">
-        <div class="card border">
-            <div class="card-body">
-                <h6 class="card-title text-muted mb-2">Tong ung vien</h6>
-                <h2 class="mb-0">@Model.Count</h2>
+<div class="row stats-section mt-4">
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="mini-stat-card stat-purple">
+            <div class="stat-icon">
+                <i class="bi bi-people-fill"></i>
+            </div>
+            <div class="stat-info">
+                <h6 class="stat-label">Tổng ứng viên</h6>
+                <h3 class="stat-number">@Model.Count</h3>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border">
-            <div class="card-body">
-                <h6 class="card-title text-muted mb-2">Ung vien IT</h6>
-                <h2 class="mb-0">@Model.Count(u => u.NganhNghe == "Cong nghe thong tin")</h2>
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="mini-stat-card stat-blue">
+            <div class="stat-icon">
+                <i class="bi bi-laptop"></i>
+            </div>
+            <div class="stat-info">
+                <h6 class="stat-label">Ứng viên IT</h6>
+                <h3 class="stat-number">@Model.Count(u => u.NganhNghe == "Cong nghe thong tin")</h3>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border">
-            <div class="card-body">
-                <h6 class="card-title text-muted mb-2">Tong ung tuyen</h6>
-                <h2 class="mb-0">@Model.Sum(u => u.SoLanUngTuyen)</h2>
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="mini-stat-card stat-green">
+            <div class="stat-icon">
+                <i class="bi bi-file-earmark-check"></i>
+            </div>
+            <div class="stat-info">
+                <h6 class="stat-label">Tổng ứng tuyển</h6>
+                <h3 class="stat-number">@Model.Sum(u => u.SoLanUngTuyen)</h3>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border">
-            <div class="card-body">
-                <h6 class="card-title text-muted mb-2">TB ung tuyen/nguoi</h6>
-                <h2 class="mb-0">@((int)Model.Average(u => u.SoLanUngTuyen))</h2>
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="mini-stat-card stat-orange">
+            <div class="stat-icon">
+                <i class="bi bi-graph-up-arrow"></i>
+            </div>
+            <div class="stat-info">
+                <h6 class="stat-label">TB ứng tuyển/người</h6>
+                <h3 class="stat-number">@((int)Model.Average(u => u.SoLanUngTuyen))</h3>
             </div>
         </div>
     </div>
@@ -200,6 +230,275 @@
         </div>
     </div>
 </div>
+
+<style>
+    /* Page Header */
+    .page-header-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        padding: 28px 32px;
+        color: white;
+        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.25);
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    
+    .page-header-card .header-icon {
+        width: 64px;
+        height: 64px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        backdrop-filter: blur(10px);
+    }
+    
+    .page-header-card .header-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+    
+    .page-header-card .header-subtitle {
+        font-size: 0.95rem;
+        opacity: 0.95;
+        margin: 0;
+    }
+    
+    /* Filter Section */
+    .filter-section {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+    
+    .search-wrapper {
+        position: relative;
+    }
+    
+    .search-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #667eea;
+        font-size: 1.1rem;
+        z-index: 1;
+    }
+    
+    .search-input {
+        padding-left: 45px;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        height: 48px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+    
+    .search-input:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .filter-select-wrapper {
+        position: relative;
+    }
+    
+    .filter-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #667eea;
+        font-size: 1.05rem;
+        z-index: 1;
+        pointer-events: none;
+    }
+    
+    .filter-select {
+        padding-left: 45px;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        height: 48px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23667eea' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+    }
+    
+    .filter-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .filter-btn {
+        height: 48px;
+        border-radius: 12px;
+        font-weight: 600;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        transition: all 0.3s ease;
+    }
+    
+    .filter-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    /* Data Table */
+    .data-table-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+    
+    .modern-table {
+        margin-bottom: 0;
+    }
+    
+    .modern-table thead {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+    
+    .modern-table thead th {
+        border: none;
+        padding: 18px 16px;
+        font-weight: 700;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #495057;
+    }
+    
+    .modern-table tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #f1f3f5;
+    }
+    
+    .modern-table tbody tr:hover {
+        background: linear-gradient(90deg, rgba(102, 126, 234, 0.05) 0%, transparent 100%);
+        transform: scale(1.01);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .modern-table tbody td {
+        padding: 16px;
+        vertical-align: middle;
+        border: none;
+    }
+    
+    .modern-table .badge {
+        padding: 6px 12px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        border-radius: 8px;
+    }
+    
+    .modern-table .btn {
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .modern-table .btn:hover {
+        transform: translateY(-2px);
+    }
+    
+    /* Mini Stats */
+    .mini-stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .mini-stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+    }
+    
+    .mini-stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+    
+    .stat-purple::before {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .stat-blue::before {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    
+    .stat-green::before {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    }
+    
+    .stat-orange::before {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
+    
+    .mini-stat-card .stat-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    .stat-purple .stat-icon {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .stat-blue .stat-icon {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    
+    .stat-green .stat-icon {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    }
+    
+    .stat-orange .stat-icon {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
+    
+    .stat-info {
+        flex: 1;
+    }
+    
+    .stat-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        font-weight: 600;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .stat-number {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #212529;
+        margin: 0;
+    }
+</style>
 
 @section Scripts {
     <script>

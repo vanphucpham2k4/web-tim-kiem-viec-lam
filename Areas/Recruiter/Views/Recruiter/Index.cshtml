@@ -1,138 +1,400 @@
 @{
-    ViewData["Title"] = "Tong quan";
+    ViewData["Title"] = "Màn hình chính";
 }
 
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="alert alert-info border-0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-            <h4 class="alert-heading"><i class="bi bi-info-circle"></i> Chao mung!</h4>
-            <p class="mb-0">Quan ly hieu qua cac tin tuyen dung va ung vien cua ban.</p>
+<div class="container-fluid">
+    <!-- Welcome Banner -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="welcome-banner">
+                <div class="welcome-icon">
+                    <i class="bi bi-briefcase-fill"></i>
+                </div>
+                <div>
+                    <h3>Chào mừng đến với Unicareer</h3>
+                    <p>Quản lý hiệu quả các tin tuyển dụng và ứng viên của bạn</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stat-card stat-primary">
+                <div class="stat-icon">
+                    <i class="bi bi-newspaper"></i>
+                </div>
+                <div class="stat-content">
+                    <h6>Tin đã đăng</h6>
+                    <h2>12</h2>
+                    <small><i class="bi bi-arrow-up"></i> +2 tuần này</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stat-card stat-success">
+                <div class="stat-icon">
+                    <i class="bi bi-inbox-fill"></i>
+                </div>
+                <div class="stat-content">
+                    <h6>Đơn ứng tuyển</h6>
+                    <h2>156</h2>
+                    <small><i class="bi bi-arrow-up"></i> +23 tuần này</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stat-card stat-info">
+                <div class="stat-icon">
+                    <i class="bi bi-eye-fill"></i>
+                </div>
+                <div class="stat-content">
+                    <h6>Lượt xem</h6>
+                    <h2>1,234</h2>
+                    <small><i class="bi bi-arrow-up"></i> +156 tuần này</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stat-card stat-warning">
+                <div class="stat-icon">
+                    <i class="bi bi-person-check-fill"></i>
+                </div>
+                <div class="stat-content">
+                    <h6>UV phù hợp</h6>
+                    <h2>45</h2>
+                    <small><i class="bi bi-arrow-up"></i> +8 tuần này</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("DangTinTuyenDung", "Recruiter")" class="text-decoration-none">
+                <div class="action-card action-primary">
+                    <i class="bi bi-plus-circle-fill"></i>
+                    <h5>Đăng tin tuyển dụng</h5>
+                    <p>Tạo tin tuyển dụng mới</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("TinDaDang", "Recruiter")" class="text-decoration-none">
+                <div class="action-card action-success">
+                    <i class="bi bi-list-task"></i>
+                    <h5>Quản lý tin đã đăng</h5>
+                    <p>Xem và chỉnh sửa tin</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="#" class="text-decoration-none">
+                <div class="action-card action-info">
+                    <i class="bi bi-inbox"></i>
+                    <h5>Đơn ứng tuyển</h5>
+                    <p>Xem CV ứng viên</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="#" class="text-decoration-none">
+                <div class="action-card action-warning">
+                    <i class="bi bi-graph-up"></i>
+                    <h5>Thống kê & Báo cáo</h5>
+                    <p>Phân tích hiệu quả</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="row">
+        <div class="col-12">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h4><i class="bi bi-graph-up text-primary"></i> Thống kê tuần này</h4>
+                </div>
+                <div class="chart-body">
+                    <canvas id="chartTuanNay" height="80"></canvas>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card border-0 h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted mb-2">Tin da dang</h6>
-                        <h2 class="mb-0">12</h2>
-                    </div>
-                    <div style="font-size: 2.5rem; color: #3498db;">
-                        <i class="bi bi-file-earmark-text"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-0 h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted mb-2">Don ung tuyen</h6>
-                        <h2 class="mb-0">156</h2>
-                    </div>
-                    <div style="font-size: 2.5rem; color: #2ecc71;">
-                        <i class="bi bi-inbox"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-0 h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted mb-2">Luot xem</h6>
-                        <h2 class="mb-0">1,234</h2>
-                    </div>
-                    <div style="font-size: 2.5rem; color: #9b59b6;">
-                        <i class="bi bi-eye"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-0 h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted mb-2">UV phu hop</h6>
-                        <h2 class="mb-0">45</h2>
-                    </div>
-                    <div style="font-size: 2.5rem; color: #e74c3c;">
-                        <i class="bi bi-person-check"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<style>
+    .welcome-banner {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        animation: slideDown 0.6s ease-out;
+    }
 
-<div class="row">
-    <div class="col-md-6 mb-3">
-        <a href="/Recruiter/Recruiter/DangTinTuyenDung" class="btn btn-primary btn-lg w-100">
-            <i class="bi bi-plus-circle"></i> Dang tin tuyen dung moi
-        </a>
-    </div>
-    <div class="col-md-6 mb-3">
-        <a href="/Recruiter/Recruiter/TinDaDang" class="btn btn-outline-secondary btn-lg w-100">
-            <i class="bi bi-list-task"></i> Quan ly tin da dang
-        </a>
-    </div>
-</div>
+    .welcome-icon {
+        width: 70px;
+        height: 70px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title mb-4">
-                    <i class="bi bi-graph-up text-primary"></i>
-                    Thong ke tuan nay
-                </h4>
-                <canvas id="chartTuanNay" height="80"></canvas>
-            </div>
-        </div>
-    </div>
-</div>
+    .welcome-icon i {
+        font-size: 2.5rem;
+        color: white;
+    }
+
+    .welcome-banner h3 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .welcome-banner p {
+        margin: 0;
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stat-icon i {
+        font-size: 2rem;
+        color: white;
+    }
+
+    .stat-primary .stat-icon {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .stat-success .stat-icon {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+
+    .stat-info .stat-icon {
+        background: linear-gradient(135deg, #3494e6 0%, #ec6ead 100%);
+    }
+
+    .stat-warning .stat-icon {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .stat-content h6 {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        margin-bottom: 5px;
+        font-weight: 500;
+    }
+
+    .stat-content h2 {
+        color: #2c3e50;
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .stat-content small {
+        color: #27ae60;
+        font-size: 0.85rem;
+    }
+
+    .stat-content small i {
+        margin-right: 3px;
+    }
+
+    .action-card {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        text-align: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+        border: 2px solid transparent;
+        min-height: 180px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .action-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.15);
+    }
+
+    .action-card.action-primary:hover {
+        border-color: #667eea;
+    }
+
+    .action-card.action-success:hover {
+        border-color: #11998e;
+    }
+
+    .action-card.action-info:hover {
+        border-color: #3494e6;
+    }
+
+    .action-card.action-warning:hover {
+        border-color: #f093fb;
+    }
+
+    .action-card i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+    }
+
+    .action-card.action-primary i {
+        color: #667eea;
+    }
+
+    .action-card.action-success i {
+        color: #11998e;
+    }
+
+    .action-card.action-info i {
+        color: #3494e6;
+    }
+
+    .action-card.action-warning i {
+        color: #f093fb;
+    }
+
+    .action-card h5 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 8px;
+    }
+
+    .action-card p {
+        font-size: 0.9rem;
+        color: #7f8c8d;
+        margin: 0;
+    }
+
+    .chart-card {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    }
+
+    .chart-header {
+        margin-bottom: 20px;
+    }
+
+    .chart-header h4 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0;
+    }
+
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .col-xl-3:nth-child(1) .stat-card { animation-delay: 0.1s; }
+    .col-xl-3:nth-child(2) .stat-card { animation-delay: 0.15s; }
+    .col-xl-3:nth-child(3) .stat-card { animation-delay: 0.2s; }
+    .col-xl-3:nth-child(4) .stat-card { animation-delay: 0.25s; }
+</style>
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Simple chart for demo
         var ctx = document.getElementById('chartTuanNay').getContext('2d');
         var chart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
                 datasets: [{
-                    label: 'Luot xem tin',
+                    label: 'Lượt xem tin',
                     data: [65, 89, 80, 81, 96, 105, 94],
-                    borderColor: '#3498db',
-                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                    tension: 0.4
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    tension: 0.4,
+                    fill: true
                 }, {
-                    label: 'Don ung tuyen',
+                    label: 'Đơn ứng tuyển',
                     data: [12, 19, 15, 17, 22, 24, 20],
-                    borderColor: '#2ecc71',
-                    backgroundColor: 'rgba(46, 204, 113, 0.1)',
-                    tension: 0.4
+                    borderColor: '#11998e',
+                    backgroundColor: 'rgba(17, 153, 142, 0.1)',
+                    tension: 0.4,
+                    fill: true
                 }]
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: {
                         position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
                     }
                 }
             }
         });
     </script>
 }
-

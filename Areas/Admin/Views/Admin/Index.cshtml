@@ -1,146 +1,174 @@
-@using Unicareer.Models
-
 @{
-    ViewData["Title"] = "Tổng quan";
-    
-    // Lay du lieu mockdata
-    var danhSachUngVien = UngVien.LayDanhSachUngVien();
-    var danhSachNhaTuyenDung = NhaTuyenDung.LayDanhSachNhaTuyenDung();
-    var danhSachTinTuyenDung = TinTuyenDung.LayDanhSachTinTuyenDung();
-    var danhSachTinUngTuyen = TinUngTuyen.LayDanhSachTinUngTuyen();
-    
-    var tongUsers = danhSachUngVien.Count + danhSachNhaTuyenDung.Count;
-    var tinMoi = danhSachTinTuyenDung.Count(t => (DateTime.Now - t.NgayDang).Days <= 7);
-    var ungTuyenMoi = danhSachTinUngTuyen.Count(t => (DateTime.Now - t.NgayUngTuyen).Days <= 7);
-    var choXuLy = danhSachTinUngTuyen.Count(t => t.TrangThaiXuLy == "Dang xem xet");
+    ViewData["Title"] = "Màn hình chính";
 }
 
-<div class="row">
-    <div class="col-12">
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
-                <h4 class="mb-2">Chào mừng đến với Admin Panel</h4>
-                <p class="text-muted mb-0">Quản lý hệ thống tuyển dụng Unicareer</p>
-            </div>
+<div class="container-fluid">
+    <div class="row g-4">
+        <!-- Số liệu phân tích -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("Dashboard", "Admin")" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <i class="bi bi-bar-chart-line"></i>
+                    <h5>Số liệu phân tích</h5>
+                </div>
+            </a>
         </div>
-    </div>
-</div>
 
-<div class="row">
-    <div class="col-md-3">
-        <div class="card shadow-sm mb-3">
-            <div class="card-body">
-                <h6 class="card-title text-muted mb-2">Tổng người dùng</h6>
-                <h2 class="mb-0 text-dark">@tongUsers</h2>
-                <small class="text-muted">@danhSachUngVien.Count UV + @danhSachNhaTuyenDung.Count NTD</small>
-            </div>
+        <!-- Quản lý ứng viên -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("UngVien", "Admin")" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <i class="bi bi-person-badge"></i>
+                    <h5>Quản lý ứng viên</h5>
+                </div>
+            </a>
         </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card shadow-sm mb-3">
-            <div class="card-body">
-                <h6 class="card-title text-muted mb-2">Tin tuyển dụng</h6>
-                <h2 class="mb-0 text-dark">@danhSachTinTuyenDung.Count</h2>
-                <small class="text-muted">@tinMoi tin mới tuần này</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card shadow-sm mb-3">
-            <div class="card-body">
-                <h6 class="card-title text-muted mb-2">Ứng tuyển mới</h6>
-                <h2 class="mb-0 text-dark">@ungTuyenMoi</h2>
-                <small class="text-muted">7 ngày gần đây</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card shadow-sm mb-3">
-            <div class="card-body">
-                <h6 class="card-title text-muted mb-2">Chờ xử lý</h6>
-                <h2 class="mb-0 text-dark">@choXuLy</h2>
-                <small class="text-muted">Đang xem xét</small>
-            </div>
-        </div>
-    </div>
-</div>
 
-<div class="row mt-4">
-    <div class="col-12">
-        <h4 class="mb-3">Truy cập nhanh</h4>
-    </div>
-</div>
+        <!-- Quản lý nhà tuyển dụng -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("NhaTuyenDung", "Admin")" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <i class="bi bi-building"></i>
+                    <h5>Quản lý nhà tuyển dụng</h5>
+                </div>
+            </a>
+        </div>
 
-<div class="row">
-    <div class="col-md-4">
-        <a asp-area="Admin" asp-controller="Admin" asp-action="Dashboard" class="text-decoration-none">
-            <div class="card shadow-sm mb-3 h-100 border-0" style="transition: transform 0.2s;">
-                <div class="card-body">
-                    <h5 class="card-title text-dark"><i class="bi bi-graph-up"></i> Số liệu phân tích</h5>
-                    <p class="card-text text-muted mb-0">Xem thống kê và báo cáo chi tiết</p>
+        <!-- Quản lý tin tuyển dụng -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("TinTuyenDung", "Admin")" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <i class="bi bi-newspaper"></i>
+                    <h5>Quản lý tin tuyển dụng</h5>
                 </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-4">
-        <a asp-area="Admin" asp-controller="Admin" asp-action="UngVien" class="text-decoration-none">
-            <div class="card shadow-sm mb-3 h-100 border-0" style="transition: transform 0.2s;">
-                <div class="card-body">
-                    <h5 class="card-title text-dark"><i class="bi bi-person"></i> Quản lý ứng viên</h5>
-                    <p class="card-text text-muted mb-0">Quản lý tài khoản ứng viên</p>
-                </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-4">
-        <a asp-area="Admin" asp-controller="Admin" asp-action="NhaTuyenDung" class="text-decoration-none">
-            <div class="card shadow-sm mb-3 h-100 border-0" style="transition: transform 0.2s;">
-                <div class="card-body">
-                    <h5 class="card-title text-dark"><i class="bi bi-building"></i> Quản lý nhà tuyển dụng</h5>
-                    <p class="card-text text-muted mb-0">Quản lý tài khoản công ty</p>
-                </div>
-            </div>
-        </a>
-    </div>
-</div>
+            </a>
+        </div>
 
-<div class="row">
-    <div class="col-md-4">
-        <a asp-area="Admin" asp-controller="Admin" asp-action="TinTuyenDung" class="text-decoration-none">
-            <div class="card shadow-sm mb-3 h-100 border-0" style="transition: transform 0.2s;">
-                <div class="card-body">
-                    <h5 class="card-title text-dark"><i class="bi bi-newspaper"></i> Tin tuyển dụng</h5>
-                    <p class="card-text text-muted mb-0">Quản lý các tin tuyển dụng</p>
+        <!-- Quản lý tin ứng tuyển -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("TinUngTuyen", "Admin")" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <i class="bi bi-envelope-paper"></i>
+                    <h5>Quản lý tin ứng tuyển</h5>
                 </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-4">
-        <a asp-area="Admin" asp-controller="Admin" asp-action="TinUngTuyen" class="text-decoration-none">
-            <div class="card shadow-sm mb-3 h-100 border-0" style="transition: transform 0.2s;">
-                <div class="card-body">
-                    <h5 class="card-title text-dark"><i class="bi bi-person-check"></i> Tin ứng tuyển</h5>
-                    <p class="card-text text-muted mb-0">Quản lý hồ sơ ứng tuyển</p>
+            </a>
+        </div>
+
+        <!-- Quản lý ngành nghề -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("NganhNghe", "Admin")" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <i class="bi bi-bookmark-star"></i>
+                    <h5>Quản lý ngành nghề</h5>
                 </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-4">
-        <a asp-area="Admin" asp-controller="Admin" asp-action="NganhNghe" class="text-decoration-none">
-            <div class="card shadow-sm mb-3 h-100 border-0" style="transition: transform 0.2s;">
-                <div class="card-body">
-                    <h5 class="card-title text-dark"><i class="bi bi-briefcase"></i> Ngành nghề</h5>
-                    <p class="card-text text-muted mb-0">Quản lý danh mục ngành nghề</p>
+            </a>
+        </div>
+
+        <!-- Quản lý loại công việc -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("LoaiCongViec", "Admin")" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <i class="bi bi-briefcase"></i>
+                    <h5>Quản lý loại công việc</h5>
                 </div>
-            </div>
-        </a>
+            </a>
+        </div>
+
+        <!-- Cài đặt hệ thống -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("Settings", "Admin")" class="text-decoration-none">
+                <div class="dashboard-card special-card">
+                    <i class="bi bi-gear-fill"></i>
+                    <h5>Cài đặt hệ thống</h5>
+                </div>
+            </a>
+        </div>
     </div>
 </div>
 
 <style>
-    .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    .dashboard-card {
+        background: white;
+        border-radius: 20px;
+        padding: 40px 30px;
+        text-align: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+        cursor: pointer;
+        border: 2px solid transparent;
+        height: 100%;
+        min-height: 180px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 10px 30px rgba(37, 69, 184, 0.15);
+        border-color: #2545B8;
+    }
+
+    .dashboard-card i {
+        font-size: 3.5rem;
+        color: #2545B8;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+    }
+
+    .dashboard-card:hover i {
+        transform: scale(1.1);
+    }
+
+    .dashboard-card h5 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    .special-card {
+        background: linear-gradient(135deg, #84d9d2 0%, #7dc8c2 100%);
+        color: white;
+    }
+
+    .special-card i {
+        color: white;
+    }
+
+    .special-card h5 {
+        color: white;
+    }
+
+    .special-card:hover {
+        border-color: #6bc5bd;
+        box-shadow: 0 10px 30px rgba(132, 217, 210, 0.3);
+    }
+
+    /* Animation */
+    .dashboard-card {
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .col-xl-3:nth-child(1) .dashboard-card { animation-delay: 0.1s; }
+    .col-xl-3:nth-child(2) .dashboard-card { animation-delay: 0.15s; }
+    .col-xl-3:nth-child(3) .dashboard-card { animation-delay: 0.2s; }
+    .col-xl-3:nth-child(4) .dashboard-card { animation-delay: 0.25s; }
+    .col-xl-3:nth-child(5) .dashboard-card { animation-delay: 0.3s; }
+    .col-xl-3:nth-child(6) .dashboard-card { animation-delay: 0.35s; }
+    .col-xl-3:nth-child(7) .dashboard-card { animation-delay: 0.4s; }
+    .col-xl-3:nth-child(8) .dashboard-card { animation-delay: 0.45s; }
+
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 </style>
-

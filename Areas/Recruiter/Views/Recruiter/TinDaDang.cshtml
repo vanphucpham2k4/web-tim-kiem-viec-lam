@@ -4,30 +4,291 @@
     ViewData["Title"] = "Tin da dang";
 }
 
-<div class="row mb-4">
-    <div class="col-12 text-end">
-        <a href="/Recruiter/Recruiter/DangTinTuyenDung" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Dang tin moi
-        </a>
-    </div>
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+    }
+
+    .page-header h1 {
+        font-weight: 700;
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .page-header p {
+        opacity: 0.95;
+        font-size: 1.1rem;
+        margin-bottom: 0;
+    }
+
+    .action-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        gap: 15px;
+    }
+
+    .search-filter-group {
+        display: flex;
+        gap: 15px;
+        flex: 1;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 12px;
+        padding: 12px 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    }
+
+    .form-control, .form-select {
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 12px 16px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        outline: none;
+    }
+
+    .input-group .btn {
+        border-radius: 0 10px 10px 0;
+        border: 2px solid #e2e8f0;
+        border-left: none;
+    }
+
+    .input-group .form-control {
+        border-radius: 10px 0 0 10px;
+    }
+
+    .card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        animation: slideUp 0.5s ease forwards;
+    }
+
+    .card:hover {
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        transform: translateY(-5px);
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table thead {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+
+    .table thead th {
+        border: none;
+        color: #2d3748;
+        font-weight: 600;
+        padding: 18px 15px;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f7fafc;
+        transform: scale(1.01);
+    }
+
+    .table tbody td {
+        padding: 18px 15px;
+        vertical-align: middle;
+        border: none;
+    }
+
+    .badge {
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .badge.bg-success {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%) !important;
+    }
+
+    .badge.bg-secondary {
+        background: linear-gradient(135deg, #a0aec0 0%, #718096 100%) !important;
+    }
+
+    .badge.bg-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    }
+
+    .btn-sm {
+        padding: 8px 12px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        margin: 0 2px;
+    }
+
+    .btn-outline-primary {
+        border: 2px solid #667eea;
+        color: #667eea;
+    }
+
+    .btn-outline-primary:hover {
+        background: #667eea;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .btn-outline-warning {
+        border: 2px solid #ed8936;
+        color: #ed8936;
+    }
+
+    .btn-outline-warning:hover {
+        background: #ed8936;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .btn-outline-danger {
+        border: 2px solid #f56565;
+        color: #f56565;
+    }
+
+    .btn-outline-danger:hover {
+        background: #f56565;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .stats-card {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        text-align: center;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        border: 2px solid #e2e8f0;
+        animation: slideUp 0.5s ease forwards;
+        opacity: 0;
+    }
+
+    .stats-card:nth-child(1) { animation-delay: 0.1s; }
+    .stats-card:nth-child(2) { animation-delay: 0.2s; }
+    .stats-card:nth-child(3) { animation-delay: 0.3s; }
+    .stats-card:nth-child(4) { animation-delay: 0.4s; }
+
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+
+    .stats-card .card-title {
+        font-size: 0.9rem;
+        color: #718096;
+        margin-bottom: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stats-card h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0;
+    }
+
+    .stats-card.primary {
+        border-left: 5px solid #667eea;
+    }
+
+    .stats-card.success {
+        border-left: 5px solid #48bb78;
+    }
+
+    .stats-card.secondary {
+        border-left: 5px solid #a0aec0;
+    }
+
+    .stats-card.info {
+        border-left: 5px solid #4299e1;
+    }
+
+    @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .table-responsive {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    @@media (max-width: 768px) {
+        .action-bar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .search-filter-group {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="page-header">
+    <h1><i class="bi bi-list-check"></i> Quản lý tin tuyển dụng</h1>
+    <p>Xem và quản lý tất cả các tin tuyển dụng đã đăng</p>
 </div>
 
-<div class="row mb-3">
-    <div class="col-md-4">
-        <div class="input-group">
-            <input type="text" class="form-control" id="timKiemInput" placeholder="Tim kiem theo tieu de...">
+<div class="action-bar">
+    <div class="search-filter-group">
+        <div class="input-group" style="max-width: 350px;">
+            <input type="text" class="form-control" id="timKiemInput" placeholder="Tìm kiếm theo tiêu đề...">
             <button class="btn btn-outline-secondary" type="button">
                 <i class="bi bi-search"></i>
             </button>
         </div>
-    </div>
-    <div class="col-md-3">
-        <select class="form-select" id="locTrangThai">
-            <option value="">Tat ca trang thai</option>
-            <option value="Dang tuyen">Dang tuyen</option>
-            <option value="Het han">Het han</option>
-            <option value="Da dong">Da dong</option>
+        <select class="form-select" id="locTrangThai" style="max-width: 200px;">
+            <option value="">Tất cả trạng thái</option>
+            <option value="Dang tuyen">Đang tuyển</option>
+            <option value="Het han">Hết hạn</option>
+            <option value="Da dong">Đã đóng</option>
         </select>
+    </div>
+    <div>
+        <a href="/Recruiter/Recruiter/DangTinTuyenDung" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Đăng tin mới
+        </a>
     </div>
 </div>
 
@@ -39,29 +300,29 @@
                     <table class="table table-hover">
                         <thead class="table-light">
                             <tr>
-                                <th>Ma</th>
-                                <th>Tieu de</th>
-                                <th>Vi tri</th>
-                                <th>Ngay dang</th>
-                                <th>Han nop</th>
-                                <th>Luot UT</th>
-                                <th>Trang thai</th>
-                                <th>Thao tac</th>
+                                <th><i class="bi bi-hash"></i> Mã</th>
+                                <th><i class="bi bi-briefcase"></i> Tiêu đề</th>
+                                <th><i class="bi bi-award"></i> Vị trí</th>
+                                <th><i class="bi bi-calendar-plus"></i> Ngày đăng</th>
+                                <th><i class="bi bi-calendar-x"></i> Hạn nộp</th>
+                                <th><i class="bi bi-people"></i> Lượt UT</th>
+                                <th><i class="bi bi-toggle-on"></i> Trạng thái</th>
+                                <th><i class="bi bi-gear"></i> Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var tin in Model)
                             {
-                                var trangThai = tin.HanNop >= DateTime.Now ? "Dang tuyen" : "Het han";
-                                var badgeClass = trangThai == "Dang tuyen" ? "bg-success" : "bg-secondary";
+                                var trangThai = tin.HanNop >= DateTime.Now ? "Đang tuyển" : "Hết hạn";
+                                var badgeClass = trangThai == "Đang tuyển" ? "bg-success" : "bg-secondary";
                                 
                                 <tr>
-                                    <td>@tin.MaTinTuyenDung</td>
+                                    <td><span class="text-muted">#@tin.MaTinTuyenDung</span></td>
                                     <td>
-                                        <strong>@tin.TenViecLam</strong><br/>
-                                        <small class="text-muted">@tin.LoaiCongViec</small>
+                                        <strong style="color: #2d3748; font-size: 1rem;">@tin.TenViecLam</strong><br/>
+                                        <small class="text-muted"><i class="bi bi-clock"></i> @tin.LoaiCongViec</small>
                                     </td>
-                                    <td>@tin.ViTri</td>
+                                    <td><span class="badge bg-light text-dark">@tin.ViTri</span></td>
                                     <td>@tin.NgayDang.ToString("dd/MM/yyyy")</td>
                                     <td>@tin.HanNop.ToString("dd/MM/yyyy")</td>
                                     <td>
@@ -71,13 +332,13 @@
                                         <span class="badge @badgeClass">@trangThai</span>
                                     </td>
                                     <td>
-                                        <button class="btn btn-sm btn-outline-primary" title="Xem">
+                                        <button class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
                                             <i class="bi bi-eye"></i>
                                         </button>
-                                        <button class="btn btn-sm btn-outline-warning" title="Sua">
+                                        <button class="btn btn-sm btn-outline-warning" title="Chỉnh sửa">
                                             <i class="bi bi-pencil"></i>
                                         </button>
-                                        <button class="btn btn-sm btn-outline-danger" title="Xoa">
+                                        <button class="btn btn-sm btn-outline-danger" title="Xóa">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </td>
@@ -91,38 +352,152 @@
     </div>
 </div>
 
-<div class="row mt-4">
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-body text-center">
-                <h6 class="card-title text-muted mb-2">Tong tin dang</h6>
-                <h2 class="mb-0 text-primary">@Model.Count</h2>
-            </div>
+<div class="row mt-5">
+    <div class="col-md-3 mb-3">
+        <div class="stats-card primary">
+            <h6 class="card-title">
+                <i class="bi bi-file-earmark-text"></i> Tổng tin đăng
+            </h6>
+            <h2 class="text-primary">@Model.Count</h2>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-body text-center">
-                <h6 class="card-title text-muted mb-2">Dang tuyen</h6>
-                <h2 class="mb-0 text-success">@Model.Count(t => t.HanNop >= DateTime.Now)</h2>
-            </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card success">
+            <h6 class="card-title">
+                <i class="bi bi-check-circle"></i> Đang tuyển
+            </h6>
+            <h2 class="text-success">@Model.Count(t => t.HanNop >= DateTime.Now)</h2>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-body text-center">
-                <h6 class="card-title text-muted mb-2">Het han</h6>
-                <h2 class="mb-0 text-secondary">@Model.Count(t => t.HanNop < DateTime.Now)</h2>
-            </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card secondary">
+            <h6 class="card-title">
+                <i class="bi bi-x-circle"></i> Hết hạn
+            </h6>
+            <h2 class="text-secondary">@Model.Count(t => t.HanNop < DateTime.Now)</h2>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-body text-center">
-                <h6 class="card-title text-muted mb-2">Tong ung tuyen</h6>
-                <h2 class="mb-0 text-info">@Model.Sum(t => t.SoLuongUngTuyen)</h2>
-            </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card info">
+            <h6 class="card-title">
+                <i class="bi bi-person-check"></i> Tổng ứng tuyển
+            </h6>
+            <h2 class="text-info">@Model.Sum(t => t.SoLuongUngTuyen)</h2>
         </div>
     </div>
 </div>
 
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Search and filter functionality
+            function filterTable() {
+                var searchText = $('#timKiemInput').val().toLowerCase();
+                var filterStatus = $('#locTrangThai').val();
+                
+                $('table tbody tr').each(function() {
+                    var row = $(this);
+                    var title = row.find('td:eq(1) strong').text().toLowerCase();
+                    var status = row.find('td:eq(6) .badge').text().trim();
+                    
+                    var showRow = true;
+                    
+                    // Filter by search text
+                    if (searchText && !title.includes(searchText)) {
+                        showRow = false;
+                    }
+                    
+                    // Filter by status
+                    if (filterStatus && status !== filterStatus) {
+                        showRow = false;
+                    }
+                    
+                    if (showRow) {
+                        row.show();
+                        row.css('opacity', '0');
+                        setTimeout(function() {
+                            row.animate({ opacity: 1 }, 300);
+                        }, 50);
+                    } else {
+                        row.hide();
+                    }
+                });
+            }
+            
+            // Bind events
+            $('#timKiemInput').on('keyup', filterTable);
+            $('#locTrangThai').on('change', filterTable);
+            
+            // Add confirmation for delete buttons
+            $('.btn-outline-danger').on('click', function(e) {
+                e.preventDefault();
+                var row = $(this).closest('tr');
+                var jobTitle = row.find('td:eq(1) strong').text();
+                
+                if (confirm('Bạn có chắc chắn muốn xóa tin tuyển dụng "' + jobTitle + '" không?')) {
+                    // Add delete logic here
+                    row.fadeOut(400, function() {
+                        $(this).remove();
+                        // Show success notification
+                        showNotification('Đã xóa tin tuyển dụng thành công!', 'success');
+                    });
+                }
+            });
+            
+            // Show notification function
+            function showNotification(message, type) {
+                var bgColor = type === 'success' ? '#48bb78' : '#f56565';
+                var notification = $('<div>')
+                    .css({
+                        position: 'fixed',
+                        top: '20px',
+                        right: '20px',
+                        background: bgColor,
+                        color: 'white',
+                        padding: '15px 25px',
+                        borderRadius: '12px',
+                        boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                        zIndex: 9999,
+                        fontWeight: '600'
+                    })
+                    .text(message)
+                    .appendTo('body');
+                
+                setTimeout(function() {
+                    notification.fadeOut(400, function() {
+                        $(this).remove();
+                    });
+                }, 3000);
+            }
+            
+            // Add hover effect for stats cards
+            $('.stats-card').hover(
+                function() {
+                    $(this).find('h2').css('transform', 'scale(1.1)').css('transition', 'all 0.3s ease');
+                },
+                function() {
+                    $(this).find('h2').css('transform', 'scale(1)');
+                }
+            );
+            
+            // Animate numbers on load
+            $('.stats-card h2').each(function() {
+                var $this = $(this);
+                var countTo = parseInt($this.text());
+                
+                $({ countNum: 0 }).animate({
+                    countNum: countTo
+                }, {
+                    duration: 1500,
+                    easing: 'swing',
+                    step: function() {
+                        $this.text(Math.floor(this.countNum));
+                    },
+                    complete: function() {
+                        $this.text(this.countNum);
+                    }
+                });
+            });
+        });
+    </script>
+}
