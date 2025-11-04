@@ -10,7 +10,47 @@
         display: flex;
         align-items: center;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background-image: url('https://haycafe.vn/wp-content/uploads/2022/03/Hinh-bat-tay-hop-tac.jpg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
         padding: 40px 0;
+        position: relative;
+    }
+
+    .auth-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.85) 0%, rgba(118, 75, 162, 0.85) 100%);
+        z-index: 0;
+    }
+
+    .auth-container .container {
+        position: relative;
+        z-index: 1;
+    }
+
+    .register-header {
+        text-align: center;
+        color: #fff;
+        margin-bottom: 40px;
+    }
+
+    .register-header h1 {
+        font-size: 36px;
+        font-weight: 700;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .register-header p {
+        font-size: 18px;
+        opacity: 0.9;
     }
 
     .auth-card {
@@ -19,26 +59,59 @@
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         overflow: hidden;
         border: none;
+        height: 100%;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .auth-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
     }
 
     .auth-card .card-body {
-        padding: 50px 40px;
+        padding: 40px 35px;
+    }
+
+    .auth-card.ung-vien {
+        border-top: 5px solid #4CAF50;
+    }
+
+    .auth-card.nha-tuyen-dung {
+        border-top: 5px solid #2196F3;
     }
 
     .auth-title {
         color: #333;
         font-weight: 700;
+        font-size: 24px;
+        margin-bottom: 25px;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .auth-title.ung-vien {
+        color: #4CAF50;
+    }
+
+    .auth-title.nha-tuyen-dung {
+        color: #2196F3;
+    }
+
+    .auth-icon {
         font-size: 28px;
-        margin-bottom: 30px;
     }
 
     .form-label {
         font-weight: 600;
         color: #555;
         margin-bottom: 8px;
+        font-size: 14px;
     }
 
-    .form-control, .form-select {
+    .form-control {
         border: 2px solid #e0e0e0;
         border-radius: 10px;
         padding: 12px 16px;
@@ -46,13 +119,13 @@
         transition: all 0.3s;
     }
 
-    .form-control:focus, .form-select:focus {
+    .form-control:focus {
         border-color: #9c27b0;
         box-shadow: 0 0 0 0.2rem rgba(156, 39, 176, 0.15);
+        outline: none;
     }
 
     .btn-auth {
-        background: linear-gradient(135deg, #9c27b0 0%, #ba68c8 100%);
         border: none;
         border-radius: 10px;
         padding: 14px;
@@ -60,13 +133,28 @@
         font-weight: 700;
         color: #fff;
         transition: all 0.3s;
-        box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3);
+        width: 100%;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     }
 
-    .btn-auth:hover {
+    .btn-auth.ung-vien {
+        background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
+    }
+
+    .btn-auth.ung-vien:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(156, 39, 176, 0.4);
-        background: linear-gradient(135deg, #7b1fa2 0%, #9c27b0 100%);
+        box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        background: linear-gradient(135deg, #388E3C 0%, #4CAF50 100%);
+    }
+
+    .btn-auth.nha-tuyen-dung {
+        background: linear-gradient(135deg, #2196F3 0%, #42A5F5 100%);
+    }
+
+    .btn-auth.nha-tuyen-dung:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+        background: linear-gradient(135deg, #1976D2 0%, #2196F3 100%);
     }
 
     .auth-link {
@@ -84,78 +172,231 @@
         font-size: 13px;
         margin-top: 4px;
     }
+
+    .divider {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 30px 0;
+        color: #fff;
+        font-weight: 600;
+        font-size: 18px;
+    }
+
+    .divider::before,
+    .divider::after {
+        content: '';
+        flex: 1;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .divider span {
+        padding: 0 20px;
+    }
+
+    .login-link {
+        text-align: center;
+        margin-top: 20px;
+        color: #fff;
+        font-size: 16px;
+    }
+
+    .login-link a {
+        color: #fff;
+        text-decoration: underline;
+        font-weight: 600;
+    }
+
+    .login-link a:hover {
+        color: #f0f0f0;
+    }
+
+    @@media (max-width: 768px) {
+        .auth-card {
+            margin-bottom: 30px;
+        }
+    }
 </style>
 
 <div class="auth-container">
     <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="card auth-card">
+        <div class="register-header">
+            <h1><i class="bi bi-person-plus"></i> Đăng ký tài khoản</h1>
+            <p>Chọn loại tài khoản bạn muốn đăng ký</p>
+        </div>
+
+        <div class="row">
+            <!-- Form đăng ký cho ứng viên - Bên trái -->
+            <div class="col-md-6 mb-4 mb-md-0">
+                <div class="card auth-card ung-vien">
                     <div class="card-body">
-                        <h2 class="text-center auth-title">
-                            <i class="bi bi-person-plus text-primary"></i> Đăng ký tài khoản
+                        <h2 class="auth-title ung-vien">
+                            <i class="bi bi-person-check auth-icon"></i>
+                            Ứng viên tìm việc
                         </h2>
                     
-                    <form asp-action="Register" method="post">
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-                        
-                        <div class="mb-3">
-                            <label asp-for="HoTen" class="form-label"></label>
-                            <input asp-for="HoTen" class="form-control" placeholder="Nhập họ và tên" />
-                            <span asp-validation-for="HoTen" class="text-danger"></span>
-                        </div>
+                        <form asp-action="Register" method="post" id="formUngVien">
+                            <input type="hidden" name="LoaiTaiKhoan" value="@Unicareer.Models.SD.Role_UngVien" />
+                            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                            
+                            <div class="mb-3">
+                                <label asp-for="HoTen" class="form-label"></label>
+                                <input asp-for="HoTen" class="form-control" placeholder="Nhập họ và tên" />
+                                <span asp-validation-for="HoTen" class="text-danger"></span>
+                            </div>
 
-                        <div class="mb-3">
-                            <label asp-for="Email" class="form-label"></label>
-                            <input asp-for="Email" class="form-control" placeholder="Nhập email" />
-                            <span asp-validation-for="Email" class="text-danger"></span>
-                        </div>
+                            <div class="mb-3">
+                                <label asp-for="Email" class="form-label"></label>
+                                <input asp-for="Email" class="form-control" placeholder="Nhập email" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
 
-                        <div class="mb-3">
-                            <label asp-for="SoDienThoai" class="form-label"></label>
-                            <input asp-for="SoDienThoai" class="form-control" placeholder="Nhập số điện thoại" />
-                            <span asp-validation-for="SoDienThoai" class="text-danger"></span>
-                        </div>
+                            <div class="mb-3">
+                                <label asp-for="SoDienThoai" class="form-label"></label>
+                                <input asp-for="SoDienThoai" class="form-control" placeholder="Nhập số điện thoại" />
+                                <span asp-validation-for="SoDienThoai" class="text-danger"></span>
+                            </div>
 
-                        <div class="mb-3">
-                            <label asp-for="LoaiTaiKhoan" class="form-label"></label>
-                            <select asp-for="LoaiTaiKhoan" class="form-select">
-                                <option value="">-- Chọn loại tài khoản --</option>
-                                <option value="@Unicareer.Models.SD.Role_UngVien">Ứng viên tìm việc</option>
-                                <option value="@Unicareer.Models.SD.Role_NhaTuyenDung">Nhà tuyển dụng</option>
-                            </select>
-                            <span asp-validation-for="LoaiTaiKhoan" class="text-danger"></span>
-                        </div>
+                            <div class="mb-3">
+                                <label asp-for="MatKhau" class="form-label"></label>
+                                <input asp-for="MatKhau" class="form-control" placeholder="Nhập mật khẩu" />
+                                <span asp-validation-for="MatKhau" class="text-danger"></span>
+                            </div>
 
-                        <div class="mb-3">
-                            <label asp-for="MatKhau" class="form-label"></label>
-                            <input asp-for="MatKhau" class="form-control" placeholder="Nhập mật khẩu" />
-                            <span asp-validation-for="MatKhau" class="text-danger"></span>
-                        </div>
+                            <div class="mb-3">
+                                <label asp-for="XacNhanMatKhau" class="form-label"></label>
+                                <input asp-for="XacNhanMatKhau" class="form-control" placeholder="Nhập lại mật khẩu" />
+                                <span asp-validation-for="XacNhanMatKhau" class="text-danger"></span>
+                            </div>
 
-                        <div class="mb-3">
-                            <label asp-for="XacNhanMatKhau" class="form-label"></label>
-                            <input asp-for="XacNhanMatKhau" class="form-control" placeholder="Nhập lại mật khẩu" />
-                            <span asp-validation-for="XacNhanMatKhau" class="text-danger"></span>
-                        </div>
-
-                        <div class="d-grid gap-2 mb-3">
-                            <button type="submit" class="btn btn-auth">
-                                <i class="bi bi-person-plus"></i> Đăng ký
-                            </button>
-                        </div>
-
-                        <div class="text-center">
-                            <p class="mb-0">Đã có tài khoản? <a asp-action="Login" class="auth-link">Đăng nhập ngay</a></p>
-                        </div>
-                    </form>
+                            <div class="d-grid gap-2 mb-3">
+                                <button type="submit" class="btn btn-auth ung-vien">
+                                    <i class="bi bi-person-plus"></i> Đăng ký ứng viên
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
+
+            <!-- Form đăng ký cho nhà tuyển dụng - Bên phải -->
+            <div class="col-md-6">
+                <div class="card auth-card nha-tuyen-dung">
+                    <div class="card-body">
+                        <h2 class="auth-title nha-tuyen-dung">
+                            <i class="bi bi-building auth-icon"></i>
+                            Nhà tuyển dụng
+                        </h2>
+                    
+                        <form asp-action="Register" method="post" id="formNhaTuyenDung">
+                            <input type="hidden" name="LoaiTaiKhoan" value="@Unicareer.Models.SD.Role_NhaTuyenDung" />
+                            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                            
+                            <div class="mb-3">
+                                <label asp-for="HoTen" class="form-label"></label>
+                                <input asp-for="HoTen" class="form-control" placeholder="Nhập họ và tên" name="HoTen" />
+                                <span asp-validation-for="HoTen" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Email" class="form-label"></label>
+                                <input asp-for="Email" class="form-control" placeholder="Nhập email công ty" name="Email" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="SoDienThoai" class="form-label"></label>
+                                <input asp-for="SoDienThoai" class="form-control" placeholder="Nhập số điện thoại" name="SoDienThoai" />
+                                <span asp-validation-for="SoDienThoai" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="MatKhau" class="form-label"></label>
+                                <input asp-for="MatKhau" class="form-control" placeholder="Nhập mật khẩu" name="MatKhau" type="password" />
+                                <span asp-validation-for="MatKhau" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="XacNhanMatKhau" class="form-label"></label>
+                                <input asp-for="XacNhanMatKhau" class="form-control" placeholder="Nhập lại mật khẩu" name="XacNhanMatKhau" type="password" />
+                                <span asp-validation-for="XacNhanMatKhau" class="text-danger"></span>
+                            </div>
+
+                            <div class="d-grid gap-2 mb-3">
+                                <button type="submit" class="btn btn-auth nha-tuyen-dung">
+                                    <i class="bi bi-building"></i> Đăng ký nhà tuyển dụng
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row justify-content-center mt-4">
+            <div class="col-md-8">
+                <div class="divider-wrapper mb-3" style="display: flex; align-items: center; margin: 20px 0;">
+                    <div style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.3);"></div>
+                    <span style="padding: 0 15px; color: #fff; font-size: 16px; font-weight: 600;">hoặc</span>
+                    <div style="flex: 1; height: 1px; background: rgba(255, 255, 255, 0.3);"></div>
+                </div>
+
+                <div class="text-center mb-4">
+                    <a asp-action="ExternalLogin" asp-route-provider="Google" class="btn" 
+                       style="background: #fff; border: none; border-radius: 10px; padding: 14px 30px; 
+                              color: #333; font-weight: 700; text-decoration: none; display: inline-flex; 
+                              align-items: center; justify-content: center; gap: 10px; transition: all 0.3s;
+                              box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);">
+                        <svg width="20" height="20" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+                            <g fill="#000" fill-rule="evenodd">
+                                <path d="M9 3.48c1.69 0 2.83.73 3.48 1.34l2.54-2.48C13.46.89 11.43 0 9 0 5.48 0 2.42 2.02.96 4.96l2.91 2.26C4.6 6.17 6.62 3.48 9 3.48z" fill="#EA4335"/>
+                                <path d="M17.64 9.2c0-.74-.06-1.28-.19-1.84H9v3.34h4.96c-.21 1.18-.84 2.18-1.79 2.86l2.75 2.13c1.72-1.58 2.72-3.9 2.72-6.49z" fill="#4285F4"/>
+                                <path d="M3.88 10.78A5.54 5.54 0 0 1 3.58 9c0-.62.11-1.22.29-1.78L.96 4.96A9.008 9.008 0 0 0 0 9c0 1.45.35 2.82.96 4.04l2.92-2.26z" fill="#FBBC05"/>
+                                <path d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.75-2.13c-.76.53-1.78.9-3.21.9-2.38 0-4.4-1.57-5.12-3.74L.96 13.04C2.45 15.98 5.48 18 9 18z" fill="#34A853"/>
+                            </g>
+                        </svg>
+                        Đăng ký với Google
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="login-link">
+            <p>Đã có tài khoản? <a asp-action="Login">Đăng nhập ngay</a></p>
         </div>
     </div>
 </div>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // Kiểm tra xem ảnh có load được không
+        (function() {
+            const imageUrl = 'https://haycafe.vn/wp-content/uploads/2022/03/Hinh-bat-tay-hop-tac.jpg';
+            const authContainer = document.querySelector('.auth-container');
+            const img = new Image();
+            
+            img.onload = function() {
+                // Ảnh load thành công, hiển thị ảnh với overlay mờ
+                authContainer.style.backgroundImage = `url('${imageUrl}')`;
+                // Giữ nguyên overlay (::before) để text vẫn đọc được
+            };
+            
+            img.onerror = function() {
+                // Ảnh không load được, chỉ dùng nền tím, ẩn overlay
+                authContainer.style.backgroundImage = 'none';
+                authContainer.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                // Ẩn overlay bằng cách set opacity = 0
+                const style = document.createElement('style');
+                style.textContent = '.auth-container::before { opacity: 0 !important; }';
+                document.head.appendChild(style);
+            };
+            
+            // Thử load ảnh
+            img.src = imageUrl;
+        })();
+    </script>
 }
 
