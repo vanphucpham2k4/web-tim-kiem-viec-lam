@@ -1,0 +1,437 @@
+@{
+    ViewData["Title"] = "Trang chủ";
+}
+
+<div class="container-fluid">
+    <!-- Welcome Banner -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="welcome-banner">
+                <div class="welcome-icon">
+                    <i class="bi bi-person-badge-fill"></i>
+                </div>
+                <div>
+                    <h3>Chào mừng đến với Unicareer</h3>
+                    <p>Quản lý hiệu quả các tin ứng tuyển và tìm kiếm cơ hội việc làm phù hợp</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stat-card stat-primary">
+                <div class="stat-icon">
+                    <i class="bi bi-clipboard-check"></i>
+                </div>
+                <div class="stat-content">
+                    <h6>Tin đã ứng tuyển</h6>
+                    <h2>15</h2>
+                    <small><i class="bi bi-arrow-up"></i> +3 tuần này</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stat-card stat-success">
+                <div class="stat-icon">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div class="stat-content">
+                    <h6>Đang xem xét</h6>
+                    <h2>5</h2>
+                    <small><i class="bi bi-arrow-up"></i> +2 tuần này</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stat-card stat-info">
+                <div class="stat-icon">
+                    <i class="bi bi-calendar-event"></i>
+                </div>
+                <div class="stat-content">
+                    <h6>Phỏng vấn</h6>
+                    <h2>3</h2>
+                    <small><i class="bi bi-arrow-up"></i> +1 tuần này</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stat-card stat-warning">
+                <div class="stat-icon">
+                    <i class="bi bi-star-fill"></i>
+                </div>
+                <div class="stat-content">
+                    <h6>Việc đã lưu</h6>
+                    <h2>12</h2>
+                    <small><i class="bi bi-arrow-up"></i> +4 tuần này</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("QuanLyTinUngTuyen", "Candidate")" class="text-decoration-none">
+                <div class="action-card action-primary">
+                    <i class="bi bi-clipboard-check-fill"></i>
+                    <h5>Quản lý tin ứng tuyển</h5>
+                    <p>Xem và theo dõi các tin đã ứng tuyển</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="/Home/TimViec" class="text-decoration-none">
+                <div class="action-card action-success">
+                    <i class="bi bi-search"></i>
+                    <h5>Tìm việc làm</h5>
+                    <p>Tìm kiếm cơ hội việc làm phù hợp</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("CVCuaToi", "Candidate")" class="text-decoration-none">
+                <div class="action-card action-info">
+                    <i class="bi bi-file-earmark-person"></i>
+                    <h5>Hồ sơ của tôi</h5>
+                    <p>Quản lý và cập nhật hồ sơ cá nhân</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="#" class="text-decoration-none">
+                <div class="action-card action-warning">
+                    <i class="bi bi-graph-up"></i>
+                    <h5>Thống kê & Báo cáo</h5>
+                    <p>Xem thống kê ứng tuyển của bạn</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Recent Applications -->
+    <div class="row">
+        <div class="col-12">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h4><i class="bi bi-clock-history text-success"></i> Tin ứng tuyển gần đây</h4>
+                </div>
+                <div class="chart-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Vị trí ứng tuyển</th>
+                                    <th>Công ty</th>
+                                    <th>Ngày ứng tuyển</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Senior Full-stack Developer</strong></td>
+                                    <td>FPT Software</td>
+                                    <td>@DateTime.Now.AddDays(-2).ToString("dd/MM/yyyy")</td>
+                                    <td><span class="badge bg-warning">Đang xem xét</span></td>
+                                    <td><a href="@Url.Action("ChiTietTinUngTuyen", "Candidate", new { id = 1 })" class="btn btn-sm btn-outline-primary">Xem chi tiết</a></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Frontend Developer (ReactJS)</strong></td>
+                                    <td>Tiki</td>
+                                    <td>@DateTime.Now.AddDays(-5).ToString("dd/MM/yyyy")</td>
+                                    <td><span class="badge bg-info">Đã phỏng vấn</span></td>
+                                    <td><a href="@Url.Action("ChiTietTinUngTuyen", "Candidate", new { id = 3 })" class="btn btn-sm btn-outline-primary">Xem chi tiết</a></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>UI/UX Designer</strong></td>
+                                    <td>VNG Corporation</td>
+                                    <td>@DateTime.Now.AddDays(-1).ToString("dd/MM/yyyy")</td>
+                                    <td><span class="badge bg-warning">Đang xem xét</span></td>
+                                    <td><a href="@Url.Action("ChiTietTinUngTuyen", "Candidate", new { id = 4 })" class="btn btn-sm btn-outline-primary">Xem chi tiết</a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .welcome-banner {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        box-shadow: 0 5px 20px rgba(16, 185, 129, 0.3);
+        animation: slideDown 0.6s ease-out;
+    }
+
+    .welcome-icon {
+        width: 70px;
+        height: 70px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .welcome-icon i {
+        font-size: 2.5rem;
+        color: white;
+    }
+
+    .welcome-banner h3 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .welcome-banner p {
+        margin: 0;
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stat-icon i {
+        font-size: 2rem;
+        color: white;
+    }
+
+    .stat-primary .stat-icon {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .stat-success .stat-icon {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+
+    .stat-info .stat-icon {
+        background: linear-gradient(135deg, #3494e6 0%, #ec6ead 100%);
+    }
+
+    .stat-warning .stat-icon {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .stat-content h6 {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        margin-bottom: 5px;
+        font-weight: 500;
+    }
+
+    .stat-content h2 {
+        color: #2c3e50;
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .stat-content small {
+        color: #27ae60;
+        font-size: 0.85rem;
+    }
+
+    .stat-content small i {
+        margin-right: 3px;
+    }
+
+    .action-card {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        text-align: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+        border: 2px solid transparent;
+        min-height: 180px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .action-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 10px 30px rgba(16, 185, 129, 0.15);
+    }
+
+    .action-card.action-primary:hover {
+        border-color: #10b981;
+    }
+
+    .action-card.action-success:hover {
+        border-color: #11998e;
+    }
+
+    .action-card.action-info:hover {
+        border-color: #3494e6;
+    }
+
+    .action-card.action-warning:hover {
+        border-color: #f093fb;
+    }
+
+    .action-card i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+    }
+
+    .action-card.action-primary i {
+        color: #10b981;
+    }
+
+    .action-card.action-success i {
+        color: #11998e;
+    }
+
+    .action-card.action-info i {
+        color: #3494e6;
+    }
+
+    .action-card.action-warning i {
+        color: #f093fb;
+    }
+
+    .action-card h5 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 8px;
+    }
+
+    .action-card p {
+        font-size: 0.9rem;
+        color: #7f8c8d;
+        margin: 0;
+    }
+
+    .chart-card {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    }
+
+    .chart-header {
+        margin-bottom: 20px;
+    }
+
+    .chart-header h4 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0;
+    }
+
+    .chart-body {
+        margin-top: 20px;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table thead {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+
+    .table thead th {
+        border: none;
+        color: #2d3748;
+        font-weight: 600;
+        padding: 18px 15px;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f7fafc;
+    }
+
+    .table tbody td {
+        padding: 18px 15px;
+        vertical-align: middle;
+        border: none;
+    }
+
+    .badge {
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .col-xl-3:nth-child(1) .stat-card { animation-delay: 0.1s; }
+    .col-xl-3:nth-child(2) .stat-card { animation-delay: 0.15s; }
+    .col-xl-3:nth-child(3) .stat-card { animation-delay: 0.2s; }
+    .col-xl-3:nth-child(4) .stat-card { animation-delay: 0.25s; }
+</style>

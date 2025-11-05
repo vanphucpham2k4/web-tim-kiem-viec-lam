@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -12,15 +13,18 @@ namespace Unicareer.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly ILogger<AccountController> _logger;
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            RoleManager<IdentityRole> roleManager)
+            RoleManager<IdentityRole> roleManager,
+            ILogger<AccountController> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
+            _logger = logger;
         }
 
         // GET: Account/Register
@@ -150,29 +154,65 @@ namespace Unicareer.Controllers
         [HttpGet]
         public IActionResult ExternalLogin(string provider, string returnUrl = null)
         {
-            var redirectUrl = Url.Action("GoogleCallback", "Account", new { returnUrl });
+            // Dùng callback path mặc định /signin-google
+            var redirectUrl = Url.Action("ExternalLoginCallback", "Account", new { returnUrl });
             var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
             return Challenge(properties, provider);
         }
 
-        // GET: Account/GoogleCallback
+        // GET: Account/ExternalLoginCallback - Handle callback từ /signin-google
         [HttpGet]
-        public async Task<IActionResult> GoogleCallback(string returnUrl = null, string remoteError = null)
+        public async Task<IActionResult> ExternalLoginCallback(string returnUrl = null, string remoteError = null)
         {
             returnUrl = returnUrl ?? Url.Content("~/");
 
+            // DEBUG: Log request info
+            _logger.LogInformation("=== GOOGLE CALLBACK DEBUG START ===");
+            _logger.LogInformation("URL: {Url}", $"{Request.Scheme}://{Request.Host}{Request.Path}{Request.QueryString}");
+            _logger.LogInformation("Path: {Path}", Request.Path);
+            _logger.LogInformation("QueryString: {QueryString}", Request.QueryString);
+            _logger.LogInformation("RemoteError: {RemoteError}", remoteError);
+            
+            // DEBUG: Log cookies
+            _logger.LogInformation("=== COOKIES DEBUG ===");
+            foreach (var cookie in Request.Cookies)
+            {
+                var cookieValue = cookie.Value ?? string.Empty;
+                _logger.LogInformation("Cookie Name: {Name}, Value Length: {Length}", cookie.Key, cookieValue.Length);
+                if (cookie.Key.Contains("Identity") || cookie.Key.Contains("Correlation") || cookie.Key.Contains("Google"))
+                {
+                    var preview = cookieValue.Length > 200 ? cookieValue.Substring(0, 200) : cookieValue;
+                    _logger.LogInformation("  Full Value (first 200 chars): {Value}", preview);
+                }
+            }
+
             if (remoteError != null)
             {
+                _logger.LogError("Remote error from Google: {Error}", remoteError);
                 ModelState.AddModelError(string.Empty, $"Lỗi từ nhà cung cấp: {remoteError}");
                 return RedirectToAction("Login", new { ReturnUrl = returnUrl });
             }
 
+            // DEBUG: Try to get external login info
+            _logger.LogInformation("Attempting to get external login info...");
             var info = await _signInManager.GetExternalLoginInfoAsync();
             if (info == null)
             {
+                _logger.LogError("GetExternalLoginInfoAsync returned NULL - OAuth state validation failed");
+                _logger.LogError("This usually means the correlation cookie was missing, invalid, or could not be decrypted");
+                
+                // Try to log authentication result
+                var authResult = await HttpContext.AuthenticateAsync("Identity.External");
+                _logger.LogInformation("Authentication result: Success={Success}, Failure={Failure}", 
+                    authResult?.Succeeded, authResult?.Failure?.Message);
+                
                 ModelState.AddModelError(string.Empty, "Không thể lấy thông tin từ Google.");
                 return RedirectToAction("Login", new { ReturnUrl = returnUrl });
             }
+            
+            _logger.LogInformation("Successfully retrieved external login info. Provider: {Provider}, Key: {Key}", 
+                info.LoginProvider, info.ProviderKey);
+            _logger.LogInformation("=== GOOGLE CALLBACK DEBUG END ===");
 
             // Thử đăng nhập với external login
             var signInResult = await _signInManager.ExternalLoginSignInAsync(
@@ -206,6 +246,13 @@ namespace Unicareer.Controllers
                 var addLoginResult = await _userManager.AddLoginAsync(existingUser, info);
                 if (addLoginResult.Succeeded)
                 {
+                    // Nếu user chưa có bất kỳ role nào, gán role mặc định là Ứng Viên
+                    var currentRoles = await _userManager.GetRolesAsync(existingUser);
+                    if (currentRoles == null || currentRoles.Count == 0)
+                    {
+                        await _userManager.AddToRoleAsync(existingUser, SD.Role_UngVien);
+                    }
+
                     await _signInManager.SignInAsync(existingUser, isPersistent: false);
                     return await RedirectToHomePage(existingUser);
                 }

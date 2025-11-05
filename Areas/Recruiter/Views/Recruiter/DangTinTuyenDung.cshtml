@@ -436,6 +436,9 @@
 </div>
 
 @section Scripts {
+    <!-- CKEditor 5 -->
+    <script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+    
     <style>
         .map-container {
             position: relative;
@@ -559,28 +562,83 @@
     <script>
         $(document).ready(function() {
             // Initialize CKEditor 5 for all textareas with class ckeditor
+            let editors = {};
+            
+            // Wait for CKEditor to be loaded
             if (typeof ClassicEditor !== 'undefined') {
                 $('.ckeditor').each(function() {
                     var textarea = this;
+                    var fieldName = $(textarea).attr('name');
+                    
                     ClassicEditor
                         .create(textarea, {
                             toolbar: {
                                 items: [
                                     'heading', '|',
                                     'bold', 'italic', 'underline', '|',
-                                    'link', '|',
+                                    'link', 'blockQuote', '|',
                                     'bulletedList', 'numberedList', '|',
-                                    'blockQuote', '|',
                                     'undo', 'redo'
+                                ],
+                                shouldNotGroupWhenFull: true
+                            },
+                            heading: {
+                                options: [
+                                    { model: 'paragraph', title: 'Đoạn văn', class: 'ck-heading_paragraph' },
+                                    { model: 'heading1', view: 'h1', title: 'Tiêu đề 1', class: 'ck-heading_heading1' },
+                                    { model: 'heading2', view: 'h2', title: 'Tiêu đề 2', class: 'ck-heading_heading2' },
+                                    { model: 'heading3', view: 'h3', title: 'Tiêu đề 3', class: 'ck-heading_heading3' }
                                 ]
                             },
-                            language: 'vi'
+                            language: 'vi',
+                            placeholder: $(textarea).attr('placeholder') || 'Nhập nội dung...'
+                        })
+                        .then(editor => {
+                            editors[fieldName] = editor;
+                            console.log('CKEditor initialized for:', fieldName);
                         })
                         .catch(error => {
                             console.error('CKEditor initialization error:', error);
                         });
                 });
+            } else {
+                console.error('CKEditor ClassicEditor is not loaded. Please check CDN link.');
             }
+            
+            // Update form submission to sync editor data and validate
+            $('#formDangTin').on('submit', function(e) {
+                var valid = true;
+                
+                // Sync all editors before submit
+                Object.keys(editors).forEach(function(fieldName) {
+                    if (editors[fieldName]) {
+                        editors[fieldName].updateSourceElement();
+                        // Validate editor content
+                        var editorData = editors[fieldName].getData().trim();
+                        var textarea = $('textarea[name="' + fieldName + '"]');
+                        if (textarea.attr('required') && !editorData) {
+                            alert('Vui lòng nhập nội dung cho trường: ' + textarea.prev('label').text());
+                            valid = false;
+                        }
+                    }
+                });
+                
+                // Check other required fields
+                if (!$('input[name="TenViecLam"]').val()) {
+                    alert('Vui lòng nhập tên việc làm!');
+                    valid = false;
+                }
+
+                if (!valid) {
+                    e.preventDefault();
+                } else {
+                    // Show success message
+                    console.log('Form data:', {
+                        latitude: $('#latitude').val(),
+                        longitude: $('#longitude').val()
+                    });
+                }
+            });
 
             // Initialize Leaflet Map
             var map = L.map('map').setView([21.028511, 105.804817], 13);
@@ -729,27 +787,6 @@
                 if (e.which === 13) {
                     e.preventDefault();
                     $('#btnSearchAddress').click();
-                }
-            });
-
-            // Form validation
-            $('#formDangTin').submit(function(e) {
-                var valid = true;
-                
-                // Check required fields
-                if (!$('input[name="TenViecLam"]').val()) {
-                    alert('Vui lòng nhập tên việc làm!');
-                    valid = false;
-                }
-
-                if (!valid) {
-                    e.preventDefault();
-                } else {
-                    // Show success message
-                    console.log('Form data:', {
-                        latitude: $('#latitude').val(),
-                        longitude: $('#longitude').val()
-                    });
                 }
             });
         });

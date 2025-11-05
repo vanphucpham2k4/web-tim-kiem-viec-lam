@@ -1,0 +1,632 @@
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<Unicareer.Models.ApplicationUser> SignInManager
+@inject UserManager<Unicareer.Models.ApplicationUser> UserManager
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Ứng Viên</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #e8edf2;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* ============ SIDEBAR ============ */
+        .candidate-sidebar {
+            position: fixed;
+            left: 0;
+            top: 70px;
+            bottom: 0;
+            width: 90px;
+            background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .candidate-sidebar.expanded {
+            width: 260px;
+        }
+
+        /* Toggle Button */
+        .sidebar-toggle {
+            position: absolute;
+            right: -15px;
+            top: 15px;
+            width: 30px;
+            height: 30px;
+            background: white;
+            border: 2px solid #10b981;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+
+        .sidebar-toggle:hover {
+            background: #f0f0f0;
+            transform: scale(1.1);
+        }
+
+        .sidebar-toggle i {
+            color: #10b981;
+            font-size: 0.9rem;
+            transition: transform 0.3s ease;
+        }
+
+        .candidate-sidebar.expanded .sidebar-toggle i {
+            transform: rotate(180deg);
+        }
+
+        /* Menu Items */
+        .sidebar-menu {
+            width: 100%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding: 0 10px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .menu-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: white;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .menu-item i {
+            font-size: 1.3rem;
+            min-width: 26px;
+            text-align: center;
+        }
+
+        .menu-item span {
+            margin-left: 20px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .candidate-sidebar.expanded .menu-item span {
+            opacity: 1;
+            width: auto;
+        }
+
+        /* ============ TOP HEADER ============ */
+        .candidate-top-header {
+            position: fixed;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: 70px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            z-index: 1050;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .header-logo img {
+            width: 45px;
+            height: 45px;
+            border-radius: 10px;
+        }
+
+        .header-logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f5f5f5;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .header-icon-btn:hover {
+            background: #e0e0e0;
+            transform: scale(1.1);
+        }
+
+        .header-icon-btn i {
+            font-size: 1.2rem;
+            color: #2c3e50;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 18px;
+            height: 18px;
+            background: #ff4757;
+            border-radius: 50%;
+            border: 2px solid white;
+            font-size: 0.65rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .user-profile {
+            position: relative;
+        }
+
+        .user-profile > a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .user-profile > a:hover {
+            background: #f5f5f5;
+        }
+
+        .user-profile .dropdown-menu {
+            margin-top: 10px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            border: none;
+        }
+
+        .user-profile .dropdown-item {
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+        }
+
+        .user-profile .dropdown-item:hover {
+            background: #f5f5f5;
+            padding-left: 25px;
+        }
+
+        .user-profile .dropdown-item i {
+            margin-right: 10px;
+            width: 20px;
+        }
+
+        .user-profile .dropdown-item.text-danger:hover {
+            background: #ffe5e5;
+            color: #dc3545 !important;
+        }
+
+        .user-profile form button {
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.95rem;
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+        }
+
+        /* ============ MAIN CONTENT ============ */
+        .candidate-main-content {
+            margin-left: 90px;
+            margin-top: 70px;
+            padding: 30px;
+            min-height: calc(100vh - 70px);
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .candidate-sidebar.expanded ~ .candidate-main-content {
+            margin-left: 260px;
+        }
+
+        /* ============ DASHBOARD CARDS ============ */
+        .dashboard-card {
+            background: white;
+            border-radius: 20px;
+            padding: 35px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+            cursor: pointer;
+            border: 2px solid transparent;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.15);
+            border-color: #10b981;
+        }
+
+        .dashboard-card i {
+            font-size: 3.5rem;
+            color: #10b981;
+            margin-bottom: 20px;
+        }
+
+        .dashboard-card h5 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .special-card {
+            background: linear-gradient(135deg, #F77F00 0%, #FCBF49 100%);
+            color: white;
+        }
+
+        .special-card i {
+            color: white;
+        }
+
+        .special-card h5 {
+            color: white;
+        }
+
+        /* ============ ANIMATIONS ============ */
+        @@keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .menu-item {
+            animation: slideIn 0.3s ease-out backwards;
+        }
+
+        .menu-item:nth-child(1) { animation-delay: 0.05s; }
+        .menu-item:nth-child(2) { animation-delay: 0.1s; }
+        .menu-item:nth-child(3) { animation-delay: 0.15s; }
+        .menu-item:nth-child(4) { animation-delay: 0.2s; }
+        .menu-item:nth-child(5) { animation-delay: 0.25s; }
+        .menu-item:nth-child(6) { animation-delay: 0.3s; }
+        .menu-item:nth-child(7) { animation-delay: 0.35s; }
+
+        /* ============ RESPONSIVE ============ */
+        @@media (max-width: 768px) {
+            .candidate-sidebar {
+                width: 0;
+                padding: 20px 0;
+                left: -90px;
+            }
+
+            .candidate-sidebar.expanded {
+                width: 260px;
+                left: 0;
+            }
+
+            .candidate-main-content {
+                margin-left: 0;
+            }
+
+            .candidate-sidebar.expanded ~ .candidate-main-content {
+                margin-left: 0;
+            }
+
+            .sidebar-toggle {
+                left: 15px;
+                right: auto;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .header-title {
+                font-size: 1.1rem;
+            }
+
+            .header-logo-text {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Header -->
+    <header class="candidate-top-header">
+        <div class="header-left">
+            <a href="@Url.Action("Index", "Candidate")" class="header-logo">
+                <img src="~/images/logoUnicareer.png" alt="Unicareer Logo" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2245%22 height=%2245%22%3E%3Crect width=%2245%22 height=%2245%22 fill=%22%2310b981%22 rx=%2210%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2220%22 font-weight=%22bold%22%3EU%3C/text%3E%3C/svg%3E';">
+                <span class="header-logo-text">Unicareer</span>
+            </a>
+            <h1 class="header-title">@ViewData["Title"]</h1>
+        </div>
+        
+        <div class="header-actions">
+            <button class="header-icon-btn">
+                <i class="bi bi-bell"></i>
+                <span class="notification-badge">3</span>
+            </button>
+
+            @if (SignInManager.IsSignedIn(User))
+            {
+                var currentUser = await UserManager.GetUserAsync(User);
+                var roles = await UserManager.GetRolesAsync(currentUser);
+                var roleName = roles.FirstOrDefault() ?? "User";
+                
+                // Lấy chữ cái đầu của tên để làm avatar
+                var initials = "UV";
+                if (!string.IsNullOrEmpty(currentUser?.HoTen))
+                {
+                    var nameParts = currentUser.HoTen.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    if (nameParts.Length >= 2)
+                    {
+                        // Lấy chữ cái đầu của họ và tên
+                        initials = $"{nameParts[0][0]}{nameParts[^1][0]}".ToUpper();
+                    }
+                    else if (nameParts.Length == 1)
+                    {
+                        initials = nameParts[0].Substring(0, Math.Min(2, nameParts[0].Length)).ToUpper();
+                    }
+                }
+
+                // Chuyển đổi role sang tiếng Việt
+                var roleDisplay = roleName switch
+                {
+                    "Admin" => "Quản trị viên",
+                    "NhaTuyenDung" => "Nhà tuyển dụng",
+                    "UngVien" => "Ứng viên",
+                    _ => roleName
+                };
+
+                <div class="user-profile dropdown">
+                    <a href="#" class="d-flex align-items-center gap-2" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none;">
+                        <div class="user-avatar">@initials</div>
+                        <div class="user-info">
+                            <div class="user-name">@currentUser?.HoTen</div>
+                            <div class="user-role">@roleDisplay</div>
+                        </div>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="@Url.Action("ThongTinTaiKhoan", "Candidate")"><i class="bi bi-person"></i> Thông tin cá nhân</a></li>
+                        <li><a class="dropdown-item" href="@Url.Action("CVCuaToi", "Candidate")"><i class="bi bi-file-earmark-person"></i> Hồ sơ của tôi</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-gear"></i> Cài đặt</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/"><i class="bi bi-house"></i> Về trang chủ</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                <button type="submit" class="dropdown-item text-danger">
+                                    <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            }
+            else
+            {
+                <div class="user-profile">
+                    <div class="user-avatar">?</div>
+                    <div class="user-info">
+                        <div class="user-name">Guest</div>
+                        <div class="user-role">Visitor</div>
+                    </div>
+                </div>
+            }
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <div class="candidate-sidebar" id="candidateSidebar">
+        <!-- Toggle Button -->
+        <div class="sidebar-toggle" onclick="toggleSidebar()">
+            <i class="bi bi-chevron-right"></i>
+        </div>
+
+        <!-- Menu -->
+        <nav class="sidebar-menu">
+            <a href="@Url.Action("Index", "Candidate")" class="menu-item active">
+                <i class="bi bi-house-door"></i>
+                <span>Trang chủ</span>
+            </a>
+            <a href="@Url.Action("QuanLyTinUngTuyen", "Candidate")" class="menu-item">
+                <i class="bi bi-clipboard-check"></i>
+                <span>Quản lý tin ứng tuyển</span>
+            </a>
+            <a href="/Home/TimViec" class="menu-item">
+                <i class="bi bi-briefcase"></i>
+                <span>Tìm việc làm</span>
+            </a>
+            <a href="@Url.Action("ViecLamDaLuu", "Candidate")" class="menu-item">
+                <i class="bi bi-bookmark"></i>
+                <span>Việc đã lưu</span>
+            </a>
+            <a href="@Url.Action("CVCuaToi", "Candidate")" class="menu-item">
+                <i class="bi bi-file-earmark-person"></i>
+                <span>Hồ sơ của tôi</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="bi bi-graph-up"></i>
+                <span>Thống kê</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="bi bi-gear"></i>
+                <span>Cài đặt</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <main class="candidate-main-content">
+        @RenderBody()
+    </main>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('candidateSidebar');
+            sidebar.classList.toggle('expanded');
+            
+            // Lưu trạng thái vào localStorage
+            const isExpanded = sidebar.classList.contains('expanded');
+            localStorage.setItem('candidateSidebarExpanded', isExpanded);
+        }
+
+        // Khôi phục trạng thái sidebar khi tải trang
+        window.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('candidateSidebar');
+            const isExpanded = localStorage.getItem('candidateSidebarExpanded') === 'true';
+            
+            if (isExpanded) {
+                sidebar.classList.add('expanded');
+            }
+
+            // Set active menu item dựa trên URL hiện tại
+            const currentPath = window.location.pathname;
+            const menuItems = document.querySelectorAll('.menu-item');
+            
+            menuItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('href') === currentPath) {
+                    item.classList.add('active');
+                }
+            });
+        });
+
+        // Xử lý click vào menu item
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

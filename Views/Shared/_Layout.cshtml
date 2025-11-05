@@ -74,6 +74,23 @@
         .top-header .nav-link-recruiter i {
             font-size: 16px;
         }
+
+        .top-header .nav-link-candidate {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #fff !important;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .top-header .nav-link-candidate:hover {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: #fff !important;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+        }
+
+        .top-header .nav-link-candidate i {
+            font-size: 16px;
+        }
         
         .user-actions a {
             color: #333;
@@ -108,6 +125,31 @@
         }
 
         .user-actions .admin-link i {
+            font-size: 16px;
+        }
+
+        .user-actions .candidate-link {
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #fff !important;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .user-actions .candidate-link:hover {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+        }
+
+        .user-actions .candidate-link i {
             font-size: 16px;
         }
         
@@ -248,23 +290,38 @@
                                     <i class="bi bi-speedometer2"></i> Quản trị hệ thống
                                 </a>
                             }
+                            @if (User.IsInRole(Unicareer.Models.SD.Role_UngVien))
+                            {
+                                <a asp-area="Candidate" asp-controller="Candidate" asp-action="Index" class="candidate-link">
+                                    <i class="bi bi-person-badge"></i> Quản lý ứng tuyển
+                                </a>
+                            }
                             
                             <div class="user-dropdown dropdown">
                                 <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="bi bi-person-circle"></i> Xin chào: @currentUser?.HoTen
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="#"><i class="bi bi-person"></i> Thông tin tài khoản</a></li>
                                     @if (User.IsInRole(Unicareer.Models.SD.Role_UngVien))
                                     {
-                                        <li><a class="dropdown-item" href="#"><i class="bi bi-file-text"></i> CV của tôi</a></li>
-                                        <li><a class="dropdown-item" href="#"><i class="bi bi-heart"></i> Việc làm đã lưu</a></li>
-                                        <li><a class="dropdown-item" href="#"><i class="bi bi-clock-history"></i> Lịch sử ứng tuyển</a></li>
+                                        <li><a class="dropdown-item" asp-area="Candidate" asp-controller="Candidate" asp-action="Index"><i class="bi bi-house-door"></i> Trang chủ ứng viên</a></li>
+                                        <li><a class="dropdown-item" asp-area="Candidate" asp-controller="Candidate" asp-action="QuanLyTinUngTuyen"><i class="bi bi-clipboard-check"></i> Quản lý tin ứng tuyển</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" asp-area="Candidate" asp-controller="Candidate" asp-action="ThongTinTaiKhoan"><i class="bi bi-person"></i> Thông tin tài khoản</a></li>
+                                        <li><a class="dropdown-item" asp-area="Candidate" asp-controller="Candidate" asp-action="CVCuaToi"><i class="bi bi-file-text"></i> CV của tôi</a></li>
+                                        <li><a class="dropdown-item" asp-area="Candidate" asp-controller="Candidate" asp-action="ViecLamDaLuu"><i class="bi bi-heart"></i> Việc làm đã lưu</a></li>
                                     }
                                     else if (User.IsInRole(Unicareer.Models.SD.Role_NhaTuyenDung))
                                     {
+                                        <li><a class="dropdown-item" asp-area="Recruiter" asp-controller="Recruiter" asp-action="Index"><i class="bi bi-house-door"></i> Trang chủ nhà tuyển dụng</a></li>
                                         <li><a class="dropdown-item" asp-area="Recruiter" asp-controller="Recruiter" asp-action="TinDaDang"><i class="bi bi-file-earmark-text"></i> Tin đã đăng</a></li>
                                         <li><a class="dropdown-item" asp-area="Recruiter" asp-controller="Recruiter" asp-action="DangTinTuyenDung"><i class="bi bi-plus-circle"></i> Đăng tin mới</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="#"><i class="bi bi-person"></i> Thông tin tài khoản</a></li>
+                                    }
+                                    else
+                                    {
+                                        <li><a class="dropdown-item" href="#"><i class="bi bi-person"></i> Thông tin tài khoản</a></li>
                                     }
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
