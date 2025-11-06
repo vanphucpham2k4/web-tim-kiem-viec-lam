@@ -140,6 +140,24 @@
                             <label asp-for="GhiNho" class="form-check-label"></label>
                         </div>
 
+                        <div class="mb-3">
+                            <label asp-for="CaptchaCode" class="form-label"></label>
+                            <div class="d-flex align-items-center gap-2">
+                                <input asp-for="CaptchaCode" class="form-control" placeholder="Nhập mã CAPTCHA" style="flex: 1;" />
+                                <div style="position: relative;">
+                                    <img id="captchaImage" src="/Captcha/GetCaptchaImage" alt="CAPTCHA" 
+                                         style="height: 50px; border: 2px solid #e0e0e0; border-radius: 5px; cursor: pointer;" 
+                                         onclick="refreshCaptcha()" title="Click để làm mới CAPTCHA" />
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" 
+                                            onclick="refreshCaptcha()" 
+                                            style="position: absolute; top: -25px; right: 0; font-size: 12px; padding: 2px 6px;">
+                                        <i class="bi bi-arrow-clockwise"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <span asp-validation-for="CaptchaCode" class="text-danger"></span>
+                        </div>
+
                         <div class="d-grid gap-2 mb-3">
                             <button type="submit" class="btn btn-auth">
                                 <i class="bi bi-box-arrow-in-right"></i> Đăng nhập
@@ -183,6 +201,15 @@
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     
     <script>
+        // Hàm refresh CAPTCHA
+        function refreshCaptcha() {
+            const captchaImage = document.getElementById('captchaImage');
+            const timestamp = new Date().getTime();
+            captchaImage.src = '/Captcha/GetCaptchaImage?t=' + timestamp;
+            // Xóa giá trị input
+            document.getElementById('CaptchaCode').value = '';
+        }
+
         // Kiểm tra xem ảnh có load được không
         (function() {
             const imageUrl = 'https://haycafe.vn/wp-content/uploads/2022/03/Hinh-bat-tay-hop-tac.jpg';

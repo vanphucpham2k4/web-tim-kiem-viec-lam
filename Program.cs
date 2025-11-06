@@ -12,6 +12,15 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+// Cấu hình Session để lưu CAPTCHA
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(10);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+});
+
 // Cấu hình DataProtection để giữ khóa ổn định (tránh mất state sau redirect)
 var keysDir = Path.Combine(builder.Environment.ContentRootPath, "App_Data", "keys");
 Directory.CreateDirectory(keysDir);
@@ -41,6 +50,11 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     // Cấu hình SignIn
     options.SignIn.RequireConfirmedEmail = false;
     options.SignIn.RequireConfirmedPhoneNumber = false;
+    
+    // Cấu hình Lockout để bảo mật cao cho admin
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+    options.Lockout.MaxFailedAccessAttempts = 5; // Khóa sau 5 lần thử sai
+    options.Lockout.AllowedForNewUsers = true;
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
@@ -113,6 +127,19 @@ using (var scope = app.Services.CreateScope())
         
         await Unicareer.Data.DbInitializer.SeedRolesAsync(roleManager);
         await Unicareer.Data.DbInitializer.SeedAdminUserAsync(userManager);
+        
+        // Đảm bảo tài khoản admin luôn tồn tại sau mỗi lần khởi động
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        var adminUser = await userManager.FindByEmailAsync("admin@unicareer.vn");
+        if (adminUser != null)
+        {
+            logger.LogInformation("Primary Admin account verified: {Email}", adminUser.Email);
+        }
+        else
+        {
+            logger.LogWarning("Primary Admin account not found! Attempting to recreate...");
+            await Unicareer.Data.DbInitializer.SeedAdminUserAsync(userManager);
+        }
     }
     catch (Exception ex)
     {
@@ -127,6 +154,48 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
 }
 app.UseStaticFiles();
+
+// Sử dụng Session (phải đặt trước UseRouting)
+app.UseSession();
+
+// Middleware bảo mật cho admin login - Log và rate limiting
+app.Use(async (context, next) =>
+{
+    var path = context.Request.Path.Value?.ToLower() ?? "";
+    
+    // Kiểm tra nếu là đường dẫn admin login
+    if (path.Contains("/admin/login") || path.Contains("/admin/logout"))
+    {
+        var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+        var ipAddress = context.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+        var userAgent = context.Request.Headers["User-Agent"].ToString();
+        
+        // Log mọi lần truy cập admin login
+        logger.LogWarning("=== ADMIN LOGIN ACCESS ATTEMPT ===");
+        logger.LogWarning("IP: {IP}, Path: {Path}, Method: {Method}, UserAgent: {UserAgent}, Time: {Time}",
+            ipAddress, path, context.Request.Method, userAgent, DateTime.UtcNow);
+        
+        // Rate limiting đơn giản bằng session
+        var sessionKey = $"admin_login_attempt_{ipAddress}";
+        var attempts = context.Session.GetInt32(sessionKey) ?? 0;
+        
+        if (context.Request.Method == "POST" && attempts >= 5)
+        {
+            logger.LogError("BLOCKED: Too many login attempts from IP: {IP}", ipAddress);
+            context.Response.StatusCode = 429; // Too Many Requests
+            await context.Response.WriteAsync("Quá nhiều lần thử đăng nhập. Vui lòng thử lại sau 15 phút.");
+            return;
+        }
+        
+        if (context.Request.Method == "POST")
+        {
+            context.Session.SetInt32(sessionKey, attempts + 1);
+            context.Session.SetString($"{sessionKey}_time", DateTime.UtcNow.ToString());
+        }
+    }
+    
+    await next();
+});
 
 app.UseRouting();
 
@@ -229,6 +298,17 @@ app.Use(async (context, next) =>
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Route riêng cho admin login (phải đặt trước route areas)
+app.MapControllerRoute(
+    name: "adminLogin",
+    pattern: "admin/login",
+    defaults: new { area = "Admin", controller = "AdminAccount", action = "Login" });
+
+app.MapControllerRoute(
+    name: "adminLogout",
+    pattern: "admin/logout",
+    defaults: new { area = "Admin", controller = "AdminAccount", action = "Logout" });
 
 app.MapControllerRoute(
     name: "areas",

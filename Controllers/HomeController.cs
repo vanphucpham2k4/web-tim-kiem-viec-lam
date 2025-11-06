@@ -21,6 +21,17 @@ namespace Unicareer.Controllers
         public IActionResult TimViec()
         {
             var danhSachTinTuyenDung = TinTuyenDung.LayDanhSachTinTuyenDung();
+            
+            // Đếm số lượng việc làm theo tỉnh/thành phố và sắp xếp từ cao đến thấp, lấy top 5
+            var soLuongViecLamTheoTinh = danhSachTinTuyenDung
+                .GroupBy(job => job.TinhThanhPho)
+                .Select(g => new { TinhThanhPho = g.Key, SoLuong = g.Count() })
+                .OrderByDescending(x => x.SoLuong)
+                .Take(5)
+                .ToList();
+            
+            ViewBag.SoLuongViecLamTheoTinh = soLuongViecLamTheoTinh;
+            
             return View(danhSachTinTuyenDung);
         }
 

@@ -42,6 +42,13 @@ namespace Unicareer.Areas.Recruiter.Controllers
             var danhSach = TinTuyenDung.LayDanhSachTinTuyenDung();
             return View(danhSach);
         }
+
+        // GET: Thong tin tai khoan
+        public IActionResult ThongTinTaiKhoan()
+        {
+            ViewData["Title"] = "Thông tin tài khoản";
+            return View();
+        }
     }
 }
 

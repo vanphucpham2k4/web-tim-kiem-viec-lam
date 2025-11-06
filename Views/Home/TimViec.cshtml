@@ -296,6 +296,93 @@
         padding-left: 16px;
     }
     
+    .location-item.top-city {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        border-left: 3px solid var(--accent-color);
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+    
+    .location-item.top-city:hover {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+        transform: translateX(3px);
+    }
+    
+    .job-count {
+        color: var(--accent-color);
+        font-weight: 700;
+        font-size: 15px;
+    }
+    
+    .location-item.top-city .job-count {
+        color: var(--accent-dark);
+        font-size: 16px;
+    }
+    
+    .rank-icon {
+        font-size: 18px;
+        margin-right: 4px;
+    }
+    
+    .rank-gold {
+        color: #FFD700;
+        text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+    }
+    
+    .rank-silver {
+        color: #C0C0C0;
+        text-shadow: 0 0 8px rgba(192, 192, 192, 0.5);
+    }
+    
+    .rank-bronze {
+        color: #CD7F32;
+        text-shadow: 0 0 8px rgba(205, 127, 50, 0.5);
+    }
+    
+    .rank-fire {
+        font-size: 18px;
+        animation: fire-flicker 1.5s ease-in-out infinite;
+        margin-left: 6px;
+        display: inline-block;
+        filter: drop-shadow(0 0 4px rgba(255, 107, 53, 0.6));
+    }
+    
+    @@keyframes fire-flicker {
+        0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 0.8;
+            transform: scale(1.1);
+        }
+    }
+    
+    .location-item.rank-1 {
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 215, 0, 0.05) 100%);
+        border-left: 4px solid #FFD700;
+    }
+    
+    .location-item.rank-2 {
+        background: linear-gradient(135deg, rgba(192, 192, 192, 0.15) 0%, rgba(192, 192, 192, 0.05) 100%);
+        border-left: 4px solid #C0C0C0;
+    }
+    
+    .location-item.rank-3 {
+        background: linear-gradient(135deg, rgba(205, 127, 50, 0.15) 0%, rgba(205, 127, 50, 0.05) 100%);
+        border-left: 4px solid #CD7F32;
+    }
+    
+    .city-name-text {
+        font-weight: inherit;
+    }
+    
+    .location-item.rank-1 .city-name-text,
+    .location-item.rank-2 .city-name-text,
+    .location-item.rank-3 .city-name-text {
+        font-weight: 700;
+    }
+    
     .quick-job-item {
         display: flex;
         align-items: start;
@@ -575,7 +662,7 @@
                 {
                     var mucLuongDisplay = job.MucLuongThapNhat == 0 && job.MucLuongCaoNhat == 0 ? "Thỏa thuận" : $"{job.MucLuongThapNhat}-{job.MucLuongCaoNhat} triệu";
                     <a href="/Home/ChiTietViecLam/@job.MaTinTuyenDung" class="text-decoration-none" style="color: inherit;">
-                        <div class="job-card" data-nganh="@job.NganhNghe" data-loai="@job.LoaiCongViec" data-luong="@mucLuongDisplay">
+                        <div class="job-card" data-nganh="@job.NganhNghe" data-loai="@job.LoaiCongViec" data-luong="@mucLuongDisplay" data-tinhthanh="@job.TinhThanhPho" data-phuongxa="@job.PhuongXa">
                             <div class="d-flex">
                                 <div class="job-logo">
                                     @job.CongTy.Substring(0, 1)
@@ -612,13 +699,55 @@
             <div class="sidebar-section">
                 <h5><i class="bi bi-calendar-check me-2"></i>Việc làm 2025</h5>
                 <div>
-                    <a href="#" class="location-item d-block text-decoration-none">Hà Nội</a>
-                    <a href="#" class="location-item d-block text-decoration-none">Hồ Chí Minh</a>
-                    <a href="#" class="location-item d-block text-decoration-none">Đà Nẵng</a>
-                    <a href="#" class="location-item d-block text-decoration-none">Hải Phòng</a>
-                    <a href="#" class="location-item d-block text-decoration-none">Bắc Ninh</a>
-                    <a href="#" class="location-item d-block text-decoration-none">Thái Nguyên</a>
-                    <a href="#" class="location-item d-block text-decoration-none">Hưng Yên</a>
+                    @if (ViewBag.SoLuongViecLamTheoTinh != null)
+                    {
+                        int index = 0;
+                        @foreach (var item in ViewBag.SoLuongViecLamTheoTinh)
+                        {
+                            index++;
+                            var isTop5 = index <= 5;
+                            var isTop3 = index <= 3;
+                            var rankClass = index == 1 ? "rank-1" : (index == 2 ? "rank-2" : (index == 3 ? "rank-3" : ""));
+                            <a href="/Home/TimViec?tinhThanh=@Uri.EscapeDataString(item.TinhThanhPho)" 
+                               class="location-item d-block text-decoration-none @(isTop5 ? "top-city" : "") @rankClass">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center gap-2">
+                                        @if (isTop3)
+                                        {
+                                            @if (index == 1)
+                                            {
+                                                <i class="bi bi-trophy-fill rank-icon rank-gold"></i>
+                                            }
+                                            else if (index == 2)
+                                            {
+                                                <i class="bi bi-trophy-fill rank-icon rank-silver"></i>
+                                            }
+                                            else if (index == 3)
+                                            {
+                                                <i class="bi bi-trophy-fill rank-icon rank-bronze"></i>
+                                            }
+                                        }
+                                        <span class="city-name-text">@item.TinhThanhPho</span>
+                                        @if (isTop5)
+                                        {
+                                            <span class="rank-fire">🔥</span>
+                                        }
+                                    </div>
+                                    <span class="job-count">(@item.SoLuong)</span>
+                                </div>
+                            </a>
+                        }
+                    }
+                    else
+                    {
+                        <a href="#" class="location-item d-block text-decoration-none">Hà Nội</a>
+                        <a href="#" class="location-item d-block text-decoration-none">Hồ Chí Minh</a>
+                        <a href="#" class="location-item d-block text-decoration-none">Đà Nẵng</a>
+                        <a href="#" class="location-item d-block text-decoration-none">Hải Phòng</a>
+                        <a href="#" class="location-item d-block text-decoration-none">Bắc Ninh</a>
+                        <a href="#" class="location-item d-block text-decoration-none">Thái Nguyên</a>
+                        <a href="#" class="location-item d-block text-decoration-none">Hưng Yên</a>
+                    }
                 </div>
             </div>
             
@@ -661,6 +790,39 @@
 @section Scripts {
     <script>
         $(document).ready(function() {
+            // Đọc query parameter từ URL và tự động set filter
+            const urlParams = new URLSearchParams(window.location.search);
+            const tinhThanh = urlParams.get('tinhThanh');
+            
+            if (tinhThanh) {
+                // Map tên thành phố nếu cần
+                const cityMapping = {
+                    'Hồ Chí Minh': 'TP Hồ Chí Minh',
+                    'TP. Hồ Chí Minh': 'TP Hồ Chí Minh',
+                    'Sài Gòn': 'TP Hồ Chí Minh'
+                };
+                
+                let cityToSet = cityMapping[tinhThanh] || tinhThanh;
+                
+                // Kiểm tra xem giá trị có tồn tại trong dropdown không
+                const optionExists = $('#searchTinhThanh option').filter(function() {
+                    return $(this).val() === cityToSet;
+                }).length > 0;
+                
+                if (optionExists) {
+                    // Set giá trị cho dropdown Tỉnh/Thành phố
+                    $('#searchTinhThanh').val(cityToSet);
+                } else {
+                    // Nếu không có trong dropdown, vẫn set để filter có thể tìm trong text
+                    $('#searchTinhThanh').val(tinhThanh);
+                }
+                
+                // Tự động filter sau khi set giá trị
+                setTimeout(function() {
+                    filterJobs();
+                }, 100);
+            }
+            
             // Search functionality
             $('#searchForm').on('submit', function(e) {
                 e.preventDefault();
@@ -678,8 +840,8 @@
             
             function filterJobs() {
                 var searchText = $('#searchInput').val().toLowerCase();
-                var searchTinhThanh = $('#searchTinhThanh').val().toLowerCase();
-                var searchQuanHuyen = $('#searchQuanHuyen').val().toLowerCase();
+                var searchTinhThanh = $('#searchTinhThanh').val();
+                var searchQuanHuyen = $('#searchQuanHuyen').val();
                 var nganhNghe = $('#filterNganhNghe').val();
                 var loaiCongViec = $('#filterLoaiCongViec').val();
                 var mucLuong = $('#filterMucLuong').val();
@@ -691,11 +853,34 @@
                     var jobNganh = card.data('nganh') || '';
                     var jobLoai = card.data('loai') || '';
                     var jobLuong = card.data('luong') || '';
+                    var jobTinhThanh = card.data('tinhthanh') || '';
+                    var jobPhuongXa = card.data('phuongxa') || '';
                     var jobText = card.text().toLowerCase();
                     
                     var matchSearch = searchText === '' || jobText.includes(searchText);
-                    var matchTinhThanh = searchTinhThanh === '' || jobText.includes(searchTinhThanh);
-                    var matchQuanHuyen = searchQuanHuyen === '' || jobText.includes(searchQuanHuyen);
+                    
+                    // Tìm kiếm tỉnh/thành phố
+                    var matchTinhThanh = true;
+                    if (searchTinhThanh && searchTinhThanh !== '') {
+                        var tinhThanhLower = searchTinhThanh.toLowerCase();
+                        var jobTinhThanhLower = jobTinhThanh.toLowerCase();
+                        
+                        // Tìm kiếm linh hoạt: có thể là "TP Hồ Chí Minh" hoặc "Hồ Chí Minh"
+                        if (searchTinhThanh === 'TP Hồ Chí Minh') {
+                            matchTinhThanh = jobTinhThanhLower.includes('hồ chí minh') || jobTinhThanhLower.includes('tp hồ chí minh');
+                        } else {
+                            matchTinhThanh = jobTinhThanhLower.includes(tinhThanhLower) || jobTinhThanhLower === tinhThanhLower;
+                        }
+                    }
+                    
+                    // Tìm kiếm quận/huyện
+                    var matchQuanHuyen = true;
+                    if (searchQuanHuyen && searchQuanHuyen !== '') {
+                        var quanHuyenLower = searchQuanHuyen.toLowerCase();
+                        var jobPhuongXaLower = jobPhuongXa.toLowerCase();
+                        matchQuanHuyen = jobPhuongXaLower.includes(quanHuyenLower) || jobPhuongXaLower === quanHuyenLower;
+                    }
+                    
                     var matchNganh = nganhNghe === '' || jobNganh === nganhNghe;
                     var matchLoai = loaiCongViec === '' || jobLoai === loaiCongViec;
                     

@@ -97,8 +97,32 @@ namespace Unicareer.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
+            // Validate CAPTCHA trước
+            var sessionCaptcha = HttpContext.Session.GetString("CaptchaCode");
+            if (string.IsNullOrEmpty(sessionCaptcha) || 
+                string.IsNullOrEmpty(model.CaptchaCode) ||
+                !sessionCaptcha.Equals(model.CaptchaCode, StringComparison.OrdinalIgnoreCase))
+            {
+                ModelState.AddModelError("CaptchaCode", "Mã CAPTCHA không đúng. Vui lòng thử lại.");
+                // Tạo lại CAPTCHA mới
+                HttpContext.Session.Remove("CaptchaCode");
+                return View(model);
+            }
+
             if (ModelState.IsValid)
             {
+                // Kiểm tra xem user có phải là Admin không - CHẶN admin đăng nhập qua route công khai
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user != null && await _userManager.IsInRoleAsync(user, SD.Role_Admin))
+                {
+                    ModelState.AddModelError(string.Empty, "Tài khoản quản trị phải đăng nhập qua đường link riêng.");
+                    HttpContext.Session.Remove("CaptchaCode");
+                    return View(model);
+                }
+
+                // Xóa CAPTCHA sau khi validate thành công
+                HttpContext.Session.Remove("CaptchaCode");
+
                 var result = await _signInManager.PasswordSignInAsync(
                     model.Email, 
                     model.MatKhau, 
@@ -107,19 +131,13 @@ namespace Unicareer.Controllers
 
                 if (result.Succeeded)
                 {
-                    var user = await _userManager.FindByEmailAsync(model.Email);
-                    
                     if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
                     {
                         return Redirect(model.ReturnUrl);
                     }
 
-                    // Chuyển hướng dựa trên role
-                    if (await _userManager.IsInRoleAsync(user, SD.Role_Admin))
-                    {
-                        return RedirectToAction("Index", "Admin", new { area = "Admin" });
-                    }
-                    else if (await _userManager.IsInRoleAsync(user, SD.Role_NhaTuyenDung))
+                    // Chuyển hướng dựa trên role (không có Admin ở đây vì đã chặn ở trên)
+                    if (await _userManager.IsInRoleAsync(user, SD.Role_NhaTuyenDung))
                     {
                         return RedirectToAction("Index", "Recruiter", new { area = "Recruiter" });
                     }
@@ -132,6 +150,8 @@ namespace Unicareer.Controllers
                 ModelState.AddModelError(string.Empty, "Email hoặc mật khẩu không đúng");
             }
 
+            // Nếu có lỗi, tạo lại CAPTCHA mới
+            HttpContext.Session.Remove("CaptchaCode");
             return View(model);
         }
 
