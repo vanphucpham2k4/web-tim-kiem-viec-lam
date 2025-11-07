@@ -41,6 +41,33 @@ namespace Unicareer.Controllers
         {
             if (ModelState.IsValid)
             {
+                // Kiểm tra email đã tồn tại chưa (kể cả khi tài khoản bị khóa)
+                var existingUser = await _userManager.FindByEmailAsync(model.Email);
+                if (existingUser != null)
+                {
+                    // Kiểm tra tài khoản có bị khóa không
+                    var isLockedOut = await _userManager.IsLockedOutAsync(existingUser);
+                    var lockoutEnd = await _userManager.GetLockoutEndDateAsync(existingUser);
+                    
+                    if (isLockedOut && lockoutEnd.HasValue && lockoutEnd.Value > DateTimeOffset.UtcNow)
+                    {
+                        ModelState.AddModelError(string.Empty, 
+                            $"Tài khoản với email {model.Email} đã bị khóa. " +
+                            $"Vui lòng liên hệ quản trị viên để được hỗ trợ hoặc thử lại sau khi tài khoản được mở khóa.");
+                        _logger.LogWarning("REGISTER ATTEMPT ON LOCKED ACCOUNT: Email={Email}, IP={IP}, Time={Time}",
+                            model.Email, HttpContext.Connection.RemoteIpAddress?.ToString(), DateTime.UtcNow);
+                        return View(model);
+                    }
+                    else
+                    {
+                        // Email đã tồn tại nhưng không bị khóa
+                        ModelState.AddModelError(string.Empty, 
+                            $"Email {model.Email} đã được sử dụng. " +
+                            $"Vui lòng đăng nhập hoặc sử dụng email khác.");
+                        return View(model);
+                    }
+                }
+
                 var user = new ApplicationUser
                 {
                     UserName = model.Email,
@@ -89,6 +116,13 @@ namespace Unicareer.Controllers
         public IActionResult Login(string? returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
+            
+            // Hiển thị thông báo lỗi từ TempData (nếu có)
+            if (TempData["ErrorMessage"] != null)
+            {
+                ViewData["ErrorMessage"] = TempData["ErrorMessage"];
+            }
+            
             return View();
         }
 
@@ -262,6 +296,20 @@ namespace Unicareer.Controllers
             var existingUser = await _userManager.FindByEmailAsync(email);
             if (existingUser != null)
             {
+                // Kiểm tra tài khoản có bị khóa không
+                var isLockedOut = await _userManager.IsLockedOutAsync(existingUser);
+                var lockoutEnd = await _userManager.GetLockoutEndDateAsync(existingUser);
+                
+                if (isLockedOut && lockoutEnd.HasValue && lockoutEnd.Value > DateTimeOffset.UtcNow)
+                {
+                    _logger.LogWarning("GOOGLE LOGIN ATTEMPT ON LOCKED ACCOUNT: Email={Email}, IP={IP}, Time={Time}",
+                        email, HttpContext.Connection.RemoteIpAddress?.ToString(), DateTime.UtcNow);
+                    TempData["ErrorMessage"] = 
+                        $"Tài khoản với email {email} đã bị khóa. " +
+                        $"Vui lòng liên hệ quản trị viên để được hỗ trợ.";
+                    return RedirectToAction("Login");
+                }
+
                 // Thêm external login cho user hiện có
                 var addLoginResult = await _userManager.AddLoginAsync(existingUser, info);
                 if (addLoginResult.Succeeded)
@@ -336,6 +384,57 @@ namespace Unicareer.Controllers
                 ViewBag.Name = name;
                 TempData.Keep();
                 return View();
+            }
+
+            // Kiểm tra email đã tồn tại chưa (kể cả khi tài khoản bị khóa)
+            var existingUser = await _userManager.FindByEmailAsync(email);
+            if (existingUser != null)
+            {
+                // Kiểm tra tài khoản có bị khóa không
+                var isLockedOut = await _userManager.IsLockedOutAsync(existingUser);
+                var lockoutEnd = await _userManager.GetLockoutEndDateAsync(existingUser);
+                
+                if (isLockedOut && lockoutEnd.HasValue && lockoutEnd.Value > DateTimeOffset.UtcNow)
+                {
+                    _logger.LogWarning("GOOGLE REGISTER ATTEMPT ON LOCKED ACCOUNT: Email={Email}, IP={IP}, Time={Time}",
+                        email, HttpContext.Connection.RemoteIpAddress?.ToString(), DateTime.UtcNow);
+                    ModelState.AddModelError(string.Empty, 
+                        $"Tài khoản với email {email} đã bị khóa. " +
+                        $"Vui lòng liên hệ quản trị viên để được hỗ trợ hoặc thử lại sau khi tài khoản được mở khóa.");
+                    ViewBag.Email = email;
+                    ViewBag.Name = name;
+                    TempData.Keep();
+                    return View();
+                }
+                else
+                {
+                    // Email đã tồn tại nhưng không bị khóa - thêm external login cho tài khoản hiện có
+                    var addLoginResult = await _userManager.AddLoginAsync(existingUser, 
+                        new UserLoginInfo(provider, providerKey, provider));
+                    
+                    if (addLoginResult.Succeeded)
+                    {
+                        // Nếu user chưa có bất kỳ role nào, gán role mặc định
+                        var currentRoles = await _userManager.GetRolesAsync(existingUser);
+                        if (currentRoles == null || currentRoles.Count == 0)
+                        {
+                            await _userManager.AddToRoleAsync(existingUser, loaiTaiKhoan);
+                        }
+                        
+                        await _signInManager.SignInAsync(existingUser, isPersistent: false);
+                        return await RedirectToHomePage(existingUser);
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, 
+                            $"Email {email} đã được sử dụng. " +
+                            $"Vui lòng đăng nhập hoặc sử dụng email khác.");
+                        ViewBag.Email = email;
+                        ViewBag.Name = name;
+                        TempData.Keep();
+                        return View();
+                    }
+                }
             }
 
             // Tạo user mới

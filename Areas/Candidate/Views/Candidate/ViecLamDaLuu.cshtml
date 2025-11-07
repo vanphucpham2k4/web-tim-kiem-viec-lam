@@ -114,6 +114,8 @@
     <p>Danh sách các công việc bạn đã lưu để xem sau</p>
 </div>
 
+@Html.AntiForgeryToken()
+
 @if (Model != null && Model.Any())
 {
     <div class="row">
@@ -144,7 +146,7 @@
                             <a href="/Home/ChiTietViecLam/@job.MaTinTuyenDung" class="btn btn-primary">
                                 <i class="bi bi-eye"></i> Xem chi tiết
                             </a>
-                            <button class="btn btn-outline-danger" onclick="removeSavedJob(@job.MaTinTuyenDung)">
+                            <button class="btn btn-outline-danger" onclick="removeSavedJob(@job.MaTinTuyenDung, this)">
                                 <i class="bi bi-heartbreak"></i> Bỏ lưu
                             </button>
                         </div>
@@ -170,11 +172,96 @@ else
 
 @section Scripts {
     <script>
-        function removeSavedJob(jobId) {
+        function removeSavedJob(jobId, buttonElement) {
             if (confirm('Bạn có chắc chắn muốn bỏ lưu công việc này không?')) {
-                // TODO: Implement remove saved job logic
-                alert('Tính năng đang được phát triển!');
+                // Disable button to prevent multiple clicks
+                var btn = $(buttonElement);
+                btn.prop('disabled', true);
+                btn.html('<i class="bi bi-hourglass-split"></i> Đang xử lý...');
+
+                // Get anti-forgery token
+                var token = $('input[name="__RequestVerificationToken"]').val();
+
+                // Make AJAX call
+                $.ajax({
+                    url: '@Url.Action("BoLuuViecLam", "Candidate")',
+                    type: 'POST',
+                    data: {
+                        id: jobId,
+                        __RequestVerificationToken: token
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Show success notification
+                            showNotification(response.message, 'success');
+                            
+                            // Find and remove the card
+                            var card = btn.closest('.col-md-6');
+                            card.fadeOut(300, function() {
+                                $(this).remove();
+                                
+                                // Check if no more jobs, show empty state
+                                if ($('.job-card').length === 0) {
+                                    location.reload();
+                                }
+                            });
+                        } else {
+                            showNotification(response.message || 'Có lỗi xảy ra!', 'error');
+                            btn.prop('disabled', false);
+                            btn.html('<i class="bi bi-heartbreak"></i> Bỏ lưu');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        showNotification('Có lỗi xảy ra khi bỏ lưu công việc!', 'error');
+                        btn.prop('disabled', false);
+                        btn.html('<i class="bi bi-heartbreak"></i> Bỏ lưu');
+                    }
+                });
             }
         }
+
+        function showNotification(message, type) {
+            var bgColor = type === 'success' ? '#10b981' : '#e53e3e';
+            var icon = type === 'success' ? '<i class="bi bi-check-circle"></i> ' : '<i class="bi bi-exclamation-triangle"></i> ';
+            
+            var notification = $('<div>')
+                .css({
+                    position: 'fixed',
+                    top: '20px',
+                    right: '20px',
+                    background: bgColor,
+                    color: 'white',
+                    padding: '15px 25px',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                    zIndex: 9999,
+                    fontWeight: '600',
+                    animation: 'slideInRight 0.3s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px'
+                })
+                .html(icon + message)
+                .appendTo('body');
+            
+            setTimeout(function() {
+                notification.fadeOut(400, function() {
+                    $(this).remove();
+                });
+            }, 3000);
+        }
     </script>
+    
+    <style>
+        @@keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
 }

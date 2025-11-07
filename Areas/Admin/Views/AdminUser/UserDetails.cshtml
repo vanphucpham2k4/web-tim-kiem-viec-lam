@@ -1,0 +1,384 @@
+@model Unicareer.Models.ViewModels.UserInfo
+@{
+    ViewData["Title"] = $"Chi tiết người dùng: {Model.Email}";
+}
+
+<style>
+    .user-details-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 10px 40px rgba(37, 69, 184, 0.3);
+    }
+
+    .page-header h1 {
+        font-weight: 700;
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+
+    .details-card {
+        background: white;
+        border-radius: 16px;
+        padding: 40px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        margin-bottom: 30px;
+    }
+
+    .user-header {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding-bottom: 30px;
+        border-bottom: 2px solid #e9ecef;
+        margin-bottom: 30px;
+    }
+
+    .user-avatar-large {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 2rem;
+    }
+
+    .user-header-info h2 {
+        color: #2d3748;
+        margin: 0 0 5px 0;
+        font-size: 1.8rem;
+    }
+
+    .user-header-info p {
+        color: #718096;
+        margin: 0;
+    }
+
+    .info-section {
+        margin-bottom: 30px;
+    }
+
+    .info-section h4 {
+        color: #2d3748;
+        font-weight: 600;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e9ecef;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .info-label {
+        font-size: 0.85rem;
+        color: #718096;
+        margin-bottom: 5px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .info-value {
+        font-size: 1rem;
+        color: #2d3748;
+        font-weight: 600;
+    }
+
+    .role-badge {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-right: 8px;
+        margin-bottom: 8px;
+    }
+
+    .role-admin {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .role-nhatuyendung {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .role-ungvien {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .status-active {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-locked {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .status-unconfirmed {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        margin-top: 30px;
+        padding-top: 30px;
+        border-top: 2px solid #e9ecef;
+    }
+
+    .btn-action {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-reset-password {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        color: white;
+    }
+
+    .btn-reset-password:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 69, 184, 0.4);
+        color: white;
+    }
+
+    .btn-back {
+        background: white;
+        color: #2d3748;
+        border: 1px solid #e2e8f0;
+    }
+
+    .btn-back:hover {
+        background: #f7fafc;
+        border-color: #cbd5e0;
+        color: #2d3748;
+    }
+
+    .warning-box {
+        background: #fff5f5;
+        border: 2px solid #fed7d7;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+    }
+
+    .warning-box h5 {
+        color: #c53030;
+        font-weight: 600;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .warning-box p {
+        color: #718096;
+        margin: 0;
+    }
+</style>
+
+<div class="user-details-container">
+    <div class="page-header">
+        <h1><i class="bi bi-person-circle"></i> Chi tiết người dùng</h1>
+        <p>Thông tin chi tiết và quản lý tài khoản</p>
+    </div>
+
+    <div class="details-card">
+        <div class="user-header">
+            <div class="user-avatar-large">
+                @if (!string.IsNullOrEmpty(Model.HoTen))
+                {
+                    var nameParts = Model.HoTen.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    if (nameParts.Length >= 2)
+                    {
+                        @($"{nameParts[0][0]}{nameParts[^1][0]}".ToUpper())
+                    }
+                    else if (nameParts.Length == 1)
+                    {
+                        @nameParts[0].Substring(0, Math.Min(2, nameParts[0].Length)).ToUpper()
+                    }
+                    else
+                    {
+                        @Model.Email.Substring(0, 2).ToUpper()
+                    }
+                }
+                else
+                {
+                    @Model.Email.Substring(0, 2).ToUpper()
+                }
+            </div>
+            <div class="user-header-info">
+                <h2>@(Model.HoTen ?? Model.Email)</h2>
+                <p>@Model.Email</p>
+            </div>
+        </div>
+
+        @if (Model.IsPrimaryAdmin)
+        {
+            <div class="warning-box">
+                <h5>
+                    <i class="bi bi-shield-exclamation"></i>
+                    Tài khoản quản trị viên chính
+                </h5>
+                <p>Tài khoản này là tài khoản quản trị viên đầu tiên của hệ thống. Một số thao tác có thể bị hạn chế để bảo vệ hệ thống.</p>
+            </div>
+        }
+
+        <div class="info-section">
+            <h4><i class="bi bi-info-circle"></i> Thông tin cơ bản</h4>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Email</span>
+                    <span class="info-value">@Model.Email</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Họ và tên</span>
+                    <span class="info-value">@(Model.HoTen ?? "Chưa cập nhật")</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Số điện thoại</span>
+                    <span class="info-value">@(Model.PhoneNumber ?? "Chưa cập nhật")</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Ngày đăng ký</span>
+                    <span class="info-value">@Model.NgayDangKy.ToString("dd/MM/yyyy HH:mm")</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h4><i class="bi bi-shield-check"></i> Trạng thái và quyền</h4>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Trạng thái</span>
+                    <div>
+                        @if (Model.IsLockedOut)
+                        {
+                            <span class="status-badge status-locked">
+                                <i class="bi bi-lock"></i> Đã khóa
+                            </span>
+                            @if (Model.LockoutEnd.HasValue)
+                            {
+                                <br />
+                                <small style="color: #718096; margin-top: 5px; display: block;">
+                                    Đến: @Model.LockoutEnd.Value.ToString("dd/MM/yyyy HH:mm")
+                                </small>
+                            }
+                        }
+                        else if (!Model.EmailConfirmed)
+                        {
+                            <span class="status-badge status-unconfirmed">
+                                <i class="bi bi-envelope"></i> Chưa xác nhận email
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="status-badge status-active">
+                                <i class="bi bi-check-circle"></i> Hoạt động
+                            </span>
+                        }
+                    </div>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Xác nhận email</span>
+                    <span class="info-value">
+                        @if (Model.EmailConfirmed)
+                        {
+                            <span style="color: #166534;"><i class="bi bi-check-circle"></i> Đã xác nhận</span>
+                        }
+                        else
+                        {
+                            <span style="color: #92400e;"><i class="bi bi-x-circle"></i> Chưa xác nhận</span>
+                        }
+                    </span>
+                </div>
+                <div class="info-item" style="grid-column: 1 / -1;">
+                    <span class="info-label">Roles</span>
+                    <div>
+                        @if (Model.Roles.Any())
+                        {
+                            @foreach (var role in Model.Roles)
+                            {
+                                var roleClass = role switch
+                                {
+                                    "Admin" => "role-admin",
+                                    "NhaTuyenDung" => "role-nhatuyendung",
+                                    "UngVien" => "role-ungvien",
+                                    _ => ""
+                                };
+                                var roleDisplay = role switch
+                                {
+                                    "Admin" => "Quản trị viên",
+                                    "NhaTuyenDung" => "Nhà tuyển dụng",
+                                    "UngVien" => "Ứng viên",
+                                    _ => role
+                                };
+                                <span class="role-badge @roleClass" title="@role">@roleDisplay</span>
+                            }
+                        }
+                        else
+                        {
+                            <span style="color: #718096;">Chưa có role</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <a asp-action="ResetUserPassword" asp-route-userId="@Model.Id" class="btn-action btn-reset-password">
+                <i class="bi bi-key"></i> Reset mật khẩu
+            </a>
+            <a asp-action="UserManagement" class="btn-action btn-back">
+                <i class="bi bi-arrow-left"></i> Quay lại
+            </a>
+        </div>
+    </div>
+</div>
+

@@ -752,190 +752,65 @@
 <div class="jobs-section">
     <h2>Các Việc Làm Tốt Nhất</h2>
     <div class="jobs-grid">
-        <div class="job-card" data-url="/Home/ChiTietViecLam/1" data-nganh="Công nghệ thông tin" data-capbac="Junior" data-mucluong="15-25 triệu" data-loai="Full-time" data-kinhnghiem="1-3 năm">
-            <span class="job-featured">NỔI BẬT</span>
-            <div class="job-header">
-                <img src="https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=100" alt="Company" class="job-company-logo">
-                <div class="job-info">
-                    <h3 class="job-title">Frontend Developer (React/Vue.js)</h3>
-                    <div class="job-company">Công ty Công nghệ ABC</div>
-                    <div class="job-location">📍 Hà Nội</div>
+        @{
+            var danhSachViecLamNoiBat = ViewBag.DanhSachViecLamNoiBat as List<Unicareer.Models.TinTuyenDung> ?? new List<Unicareer.Models.TinTuyenDung>();
+        }
+        @if (danhSachViecLamNoiBat.Any())
+        {
+            @foreach (var job in danhSachViecLamNoiBat)
+            {
+                var mucLuongDisplay = job.MucLuongThapNhat == 0 && job.MucLuongCaoNhat == 0 
+                    ? "Thỏa thuận" 
+                    : $"{job.MucLuongThapNhat}-{job.MucLuongCaoNhat} triệu";
+                var thoiGianDang = DateTime.Now - job.NgayDang;
+                var thoiGianDangText = thoiGianDang.TotalHours < 1 
+                    ? $"Đăng {(int)thoiGianDang.TotalMinutes} phút trước"
+                    : thoiGianDang.TotalDays < 1 
+                        ? $"Đăng {(int)thoiGianDang.TotalHours} giờ trước"
+                        : $"Đăng {(int)thoiGianDang.TotalDays} ngày trước";
+                var isHot = job.SoLuongUngTuyen > 50;
+                var isUrgent = job.SoLuongUngTuyen > 100;
+                
+                <div class="job-card" data-url="/Home/ChiTietViecLam/@job.MaTinTuyenDung" 
+                     data-nganh="@job.NganhNghe" 
+                     data-capbac="@job.ViTri" 
+                     data-mucluong="@mucLuongDisplay" 
+                     data-loai="@job.LoaiCongViec" 
+                     data-kinhnghiem="@job.KinhNghiem">
+                    @if (isHot)
+                    {
+                        <span class="job-featured">NỔI BẬT</span>
+                    }
+                    @if (isUrgent)
+                    {
+                        <span class="job-badge badge-urgent" style="position: absolute; top: 15px; right: 15px;">KHẨN CẤP</span>
+                    }
+                    <div class="job-header">
+                        <img src="https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=100" alt="@job.CongTy" class="job-company-logo">
+                        <div class="job-info">
+                            <h3 class="job-title">@job.TenViecLam</h3>
+                            <div class="job-company">@job.CongTy</div>
+                            <div class="job-location">📍 @job.TinhThanhPho</div>
+                        </div>
+                    </div>
+                    <div class="job-badges">
+                        <span class="job-badge badge-salary">@mucLuongDisplay</span>
+                        <span class="job-badge badge-type">@job.LoaiCongViec</span>
+                        <span class="job-badge badge-level">@job.ViTri</span>
+                    </div>
+                    <div class="job-footer">
+                        <span class="job-posted">@thoiGianDangText</span>
+                        <button class="job-apply-btn">Ứng tuyển ngay</button>
+                    </div>
                 </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center text-muted" style="padding: 40px;">
+                <p>Hiện chưa có việc làm nào</p>
             </div>
-            <div class="job-badges">
-                <span class="job-badge badge-salary">15-25 triệu</span>
-                <span class="job-badge badge-type">Full-time</span>
-                <span class="job-badge badge-level">Junior</span>
-            </div>
-            <div class="job-footer">
-                <span class="job-posted">Đăng 2 giờ trước</span>
-                <button class="job-apply-btn">Ứng tuyển ngay</button>
-            </div>
-        </div>
-        
-        <div class="job-card" data-url="/Home/ChiTietViecLam/2" data-nganh="Công nghệ thông tin" data-capbac="Senior" data-mucluong="20-35 triệu" data-loai="Full-time" data-kinhnghiem="Trên 3 năm">
-            <span class="job-featured">NỔI BẬT</span>
-            <div class="job-header">
-                <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=100" alt="Company" class="job-company-logo">
-                <div class="job-info">
-                    <h3 class="job-title">Backend Developer (Node.js/Python)</h3>
-                    <div class="job-company">Startup XYZ Technology</div>
-                    <div class="job-location">📍 TP Hồ Chí Minh</div>
-                </div>
-            </div>
-            <div class="job-badges">
-                <span class="job-badge badge-salary">20-35 triệu</span>
-                <span class="job-badge badge-type">Full-time</span>
-                <span class="job-badge badge-level">Mid-level</span>
-            </div>
-            <div class="job-footer">
-                <span class="job-posted">Đăng 5 giờ trước</span>
-                <button class="job-apply-btn">Ứng tuyển ngay</button>
-            </div>
-        </div>
-        
-        <div class="job-card" data-url="/Home/ChiTietViecLam/3" data-nganh="Thiết kế đồ họa" data-capbac="Junior" data-mucluong="12-20 triệu" data-loai="Full-time" data-kinhnghiem="Dưới 1 năm">
-            <div class="job-header">
-                <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=100" alt="Company" class="job-company-logo">
-                <div class="job-info">
-                    <h3 class="job-title">UI/UX Designer</h3>
-                    <div class="job-company">Design Studio Creative</div>
-                    <div class="job-location">📍 Đà Nẵng</div>
-                </div>
-            </div>
-            <div class="job-badges">
-                <span class="job-badge badge-salary">12-20 triệu</span>
-                <span class="job-badge badge-type">Full-time</span>
-                <span class="job-badge badge-level">Junior</span>
-            </div>
-            <div class="job-footer">
-                <span class="job-posted">Đăng 1 ngày trước</span>
-                <button class="job-apply-btn">Ứng tuyển ngay</button>
-            </div>
-        </div>
-        
-        <div class="job-card" data-url="/Home/ChiTietViecLam/4" data-nganh="Công nghệ thông tin" data-capbac="Senior" data-mucluong="25-40 triệu" data-loai="Full-time" data-kinhnghiem="Trên 3 năm">
-            <span class="job-badge badge-urgent" style="position: absolute; top: 15px; right: 15px;">KHẨN CẤP</span>
-            <div class="job-header">
-                <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=100" alt="Company" class="job-company-logo">
-                <div class="job-info">
-                    <h3 class="job-title">Full Stack Developer</h3>
-                    <div class="job-company">Tech Solutions Inc.</div>
-                    <div class="job-location">📍 Hà Nội</div>
-                </div>
-            </div>
-            <div class="job-badges">
-                <span class="job-badge badge-salary">25-40 triệu</span>
-                <span class="job-badge badge-type">Full-time</span>
-                <span class="job-badge badge-level">Senior</span>
-            </div>
-            <div class="job-footer">
-                <span class="job-posted">Đăng 3 giờ trước</span>
-                <button class="job-apply-btn">Ứng tuyển ngay</button>
-            </div>
-        </div>
-        
-        <div class="job-card" data-url="/Home/ChiTietViecLam/5" data-nganh="Kinh doanh" data-capbac="Junior" data-mucluong="10-18 triệu" data-loai="Full-time" data-kinhnghiem="Dưới 1 năm">
-            <div class="job-header">
-                <img src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=100" alt="Company" class="job-company-logo">
-                <div class="job-info">
-                    <h3 class="job-title">Marketing Specialist</h3>
-                    <div class="job-company">Digital Marketing Agency</div>
-                    <div class="job-location">📍 TP Hồ Chí Minh</div>
-                </div>
-            </div>
-            <div class="job-badges">
-                <span class="job-badge badge-salary">10-18 triệu</span>
-                <span class="job-badge badge-type">Full-time</span>
-                <span class="job-badge badge-level">Junior</span>
-            </div>
-            <div class="job-footer">
-                <span class="job-posted">Đăng 6 giờ trước</span>
-                <button class="job-apply-btn">Ứng tuyển ngay</button>
-            </div>
-        </div>
-        
-        <div class="job-card" data-url="/Home/ChiTietViecLam/6" data-nganh="Công nghệ thông tin" data-capbac="Senior" data-mucluong="18-28 triệu" data-loai="Full-time" data-kinhnghiem="1-3 năm">
-            <span class="job-featured">NỔI BẬT</span>
-            <div class="job-header">
-                <img src="https://images.unsplash.com/photo-1551434678-e076c223a692?w=100" alt="Company" class="job-company-logo">
-                <div class="job-info">
-                    <h3 class="job-title">Data Analyst</h3>
-                    <div class="job-company">Analytics Company</div>
-                    <div class="job-location">📍 Hà Nội</div>
-                </div>
-            </div>
-            <div class="job-badges">
-                <span class="job-badge badge-salary">18-28 triệu</span>
-                <span class="job-badge badge-type">Full-time</span>
-                <span class="job-badge badge-level">Mid-level</span>
-            </div>
-            <div class="job-footer">
-                <span class="job-posted">Đăng 4 giờ trước</span>
-                <button class="job-apply-btn">Ứng tuyển ngay</button>
-            </div>
-        </div>
-        
-        <div class="job-card" data-url="/Home/ChiTietViecLam/7" data-nganh="Công nghệ thông tin" data-capbac="Senior" data-mucluong="20-30 triệu" data-loai="Full-time" data-kinhnghiem="1-3 năm">
-            <div class="job-header">
-                <img src="https://images.unsplash.com/photo-1556761175-4b46a572b786?w=100" alt="Company" class="job-company-logo">
-                <div class="job-info">
-                    <h3 class="job-title">Mobile Developer (iOS/Android)</h3>
-                    <div class="job-company">Mobile App Studio</div>
-                    <div class="job-location">📍 TP Hồ Chí Minh</div>
-                </div>
-            </div>
-            <div class="job-badges">
-                <span class="job-badge badge-salary">20-30 triệu</span>
-                <span class="job-badge badge-type">Full-time</span>
-                <span class="job-badge badge-level">Mid-level</span>
-            </div>
-            <div class="job-footer">
-                <span class="job-posted">Đăng 1 ngày trước</span>
-                <button class="job-apply-btn">Ứng tuyển ngay</button>
-            </div>
-        </div>
-        
-        <div class="job-card" data-url="/Home/ChiTietViecLam/8" data-nganh="Công nghệ thông tin" data-capbac="Senior" data-mucluong="25-40 triệu" data-loai="Full-time" data-kinhnghiem="Trên 3 năm">
-            <div class="job-header">
-                <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=100" alt="Company" class="job-company-logo">
-                <div class="job-info">
-                    <h3 class="job-title">DevOps Engineer</h3>
-                    <div class="job-company">Cloud Services Ltd.</div>
-                    <div class="job-location">📍 Đà Nẵng</div>
-                </div>
-            </div>
-            <div class="job-badges">
-                <span class="job-badge badge-salary">25-40 triệu</span>
-                <span class="job-badge badge-type">Full-time</span>
-                <span class="job-badge badge-level">Senior</span>
-            </div>
-            <div class="job-footer">
-                <span class="job-posted">Đăng 2 ngày trước</span>
-                <button class="job-apply-btn">Ứng tuyển ngay</button>
-            </div>
-        </div>
-        
-        <div class="job-card" data-url="/Home/ChiTietViecLam/9" data-nganh="Kinh doanh" data-capbac="Manager" data-mucluong="30-50 triệu" data-loai="Full-time" data-kinhnghiem="Trên 3 năm">
-            <span class="job-featured">NỔI BẬT</span>
-            <div class="job-header">
-                <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=100" alt="Company" class="job-company-logo">
-                <div class="job-info">
-                    <h3 class="job-title">Product Manager</h3>
-                    <div class="job-company">Product Company</div>
-                    <div class="job-location">📍 Hà Nội</div>
-                </div>
-            </div>
-            <div class="job-badges">
-                <span class="job-badge badge-salary">30-50 triệu</span>
-                <span class="job-badge badge-type">Full-time</span>
-                <span class="job-badge badge-level">Senior</span>
-            </div>
-            <div class="job-footer">
-                <span class="job-posted">Đăng 1 giờ trước</span>
-                <button class="job-apply-btn">Ứng tuyển ngay</button>
-            </div>
-        </div>
+        }
     </div>
     <a href="/Home/TimViec" class="view-more-btn" style="text-decoration: none;">Xem Thêm Việc Làm</a>
 </div>

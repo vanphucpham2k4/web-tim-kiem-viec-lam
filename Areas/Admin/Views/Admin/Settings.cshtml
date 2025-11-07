@@ -1,440 +1,524 @@
+@using Microsoft.AspNetCore.Identity
+@model Unicareer.Models.ViewModels.ChangePasswordViewModel
+@inject UserManager<Unicareer.Models.ApplicationUser> UserManager
 @{
     ViewData["Title"] = "Cài đặt";
+    var currentUser = await UserManager.GetUserAsync(User);
 }
 
-<div class="page-header-section mb-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="settings-header-card">
-                <div class="header-icon">
-                    <i class="bi bi-gear-fill"></i>
-                </div>
-                <div class="header-content">
-                    <h3 class="header-title">Cài đặt hệ thống</h3>
-                    <p class="header-subtitle">Quản lý cấu hình và tùy chọn của hệ thống Unicareer</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-lg-8">
-        <div class="settings-card">
-            <div class="settings-card-header">
-                <h5><i class="bi bi-sliders me-2"></i>Cài đặt chung</h5>
-            </div>
-            <div class="settings-card-body">
-                <form>
-                    <div class="settings-group">
-                        <div class="mb-4">
-                            <label class="settings-label">Tên ứng dụng</label>
-                            <input type="text" class="form-control settings-input" value="Unicareer">
-                            <small class="form-text text-muted">Tên hiển thị của ứng dụng</small>
-                        </div>
-                        <div class="mb-4">
-                            <label class="settings-label">Email liên hệ</label>
-                            <div class="input-icon-wrapper">
-                                <i class="bi bi-envelope-fill input-icon"></i>
-                                <input type="email" class="form-control settings-input ps-5" placeholder="contact@unicareer.com">
-                            </div>
-                        </div>
-                        <div class="mb-4">
-                            <label class="settings-label">Số điện thoại</label>
-                            <div class="input-icon-wrapper">
-                                <i class="bi bi-telephone-fill input-icon"></i>
-                                <input type="tel" class="form-control settings-input ps-5" placeholder="+84 xxx xxx xxx">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="settings-divider"></div>
-
-                    <div class="settings-section-title">
-                        <i class="bi bi-shield-lock-fill"></i>
-                        <span>Cài đặt bảo mật</span>
-                    </div>
-                    <div class="settings-group">
-                        <div class="settings-toggle mb-3">
-                            <div class="toggle-info">
-                                <label class="toggle-label" for="twoFactorAuth">Bật xác thực hai yếu tố</label>
-                                <small class="toggle-description">Tăng cường bảo mật với xác thực 2 lớp</small>
-                            </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input modern-switch" type="checkbox" id="twoFactorAuth" checked>
-                            </div>
-                        </div>
-                        <div class="settings-toggle mb-3">
-                            <div class="toggle-info">
-                                <label class="toggle-label" for="emailVerification">Yêu cầu xác thực email</label>
-                                <small class="toggle-description">Người dùng phải xác thực email trước khi đăng nhập</small>
-                            </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input modern-switch" type="checkbox" id="emailVerification" checked>
-                            </div>
-                        </div>
-                        <div class="mb-4">
-                            <label class="settings-label">Thời gian hết phiên (phút)</label>
-                            <input type="number" class="form-control settings-input" value="30">
-                            <small class="form-text text-muted">Thời gian không hoạt động trước khi tự động đăng xuất</small>
-                        </div>
-                    </div>
-
-                    <div class="settings-divider"></div>
-
-                    <div class="settings-section-title">
-                        <i class="bi bi-envelope-at-fill"></i>
-                        <span>Cài đặt email</span>
-                    </div>
-                    <div class="settings-group">
-                        <div class="row">
-                            <div class="col-md-8 mb-4">
-                                <label class="settings-label">SMTP Server</label>
-                                <input type="text" class="form-control settings-input" placeholder="smtp.gmail.com">
-                            </div>
-                            <div class="col-md-4 mb-4">
-                                <label class="settings-label">SMTP Port</label>
-                                <input type="number" class="form-control settings-input" value="587">
-                            </div>
-                        </div>
-                        <div class="mb-4">
-                            <label class="settings-label">SMTP Username</label>
-                            <input type="text" class="form-control settings-input" placeholder="your-email@gmail.com">
-                        </div>
-                        <div class="mb-4">
-                            <label class="settings-label">SMTP Password</label>
-                            <input type="password" class="form-control settings-input" placeholder="••••••••">
-                        </div>
-                    </div>
-
-                    <div class="settings-actions">
-                        <button type="submit" class="btn btn-save">
-                            <i class="bi bi-check-circle me-2"></i>Lưu cài đặt
-                        </button>
-                        <button type="reset" class="btn btn-reset">
-                            <i class="bi bi-arrow-clockwise me-2"></i>Đặt lại
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-lg-4">
-        <div class="info-card">
-            <div class="info-icon">
-                <i class="bi bi-info-circle-fill"></i>
-            </div>
-            <h5 class="info-title">Hướng dẫn</h5>
-            <p class="info-text">Cấu hình các thông số hệ thống để tùy chỉnh theo nhu cầu của bạn.</p>
-            <ul class="info-list">
-                <li><i class="bi bi-check2-circle"></i> Bảo mật dữ liệu người dùng</li>
-                <li><i class="bi bi-check2-circle"></i> Tùy chỉnh email thông báo</li>
-                <li><i class="bi bi-check2-circle"></i> Quản lý phiên đăng nhập</li>
-            </ul>
-        </div>
-        
-        <div class="warning-card mt-4">
-            <div class="warning-icon">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-            </div>
-            <h6 class="warning-title">Lưu ý</h6>
-            <p class="warning-text">Thay đổi cài đặt có thể ảnh hưởng đến hoạt động của hệ thống. Vui lòng kiểm tra kỹ trước khi lưu.</p>
-        </div>
-    </div>
-</div>
-
 <style>
-    /* Page Header */
-    .settings-header-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 16px;
-        padding: 28px 32px;
+    .settings-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
         color: white;
-        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.25);
-        display: flex;
-        align-items: center;
-        gap: 20px;
+        box-shadow: 0 10px 40px rgba(37, 69, 184, 0.3);
     }
-    
-    .settings-header-card .header-icon {
-        width: 64px;
-        height: 64px;
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2rem;
-        backdrop-filter: blur(10px);
-        animation: rotate 20s linear infinite;
-    }
-    
-    @@keyframes rotate {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-    }
-    
-    .settings-header-card .header-title {
-        font-size: 1.75rem;
+
+    .page-header h1 {
         font-weight: 700;
-        margin-bottom: 6px;
+        font-size: 2.5rem;
+        margin-bottom: 10px;
     }
-    
-    .settings-header-card .header-subtitle {
-        font-size: 0.95rem;
+
+    .page-header p {
+        font-size: 1.1rem;
         opacity: 0.95;
-        margin: 0;
     }
-    
-    /* Settings Card */
-    .settings-card {
+
+    /* Tab Navigation */
+    .settings-tabs {
         background: white;
         border-radius: 16px;
+        padding: 0;
+        margin-bottom: 30px;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
         overflow: hidden;
     }
-    
-    .settings-card-header {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        padding: 20px 28px;
-        border-bottom: 2px solid #dee2e6;
-    }
-    
-    .settings-card-header h5 {
+
+    .nav-tabs {
+        border-bottom: 2px solid #e9ecef;
         margin: 0;
-        font-weight: 700;
-        font-size: 1.25rem;
-        color: #212529;
+        padding: 0 20px;
     }
-    
-    .settings-card-body {
-        padding: 32px 28px;
+
+    .nav-tabs .nav-link {
+        border: none;
+        border-bottom: 3px solid transparent;
+        color: #6c757d;
+        font-weight: 600;
+        padding: 20px 30px;
+        transition: all 0.3s ease;
+        font-size: 1rem;
     }
-    
-    .settings-section-title {
+
+    .nav-tabs .nav-link:hover {
+        border-bottom-color: #2545B8;
+        color: #2545B8;
+        background: rgba(37, 69, 184, 0.05);
+    }
+
+    .nav-tabs .nav-link.active {
+        color: #2545B8;
+        border-bottom-color: #2545B8;
+        background: transparent;
+    }
+
+    .nav-tabs .nav-link i {
+        margin-right: 8px;
         font-size: 1.1rem;
-        font-weight: 700;
-        color: #212529;
-        margin-bottom: 20px;
+    }
+
+    /* Tab Content */
+    .tab-content {
+        background: white;
+        border-radius: 16px;
+        padding: 40px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        min-height: 500px;
+    }
+
+    .tab-pane {
+        animation: fadeIn 0.3s ease;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Form Styles */
+    .info-card {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 30px;
+        margin-bottom: 25px;
+        border: 1px solid #e9ecef;
+    }
+
+    .info-card h4 {
+        color: #2d3748;
+        font-weight: 600;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid #2545B8;
         display: flex;
         align-items: center;
         gap: 10px;
     }
-    
-    .settings-section-title i {
-        color: #667eea;
-        font-size: 1.25rem;
+
+    .form-group {
+        margin-bottom: 20px;
     }
-    
-    .settings-label {
+
+    .form-group label {
         font-weight: 600;
-        color: #495057;
+        color: #2d3748;
         margin-bottom: 8px;
-        font-size: 0.95rem;
+        display: block;
+        font-size: 14px;
     }
-    
-    .settings-input {
-        border: 2px solid #e9ecef;
-        border-radius: 10px;
-        padding: 12px 16px;
-        font-size: 0.95rem;
+
+    .form-group label .required {
+        color: #e53e3e;
+        margin-left: 3px;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
         transition: all 0.3s ease;
+        font-family: inherit;
     }
-    
-    .settings-input:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+
+    .form-group input:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: #2545B8;
+        box-shadow: 0 0 0 3px rgba(37, 69, 184, 0.1);
     }
-    
-    .input-icon-wrapper {
-        position: relative;
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
     }
-    
-    .input-icon {
-        position: absolute;
-        left: 16px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #667eea;
-        font-size: 1.1rem;
+
+    @@media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
     }
-    
-    .settings-divider {
-        height: 2px;
-        background: linear-gradient(90deg, transparent 0%, #e9ecef 50%, transparent 100%);
-        margin: 32px 0;
-    }
-    
-    /* Toggle Switch */
-    .settings-toggle {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 16px;
-        background: #f8f9fa;
-        border-radius: 12px;
-        border: 2px solid #e9ecef;
-        transition: all 0.3s ease;
-    }
-    
-    .settings-toggle:hover {
-        background: #e9ecef;
-        border-color: #667eea;
-    }
-    
-    .toggle-label {
-        font-weight: 600;
-        color: #212529;
-        margin-bottom: 4px;
-        cursor: pointer;
-    }
-    
-    .toggle-description {
-        color: #6c757d;
-        font-size: 0.85rem;
-    }
-    
-    .modern-switch {
-        width: 52px;
-        height: 28px;
-        cursor: pointer;
-    }
-    
-    .modern-switch:checked {
-        background-color: #667eea;
-        border-color: #667eea;
-    }
-    
-    /* Action Buttons */
-    .settings-actions {
-        display: flex;
-        gap: 12px;
-        margin-top: 32px;
-        padding-top: 24px;
-        border-top: 2px solid #e9ecef;
-    }
-    
+
     .btn-save {
-        flex: 1;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
         color: white;
         border: none;
-        padding: 14px 24px;
-        border-radius: 12px;
-        font-weight: 600;
-        font-size: 1rem;
+        padding: 12px 35px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 15px;
         transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(37, 69, 184, 0.3);
     }
-    
+
     .btn-save:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 6px 20px rgba(37, 69, 184, 0.4);
         color: white;
     }
-    
-    .btn-reset {
-        flex: 1;
+
+    .btn-cancel {
         background: white;
-        color: #6c757d;
-        border: 2px solid #dee2e6;
-        padding: 14px 24px;
-        border-radius: 12px;
+        color: #2d3748;
+        border: 1px solid #e2e8f0;
+        padding: 12px 35px;
+        border-radius: 8px;
         font-weight: 600;
-        font-size: 1rem;
+        font-size: 15px;
         transition: all 0.3s ease;
     }
-    
-    .btn-reset:hover {
-        background: #f8f9fa;
-        border-color: #adb5bd;
-        color: #495057;
+
+    .btn-cancel:hover {
+        background: #f7fafc;
+        border-color: #cbd5e0;
     }
-    
-    /* Info Card */
-    .info-card {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        border-radius: 16px;
-        padding: 28px;
-        color: white;
-        box-shadow: 0 8px 24px rgba(79, 172, 254, 0.3);
-    }
-    
-    .info-icon {
-        width: 56px;
-        height: 56px;
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 14px;
+
+    .form-actions {
         display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.75rem;
-        margin-bottom: 20px;
-        backdrop-filter: blur(10px);
+        gap: 15px;
+        margin-top: 30px;
+        padding-top: 25px;
+        border-top: 1px solid #e9ecef;
     }
-    
-    .info-title {
-        font-weight: 700;
-        margin-bottom: 12px;
-        font-size: 1.4rem;
+
+    .info-hint {
+        font-size: 12px;
+        color: #718096;
+        margin-top: 5px;
     }
-    
-    .info-text {
-        font-size: 0.95rem;
-        opacity: 0.95;
-        margin-bottom: 20px;
+
+    /* Security Tab Styles */
+    .security-card {
+        background: #fff5f5;
+        border: 2px solid #fed7d7;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 25px;
     }
-    
-    .info-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-    
-    .info-list li {
-        padding: 8px 0;
-        font-size: 0.9rem;
+
+    .security-card h5 {
+        color: #c53030;
+        font-weight: 600;
+        margin-bottom: 15px;
         display: flex;
         align-items: center;
         gap: 10px;
     }
-    
-    .info-list li i {
-        font-size: 1.2rem;
+
+    .alert {
+        border-radius: 10px;
+        padding: 15px 20px;
+        margin-bottom: 20px;
     }
-    
-    /* Warning Card */
-    .warning-card {
-        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-        border-radius: 16px;
-        padding: 24px;
-        color: white;
-        box-shadow: 0 8px 24px rgba(250, 112, 154, 0.3);
+
+    .alert-success {
+        background: #f0fdf4;
+        border: 1px solid #86efac;
+        color: #166534;
     }
-    
-    .warning-icon {
-        width: 48px;
-        height: 48px;
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        margin-bottom: 16px;
-        backdrop-filter: blur(10px);
-    }
-    
-    .warning-title {
-        font-weight: 700;
-        margin-bottom: 10px;
-        font-size: 1.15rem;
-    }
-    
-    .warning-text {
-        font-size: 0.9rem;
-        opacity: 0.95;
-        margin: 0;
+
+    .alert-danger {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #991b1b;
     }
 </style>
 
+<div class="settings-container">
+    <div class="page-header">
+        <h1><i class="bi bi-gear"></i> Cài đặt</h1>
+        <p>Quản lý thông tin tài khoản và bảo mật của bạn</p>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="settings-tabs">
+        <ul class="nav nav-tabs" id="settingsTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="thongtin-tab" data-bs-toggle="tab" data-bs-target="#thongtin" type="button" role="tab">
+                    <i class="bi bi-person"></i> Thông tin tài khoản
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="baomat-tab" data-bs-toggle="tab" data-bs-target="#baomat" type="button" role="tab">
+                    <i class="bi bi-shield-lock"></i> Bảo mật
+                </button>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="settingsTabContent">
+        <!-- Tab 1: Thông tin tài khoản -->
+        <div class="tab-pane fade show active" id="thongtin" role="tabpanel">
+            <form id="profileForm" asp-action="UpdateProfile" method="post">
+                @Html.AntiForgeryToken()
+                
+                <div class="info-card">
+                    <h4>
+                        <i class="bi bi-info-circle"></i>
+                        Thông tin cá nhân
+                    </h4>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="hoTen">
+                                Họ và tên <span class="required">*</span>
+                            </label>
+                            <input type="text" id="hoTen" name="hoTen" value="@(currentUser?.HoTen ?? "")" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">
+                                Email <span class="required">*</span>
+                            </label>
+                            <input type="email" id="email" name="email" value="@(currentUser?.Email ?? "")" required readonly style="background-color: #f7fafc;" />
+                            <div class="info-hint">Email không thể thay đổi</div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="soDienThoai">
+                                Số điện thoại
+                            </label>
+                            <input type="tel" id="soDienThoai" name="soDienThoai" value="@(currentUser?.PhoneNumber ?? "")" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="ngayDangKy">
+                                Ngày đăng ký
+                            </label>
+                            <input type="text" id="ngayDangKy" value="@(currentUser?.NgayDangKy.ToString("dd/MM/yyyy") ?? "")" readonly style="background-color: #f7fafc;" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-save">
+                        <i class="bi bi-check-circle me-2"></i>Lưu thông tin
+                    </button>
+                    <button type="button" class="btn btn-cancel" onclick="resetProfileForm()">
+                        <i class="bi bi-x-circle me-2"></i>Hủy
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tab 2: Bảo mật -->
+        <div class="tab-pane fade" id="baomat" role="tabpanel">
+            <div class="security-card">
+                <h5>
+                    <i class="bi bi-shield-exclamation"></i>
+                    Đổi mật khẩu
+                </h5>
+                <p style="color: #718096; margin: 0;">Để bảo vệ tài khoản của bạn, hãy sử dụng mật khẩu mạnh và đổi mật khẩu định kỳ.</p>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle"></i> @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i> @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <form asp-area="Admin" asp-controller="AdminUser" asp-action="ChangePassword" method="post" id="changePasswordForm">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                
+                <div class="info-card">
+                    <h4>
+                        <i class="bi bi-key"></i>
+                        Thông tin mật khẩu
+                    </h4>
+
+                    <div class="form-group">
+                        <label for="OldPassword">
+                            Mật khẩu cũ <span class="required">*</span>
+                        </label>
+                        <input type="password" id="OldPassword" name="OldPassword" class="form-control" placeholder="Nhập mật khẩu cũ" required />
+                        <span asp-validation-for="OldPassword" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="NewPassword">
+                            Mật khẩu mới <span class="required">*</span>
+                        </label>
+                        <input type="password" id="NewPassword" name="NewPassword" class="form-control" placeholder="Nhập mật khẩu mới" required />
+                        <span asp-validation-for="NewPassword" class="text-danger"></span>
+                        <div class="info-hint">Mật khẩu phải có ít nhất 6 ký tự</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ConfirmPassword">
+                            Xác nhận mật khẩu mới <span class="required">*</span>
+                        </label>
+                        <input type="password" id="ConfirmPassword" name="ConfirmPassword" class="form-control" placeholder="Xác nhận mật khẩu mới" required />
+                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-save">
+                        <i class="bi bi-save me-2"></i>Đổi mật khẩu
+                    </button>
+                    <button type="button" class="btn btn-cancel" onclick="resetPasswordForm()">
+                        <i class="bi bi-x-circle me-2"></i>Hủy
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // Reset profile form
+        function resetProfileForm() {
+            if (confirm('Bạn có chắc muốn hủy? Tất cả thay đổi sẽ không được lưu.')) {
+                document.getElementById('profileForm').reset();
+                // Reload page to get original values
+                location.reload();
+            }
+        }
+
+        // Reset password form
+        function resetPasswordForm() {
+            if (confirm('Bạn có chắc muốn hủy? Tất cả thay đổi sẽ không được lưu.')) {
+                document.getElementById('changePasswordForm').reset();
+            }
+        }
+
+        // Handle profile form submission
+        document.getElementById('profileForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const token = document.querySelector('#profileForm input[name="__RequestVerificationToken"]')?.value;
+            
+            fetch('@Url.Action("UpdateProfile", "Admin")', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'RequestVerificationToken': token
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Đã cập nhật thông tin thành công!', 'success');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showNotification(data.message || 'Có lỗi xảy ra khi cập nhật thông tin', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Có lỗi xảy ra khi cập nhật thông tin', 'error');
+            });
+        });
+
+        // Handle password form submission - switch to security tab if redirected back
+        @if (TempData["SuccessMessage"] != null || TempData["ErrorMessage"] != null)
+        {
+            <text>
+            document.addEventListener('DOMContentLoaded', function() {
+                const baomatTab = document.getElementById('baomat-tab');
+                if (baomatTab) {
+                    const tab = new bootstrap.Tab(baomatTab);
+                    tab.show();
+                }
+            });
+            </text>
+        }
+
+        // Show notification
+        function showNotification(message, type) {
+            const bgColor = type === 'success' ? '#10b981' : '#e53e3e';
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${bgColor};
+                color: white;
+                padding: 15px 25px;
+                border-radius: 12px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                z-index: 9999;
+                font-weight: 600;
+                animation: slideInRight 0.3s ease;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Add animation styles
+        const style = document.createElement('style');
+        style.textContent = `
+            @@keyframes slideInRight {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            @@keyframes slideOutRight {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+}

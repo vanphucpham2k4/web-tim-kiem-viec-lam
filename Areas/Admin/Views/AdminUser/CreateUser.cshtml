@@ -1,0 +1,264 @@
+@model Unicareer.Models.ViewModels.CreateUserViewModel
+@{
+    ViewData["Title"] = "Tạo tài khoản mới";
+}
+
+<style>
+    .create-user-container {
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 10px 40px rgba(37, 69, 184, 0.3);
+    }
+
+    .page-header h1 {
+        font-weight: 700;
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+
+    .page-header p {
+        font-size: 1.1rem;
+        opacity: 0.95;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 16px;
+        padding: 40px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 8px;
+        display: block;
+        font-size: 14px;
+    }
+
+    .form-group label .required {
+        color: #e53e3e;
+        margin-left: 3px;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: #2545B8;
+        box-shadow: 0 0 0 3px rgba(37, 69, 184, 0.1);
+    }
+
+    .form-group .text-danger {
+        font-size: 0.85rem;
+        margin-top: 5px;
+    }
+
+    .info-hint {
+        font-size: 12px;
+        color: #718096;
+        margin-top: 5px;
+    }
+
+    .alert {
+        border-radius: 10px;
+        padding: 15px 20px;
+        margin-bottom: 20px;
+    }
+
+    .alert-danger {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #991b1b;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+        padding-top: 25px;
+        border-top: 1px solid #e9ecef;
+    }
+
+    .btn-save {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        color: white;
+        border: none;
+        padding: 12px 35px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(37, 69, 184, 0.3);
+        cursor: pointer;
+    }
+
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 69, 184, 0.4);
+        color: white;
+    }
+
+    .btn-cancel {
+        background: white;
+        color: #2d3748;
+        border: 1px solid #e2e8f0;
+        padding: 12px 35px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-cancel:hover {
+        background: #f7fafc;
+        border-color: #cbd5e0;
+        color: #2d3748;
+    }
+
+    .info-box {
+        background: #f0f9ff;
+        border: 2px solid #bae6fd;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+    }
+
+    .info-box h5 {
+        color: #0369a1;
+        font-weight: 600;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .info-box p {
+        color: #0c4a6e;
+        margin: 0;
+        font-size: 0.9rem;
+    }
+</style>
+
+<div class="create-user-container">
+    <div class="page-header">
+        <h1><i class="bi bi-person-plus"></i> Tạo tài khoản mới</h1>
+        <p>Tạo tài khoản người dùng mới trong hệ thống</p>
+    </div>
+
+    <div class="form-card">
+        <div class="info-box">
+            <h5>
+                <i class="bi bi-info-circle"></i>
+                Thông tin
+            </h5>
+            <p>Tài khoản được tạo bởi quản trị viên sẽ tự động được xác nhận email và có thể sử dụng ngay.</p>
+        </div>
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle"></i> @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <form asp-action="CreateUser" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="form-group">
+                <label for="HoTen">
+                    Họ và tên <span class="required">*</span>
+                </label>
+                <input type="text" id="HoTen" name="HoTen" asp-for="HoTen" class="form-control" placeholder="Nhập họ và tên" required />
+                <span asp-validation-for="HoTen" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="Email">
+                    Email <span class="required">*</span>
+                </label>
+                <input type="email" id="Email" name="Email" asp-for="Email" class="form-control" placeholder="Nhập email" required />
+                <span asp-validation-for="Email" class="text-danger"></span>
+                <div class="info-hint">Email sẽ được dùng làm tên đăng nhập</div>
+            </div>
+
+            <div class="form-group">
+                <label for="SoDienThoai">
+                    Số điện thoại <span class="required">*</span>
+                </label>
+                <input type="tel" id="SoDienThoai" name="SoDienThoai" asp-for="SoDienThoai" class="form-control" placeholder="Nhập số điện thoại" required />
+                <span asp-validation-for="SoDienThoai" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="Role">
+                    Role <span class="required">*</span>
+                </label>
+                <select id="Role" name="Role" asp-for="Role" class="form-control" required>
+                    <option value="">-- Chọn role --</option>
+                    @foreach (var role in ViewBag.AvailableRoles as List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)
+                    {
+                        <option value="@role.Value">@role.Text</option>
+                    }
+                </select>
+                <span asp-validation-for="Role" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="MatKhau">
+                    Mật khẩu <span class="required">*</span>
+                </label>
+                <input type="password" id="MatKhau" name="MatKhau" asp-for="MatKhau" class="form-control" placeholder="Nhập mật khẩu" required />
+                <span asp-validation-for="MatKhau" class="text-danger"></span>
+                <div class="info-hint">Mật khẩu phải có ít nhất 6 ký tự</div>
+            </div>
+
+            <div class="form-group">
+                <label for="XacNhanMatKhau">
+                    Xác nhận mật khẩu <span class="required">*</span>
+                </label>
+                <input type="password" id="XacNhanMatKhau" name="XacNhanMatKhau" asp-for="XacNhanMatKhau" class="form-control" placeholder="Xác nhận mật khẩu" required />
+                <span asp-validation-for="XacNhanMatKhau" class="text-danger"></span>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-save">
+                    <i class="bi bi-check-circle me-2"></i>Tạo tài khoản
+                </button>
+                <a asp-action="UserManagement" class="btn-cancel">
+                    <i class="bi bi-x-circle me-2"></i>Hủy
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+

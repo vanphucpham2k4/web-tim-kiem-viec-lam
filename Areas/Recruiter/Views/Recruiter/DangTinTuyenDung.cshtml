@@ -179,14 +179,34 @@
 <div class="row">
     <div class="col-12">
         <form asp-action="DangTinTuyenDung" method="post" enctype="multipart/form-data" id="formDangTin">
+            @Html.AntiForgeryToken()
+            
+            <!-- Hiển thị lỗi validation -->
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger" role="alert">
+                    <h5><i class="bi bi-exclamation-triangle"></i> Vui lòng kiểm tra lại thông tin:</h5>
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                </div>
+            }
+            
+            <!-- Hiển thị thông báo thành công -->
+            @if (TempData["ThanhCong"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle"></i> @TempData["ThanhCong"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
             
             <!-- Ten viec lam -->
             <div class="form-section">
                 <h4><i class="bi bi-briefcase-fill"></i> Thông tin cơ bản</h4>
                 <div class="mb-4">
-                    <label class="form-label required-label">Tên vị trí tuyển dụng</label>
-                    <input type="text" class="form-control" name="TenViecLam" required 
+                    <label asp-for="TenViecLam" class="form-label required-label">Tên vị trí tuyển dụng</label>
+                    <input type="text" asp-for="TenViecLam" class="form-control" required 
                            placeholder="Ví dụ: Senior Full-stack Developer">
+                    <span asp-validation-for="TenViecLam" class="text-danger"></span>
                 </div>
             </div>
 
@@ -196,8 +216,8 @@
                 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label required-label">Ngành nghề</label>
-                        <select class="form-select" name="NganhNghe" required>
+                        <label asp-for="NganhNghe" class="form-label required-label">Ngành nghề</label>
+                        <select asp-for="NganhNghe" class="form-select" required>
                             <option value="">Chọn ngành nghề</option>
                             <option value="Cong nghe thong tin">Công nghệ thông tin</option>
                             <option value="Kinh doanh">Kinh doanh</option>
@@ -207,10 +227,11 @@
                             <option value="Thiet ke do hoa">Thiết kế đồ họa</option>
                             <option value="Truyen thong - Media">Truyền thông - Media</option>
                         </select>
+                        <span asp-validation-for="NganhNghe" class="text-danger"></span>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Ngành nghề chi tiết</label>
-                        <select class="form-select" name="NganhNgheChiTiet">
+                        <label asp-for="NganhNgheChiTiet" class="form-label">Ngành nghề chi tiết</label>
+                        <select asp-for="NganhNgheChiTiet" class="form-select">
                             <option value="">Chọn ngành nghề chi tiết</option>
                             <option value="Web Developer">Web Developer</option>
                             <option value="Mobile Developer">Mobile Developer</option>
@@ -222,8 +243,8 @@
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label required-label">Hình thức làm việc</label>
-                        <select class="form-select" name="LoaiCongViec" required>
+                        <label asp-for="LoaiCongViec" class="form-label required-label">Hình thức làm việc</label>
+                        <select asp-for="LoaiCongViec" class="form-select" required>
                             <option value="">Chọn hình thức</option>
                             <option value="Full-time">Full-time</option>
                             <option value="Part-time">Part-time</option>
@@ -231,6 +252,7 @@
                             <option value="Remote">Remote</option>
                             <option value="Hybrid">Hybrid</option>
                         </select>
+                        <span asp-validation-for="LoaiCongViec" class="text-danger"></span>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Kinh nghiệm làm việc</label>
@@ -247,14 +269,15 @@
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label required-label">Vị trí</label>
-                        <select class="form-select" name="ViTri" required>
+                        <label asp-for="ViTri" class="form-label required-label">Vị trí</label>
+                        <select asp-for="ViTri" class="form-select" required>
                             <option value="">Chọn vị trí</option>
                             <option value="Nhan vien">Nhân viên</option>
                             <option value="Truong nhom">Trưởng nhóm</option>
                             <option value="Quan ly">Quản lý</option>
                             <option value="Giam doc">Giám đốc</option>
                         </select>
+                        <span asp-validation-for="ViTri" class="text-danger"></span>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Ngoại ngữ</label>
@@ -285,9 +308,10 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label required-label">Mô tả công việc chi tiết</label>
-                    <textarea class="form-control ckeditor" name="MoTa" rows="5" required 
+                    <label asp-for="MoTa" class="form-label required-label">Mô tả công việc chi tiết</label>
+                    <textarea asp-for="MoTa" class="form-control ckeditor" rows="5" required 
                               placeholder="Nhập mô tả chi tiết về công việc, trách nhiệm, nhiệm vụ..."></textarea>
+                    <span asp-validation-for="MoTa" class="text-danger"></span>
                 </div>
             </div>
 
@@ -295,9 +319,10 @@
             <div class="form-section">
                 <h4><i class="bi bi-clipboard-check"></i> Yêu cầu công việc</h4>
                 <div class="mb-3">
-                    <label class="form-label">Các yêu cầu đối với ứng viên</label>
-                    <textarea class="form-control ckeditor" name="YeuCau" rows="5" required
+                    <label asp-for="YeuCau" class="form-label">Các yêu cầu đối với ứng viên</label>
+                    <textarea asp-for="YeuCau" class="form-control ckeditor" rows="5" required
                               placeholder="Nhập các yêu cầu về học vấn, kinh nghiệm, kỹ năng cần thiết..."></textarea>
+                    <span asp-validation-for="YeuCau" class="text-danger"></span>
                 </div>
             </div>
 
@@ -337,9 +362,10 @@
                                placeholder="Nguyễn Văn A">
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label required-label">Email liên hệ</label>
-                        <input type="email" class="form-control" name="EmailLienHe" required
+                        <label asp-for="EmailLienHe" class="form-label required-label">Email liên hệ</label>
+                        <input type="email" asp-for="EmailLienHe" class="form-control" required
                                placeholder="tuyendung@company.com">
+                        <span asp-validation-for="EmailLienHe" class="text-danger"></span>
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Điện thoại liên hệ</label>
@@ -350,8 +376,8 @@
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label required-label">Làm việc tại Tỉnh/Thành phố</label>
-                        <select class="form-select" name="TinhThanhPho" id="tinhThanhPho" required>
+                        <label asp-for="TinhThanhPho" class="form-label required-label">Làm việc tại Tỉnh/Thành phố</label>
+                        <select asp-for="TinhThanhPho" class="form-select" id="tinhThanhPho" required>
                             <option value="">Chọn tỉnh/thành phố</option>
                             <option value="Ha Noi">Hà Nội</option>
                             <option value="TP Ho Chi Minh">TP Hồ Chí Minh</option>
@@ -361,6 +387,7 @@
                             <option value="Binh Duong">Bình Dương</option>
                             <option value="Dong Nai">Đồng Nai</option>
                         </select>
+                        <span asp-validation-for="TinhThanhPho" class="text-danger"></span>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Quận/Huyện</label>
@@ -371,22 +398,23 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label required-label">Địa chỉ làm việc</label>
+                    <label asp-for="DiaChiLamViec" class="form-label required-label">Địa chỉ làm việc</label>
                     <div class="input-group">
-                        <input type="text" class="form-control" name="DiaChiLamViec" required
+                        <input type="text" asp-for="DiaChiLamViec" class="form-control" required
                                id="diaChiInput" placeholder="123 Nguyễn Huệ, Quận 1">
                         <button type="button" class="btn btn-outline-primary" id="btnSearchAddress">
                             <i class="bi bi-search"></i> Tìm trên bản đồ
                         </button>
                     </div>
+                    <span asp-validation-for="DiaChiLamViec" class="text-danger"></span>
                     <small class="text-muted">
                         <i class="bi bi-info-circle"></i> Kéo marker 📍 trên bản đồ để chọn vị trí chính xác hoặc click vào bản đồ
                     </small>
                 </div>
 
                 <!-- Hidden fields for coordinates -->
-                <input type="hidden" name="Latitude" id="latitude" value="21.028511">
-                <input type="hidden" name="Longitude" id="longitude" value="105.804817">
+                <input type="hidden" asp-for="Latitude" id="latitude" value="21.028511">
+                <input type="hidden" asp-for="Longitude" id="longitude" value="105.804817">
 
                 <!-- Map Container -->
                 <div class="map-container">
@@ -413,9 +441,10 @@
             <div class="form-section">
                 <h4><i class="bi bi-calendar-event"></i> Hạn tuyển dụng</h4>
                 <div class="mb-3">
-                    <label class="form-label required-label">Ngày hết hạn nộp hồ sơ</label>
-                    <input type="date" class="form-control" name="HanNop" required
+                    <label asp-for="HanNop" class="form-label required-label">Ngày hết hạn nộp hồ sơ</label>
+                    <input type="date" asp-for="HanNop" class="form-control" required
                            min="@DateTime.Now.ToString("yyyy-MM-dd")">
+                    <span asp-validation-for="HanNop" class="text-danger"></span>
                     <small class="text-muted"><i class="bi bi-clock-history"></i> Chọn ngày cuối cùng nhận hồ sơ ứng tuyển</small>
                 </div>
             </div>
@@ -791,5 +820,9 @@
             });
         });
     </script>
+    
+    <!-- Validation Scripts -->
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
 }
 

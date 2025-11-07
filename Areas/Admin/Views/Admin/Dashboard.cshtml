@@ -4,12 +4,12 @@
     ViewData["Title"] = "So lieu phan tich";
     
     // Lay du lieu mockdata
-    var danhSachUngVien = UngVien.LayDanhSachUngVien();
-    var danhSachNhaTuyenDung = NhaTuyenDung.LayDanhSachNhaTuyenDung();
-    var danhSachTinTuyenDung = TinTuyenDung.LayDanhSachTinTuyenDung();
-    var danhSachTinUngTuyen = TinUngTuyen.LayDanhSachTinUngTuyen();
-    var danhSachNganhNghe = NganhNghe.LayDanhSachNganhNghe();
-    var danhSachLoaiCongViec = LoaiCongViec.LayDanhSachLoaiCongViec();
+    var danhSachUngVien = ViewBag.DanhSachUngVien as List<UngVien> ?? new List<UngVien>();
+    var danhSachNhaTuyenDung = ViewBag.DanhSachNhaTuyenDung as List<NhaTuyenDung> ?? new List<NhaTuyenDung>();
+    var danhSachTinTuyenDung = ViewBag.DanhSachTinTuyenDung as List<TinTuyenDung> ?? new List<TinTuyenDung>();
+    var danhSachTinUngTuyen = ViewBag.DanhSachTinUngTuyen as List<TinUngTuyen> ?? new List<TinUngTuyen>();
+    var danhSachNganhNghe = ViewBag.DanhSachNganhNghe as List<NganhNghe> ?? new List<NganhNghe>();
+    var danhSachLoaiCongViec = ViewBag.DanhSachLoaiCongViec as List<LoaiCongViec> ?? new List<LoaiCongViec>();
     
     // Tinh toan thong ke
     var tongUngVien = danhSachUngVien.Count;

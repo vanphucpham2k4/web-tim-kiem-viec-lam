@@ -27,8 +27,8 @@
                 </div>
                 <div class="stat-content">
                     <h6>Tin đã đăng</h6>
-                    <h2>12</h2>
-                    <small><i class="bi bi-arrow-up"></i> +2 tuần này</small>
+                    <h2>@(ViewBag.TongTinDaDang ?? 0)</h2>
+                    <small><i class="bi bi-arrow-up"></i> Tổng số</small>
                 </div>
             </div>
         </div>
@@ -40,8 +40,8 @@
                 </div>
                 <div class="stat-content">
                     <h6>Đơn ứng tuyển</h6>
-                    <h2>156</h2>
-                    <small><i class="bi bi-arrow-up"></i> +23 tuần này</small>
+                    <h2>@(ViewBag.TongDonUngTuyen ?? 0)</h2>
+                    <small><i class="bi bi-arrow-up"></i> Tổng số</small>
                 </div>
             </div>
         </div>
@@ -53,8 +53,8 @@
                 </div>
                 <div class="stat-content">
                     <h6>Lượt xem</h6>
-                    <h2>1,234</h2>
-                    <small><i class="bi bi-arrow-up"></i> +156 tuần này</small>
+                    <h2>@(ViewBag.TongLuotXem != null ? ((int)ViewBag.TongLuotXem).ToString("N0") : "0")</h2>
+                    <small><i class="bi bi-arrow-up"></i> Ước tính</small>
                 </div>
             </div>
         </div>
@@ -66,8 +66,8 @@
                 </div>
                 <div class="stat-content">
                     <h6>UV phù hợp</h6>
-                    <h2>45</h2>
-                    <small><i class="bi bi-arrow-up"></i> +8 tuần này</small>
+                    <h2>@(ViewBag.TongUngVienPhuHop ?? 0)</h2>
+                    <small><i class="bi bi-arrow-up"></i> Đang xem xét</small>
                 </div>
             </div>
         </div>
@@ -96,7 +96,7 @@
         </div>
 
         <div class="col-xl-3 col-lg-4 col-md-6">
-            <a href="#" class="text-decoration-none">
+            <a href="@Url.Action("DonUngTuyen", "Recruiter")" class="text-decoration-none">
                 <div class="action-card action-info">
                     <i class="bi bi-inbox"></i>
                     <h5>Đơn ứng tuyển</h5>

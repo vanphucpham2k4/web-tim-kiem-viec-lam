@@ -1,0 +1,888 @@
+@model Unicareer.Models.ApplicationUser
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<Unicareer.Models.ApplicationUser> UserManager
+
+@{
+    ViewData["Title"] = "Cài đặt";
+    var activeTab = ViewBag.ActiveTab as string ?? "thongtin";
+}
+
+<style>
+    .settings-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+    }
+
+    .settings-header {
+        padding: 30px;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+    }
+
+    .settings-header h3 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .settings-header i {
+        font-size: 1.8rem;
+    }
+
+    .settings-tabs {
+        border-bottom: 2px solid #e8edf2;
+        padding: 0 30px;
+        margin: 0;
+    }
+
+    .settings-tabs .nav-item {
+        margin-bottom: -2px;
+    }
+
+    .settings-tabs .nav-link {
+        border: none;
+        border-bottom: 3px solid transparent;
+        padding: 20px 30px;
+        color: #7f8c8d;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: transparent;
+    }
+
+    .settings-tabs .nav-link:hover {
+        color: #10b981;
+        background: rgba(16, 185, 129, 0.05);
+        border-bottom-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .settings-tabs .nav-link.active {
+        color: #10b981;
+        border-bottom-color: #10b981;
+        background: transparent;
+        font-weight: 600;
+    }
+
+    .settings-tabs .nav-link i {
+        font-size: 1.2rem;
+    }
+
+    .settings-content {
+        padding: 30px;
+    }
+
+    .settings-panel {
+        animation: fadeIn 0.3s ease;
+    }
+
+    .info-card {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 25px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        border: 1px solid #e9ecef;
+    }
+
+    .info-card h4 {
+        color: #2d3748;
+        font-weight: 600;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid #10b981;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 8px;
+        display: block;
+        font-size: 14px;
+    }
+
+    .form-group label .required {
+        color: #e53e3e;
+        margin-left: 3px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+
+    .form-group textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    @@media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .btn-save {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border: none;
+        padding: 12px 35px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        color: white;
+    }
+
+    .btn-cancel {
+        background: white;
+        color: #2d3748;
+        border: 1px solid #e2e8f0;
+        padding: 12px 35px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-cancel:hover {
+        background: #f7fafc;
+        border-color: #cbd5e0;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+        padding-top: 25px;
+        border-top: 1px solid #e9ecef;
+    }
+
+    .skill-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .skill-tag {
+        background: #e6fffa;
+        color: #047857;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .skill-tag .remove-skill {
+        cursor: pointer;
+        font-weight: bold;
+        color: #059669;
+    }
+
+    .skill-input-group {
+        display: flex;
+        gap: 10px;
+    }
+
+    .skill-input-group input {
+        flex: 1;
+    }
+
+    .btn-add-skill {
+        background: #10b981;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-add-skill:hover {
+        background: #059669;
+    }
+
+    .info-hint {
+        font-size: 12px;
+        color: #718096;
+        margin-top: 5px;
+    }
+
+    /* Quill Editor Styles */
+    .ql-container {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 14px;
+        border-radius: 0 0 8px 8px;
+    }
+
+    .ql-toolbar {
+        border-radius: 8px 8px 0 0;
+        border: 1px solid #e2e8f0;
+        background: #f7fafc;
+    }
+
+    .ql-container {
+        border: 1px solid #e2e8f0;
+        border-top: none;
+        min-height: 300px;
+    }
+
+    .ql-container:focus-within,
+    .ql-toolbar:focus-within {
+        border-color: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+
+    #editor-container,
+    #editor-kinh-nghiem-container {
+        margin-bottom: 10px;
+    }
+
+    /* Password Form Styles */
+    .password-form {
+        max-width: 600px;
+    }
+
+    .password-form .form-group {
+        margin-bottom: 25px;
+    }
+
+    .password-form label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+
+    .password-form label i {
+        color: #10b981;
+        font-size: 1.1rem;
+    }
+
+    .password-form .form-control {
+        padding: 12px 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .password-form .form-control:focus {
+        outline: none;
+        border-color: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+
+    .password-form .btn-primary {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border: none;
+        padding: 12px 35px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    }
+
+    .password-form .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="settings-card">
+                <div class="settings-header">
+                    <h3><i class="bi bi-gear"></i> Cài đặt</h3>
+                </div>
+
+                <!-- Tabs Navigation -->
+                <ul class="nav nav-tabs settings-tabs" id="settingsTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link @(activeTab == "thongtin" ? "active" : "")" 
+                                id="thongtin-tab" 
+                                data-bs-toggle="tab" 
+                                data-bs-target="#thongtin" 
+                                type="button" 
+                                role="tab">
+                            <i class="bi bi-person"></i> Thông tin tài khoản
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link @(activeTab == "baomat" ? "active" : "")" 
+                                id="baomat-tab" 
+                                data-bs-toggle="tab" 
+                                data-bs-target="#baomat" 
+                                type="button" 
+                                role="tab">
+                            <i class="bi bi-shield-lock"></i> Bảo mật
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Tab Content -->
+                <div class="tab-content settings-content" id="settingsTabContent">
+                    <!-- Tab 1: Thông tin tài khoản -->
+                    <div class="tab-pane fade @(activeTab == "thongtin" ? "show active" : "")" 
+                         id="thongtin" 
+                         role="tabpanel">
+                        <div class="settings-panel">
+                            <form id="profileForm">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <!-- Thông tin cá nhân -->
+                                        <div class="info-card">
+                                            <h4>
+                                                <i class="bi bi-info-circle"></i>
+                                                Thông tin cá nhân
+                                            </h4>
+
+                                            <div class="form-row">
+                                                <div class="form-group">
+                                                    <label for="hoTen">
+                                                        Họ và tên <span class="required">*</span>
+                                                    </label>
+                                                    <input type="text" id="hoTen" name="hoTen" value="@(Model?.HoTen ?? "")" required />
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="email">
+                                                        Email <span class="required">*</span>
+                                                    </label>
+                                                    <input type="email" id="email" name="email" value="@(Model?.Email ?? "")" required />
+                                                </div>
+                                            </div>
+
+                                            <div class="form-row">
+                                                <div class="form-group">
+                                                    <label for="soDienThoai">
+                                                        Số điện thoại <span class="required">*</span>
+                                                    </label>
+                                                    <input type="tel" id="soDienThoai" name="soDienThoai" value="@(Model?.PhoneNumber ?? "")" required />
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="ngaySinh">
+                                                        Ngày sinh <span class="required">*</span>
+                                                    </label>
+                                                    <input type="date" id="ngaySinh" name="ngaySinh" required />
+                                                </div>
+                                            </div>
+
+                                            <div class="form-row">
+                                                <div class="form-group">
+                                                    <label for="gioiTinh">
+                                                        Giới tính <span class="required">*</span>
+                                                    </label>
+                                                    <select id="gioiTinh" name="gioiTinh" required>
+                                                        <option value="">-- Chọn giới tính --</option>
+                                                        <option value="Nam">Nam</option>
+                                                        <option value="Nữ">Nữ</option>
+                                                        <option value="Khác">Khác</option>
+                                                    </select>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="nganhNghe">
+                                                        Ngành nghề
+                                                    </label>
+                                                    <select id="nganhNghe" name="nganhNghe">
+                                                        <option value="">-- Chọn ngành nghề --</option>
+                                                        <option value="Công nghệ thông tin">Công nghệ thông tin</option>
+                                                        <option value="Kinh doanh">Kinh doanh</option>
+                                                        <option value="Kế toán - Tài chính">Kế toán - Tài chính</option>
+                                                        <option value="Giáo dục - Đào tạo">Giáo dục - Đào tạo</option>
+                                                        <option value="Y tế - Dược phẩm">Y tế - Dược phẩm</option>
+                                                        <option value="Xây dựng - Kiến trúc">Xây dựng - Kiến trúc</option>
+                                                        <option value="Truyền thông - Media">Truyền thông - Media</option>
+                                                        <option value="Nhân sự">Nhân sự</option>
+                                                        <option value="Thiết kế đồ họa">Thiết kế đồ họa</option>
+                                                        <option value="Pháp lý - Luật sư">Pháp lý - Luật sư</option>
+                                                        <option value="Du lịch - Khách sạn">Du lịch - Khách sạn</option>
+                                                        <option value="Logistics - Vận tải">Logistics - Vận tải</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="diaChi">
+                                                    Địa chỉ
+                                                </label>
+                                                <input type="text" id="diaChi" name="diaChi" placeholder="Ví dụ: 123 Đường ABC, Quận XYZ, TP. Hà Nội" />
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="hocVan">
+                                                    Học vấn
+                                                </label>
+                                                <select id="hocVan" name="hocVan">
+                                                    <option value="">-- Chọn học vấn --</option>
+                                                    <option value="Trung học phổ thông">Trung học phổ thông</option>
+                                                    <option value="Trung cấp">Trung cấp</option>
+                                                    <option value="Cao đẳng">Cao đẳng</option>
+                                                    <option value="Đại học">Đại học</option>
+                                                    <option value="Thạc sĩ">Thạc sĩ</option>
+                                                    <option value="Tiến sĩ">Tiến sĩ</option>
+                                                </select>
+                                                <div class="info-hint">Ví dụ: Đại học - Công nghệ thông tin</div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Mô tả bản thân -->
+                                        <div class="info-card">
+                                            <h4>
+                                                <i class="bi bi-file-text"></i>
+                                                Mô tả bản thân
+                                            </h4>
+
+                                            <div class="form-group">
+                                                <label for="moTaBanThan">
+                                                    Giới thiệu về bản thân
+                                                </label>
+                                                <div id="editor-container"></div>
+                                                <textarea id="moTaBanThan" name="moTaBanThan" style="display: none;"></textarea>
+                                                <div class="info-hint">Hãy viết một đoạn giới thiệu ngắn gọn, ấn tượng về bản thân bạn</div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Kinh nghiệm làm việc -->
+                                        <div class="info-card">
+                                            <h4>
+                                                <i class="bi bi-briefcase"></i>
+                                                Kinh nghiệm làm việc
+                                            </h4>
+
+                                            <div class="form-group">
+                                                <label for="kinhNghiem">
+                                                    Kinh nghiệm
+                                                </label>
+                                                <select id="kinhNghiem" name="kinhNghiem">
+                                                    <option value="">-- Chọn kinh nghiệm --</option>
+                                                    <option value="Chưa có kinh nghiệm">Chưa có kinh nghiệm</option>
+                                                    <option value="Dưới 1 năm">Dưới 1 năm</option>
+                                                    <option value="1-2 năm">1-2 năm</option>
+                                                    <option value="2-3 năm">2-3 năm</option>
+                                                    <option value="3-5 năm">3-5 năm</option>
+                                                    <option value="5-7 năm">5-7 năm</option>
+                                                    <option value="Trên 7 năm">Trên 7 năm</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="moTaKinhNghiem">
+                                                    Mô tả kinh nghiệm làm việc
+                                                </label>
+                                                <div id="editor-kinh-nghiem-container"></div>
+                                                <textarea id="moTaKinhNghiem" name="moTaKinhNghiem" style="display: none;"></textarea>
+                                                <div class="info-hint">Hãy mô tả chi tiết để nhà tuyển dụng hiểu rõ hơn về bạn</div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Kỹ năng -->
+                                        <div class="info-card">
+                                            <h4>
+                                                <i class="bi bi-star"></i>
+                                                Kỹ năng
+                                            </h4>
+
+                                            <div class="form-group">
+                                                <label for="kyNang">
+                                                    Kỹ năng của bạn
+                                                </label>
+                                                <div class="skill-input-group">
+                                                    <input type="text" id="kyNang" placeholder="Nhập kỹ năng và nhấn Enter hoặc nút Thêm" />
+                                                    <button type="button" class="btn-add-skill" onclick="addSkill()">
+                                                        <i class="bi bi-plus-circle"></i> Thêm
+                                                    </button>
+                                                </div>
+                                                <div class="info-hint">Ví dụ: C#, .NET Core, ReactJS, SQL Server, JavaScript...</div>
+                                                <div id="skillTags" class="skill-tags"></div>
+                                                <input type="hidden" id="kyNangList" name="kyNangList" />
+                                            </div>
+                                        </div>
+
+                                        <!-- Nút lưu -->
+                                        <div class="form-actions">
+                                            <button type="submit" class="btn btn-save">
+                                                <i class="bi bi-check-circle me-2"></i>Lưu thông tin
+                                            </button>
+                                            <button type="button" class="btn btn-cancel" onclick="resetForm()">
+                                                <i class="bi bi-x-circle me-2"></i>Hủy
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Sidebar thông tin -->
+                                    <div class="col-md-4">
+                                        <div class="info-card">
+                                            <h4>
+                                                <i class="bi bi-lightbulb"></i>
+                                                Mẹo hoàn thiện hồ sơ
+                                            </h4>
+                                            <ul style="list-style: none; padding: 0; margin: 0;">
+                                                <li style="margin-bottom: 15px; padding-left: 25px; position: relative;">
+                                                    <i class="bi bi-check-circle-fill" style="position: absolute; left: 0; color: #10b981;"></i>
+                                                    <strong>Thông tin đầy đủ:</strong> Điền đầy đủ thông tin cá nhân để tăng độ tin cậy
+                                                </li>
+                                                <li style="margin-bottom: 15px; padding-left: 25px; position: relative;">
+                                                    <i class="bi bi-check-circle-fill" style="position: absolute; left: 0; color: #10b981;"></i>
+                                                    <strong>Kinh nghiệm chi tiết:</strong> Mô tả rõ ràng về kinh nghiệm và thành tựu
+                                                </li>
+                                                <li style="margin-bottom: 15px; padding-left: 25px; position: relative;">
+                                                    <i class="bi bi-check-circle-fill" style="position: absolute; left: 0; color: #10b981;"></i>
+                                                    <strong>Kỹ năng phù hợp:</strong> Liệt kê các kỹ năng liên quan đến vị trí ứng tuyển
+                                                </li>
+                                                <li style="margin-bottom: 15px; padding-left: 25px; position: relative;">
+                                                    <i class="bi bi-check-circle-fill" style="position: absolute; left: 0; color: #10b981;"></i>
+                                                    <strong>Cập nhật thường xuyên:</strong> Giữ thông tin luôn mới và chính xác
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Tab 2: Bảo mật -->
+                    <div class="tab-pane fade @(activeTab == "baomat" ? "show active" : "")" 
+                         id="baomat" 
+                         role="tabpanel">
+                        <div class="settings-panel">
+                            <h5 class="panel-title" style="font-size: 1.3rem; font-weight: 600; color: #2c3e50; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; padding-bottom: 15px; border-bottom: 2px solid #e8edf2;">
+                                <i class="bi bi-key" style="color: #10b981; font-size: 1.5rem;"></i> Đổi mật khẩu
+                            </h5>
+
+                            @if (TempData["ThanhCong"] != null)
+                            {
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    <i class="bi bi-check-circle"></i> @TempData["ThanhCong"]
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            }
+
+                            @if (TempData["Loi"] != null)
+                            {
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <i class="bi bi-exclamation-triangle"></i> @TempData["Loi"]
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            }
+
+                            <form asp-action="DoiMatKhau" method="post" class="password-form">
+                                @Html.AntiForgeryToken()
+                                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                                <div class="form-group">
+                                    <label for="OldPassword" class="form-label">
+                                        <i class="bi bi-lock"></i> Mật khẩu cũ
+                                    </label>
+                                    <input type="password" 
+                                           class="form-control" 
+                                           id="OldPassword" 
+                                           name="OldPassword" 
+                                           placeholder="Nhập mật khẩu cũ" 
+                                           required />
+                                    <span class="text-danger field-validation-valid" data-valmsg-for="OldPassword" data-valmsg-replace="true"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="NewPassword" class="form-label">
+                                        <i class="bi bi-key"></i> Mật khẩu mới
+                                    </label>
+                                    <input type="password" 
+                                           class="form-control" 
+                                           id="NewPassword" 
+                                           name="NewPassword" 
+                                           placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)" 
+                                           required />
+                                    <span class="text-danger field-validation-valid" data-valmsg-for="NewPassword" data-valmsg-replace="true"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="ConfirmPassword" class="form-label">
+                                        <i class="bi bi-key-fill"></i> Xác nhận mật khẩu mới
+                                    </label>
+                                    <input type="password" 
+                                           class="form-control" 
+                                           id="ConfirmPassword" 
+                                           name="ConfirmPassword" 
+                                           placeholder="Nhập lại mật khẩu mới" 
+                                           required />
+                                    <span class="text-danger field-validation-valid" data-valmsg-for="ConfirmPassword" data-valmsg-replace="true"></span>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-save"></i> Đổi mật khẩu
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Quill Editor CSS -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <!-- Quill Editor JS -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    
+    <script>
+        var quill;
+        var quillKinhNghiem;
+        
+        $(document).ready(function() {
+            // Initialize Quill Editor for Mô tả bản thân
+            quill = new Quill('#editor-container', {
+                theme: 'snow',
+                modules: {
+                    toolbar: [
+                        [{ 'header': [1, 2, 3, false] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        [{ 'color': [] }, { 'background': [] }],
+                        [{ 'align': [] }],
+                        ['link', 'image'],
+                        ['clean']
+                    ]
+                },
+                placeholder: 'Viết một vài dòng giới thiệu về bản thân, điểm mạnh, mục tiêu nghề nghiệp...'
+            });
+
+            // Update hidden textarea when editor content changes
+            quill.on('text-change', function() {
+                $('#moTaBanThan').val(quill.root.innerHTML);
+            });
+
+            // Initialize Quill Editor for Mô tả kinh nghiệm
+            quillKinhNghiem = new Quill('#editor-kinh-nghiem-container', {
+                theme: 'snow',
+                modules: {
+                    toolbar: [
+                        [{ 'header': [1, 2, 3, false] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        [{ 'color': [] }, { 'background': [] }],
+                        [{ 'align': [] }],
+                        ['link', 'image'],
+                        ['clean']
+                    ]
+                },
+                placeholder: 'Mô tả chi tiết về kinh nghiệm làm việc của bạn, các dự án đã tham gia, thành tựu đạt được...'
+            });
+
+            // Update hidden textarea when editor content changes
+            quillKinhNghiem.on('text-change', function() {
+                $('#moTaKinhNghiem').val(quillKinhNghiem.root.innerHTML);
+            });
+
+            // Handle skill input Enter key
+            $('#kyNang').on('keypress', function(e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    addSkill();
+                }
+            });
+
+            // Form submit
+            $('#profileForm').on('submit', function(e) {
+                e.preventDefault();
+                saveProfile();
+            });
+        });
+
+        var skills = [];
+
+        function addSkill() {
+            var skillInput = $('#kyNang');
+            var skill = skillInput.val().trim();
+            
+            if (skill && !skills.includes(skill)) {
+                skills.push(skill);
+                updateSkillTags();
+                skillInput.val('');
+            }
+        }
+
+        function removeSkill(skill) {
+            skills = skills.filter(s => s !== skill);
+            updateSkillTags();
+        }
+
+        function updateSkillTags() {
+            var container = $('#skillTags');
+            container.empty();
+            
+            skills.forEach(function(skill) {
+                var tag = $('<div>')
+                    .addClass('skill-tag')
+                    .html('<span>' + skill + '</span> <span class="remove-skill" onclick="removeSkill(\'' + skill.replace(/'/g, "\\'") + '\')">×</span>');
+                container.append(tag);
+            });
+            
+            $('#kyNangList').val(skills.join(', '));
+        }
+
+        function saveProfile() {
+            // Get content from Quill editors
+            var moTaBanThan = '';
+            if (quill) {
+                moTaBanThan = quill.root.innerHTML;
+                $('#moTaBanThan').val(moTaBanThan);
+            }
+
+            var moTaKinhNghiem = '';
+            if (quillKinhNghiem) {
+                moTaKinhNghiem = quillKinhNghiem.root.innerHTML;
+                $('#moTaKinhNghiem').val(moTaKinhNghiem);
+            }
+
+            // Collect form data
+            var formData = {
+                hoTen: $('#hoTen').val(),
+                email: $('#email').val(),
+                soDienThoai: $('#soDienThoai').val(),
+                ngaySinh: $('#ngaySinh').val(),
+                gioiTinh: $('#gioiTinh').val(),
+                diaChi: $('#diaChi').val(),
+                hocVan: $('#hocVan').val(),
+                nganhNghe: $('#nganhNghe').val(),
+                moTaBanThan: moTaBanThan,
+                kinhNghiem: $('#kinhNghiem').val(),
+                moTaKinhNghiem: moTaKinhNghiem,
+                kyNang: $('#kyNangList').val()
+            };
+
+            // Validate required fields
+            if (!formData.hoTen || !formData.email || !formData.soDienThoai || !formData.ngaySinh || !formData.gioiTinh) {
+                showNotification('Vui lòng điền đầy đủ các trường bắt buộc', 'error');
+                return;
+            }
+
+            // Here you can add AJAX call to save the data
+            console.log('Form data:', formData);
+            
+            // Show success message
+            showNotification('Đã lưu thông tin thành công!', 'success');
+        }
+
+        function resetForm() {
+            if (confirm('Bạn có chắc muốn hủy? Tất cả thay đổi sẽ không được lưu.')) {
+                $('#profileForm')[0].reset();
+                if (quill) {
+                    quill.setContents([]);
+                    $('#moTaBanThan').val('');
+                }
+                if (quillKinhNghiem) {
+                    quillKinhNghiem.setContents([]);
+                    $('#moTaKinhNghiem').val('');
+                }
+                skills = [];
+                updateSkillTags();
+            }
+        }
+
+        function showNotification(message, type) {
+            var bgColor = type === 'success' ? '#10b981' : '#e53e3e';
+            var notification = $('<div>')
+                .css({
+                    position: 'fixed',
+                    top: '20px',
+                    right: '20px',
+                    background: bgColor,
+                    color: 'white',
+                    padding: '15px 25px',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                    zIndex: 9999,
+                    fontWeight: '600',
+                    animation: 'slideInRight 0.3s ease'
+                })
+                .text(message)
+                .appendTo('body');
+            
+            setTimeout(function() {
+                notification.fadeOut(400, function() {
+                    $(this).remove();
+                });
+            }, 3000);
+        }
+    </script>
+    
+    <style>
+        @@keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+}
+

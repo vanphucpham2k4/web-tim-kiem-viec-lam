@@ -191,12 +191,6 @@
             background-clip: text;
         }
 
-        .header-title {
-            font-size: 1.4rem;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
         .header-actions {
             display: flex;
             align-items: center;
@@ -441,10 +435,6 @@
                 display: none;
             }
 
-            .header-title {
-                font-size: 1.1rem;
-            }
-
             .header-logo-text {
                 display: none;
             }
@@ -459,7 +449,6 @@
                 <img src="~/images/logoUnicareer.png" alt="Unicareer Logo" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2245%22 height=%2245%22%3E%3Crect width=%2245%22 height=%2245%22 fill=%22%23E85D04%22 rx=%2210%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2220%22 font-weight=%22bold%22%3EU%3C/text%3E%3C/svg%3E';">
                 <span class="header-logo-text">Unicareer</span>
             </a>
-            <h1 class="header-title">@ViewData["Title"]</h1>
         </div>
         
         <div class="header-actions">
@@ -508,9 +497,8 @@
                         </div>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="@Url.Action("ThongTinTaiKhoan", "Recruiter")"><i class="bi bi-person"></i> Thông tin tài khoản</a></li>
-                        <li><a class="dropdown-item" href="@Url.Action("ThongTinTaiKhoan", "Recruiter")"><i class="bi bi-building"></i> Thông tin công ty</a></li>
-                        <li><a class="dropdown-item" href="#"><i class="bi bi-gear"></i> Cài đặt</a></li>
+                        <li><a class="dropdown-item" href="@Url.Action("CaiDat", "Recruiter")"><i class="bi bi-person"></i> Thông tin tài khoản</a></li>
+                        <li><a class="dropdown-item" href="@Url.Action("CaiDat", "Recruiter")"><i class="bi bi-gear"></i> Cài đặt</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="/"><i class="bi bi-house"></i> Về trang chủ</a></li>
                         <li><hr class="dropdown-divider"></li>
@@ -558,19 +546,15 @@
                 <i class="bi bi-list-task"></i>
                 <span>Tin đã đăng</span>
             </a>
-            <a href="#" class="menu-item">
+            <a href="@Url.Action("DonUngTuyen", "Recruiter")" class="menu-item">
                 <i class="bi bi-inbox"></i>
                 <span>Đơn ứng tuyển</span>
             </a>
-            <a href="#" class="menu-item">
-                <i class="bi bi-bookmark"></i>
-                <span>UV đã lưu</span>
-            </a>
-            <a href="#" class="menu-item">
+            <a href="@Url.Action("ThongKe", "Recruiter")" class="menu-item">
                 <i class="bi bi-graph-up"></i>
                 <span>Thống kê</span>
             </a>
-            <a href="#" class="menu-item">
+            <a href="@Url.Action("CaiDat", "Recruiter")" class="menu-item">
                 <i class="bi bi-gear"></i>
                 <span>Cài đặt</span>
             </a>

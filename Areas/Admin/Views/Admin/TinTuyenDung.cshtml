@@ -4,606 +4,888 @@
     ViewData["Title"] = "Quản lý Tin tuyển dụng";
 }
 
-<div class="page-header-section mb-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="page-header-card">
-                <div class="header-icon">
-                    <i class="bi bi-newspaper"></i>
-                </div>
-                <div class="header-content">
-                    <h3 class="header-title">Danh sách Tin tuyển dụng</h3>
-                    <p class="header-subtitle">Quản lý và theo dõi các tin tuyển dụng trên hệ thống</p>
-                </div>
-            </div>
-        </div>
-    </div>
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+    }
+
+    .page-header h1 {
+        font-weight: 700;
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .page-header p {
+        opacity: 0.95;
+        font-size: 1.1rem;
+        margin-bottom: 0;
+    }
+
+    .action-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .search-filter-group {
+        display: flex;
+        gap: 15px;
+        flex: 1;
+        flex-wrap: wrap;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 12px;
+        padding: 12px 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        border: none;
+        border-radius: 12px;
+        padding: 12px 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
+    }
+
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(72, 187, 120, 0.5);
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+        border: none;
+        border-radius: 12px;
+        padding: 12px 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(245, 101, 101, 0.4);
+    }
+
+    .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(245, 101, 101, 0.5);
+    }
+
+    .form-control, .form-select {
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 12px 16px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        outline: none;
+    }
+
+    .input-group .btn {
+        border-radius: 0 10px 10px 0;
+        border: 2px solid #e2e8f0;
+        border-left: none;
+    }
+
+    .input-group .form-control {
+        border-radius: 10px 0 0 10px;
+    }
+
+    .card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        animation: slideUp 0.5s ease forwards;
+    }
+
+    .card:hover {
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        transform: translateY(-5px);
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table thead {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+
+    .table thead th {
+        border: none;
+        color: #2d3748;
+        font-weight: 600;
+        padding: 18px 15px;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f7fafc;
+        transform: scale(1.01);
+    }
+
+    .table tbody td {
+        padding: 18px 15px;
+        vertical-align: middle;
+        border: none;
+    }
+
+    .badge {
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .badge.bg-success {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%) !important;
+    }
+
+    .badge.bg-secondary {
+        background: linear-gradient(135deg, #a0aec0 0%, #718096 100%) !important;
+    }
+
+    .badge.bg-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    }
+
+    .badge.bg-warning {
+        background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%) !important;
+    }
+
+    .badge.bg-danger {
+        background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%) !important;
+    }
+
+    .badge.bg-info {
+        background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%) !important;
+    }
+
+    .btn-sm {
+        padding: 8px 12px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        margin: 0 2px;
+    }
+
+    .btn-outline-primary {
+        border: 2px solid #667eea;
+        color: #667eea;
+    }
+
+    .btn-outline-primary:hover {
+        background: #667eea;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .btn-outline-success {
+        border: 2px solid #48bb78;
+        color: #48bb78;
+    }
+
+    .btn-outline-success:hover {
+        background: #48bb78;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .btn-outline-warning {
+        border: 2px solid #ed8936;
+        color: #ed8936;
+    }
+
+    .btn-outline-warning:hover {
+        background: #ed8936;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .btn-outline-danger {
+        border: 2px solid #f56565;
+        color: #f56565;
+    }
+
+    .btn-outline-danger:hover {
+        background: #f56565;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .btn-outline-info {
+        border: 2px solid #4299e1;
+        color: #4299e1;
+    }
+
+    .btn-outline-info:hover {
+        background: #4299e1;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .stats-card {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        text-align: center;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        border: 2px solid #e2e8f0;
+        animation: slideUp 0.5s ease forwards;
+        opacity: 0;
+    }
+
+    .stats-card:nth-child(1) { animation-delay: 0.1s; }
+    .stats-card:nth-child(2) { animation-delay: 0.2s; }
+    .stats-card:nth-child(3) { animation-delay: 0.3s; }
+    .stats-card:nth-child(4) { animation-delay: 0.4s; }
+    .stats-card:nth-child(5) { animation-delay: 0.5s; }
+    .stats-card:nth-child(6) { animation-delay: 0.6s; }
+
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+
+    .stats-card .card-title {
+        font-size: 0.9rem;
+        color: #718096;
+        margin-bottom: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stats-card h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0;
+    }
+
+    .stats-card.primary {
+        border-left: 5px solid #667eea;
+    }
+
+    .stats-card.success {
+        border-left: 5px solid #48bb78;
+    }
+
+    .stats-card.secondary {
+        border-left: 5px solid #a0aec0;
+    }
+
+    .stats-card.info {
+        border-left: 5px solid #4299e1;
+    }
+
+    .stats-card.warning {
+        border-left: 5px solid #ed8936;
+    }
+
+    .stats-card.danger {
+        border-left: 5px solid #f56565;
+    }
+
+    @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .table-responsive {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+
+    .trang-thai-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    @@media (max-width: 768px) {
+        .action-bar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .search-filter-group {
+            flex-direction: column;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="page-header">
+    <h1><i class="bi bi-shield-check"></i> Quản lý tin tuyển dụng</h1>
+    <p>Quản lý, duyệt và theo dõi tất cả các tin tuyển dụng trên hệ thống</p>
 </div>
 
-<div class="filter-section mb-4">
-    <div class="row g-3">
-        <div class="col-lg-4 col-md-6">
-            <div class="search-wrapper">
-                <i class="bi bi-search search-icon"></i>
-                <input type="text" class="form-control search-input" id="timKiemInput" placeholder="Tìm kiếm theo tiêu đề, công ty...">
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6">
-            <div class="filter-select-wrapper">
-                <i class="bi bi-briefcase filter-icon"></i>
-                <select class="form-select filter-select" id="locNganhNghe">
-                    <option value="">Tất cả ngành nghề</option>
-                    <option value="Cong nghe thong tin">Công nghệ thông tin</option>
-                    <option value="Kinh doanh">Kinh doanh</option>
-                    <option value="Ke toan - Tai chinh">Kế toán - Tài chính</option>
-                    <option value="Nhan su">Nhân sự</option>
-                    <option value="Thiet ke do hoa">Thiết kế đồ họa</option>
-                </select>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6">
-            <div class="filter-select-wrapper">
-                <i class="bi bi-clock filter-icon"></i>
-                <select class="form-select filter-select" id="locLoaiCongViec">
-                    <option value="">Tất cả loại công việc</option>
-                    <option value="Full-time">Full-time</option>
-                    <option value="Part-time">Part-time</option>
-                    <option value="Internship">Internship</option>
-                    <option value="Remote">Remote</option>
-                </select>
-            </div>
-        </div>
-        <div class="col-lg-2 col-md-6">
-            <button class="btn btn-primary w-100 filter-btn" type="button" id="btnTimKiem">
-                <i class="bi bi-funnel-fill"></i> Lọc
+<div class="action-bar">
+    <div class="search-filter-group">
+        <div class="input-group" style="max-width: 350px;">
+            <input type="text" class="form-control" id="timKiemInput" placeholder="Tìm kiếm theo tiêu đề, công ty...">
+            <button class="btn btn-outline-secondary" type="button">
+                <i class="bi bi-search"></i>
             </button>
         </div>
+        <select class="form-select" id="locTrangThai" style="max-width: 200px;">
+            <option value="">Tất cả trạng thái</option>
+            <option value="Dang tuyen">Đang tuyển</option>
+            <option value="Het han">Hết hạn</option>
+            <option value="Da dong">Đã đóng</option>
+            <option value="Cho duyet">Chờ duyệt</option>
+            <option value="Da duyet">Đã duyệt</option>
+            <option value="Tu choi">Từ chối</option>
+            <option value="Bi khoa">Bị khóa</option>
+        </select>
+        <select class="form-select" id="locNganhNghe" style="max-width: 200px;">
+            <option value="">Tất cả ngành nghề</option>
+            <option value="Cong nghe thong tin">Công nghệ thông tin</option>
+            <option value="Kinh doanh">Kinh doanh</option>
+            <option value="Ke toan - Tai chinh">Kế toán - Tài chính</option>
+            <option value="Nhan su">Nhân sự</option>
+            <option value="Thiet ke do hoa">Thiết kế đồ họa</option>
+        </select>
+    </div>
+    <div>
+        <button class="btn btn-success" id="btnXuatExcel" title="Xuất Excel">
+            <i class="bi bi-file-earmark-spreadsheet"></i> Xuất Excel
+        </button>
+        <button class="btn btn-primary" id="btnDuyetHangLoat" title="Duyệt hàng loạt">
+            <i class="bi bi-check-all"></i> Duyệt hàng loạt
+        </button>
     </div>
 </div>
 
 <div class="row">
     <div class="col-12">
-        <div class="data-table-card">
-            <div class="table-responsive">
-                <table class="table table-hover modern-table" id="bangTinTuyenDung">
-                    <thead>
-                        <tr>
-                            <th>Mã</th>
-                            <th>Tiêu đề</th>
-                            <th>Công ty</th>
-                            <th>Vị trí</th>
-                            <th>Mức lương</th>
-                            <th>Địa điểm</th>
-                            <th>Loại CV</th>
-                            <th>Số ứng tuyển</th>
-                            <th>Hạn nộp</th>
-                            <th>Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var tin in Model)
-                        {
-                            var soNgayConLai = (tin.HanNop - DateTime.Now).Days;
-                            var hanNopClass = soNgayConLai <= 7 ? "text-danger" : (soNgayConLai <= 14 ? "text-warning" : "");
-                            
-                            <tr data-ma="@tin.MaTinTuyenDung" data-nganh="@tin.NganhNghe" data-loai="@tin.LoaiCongViec">
-                                <td>@tin.MaTinTuyenDung</td>
-                                <td><strong>@tin.TenViecLam</strong></td>
-                                <td>@tin.CongTy</td>
-                                <td>@tin.ViTri</td>
-                                <td><span class="badge bg-info">@tin.MucLuongThapNhat-@tin.MucLuongCaoNhat tr</span></td>
-                                <td><i class="bi bi-geo-alt-fill text-primary"></i> @tin.TinhThanhPho</td>
-                                <td><span class="badge bg-primary">@tin.LoaiCongViec</span></td>
-                                <td><span class="badge bg-secondary">@tin.SoLuongUngTuyen</span></td>
-                                <td class="@hanNopClass">
-                                    @tin.HanNop.ToString("dd/MM/yyyy")
-                                    <br/>
-                                    <small>(@soNgayConLai ngày)</small>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-info btn-xem" data-ma="@tin.MaTinTuyenDung" title="Xem">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-primary btn-sua" 
-                                            data-ma="@tin.MaTinTuyenDung"
-                                            data-tenviec="@tin.TenViecLam"
-                                            data-congty="@tin.CongTy"
-                                            data-vitri="@tin.ViTri"
-                                            data-mucluongthap="@tin.MucLuongThapNhat"
-                                            data-mucluongcao="@tin.MucLuongCaoNhat"
-                                            data-tinhthanh="@tin.TinhThanhPho"
-                                            data-loaicv="@tin.LoaiCongViec"
-                                            data-nganhnghe="@tin.NganhNghe"
-                                            data-hannop="@tin.HanNop.ToString("yyyy-MM-dd")"
-                                            title="Sửa">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-danger btn-xoa" data-ma="@tin.MaTinTuyenDung" title="Xóa">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </td>
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>
+                                    <input type="checkbox" id="chonTatCa" title="Chọn tất cả">
+                                </th>
+                                <th><i class="bi bi-hash"></i> Mã</th>
+                                <th><i class="bi-briefcase"></i> Tiêu đề</th>
+                                <th><i class="bi bi-building"></i> Công ty</th>
+                                <th><i class="bi bi-award"></i> Vị trí</th>
+                                <th><i class="bi bi-calendar-plus"></i> Ngày đăng</th>
+                                <th><i class="bi bi-calendar-x"></i> Hạn nộp</th>
+                                <th><i class="bi bi-people"></i> Lượt UT</th>
+                                <th><i class="bi bi-toggle-on"></i> Trạng thái</th>
+                                <th><i class="bi bi-gear"></i> Thao tác</th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach (var tin in Model)
+                            {
+                                var trangThai = tin.HanNop >= DateTime.Now ? "Đang tuyển" : "Hết hạn";
+                                var badgeClass = trangThai == "Đang tuyển" ? "bg-success" : "bg-secondary";
+                                var soNgayConLai = (tin.HanNop - DateTime.Now).Days;
+                                
+                                <tr data-ma="@tin.MaTinTuyenDung" data-nganh="@(tin.NganhNghe ?? "")" data-trangthai="@trangThai">
+                                    <td>
+                                        <input type="checkbox" class="chonTin" value="@tin.MaTinTuyenDung">
+                                    </td>
+                                    <td><span class="text-muted">#@tin.MaTinTuyenDung</span></td>
+                                    <td>
+                                        <strong style="color: #2d3748; font-size: 1rem;">@tin.TenViecLam</strong><br/>
+                                        <small class="text-muted"><i class="bi bi-clock"></i> @tin.LoaiCongViec</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark">@tin.CongTy</span>
+                                    </td>
+                                    <td><span class="badge bg-light text-dark">@tin.ViTri</span></td>
+                                    <td>@tin.NgayDang.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        @tin.HanNop.ToString("dd/MM/yyyy")
+                                        @if (soNgayConLai >= 0 && soNgayConLai <= 7)
+                                        {
+                                            <br/><small class="text-danger">(@soNgayConLai ngày)</small>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">@tin.SoLuongUngTuyen</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge @badgeClass">@trangThai</span>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <a href="@Url.Action("ChiTietTinTuyenDung", "Admin", new { id = tin.MaTinTuyenDung })" class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <button class="btn btn-sm btn-outline-success btn-duyet" data-ma="@tin.MaTinTuyenDung" title="Duyệt tin">
+                                                <i class="bi bi-check-circle"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning btn-sua" data-ma="@tin.MaTinTuyenDung" title="Chỉnh sửa">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-info btn-xem-ung-vien" data-ma="@tin.MaTinTuyenDung" title="Xem ứng viên">
+                                                <i class="bi bi-people"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger btn-khoa" data-ma="@tin.MaTinTuyenDung" title="Khóa tin">
+                                                <i class="bi bi-lock"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger btn-xoa" data-ma="@tin.MaTinTuyenDung" title="Xóa">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Thống kê -->
-<div class="row stats-section mt-4">
-    <div class="col-xl-3 col-md-6 mb-3">
-        <div class="mini-stat-card stat-purple">
-            <div class="stat-icon">
-                <i class="bi bi-newspaper"></i>
-            </div>
-            <div class="stat-info">
-                <h6 class="stat-label">Tổng tin tuyển dụng</h6>
-                <h3 class="stat-number">@Model.Count</h3>
-            </div>
+<div class="row mt-5">
+    <div class="col-md-3 mb-3">
+        <div class="stats-card primary">
+            <h6 class="card-title">
+                <i class="bi bi-file-earmark-text"></i> Tổng tin đăng
+            </h6>
+            <h2 class="text-primary">@Model.Count</h2>
         </div>
     </div>
-    <div class="col-xl-3 col-md-6 mb-3">
-        <div class="mini-stat-card stat-blue">
-            <div class="stat-icon">
-                <i class="bi bi-people"></i>
-            </div>
-            <div class="stat-info">
-                <h6 class="stat-label">Tổng ứng tuyển</h6>
-                <h3 class="stat-number">@Model.Sum(t => t.SoLuongUngTuyen)</h3>
-            </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card success">
+            <h6 class="card-title">
+                <i class="bi bi-check-circle"></i> Đang tuyển
+            </h6>
+            <h2 class="text-success">@Model.Count(t => t.HanNop >= DateTime.Now)</h2>
         </div>
     </div>
-    <div class="col-xl-3 col-md-6 mb-3">
-        <div class="mini-stat-card stat-green">
-            <div class="stat-icon">
-                <i class="bi bi-graph-up-arrow"></i>
-            </div>
-            <div class="stat-info">
-                <h6 class="stat-label">TB ứng tuyển/tin</h6>
-                <h3 class="stat-number">@((int)Model.Average(t => t.SoLuongUngTuyen))</h3>
-            </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card secondary">
+            <h6 class="card-title">
+                <i class="bi bi-x-circle"></i> Hết hạn
+            </h6>
+            <h2 class="text-secondary">@Model.Count(t => t.HanNop < DateTime.Now)</h2>
         </div>
     </div>
-    <div class="col-xl-3 col-md-6 mb-3">
-        <div class="mini-stat-card stat-orange">
-            <div class="stat-icon">
-                <i class="bi bi-exclamation-triangle"></i>
-            </div>
-            <div class="stat-info">
-                <h6 class="stat-label">Sắp hết hạn</h6>
-                <h3 class="stat-number">@Model.Count(t => (t.HanNop - DateTime.Now).Days <= 7)</h3>
-            </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card info">
+            <h6 class="card-title">
+                <i class="bi bi-person-check"></i> Tổng ứng tuyển
+            </h6>
+            <h2 class="text-info">@Model.Sum(t => t.SoLuongUngTuyen ?? 0)</h2>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card warning">
+            <h6 class="card-title">
+                <i class="bi bi-exclamation-triangle"></i> Sắp hết hạn
+            </h6>
+            <h2 class="text-warning">@Model.Count(t => t.HanNop >= DateTime.Now && (t.HanNop - DateTime.Now).Days <= 7)</h2>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card danger">
+            <h6 class="card-title">
+                <i class="bi bi-graph-up"></i> TB ứng tuyển/tin
+            </h6>
+            <h2 class="text-danger">@(Model.Count > 0 ? (int)Model.Average(t => t.SoLuongUngTuyen ?? 0) : 0)</h2>
         </div>
     </div>
 </div>
 
-<!-- Modal Sửa tin tuyển dụng -->
-<div class="modal fade" id="suaTinTuyenDungModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+<!-- Modal Duyệt tin -->
+<div class="modal fade" id="duyetTinModal" tabindex="-1">
+    <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Sửa tin tuyển dụng</h5>
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-check-circle me-2"></i>Duyệt tin tuyển dụng</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="formSuaTinTuyenDung">
-                    <input type="hidden" id="maTinTuyenDungSua">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Tên việc làm</label>
-                            <input type="text" class="form-control" id="tenViecSua" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Công ty</label>
-                            <input type="text" class="form-control" id="congTySua" required>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Vị trí</label>
-                            <input type="text" class="form-control" id="viTriSua" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Tỉnh/Thành phố</label>
-                            <input type="text" class="form-control" id="tinhThanhSua" required>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Mức lương thấp nhất (triệu)</label>
-                            <input type="number" class="form-control" id="mucLuongThapSua" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Mức lương cao nhất (triệu)</label>
-                            <input type="number" class="form-control" id="mucLuongCaoSua" required>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Loại công việc</label>
-                            <select class="form-select" id="loaiCongViecSua">
-                                <option value="Full-time">Full-time</option>
-                                <option value="Part-time">Part-time</option>
-                                <option value="Internship">Internship</option>
-                                <option value="Remote">Remote</option>
-                                <option value="Hybrid">Hybrid</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Ngành nghề</label>
-                            <input type="text" class="form-control" id="nganhNgheSua" required>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12 mb-3">
-                            <label class="form-label fw-bold">Hạn nộp</label>
-                            <input type="date" class="form-control" id="hanNopSua" required>
-                        </div>
-                    </div>
-                </form>
+                <p>Bạn có chắc chắn muốn duyệt tin tuyển dụng này không?</p>
+                <input type="hidden" id="maTinDuyet">
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-primary" id="btnCapNhatTinTuyenDung">
-                    <i class="bi bi-check-circle me-2"></i>Cập nhật
+                <button type="button" class="btn btn-success" id="btnXacNhanDuyet">
+                    <i class="bi bi-check-circle me-2"></i>Xác nhận duyệt
                 </button>
             </div>
         </div>
     </div>
 </div>
 
-<style>
-    /* Reuse styles from UngVien.cshtml */
-    .page-header-card {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        border-radius: 16px;
-        padding: 28px 32px;
-        color: white;
-        box-shadow: 0 8px 24px rgba(240, 147, 251, 0.25);
-        display: flex;
-        align-items: center;
-        gap: 20px;
-    }
-    
-    .page-header-card .header-icon {
-        width: 64px;
-        height: 64px;
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2rem;
-        backdrop-filter: blur(10px);
-    }
-    
-    .page-header-card .header-title {
-        font-size: 1.75rem;
-        font-weight: 700;
-        margin-bottom: 6px;
-    }
-    
-    .page-header-card .header-subtitle {
-        font-size: 0.95rem;
-        opacity: 0.95;
-        margin: 0;
-    }
-    
-    .filter-section {
-        background: white;
-        border-radius: 16px;
-        padding: 24px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    }
-    
-    .search-wrapper {
-        position: relative;
-    }
-    
-    .search-icon {
-        position: absolute;
-        left: 16px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #667eea;
-        font-size: 1.1rem;
-        z-index: 1;
-    }
-    
-    .search-input {
-        padding-left: 45px;
-        border: 2px solid #e9ecef;
-        border-radius: 12px;
-        height: 48px;
-        font-size: 0.95rem;
-        transition: all 0.3s ease;
-    }
-    
-    .search-input:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-    
-    .filter-select-wrapper {
-        position: relative;
-    }
-    
-    .filter-icon {
-        position: absolute;
-        left: 16px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #667eea;
-        font-size: 1.05rem;
-        z-index: 1;
-        pointer-events: none;
-    }
-    
-    .filter-select {
-        padding-left: 45px;
-        border: 2px solid #e9ecef;
-        border-radius: 12px;
-        height: 48px;
-        font-size: 0.95rem;
-        transition: all 0.3s ease;
-    }
-    
-    .filter-select:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-    
-    .filter-btn {
-        height: 48px;
-        border-radius: 12px;
-        font-weight: 600;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: none;
-        transition: all 0.3s ease;
-    }
-    
-    .filter-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-    }
-    
-    .data-table-card {
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-        overflow: hidden;
-    }
-    
-    .modern-table {
-        margin-bottom: 0;
-    }
-    
-    .modern-table thead {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    }
-    
-    .modern-table thead th {
-        border: none;
-        padding: 18px 16px;
-        font-weight: 700;
-        font-size: 0.875rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: #495057;
-    }
-    
-    .modern-table tbody tr {
-        transition: all 0.3s ease;
-        border-bottom: 1px solid #f1f3f5;
-    }
-    
-    .modern-table tbody tr:hover {
-        background: linear-gradient(90deg, rgba(240, 147, 251, 0.05) 0%, transparent 100%);
-        transform: scale(1.01);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-    
-    .modern-table tbody td {
-        padding: 16px;
-        vertical-align: middle;
-        border: none;
-    }
-    
-    .modern-table .badge {
-        padding: 6px 12px;
-        font-weight: 600;
-        font-size: 0.8rem;
-        border-radius: 8px;
-    }
-    
-    .modern-table .btn {
-        border-radius: 8px;
-        transition: all 0.3s ease;
-    }
-    
-    .modern-table .btn:hover {
-        transform: translateY(-2px);
-    }
-    
-    .mini-stat-card {
-        background: white;
-        border-radius: 16px;
-        padding: 20px;
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .mini-stat-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-    }
-    
-    .mini-stat-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    }
-    
-    .stat-purple::before {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    }
-    
-    .stat-blue::before {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    }
-    
-    .stat-green::before {
-        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-    }
-    
-    .stat-orange::before {
-        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-    }
-    
-    .mini-stat-card .stat-icon {
-        width: 56px;
-        height: 56px;
-        border-radius: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        color: white;
-        flex-shrink: 0;
-    }
-    
-    .stat-purple .stat-icon {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    }
-    
-    .stat-blue .stat-icon {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    }
-    
-    .stat-green .stat-icon {
-        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-    }
-    
-    .stat-orange .stat-icon {
-        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-    }
-    
-    .stat-info {
-        flex: 1;
-    }
-    
-    .stat-label {
-        font-size: 0.85rem;
-        color: #6c757d;
-        font-weight: 600;
-        margin-bottom: 6px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .stat-number {
-        font-size: 1.75rem;
-        font-weight: 700;
-        color: #212529;
-        margin: 0;
-    }
-</style>
+<!-- Modal Khóa tin -->
+<div class="modal fade" id="khoaTinModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="bi bi-lock me-2"></i>Khóa tin tuyển dụng</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn khóa tin tuyển dụng này không?</p>
+                <div class="mb-3">
+                    <label class="form-label">Lý do khóa:</label>
+                    <textarea class="form-control" id="lyDoKhoa" rows="3" placeholder="Nhập lý do khóa tin..."></textarea>
+                </div>
+                <input type="hidden" id="maTinKhoa">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" id="btnXacNhanKhoa">
+                    <i class="bi bi-lock me-2"></i>Xác nhận khóa
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Xem ứng viên -->
+<div class="modal fade" id="xemUngVienModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title"><i class="bi bi-people me-2"></i>Danh sách ứng viên</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="danhSachUngVien">
+                    <p class="text-center text-muted">Đang tải dữ liệu...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     <script>
         $(document).ready(function() {
-            // Tim kiem va loc
-            $('#btnTimKiem, #timKiemInput').on('click keyup', function(e) {
-                if (e.type === 'keyup' && e.keyCode !== 13) return;
-                locDuLieu();
-            });
-
-            $('#locNganhNghe, #locLoaiCongViec').on('change', function() {
-                locDuLieu();
-            });
-
-            function locDuLieu() {
-                var tuKhoa = $('#timKiemInput').val().toLowerCase();
-                var nganhNghe = $('#locNganhNghe').val();
-                var loaiCongViec = $('#locLoaiCongViec').val();
-
-                $('#bangTinTuyenDung tbody tr').each(function() {
+            // Search and filter functionality
+            function filterTable() {
+                var searchText = $('#timKiemInput').val().toLowerCase();
+                var filterStatus = $('#locTrangThai').val();
+                var filterNganh = $('#locNganhNghe').val();
+                
+                $('table tbody tr').each(function() {
                     var row = $(this);
-                    var tieuDe = row.find('td:eq(1)').text().toLowerCase();
-                    var congTy = row.find('td:eq(2)').text().toLowerCase();
-                    var nganhRow = row.data('nganh');
-                    var loaiRow = row.data('loai');
+                    var title = row.find('td:eq(2) strong').text().toLowerCase();
+                    var congTy = row.find('td:eq(3)').text().toLowerCase();
+                    var status = row.find('td:eq(8) .badge').text().trim();
+                    var nganh = row.data('nganh') || '';
                     
-                    var khopTuKhoa = tuKhoa === '' || tieuDe.includes(tuKhoa) || congTy.includes(tuKhoa);
-                    var khopNganh = nganhNghe === '' || nganhRow === nganhNghe;
-                    var khopLoai = loaiCongViec === '' || loaiRow === loaiCongViec;
+                    var showRow = true;
                     
-                    if (khopTuKhoa && khopNganh && khopLoai) {
+                    // Filter by search text
+                    if (searchText && !title.includes(searchText) && !congTy.includes(searchText)) {
+                        showRow = false;
+                    }
+                    
+                    // Filter by status
+                    if (filterStatus && status !== filterStatus) {
+                        showRow = false;
+                    }
+                    
+                    // Filter by nganh nghe
+                    if (filterNganh && nganh !== filterNganh) {
+                        showRow = false;
+                    }
+                    
+                    if (showRow) {
                         row.show();
+                        row.css('opacity', '0');
+                        setTimeout(function() {
+                            row.animate({ opacity: 1 }, 300);
+                        }, 50);
                     } else {
                         row.hide();
                     }
                 });
             }
-
-            // Sua tin tuyen dung
-            $('.btn-sua').click(function() {
-                var ma = $(this).data('ma');
-                var tenViec = $(this).data('tenviec');
-                var congTy = $(this).data('congty');
-                var viTri = $(this).data('vitri');
-                var mucLuongThap = $(this).data('mucluongthap');
-                var mucLuongCao = $(this).data('mucluongcao');
-                var tinhThanh = $(this).data('tinhthanh');
-                var loaiCongViec = $(this).data('loaicv');
-                var nganhNghe = $(this).data('nganhnghe');
-                var hanNop = $(this).data('hannop');
-
-                $('#maTinTuyenDungSua').val(ma);
-                $('#tenViecSua').val(tenViec);
-                $('#congTySua').val(congTy);
-                $('#viTriSua').val(viTri);
-                $('#mucLuongThapSua').val(mucLuongThap);
-                $('#mucLuongCaoSua').val(mucLuongCao);
-                $('#tinhThanhSua').val(tinhThanh);
-                $('#loaiCongViecSua').val(loaiCongViec);
-                $('#nganhNgheSua').val(nganhNghe);
-                $('#hanNopSua').val(hanNop);
-
-                $('#suaTinTuyenDungModal').modal('show');
+            
+            // Bind events
+            $('#timKiemInput').on('keyup', filterTable);
+            $('#locTrangThai, #locNganhNghe').on('change', filterTable);
+            
+            // Chọn tất cả
+            $('#chonTatCa').on('change', function() {
+                $('.chonTin').prop('checked', $(this).prop('checked'));
             });
-
-            $('#btnCapNhatTinTuyenDung').click(function() {
-                var ma = $('#maTinTuyenDungSua').val();
-                var tenViec = $('#tenViecSua').val();
-
-                alert('Đã cập nhật tin tuyển dụng mã ' + ma + ': ' + tenViec);
-                $('#suaTinTuyenDungModal').modal('hide');
-            });
-
-            // Xem chi tiet
-            $('.btn-xem').click(function() {
+            
+            // Duyệt tin
+            $('.btn-duyet').on('click', function(e) {
+                e.preventDefault();
                 var ma = $(this).data('ma');
-                alert('Xem chi tiết tin tuyển dụng mã ' + ma);
+                $('#maTinDuyet').val(ma);
+                $('#duyetTinModal').modal('show');
             });
-
-            // Xoa tin tuyen dung
-            $('.btn-xoa').click(function() {
+            
+            $('#btnXacNhanDuyet').on('click', function() {
+                var ma = $('#maTinDuyet').val();
+                // Gọi API duyệt tin
+                $.ajax({
+                    url: '@Url.Action("DuyetTinTuyenDung", "Admin")',
+                    type: 'POST',
+                    data: { id: ma },
+                    success: function(response) {
+                        if (response.success) {
+                            showNotification('Đã duyệt tin tuyển dụng thành công!', 'success');
+                            $('#duyetTinModal').modal('hide');
+                            location.reload();
+                        } else {
+                            showNotification(response.message || 'Có lỗi xảy ra!', 'error');
+                        }
+                    },
+                    error: function() {
+                        showNotification('Có lỗi xảy ra khi duyệt tin!', 'error');
+                    }
+                });
+            });
+            
+            // Khóa tin
+            $('.btn-khoa').on('click', function(e) {
+                e.preventDefault();
                 var ma = $(this).data('ma');
-                if (confirm('Bạn có chắc chắn muốn xóa tin tuyển dụng này?')) {
-                    alert('Đã xóa tin tuyển dụng mã ' + ma);
-                    $(this).closest('tr').fadeOut();
+                $('#maTinKhoa').val(ma);
+                $('#lyDoKhoa').val('');
+                $('#khoaTinModal').modal('show');
+            });
+            
+            $('#btnXacNhanKhoa').on('click', function() {
+                var ma = $('#maTinKhoa').val();
+                var lyDo = $('#lyDoKhoa').val();
+                if (!lyDo.trim()) {
+                    alert('Vui lòng nhập lý do khóa!');
+                    return;
                 }
+                // Gọi API khóa tin
+                $.ajax({
+                    url: '@Url.Action("KhoaTinTuyenDung", "Admin")',
+                    type: 'POST',
+                    data: { id: ma, lyDo: lyDo },
+                    success: function(response) {
+                        if (response.success) {
+                            showNotification('Đã khóa tin tuyển dụng thành công!', 'success');
+                            $('#khoaTinModal').modal('hide');
+                            location.reload();
+                        } else {
+                            showNotification(response.message || 'Có lỗi xảy ra!', 'error');
+                        }
+                    },
+                    error: function() {
+                        showNotification('Có lỗi xảy ra khi khóa tin!', 'error');
+                    }
+                });
+            });
+            
+            // Xem ứng viên
+            $('.btn-xem-ung-vien').on('click', function(e) {
+                e.preventDefault();
+                var ma = $(this).data('ma');
+                $('#xemUngVienModal').modal('show');
+                $('#danhSachUngVien').html('<p class="text-center text-muted">Đang tải dữ liệu...</p>');
+                
+                // Gọi API lấy danh sách ứng viên
+                $.ajax({
+                    url: '@Url.Action("LayDanhSachUngVien", "Admin")',
+                    type: 'GET',
+                    data: { maTin: ma },
+                    success: function(response) {
+                        if (response.success && response.data && response.data.length > 0) {
+                            var html = '<table class="table table-hover"><thead><tr><th>Họ tên</th><th>Email</th><th>Điện thoại</th><th>Vị trí</th><th>Trạng thái</th><th>Ngày ứng tuyển</th><th>Thao tác</th></tr></thead><tbody>';
+                            response.data.forEach(function(uv) {
+                                html += '<tr>';
+                                html += '<td>' + uv.hoTen + '</td>';
+                                html += '<td>' + uv.email + '</td>';
+                                html += '<td>' + uv.soDienThoai + '</td>';
+                                html += '<td>' + uv.viTriUngTuyen + '</td>';
+                                html += '<td><span class="badge bg-info">' + uv.trangThaiXuLy + '</span></td>';
+                                html += '<td>' + uv.ngayUngTuyen + '</td>';
+                                html += '<td><a href="#" class="btn btn-sm btn-outline-primary btn-xem-cv" data-link="' + uv.linkCV + '"><i class="bi bi-file-earmark-pdf"></i> Xem CV</a></td>';
+                                html += '</tr>';
+                            });
+                            html += '</tbody></table>';
+                            $('#danhSachUngVien').html(html);
+                        } else {
+                            $('#danhSachUngVien').html('<p class="text-center text-muted">Chưa có ứng viên nào ứng tuyển cho tin này.</p>');
+                        }
+                    },
+                    error: function() {
+                        $('#danhSachUngVien').html('<p class="text-center text-danger">Có lỗi xảy ra khi tải dữ liệu!</p>');
+                    }
+                });
+            });
+            
+            // Xem CV
+            $(document).on('click', '.btn-xem-cv', function(e) {
+                e.preventDefault();
+                var linkCV = $(this).data('link');
+                if (linkCV) {
+                    window.open(linkCV, '_blank');
+                } else {
+                    alert('Chưa có CV!');
+                }
+            });
+            
+            // Duyệt hàng loạt
+            $('#btnDuyetHangLoat').on('click', function() {
+                var danhSachMa = [];
+                $('.chonTin:checked').each(function() {
+                    danhSachMa.push($(this).val());
+                });
+                
+                if (danhSachMa.length === 0) {
+                    alert('Vui lòng chọn ít nhất một tin để duyệt!');
+                    return;
+                }
+                
+                if (confirm('Bạn có chắc chắn muốn duyệt ' + danhSachMa.length + ' tin đã chọn không?')) {
+                    $.ajax({
+                        url: '@Url.Action("DuyetHangLoat", "Admin")',
+                        type: 'POST',
+                        data: { danhSachMa: danhSachMa },
+                        success: function(response) {
+                            if (response.success) {
+                                showNotification('Đã duyệt ' + response.count + ' tin thành công!', 'success');
+                                location.reload();
+                            } else {
+                                showNotification(response.message || 'Có lỗi xảy ra!', 'error');
+                            }
+                        },
+                        error: function() {
+                            showNotification('Có lỗi xảy ra khi duyệt hàng loạt!', 'error');
+                        }
+                    });
+                }
+            });
+            
+            // Xuất Excel
+            $('#btnXuatExcel').on('click', function() {
+                window.location.href = '@Url.Action("XuatExcel", "Admin")';
+            });
+            
+            // Xóa tin
+            $('.btn-xoa').on('click', function(e) {
+                e.preventDefault();
+                var row = $(this).closest('tr');
+                var jobTitle = row.find('td:eq(2) strong').text();
+                var ma = $(this).data('ma');
+                
+                if (confirm('Bạn có chắc chắn muốn xóa tin tuyển dụng "' + jobTitle + '" không?')) {
+                    $.ajax({
+                        url: '@Url.Action("XoaTinTuyenDung", "Admin")',
+                        type: 'POST',
+                        data: { id: ma },
+                        success: function(response) {
+                            if (response.success) {
+                                row.fadeOut(400, function() {
+                                    $(this).remove();
+                                    showNotification('Đã xóa tin tuyển dụng thành công!', 'success');
+                                });
+                            } else {
+                                showNotification(response.message || 'Có lỗi xảy ra!', 'error');
+                            }
+                        },
+                        error: function() {
+                            showNotification('Có lỗi xảy ra khi xóa tin!', 'error');
+                        }
+                    });
+                }
+            });
+            
+            // Show notification function
+            function showNotification(message, type) {
+                var bgColor = type === 'success' ? '#48bb78' : '#f56565';
+                var notification = $('<div>')
+                    .css({
+                        position: 'fixed',
+                        top: '20px',
+                        right: '20px',
+                        background: bgColor,
+                        color: 'white',
+                        padding: '15px 25px',
+                        borderRadius: '12px',
+                        boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                        zIndex: 9999,
+                        fontWeight: '600'
+                    })
+                    .text(message)
+                    .appendTo('body');
+                
+                setTimeout(function() {
+                    notification.fadeOut(400, function() {
+                        $(this).remove();
+                    });
+                }, 3000);
+            }
+            
+            // Animate numbers on load
+            $('.stats-card h2').each(function() {
+                var $this = $(this);
+                var countTo = parseInt($this.text());
+                
+                $({ countNum: 0 }).animate({
+                    countNum: countTo
+                }, {
+                    duration: 1500,
+                    easing: 'swing',
+                    step: function() {
+                        $this.text(Math.floor(this.countNum));
+                    },
+                    complete: function() {
+                        $this.text(this.countNum);
+                    }
+                });
             });
         });
     </script>

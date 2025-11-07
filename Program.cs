@@ -12,6 +12,15 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+// Đăng ký Repository với Dependency Injection
+// Sử dụng AddSingleton cho Mock repositories để dữ liệu được lưu giữ giữa các request
+builder.Services.AddSingleton<Unicareer.Repository.INhaTuyenDungRepository, Unicareer.Repository.MockNhaTuyenDungRepository>();
+builder.Services.AddSingleton<Unicareer.Repository.IUngVienRepository, Unicareer.Repository.MockUngVienRepository>();
+builder.Services.AddSingleton<Unicareer.Repository.ITinTuyenDungRepository, Unicareer.Repository.MockTinTuyenDungRepository>();
+builder.Services.AddSingleton<Unicareer.Repository.ITinUngTuyenRepository, Unicareer.Repository.MockTinUngTuyenRepository>();
+builder.Services.AddSingleton<Unicareer.Repository.ILoaiCongViecRepository, Unicareer.Repository.MockLoaiCongViecRepository>();
+builder.Services.AddSingleton<Unicareer.Repository.INganhNgheRepository, Unicareer.Repository.MockNganhNgheRepository>();
+
 // Cấu hình Session để lưu CAPTCHA
 builder.Services.AddSession(options =>
 {
