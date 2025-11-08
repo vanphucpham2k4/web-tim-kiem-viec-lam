@@ -1,0 +1,663 @@
+@model Unicareer.Models.NhaTuyenDung
+
+@{
+    ViewData["Title"] = "Chi tiết Nhà tuyển dụng";
+    var danhSachTinTuyenDung = ViewBag.DanhSachTinTuyenDung as List<Unicareer.Models.TinTuyenDung> ?? new List<Unicareer.Models.TinTuyenDung>();
+}
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+    }
+
+    .page-header h1 {
+        font-weight: 700;
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+
+    .info-card {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        margin-bottom: 25px;
+    }
+
+    .info-card h5 {
+        color: #2d3748;
+        font-weight: 600;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .info-card h5 i {
+        color: #667eea;
+        font-size: 1.3rem;
+    }
+
+    .info-item {
+        display: flex;
+        padding: 12px 0;
+        border-bottom: 1px solid #f7fafc;
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #718096;
+        min-width: 180px;
+        flex-shrink: 0;
+    }
+
+    .info-value {
+        color: #2d3748;
+        flex: 1;
+    }
+
+    .badge-custom {
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .badge-success {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        color: white;
+    }
+
+    .badge-secondary {
+        background: linear-gradient(135deg, #a0aec0 0%, #718096 100%);
+        color: white;
+    }
+
+    .badge-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .badge-info {
+        background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+        color: white;
+    }
+
+    .badge-warning {
+        background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+        color: white;
+    }
+
+    /* Tab Styles */
+    .nav-tabs {
+        border-bottom: 3px solid #e2e8f0;
+        margin-bottom: 25px;
+    }
+
+    .nav-tabs .nav-link {
+        border: none;
+        border-bottom: 3px solid transparent;
+        color: #718096;
+        font-weight: 600;
+        padding: 15px 25px;
+        transition: all 0.3s ease;
+        background: transparent;
+    }
+
+    .nav-tabs .nav-link:hover {
+        border-bottom-color: #cbd5e0;
+        color: #2d3748;
+    }
+
+    .nav-tabs .nav-link.active {
+        color: #667eea;
+        border-bottom-color: #667eea;
+        background: transparent;
+    }
+
+    .tab-content {
+        padding: 20px 0;
+    }
+
+    /* Table Styles */
+    .table-responsive {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table thead {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+
+    .table thead th {
+        border: none;
+        color: #2d3748;
+        font-weight: 600;
+        padding: 18px 15px;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f7fafc;
+        transform: scale(1.01);
+    }
+
+    .table tbody td {
+        padding: 18px 15px;
+        vertical-align: middle;
+        border: none;
+    }
+
+    .btn-action {
+        padding: 6px 12px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        margin: 0 2px;
+        border: 2px solid;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .btn-view {
+        border-color: #4299e1;
+        color: #4299e1;
+        background: transparent;
+    }
+
+    .btn-view:hover {
+        background: #4299e1;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #a0aec0;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .empty-state h5 {
+        color: #718096;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .empty-state p {
+        color: #a0aec0;
+        margin: 0;
+    }
+
+    .back-button {
+        background: white;
+        border: 2px solid #667eea;
+        color: #667eea;
+        padding: 10px 20px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .back-button:hover {
+        background: #667eea;
+        color: white;
+        transform: translateX(-5px);
+    }
+
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .stat-card {
+        background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        border: 2px solid #e2e8f0;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+
+    .stat-card .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .stat-card .stat-label {
+        font-size: 0.9rem;
+        color: #718096;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-card.primary .stat-number {
+        color: #667eea;
+    }
+
+    .stat-card.success .stat-number {
+        color: #48bb78;
+    }
+
+    .content-section {
+        margin-bottom: 30px;
+    }
+
+    .content-section h4 {
+        color: #2d3748;
+        font-weight: 600;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+</style>
+
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="bi bi-building"></i> Chi tiết Nhà tuyển dụng</h1>
+        </div>
+        <a href="@Url.Action("NhaTuyenDung", "Admin")" class="back-button">
+            <i class="bi bi-arrow-left"></i> Quay lại
+        </a>
+    </div>
+</div>
+
+<!-- Thông tin cơ bản -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="info-card">
+            <h5><i class="bi bi-info-circle"></i> Thông tin cơ bản</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="info-item">
+                        <span class="info-label">Mã NTD:</span>
+                        <span class="info-value"><strong>#@Model.MaNhaTuyenDung</strong></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Tên công ty:</span>
+                        <span class="info-value"><strong>@Model.TenCongTy</strong></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Email:</span>
+                        <span class="info-value">@Model.Email</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Số điện thoại:</span>
+                        <span class="info-value">@Model.SoDienThoai</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Website:</span>
+                        <span class="info-value">
+                            @if (!string.IsNullOrEmpty(Model.Website))
+                            {
+                                <a href="@Model.Website" target="_blank" class="text-primary">
+                                    <i class="bi bi-link-45deg"></i> @Model.Website
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Chưa cập nhật</span>
+                            }
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Địa chỉ:</span>
+                        <span class="info-value">@Model.DiaChi</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-item">
+                        <span class="info-label">Tỉnh/Thành phố:</span>
+                        <span class="info-value">
+                            <span class="badge-custom badge-primary">@Model.TinhThanhPho</span>
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Quận/Huyện:</span>
+                        <span class="info-value">
+                            <span class="badge-custom badge-info">@Model.QuanHuyen</span>
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Lĩnh vực:</span>
+                        <span class="info-value">
+                            <span class="badge-custom badge-secondary">@Model.LinhVuc</span>
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Người đại diện:</span>
+                        <span class="info-value">@Model.NguoiDaiDien</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Chức vụ:</span>
+                        <span class="info-value">@Model.ChucVu</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Ngày đăng ký:</span>
+                        <span class="info-value">@Model.NgayDangKy.ToString("dd/MM/yyyy")</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Thống kê -->
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="stat-card primary">
+            <div class="stat-number">@Model.SoTinDaDang</div>
+            <div class="stat-label">Tin tuyển dụng đã đăng</div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="stat-card success">
+            <div class="stat-number">@Model.SoUngVienNhan</div>
+            <div class="stat-label">Ứng viên đã nhận</div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="stat-card primary">
+            <div class="stat-number">@(Model.SoTinDaDang > 0 ? (Model.SoUngVienNhan / Model.SoTinDaDang).ToString("F1") : "0")</div>
+            <div class="stat-label">TB ứng viên/tin</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="row">
+    <div class="col-12">
+        <div class="info-card">
+            <ul class="nav nav-tabs" id="detailTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="thongtin-tab" data-bs-toggle="tab" data-bs-target="#thongtin" type="button" role="tab">
+                        <i class="bi bi-building"></i> Thông tin công ty
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tintuyendung-tab" data-bs-toggle="tab" data-bs-target="#tintuyendung" type="button" role="tab">
+                        <i class="bi bi-newspaper"></i> Các tin tuyển dụng (@danhSachTinTuyenDung.Count)
+                    </button>
+                </li>
+            </ul>
+            <div class="tab-content" id="detailTabsContent">
+                <!-- Tab 1: Thông tin công ty -->
+                <div class="tab-pane fade show active" id="thongtin" role="tabpanel">
+                    <div class="content-section">
+                        <h4><i class="bi bi-building"></i> Thông tin công ty</h4>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <p><strong>Tên công ty:</strong> @Model.TenCongTy</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <p><strong>Mã NTD:</strong> #@Model.MaNhaTuyenDung</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <p><strong>Email:</strong> <a href="mailto:@Model.Email">@Model.Email</a></p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <p><strong>Số điện thoại:</strong> <a href="tel:@Model.SoDienThoai">@Model.SoDienThoai</a></p>
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(Model.Website))
+                        {
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <p><strong>Website:</strong> <a href="@Model.Website" target="_blank">@Model.Website <i class="bi bi-box-arrow-up-right"></i></a></p>
+                                </div>
+                            </div>
+                        }
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <p><strong>Địa chỉ:</strong> @Model.DiaChi</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <p><strong>Tỉnh/Thành phố:</strong> <span class="badge-custom badge-primary">@Model.TinhThanhPho</span></p>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <p><strong>Quận/Huyện:</strong> <span class="badge-custom badge-info">@Model.QuanHuyen</span></p>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <p><strong>Lĩnh vực:</strong> <span class="badge-custom badge-secondary">@Model.LinhVuc</span></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h4><i class="bi bi-person-badge"></i> Người đại diện</h4>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <p><strong>Họ tên:</strong> @Model.NguoiDaiDien</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <p><strong>Chức vụ:</strong> @Model.ChucVu</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <p><strong>Ngày đăng ký:</strong> @Model.NgayDangKy.ToString("dd/MM/yyyy")</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.MoTa))
+                    {
+                        <div class="content-section">
+                            <h4><i class="bi bi-info-circle"></i> Giới thiệu công ty</h4>
+                            <div class="text-muted" style="line-height: 1.8;">
+                                @Html.Raw(Model.MoTa.Replace("\n", "<br/>"))
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Tab 2: Các tin tuyển dụng -->
+                <div class="tab-pane fade" id="tintuyendung" role="tabpanel">
+                    @if (danhSachTinTuyenDung.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th><i class="bi bi-hash"></i> Mã tin</th>
+                                        <th><i class="bi bi-briefcase"></i> Tên việc làm</th>
+                                        <th><i class="bi bi-briefcase-fill"></i> Ngành nghề</th>
+                                        <th><i class="bi bi-briefcase"></i> Loại công việc</th>
+                                        <th><i class="bi bi-geo-alt"></i> Tỉnh/TP</th>
+                                        <th><i class="bi bi-cash-stack"></i> Mức lương</th>
+                                        <th><i class="bi bi-people"></i> UV ứng tuyển</th>
+                                        <th><i class="bi bi-calendar"></i> Ngày đăng</th>
+                                        <th><i class="bi bi-calendar-event"></i> Hạn nộp</th>
+                                        <th><i class="bi bi-gear"></i> Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var tin in danhSachTinTuyenDung)
+                                    {
+                                        var mucLuong = "";
+                                        if (tin.MucLuongThapNhat.HasValue && tin.MucLuongCaoNhat.HasValue)
+                                        {
+                                            mucLuong = tin.MucLuongThapNhat.Value.ToString("N0") + " - " + tin.MucLuongCaoNhat.Value.ToString("N0") + " triệu";
+                                        }
+                                        else if (tin.MucLuongThapNhat.HasValue)
+                                        {
+                                            mucLuong = "Từ " + tin.MucLuongThapNhat.Value.ToString("N0") + " triệu";
+                                        }
+                                        else
+                                        {
+                                            mucLuong = "<span class='text-muted'>Thỏa thuận</span>";
+                                        }
+
+                                        var trangThaiBadge = tin.SoLuongUngTuyen > 0 
+                                            ? "<span class='badge-custom badge-success'>Đang tuyển</span>" 
+                                            : "<span class='badge-custom badge-secondary'>Chưa có UV</span>";
+
+                                        <tr>
+                                            <td><strong>#@tin.MaTinTuyenDung</strong></td>
+                                            <td><strong>@tin.TenViecLam</strong></td>
+                                            <td><span class="badge-custom badge-info">@tin.NganhNghe</span></td>
+                                            <td><span class="badge-custom badge-secondary">@tin.LoaiCongViec</span></td>
+                                            <td>@tin.TinhThanhPho</td>
+                                            <td>@Html.Raw(mucLuong)</td>
+                                            <td>@Html.Raw(trangThaiBadge) <small class="text-muted">(@tin.SoLuongUngTuyen)</small></td>
+                                            <td><small>@tin.NgayDang.ToString("dd/MM/yyyy")</small></td>
+                                            <td>
+                                                <small>@tin.HanNop.ToString("dd/MM/yyyy")</small>
+                                                @if (tin.HanNop >= DateTime.Now)
+                                                {
+                                                    <span class="badge-custom badge-success ms-1">Còn hạn</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge-custom badge-secondary ms-1">Hết hạn</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <a href="@Url.Action("ChiTietTinTuyenDung", "Admin", new { id = tin.MaTinTuyenDung })" 
+                                                   class="btn btn-action btn-view" title="Xem chi tiết">
+                                                    <i class="bi bi-eye"></i> Xem
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <h5>Chưa có tin tuyển dụng nào</h5>
+                            <p>Công ty này chưa đăng tin tuyển dụng nào trên hệ thống.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sidebar với thao tác quản lý -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="info-card">
+            <h5><i class="bi bi-gear"></i> Thao tác quản lý</h5>
+            <div class="action-buttons">
+                <button class="btn btn-danger w-100 mb-2 btn-xoa" data-ma="@Model.MaNhaTuyenDung">
+                    <i class="bi bi-trash"></i> Xóa nhà tuyển dụng
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.AntiForgeryToken()
+    <script>
+        $(document).ready(function() {
+            // Xóa nhà tuyển dụng
+            $('.btn-xoa').on('click', function() {
+                var ma = $(this).data('ma');
+                if (confirm('Bạn có chắc chắn muốn xóa nhà tuyển dụng này không? Hành động này không thể hoàn tác!')) {
+                    $.ajax({
+                        url: '@Url.Action("XoaNhaTuyenDung", "Admin")',
+                        type: 'POST',
+                        headers: {
+                            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        data: { 
+                            id: ma,
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                showNotification('Đã xóa nhà tuyển dụng thành công!', 'success');
+                                setTimeout(function() {
+                                    window.location.href = '@Url.Action("NhaTuyenDung", "Admin")';
+                                }, 1000);
+                            } else {
+                                showNotification(response.message || 'Có lỗi xảy ra!', 'error');
+                            }
+                        },
+                        error: function() {
+                            showNotification('Có lỗi xảy ra khi xóa nhà tuyển dụng!', 'error');
+                        }
+                    });
+                }
+            });
+
+            // Hàm hiển thị thông báo
+            function showNotification(message, type) {
+                var bgColor = type === 'success' ? '#48bb78' : '#f56565';
+                var notification = $('<div>')
+                    .css({
+                        position: 'fixed',
+                        top: '20px',
+                        right: '20px',
+                        background: bgColor,
+                        color: 'white',
+                        padding: '15px 25px',
+                        borderRadius: '12px',
+                        boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                        zIndex: 9999,
+                        fontWeight: '600',
+                        maxWidth: '400px'
+                    })
+                    .text(message)
+                    .appendTo('body');
+                
+                setTimeout(function() {
+                    notification.fadeOut(400, function() {
+                        $(this).remove();
+                    });
+                }, 3000);
+            }
+        });
+    </script>
+}
+

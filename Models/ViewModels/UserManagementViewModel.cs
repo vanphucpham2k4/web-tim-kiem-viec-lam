@@ -9,6 +9,12 @@ namespace Unicareer.Models.ViewModels
         public string? SearchTerm { get; set; }
         public string? RoleFilter { get; set; }
         public List<string> AvailableRoles { get; set; } = new List<string>();
+        
+        // Phân trang
+        public int PageNumber { get; set; } = 1;
+        public int PageSize { get; set; } = 50;
+        public int TotalCount { get; set; }
+        public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
     }
 
     public class UserInfo

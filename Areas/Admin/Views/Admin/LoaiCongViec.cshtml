@@ -4,132 +4,395 @@
     ViewData["Title"] = "Quản lý Loại công việc";
 }
 
-<div class="page-header-section mb-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="page-header-card">
-                <div class="header-icon">
-                    <i class="bi bi-clock-history"></i>
-                </div>
-                <div class="header-content">
-                    <h3 class="header-title">Danh sách Loại công việc</h3>
-                    <p class="header-subtitle">Quản lý các loại hình công việc trong hệ thống</p>
-                </div>
-                <button class="btn btn-light ms-auto px-4" data-bs-toggle="modal" data-bs-target="#themLoaiCongViecModal">
-                    <i class="bi bi-plus-circle me-2"></i>Thêm mới
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+<style>
+    .loaicongviec-management-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
 
-<div class="filter-section mb-4">
-    <div class="row g-3">
-        <div class="col-lg-10 col-md-9">
-            <div class="search-wrapper">
-                <i class="bi bi-search search-icon"></i>
-                <input type="text" class="form-control search-input" id="timKiemInput" placeholder="Tìm kiếm theo tên loại công việc...">
+    .page-header {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 10px 40px rgba(37, 69, 184, 0.3);
+    }
+
+    .page-header h1 {
+        font-weight: 700;
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .page-header p {
+        font-size: 1.1rem;
+        opacity: 0.95;
+    }
+
+    .filter-section {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .filter-form {
+        display: grid;
+        grid-template-columns: 2fr auto;
+        gap: 15px;
+        align-items: end;
+    }
+
+    .filter-form input {
+        padding: 12px 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+
+    .filter-form input:focus {
+        outline: none;
+        border-color: #2545B8;
+        box-shadow: 0 0 0 3px rgba(37, 69, 184, 0.1);
+    }
+
+    .btn-filter {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-filter:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 69, 184, 0.4);
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        overflow-x: auto;
+    }
+
+    .loaicongviec-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .loaicongviec-table thead {
+        background: #f8f9fa;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .loaicongviec-table th {
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+        color: #2d3748;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .loaicongviec-table td {
+        padding: 15px;
+        border-bottom: 1px solid #e9ecef;
+        vertical-align: middle;
+    }
+
+    .loaicongviec-table tbody tr {
+        transition: all 0.2s ease;
+    }
+
+    .loaicongviec-table tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .badge-custom {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-primary-custom {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-edit {
+        background: #f3e8ff;
+        color: #6b21a8;
+    }
+
+    .btn-edit:hover {
+        background: #e9d5ff;
+    }
+
+    .btn-delete {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .btn-delete:hover {
+        background: #fecaca;
+    }
+
+    .stats-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        text-align: center;
+    }
+
+    .stat-card h3 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2545B8;
+        margin: 0;
+    }
+
+    .stat-card p {
+        color: #718096;
+        margin: 10px 0 0 0;
+        font-size: 0.9rem;
+    }
+
+    .modal-content {
+        border-radius: 16px;
+        border: none;
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        color: white;
+        border-radius: 16px 16px 0 0;
+        padding: 20px 30px;
+    }
+
+    .modal-body {
+        padding: 30px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #2545B8;
+        box-shadow: 0 0 0 3px rgba(37, 69, 184, 0.1);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 69, 184, 0.4);
+    }
+
+    .no-data {
+        text-align: center;
+        padding: 60px 20px;
+        color: #718096;
+    }
+
+    .no-data i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    @@media (max-width: 768px) {
+        .filter-form {
+            grid-template-columns: 1fr;
+        }
+
+        .loaicongviec-table {
+            font-size: 0.85rem;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .page-header > div {
+            flex-direction: column !important;
+            gap: 20px;
+        }
+
+        .page-header .btn {
+            width: 100%;
+            text-align: center;
+        }
+    }
+</style>
+
+<div class="loaicongviec-management-container">
+    <div class="page-header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1><i class="bi bi-clock-history"></i> Quản lý Loại công việc</h1>
+                <p>Quản lý danh mục loại công việc trong hệ thống</p>
             </div>
-        </div>
-        <div class="col-lg-2 col-md-3">
-            <button class="btn btn-primary w-100 filter-btn" type="button" id="btnTimKiem">
-                <i class="bi bi-funnel-fill me-2"></i>Tìm kiếm
+            <button class="btn" style="background: white; color: #2545B8; padding: 12px 30px; border-radius: 10px; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: all 0.3s;" data-bs-toggle="modal" data-bs-target="#themLoaiCongViecModal">
+                <i class="bi bi-plus-circle"></i> Thêm mới
             </button>
         </div>
     </div>
-</div>
 
-<div class="row">
-    <div class="col-12">
-        <div class="data-table-card">
-            <div class="table-responsive">
-                <table class="table table-hover modern-table" id="bangLoaiCongViec">
-                    <thead>
-                        <tr>
-                            <th width="10%">Mã</th>
-                            <th width="20%">Tên loại CV</th>
-                            <th width="30%">Mô tả</th>
-                            <th width="15%">Số lượng vị trí</th>
-                            <th width="12%">Mức lương TB</th>
-                            <th width="13%">Ngày tạo</th>
-                            <th width="15%">Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var loaiCongViec in Model)
-                        {
-                            <tr data-ma="@loaiCongViec.MaLoaiCongViec">
-                                <td>@loaiCongViec.MaLoaiCongViec</td>
-                                <td><strong>@loaiCongViec.TenLoaiCongViec</strong></td>
-                                <td>
-                                    <span class="text-muted">
-                                        @(loaiCongViec.MoTa.Length > 50 ? loaiCongViec.MoTa.Substring(0, 50) + "..." : loaiCongViec.MoTa)
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="badge bg-info">@loaiCongViec.SoLuongViTri vị trí</span>
-                                </td>
-                                <td>
-                                    <span class="badge bg-success">@loaiCongViec.MucLuongTrungBinh</span>
-                                </td>
-                                <td>@loaiCongViec.NgayTao.ToString("dd/MM/yyyy")</td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-primary btn-sua" 
+    <!-- Stats Section -->
+    <div class="stats-section">
+        <div class="stat-card">
+            <h3>@Model.Count</h3>
+            <p>Tổng loại công việc</p>
+        </div>
+        <div class="stat-card">
+            <h3>@Model.Sum(l => l.SoLuongViTri)</h3>
+            <p>Tổng vị trí</p>
+        </div>
+        <div class="stat-card">
+            <h3>@(Model.Count > 0 ? ((int)Model.Average(l => l.SoLuongViTri)) : 0)</h3>
+            <p>TB vị trí/loại</p>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <form class="filter-form" onsubmit="return false;">
+            <div>
+                <label for="timKiemInput" style="margin-bottom: 8px; display: block; font-weight: 600; color: #2d3748;">Tìm kiếm</label>
+                <input type="text" id="timKiemInput" placeholder="Tìm kiếm theo tên loại công việc..." />
+            </div>
+            <div>
+                <button type="button" class="btn-filter" id="btnTimKiem">
+                    <i class="bi bi-search"></i> Tìm kiếm
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Table Section -->
+    <div class="table-container">
+        @if (Model.Any())
+        {
+            <table class="loaicongviec-table" id="bangLoaiCongViec">
+                <thead>
+                    <tr>
+                        <th>Mã</th>
+                        <th>Tên loại CV</th>
+                        <th>Mô tả</th>
+                        <th>Số lượng vị trí</th>
+                        <th>Ngày tạo</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var loaiCongViec in Model)
+                    {
+                        <tr data-ma="@loaiCongViec.MaLoaiCongViec">
+                            <td><strong>#@loaiCongViec.MaLoaiCongViec</strong></td>
+                            <td><strong>@loaiCongViec.TenLoaiCongViec</strong></td>
+                            <td>
+                                <span class="text-muted">
+                                    @(loaiCongViec.MoTa != null && loaiCongViec.MoTa.Length > 60 ? loaiCongViec.MoTa.Substring(0, 60) + "..." : loaiCongViec.MoTa ?? "")
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge-custom badge-primary-custom">@loaiCongViec.SoLuongViTri vị trí</span>
+                            </td>
+                            <td>@loaiCongViec.NgayTao.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-action btn-edit btn-sua" 
                                             data-ma="@loaiCongViec.MaLoaiCongViec"
                                             data-ten="@loaiCongViec.TenLoaiCongViec"
                                             data-mota="@loaiCongViec.MoTa"
                                             data-soluong="@loaiCongViec.SoLuongViTri"
-                                            data-luong="@loaiCongViec.MucLuongTrungBinh"
                                             title="Sửa">
                                         <i class="bi bi-pencil"></i>
                                     </button>
-                                    <button class="btn btn-sm btn-outline-danger btn-xoa" data-ma="@loaiCongViec.MaLoaiCongViec" title="Xóa">
+                                    <button class="btn-action btn-delete btn-xoa" 
+                                            data-ma="@loaiCongViec.MaLoaiCongViec" 
+                                            title="Xóa">
                                         <i class="bi bi-trash"></i>
                                     </button>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Thống kê -->
-<div class="row stats-section mt-4">
-    <div class="col-lg-4 col-md-6 mb-3">
-        <div class="mini-stat-card stat-purple">
-            <div class="stat-icon">
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="no-data">
                 <i class="bi bi-clock-history"></i>
+                <h3>Chưa có loại công việc nào</h3>
+                <p>Hãy thêm loại công việc mới để bắt đầu</p>
             </div>
-            <div class="stat-info">
-                <h6 class="stat-label">Tổng loại CV</h6>
-                <h3 class="stat-number">@Model.Count</h3>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-4 col-md-6 mb-3">
-        <div class="mini-stat-card stat-blue">
-            <div class="stat-icon">
-                <i class="bi bi-diagram-3"></i>
-            </div>
-            <div class="stat-info">
-                <h6 class="stat-label">Tổng vị trí</h6>
-                <h3 class="stat-number">@Model.Sum(l => l.SoLuongViTri)</h3>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-4 col-md-6 mb-3">
-        <div class="mini-stat-card stat-green">
-            <div class="stat-icon">
-                <i class="bi bi-graph-up-arrow"></i>
-            </div>
-            <div class="stat-info">
-                <h6 class="stat-label">TB vị trí/loại</h6>
-                <h3 class="stat-number">@((int)Model.Average(l => l.SoLuongViTri))</h3>
-            </div>
-        </div>
+        }
     </div>
 </div>
 
@@ -137,27 +400,19 @@
 <div class="modal fade" id="themLoaiCongViecModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
+            <div class="modal-header">
                 <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Thêm loại công việc mới</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form id="formThemLoaiCongViec">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Tên loại công việc</label>
-                        <input type="text" class="form-control" id="tenLoaiCongViecMoi" required>
+                    <div class="form-group">
+                        <label for="tenLoaiCongViecMoi">Tên loại công việc <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="tenLoaiCongViecMoi" required placeholder="Nhập tên loại công việc">
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Mô tả</label>
-                        <textarea class="form-control" id="moTaMoi" rows="3" required></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Số lượng vị trí</label>
-                        <input type="number" class="form-control" id="soLuongViTriMoi" value="0" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Mức lương trung bình</label>
-                        <input type="text" class="form-control" id="mucLuongMoi" placeholder="VD: 10-20 triệu" required>
+                    <div class="form-group">
+                        <label for="moTaMoi">Mô tả <span style="color: red;">*</span></label>
+                        <textarea class="form-control" id="moTaMoi" rows="3" required placeholder="Nhập mô tả loại công việc"></textarea>
                     </div>
                 </form>
             </div>
@@ -175,28 +430,20 @@
 <div class="modal fade" id="suaLoaiCongViecModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
+            <div class="modal-header">
                 <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Sửa loại công việc</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form id="formSuaLoaiCongViec">
                     <input type="hidden" id="maLoaiCongViecSua">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Tên loại công việc</label>
-                        <input type="text" class="form-control" id="tenLoaiCongViecSua" required>
+                    <div class="form-group">
+                        <label for="tenLoaiCongViecSua">Tên loại công việc <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="tenLoaiCongViecSua" required placeholder="Nhập tên loại công việc">
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Mô tả</label>
-                        <textarea class="form-control" id="moTaSua" rows="3" required></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Số lượng vị trí</label>
-                        <input type="number" class="form-control" id="soLuongViTriSua" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Mức lương trung bình</label>
-                        <input type="text" class="form-control" id="mucLuongSua" required>
+                    <div class="form-group">
+                        <label for="moTaSua">Mô tả <span style="color: red;">*</span></label>
+                        <textarea class="form-control" id="moTaSua" rows="3" required placeholder="Nhập mô tả loại công việc"></textarea>
                     </div>
                 </form>
             </div>
@@ -209,248 +456,6 @@
         </div>
     </div>
 </div>
-
-<style>
-    .page-header-card {
-        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-        border-radius: 16px;
-        padding: 28px 32px;
-        color: white;
-        box-shadow: 0 8px 24px rgba(250, 112, 154, 0.25);
-        display: flex;
-        align-items: center;
-        gap: 20px;
-    }
-    
-    .page-header-card .header-icon {
-        width: 64px;
-        height: 64px;
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2rem;
-        backdrop-filter: blur(10px);
-    }
-    
-    .page-header-card .header-title {
-        font-size: 1.75rem;
-        font-weight: 700;
-        margin-bottom: 6px;
-    }
-    
-    .page-header-card .header-subtitle {
-        font-size: 0.95rem;
-        opacity: 0.95;
-        margin: 0;
-    }
-    
-    .page-header-card .btn-light {
-        background: rgba(255, 255, 255, 0.95);
-        border: none;
-        color: #fa709a;
-        font-weight: 600;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s ease;
-    }
-    
-    .page-header-card .btn-light:hover {
-        background: white;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-    }
-    
-    .filter-section {
-        background: white;
-        border-radius: 16px;
-        padding: 24px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    }
-    
-    .search-wrapper {
-        position: relative;
-    }
-    
-    .search-icon {
-        position: absolute;
-        left: 16px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #667eea;
-        font-size: 1.1rem;
-        z-index: 1;
-    }
-    
-    .search-input {
-        padding-left: 45px;
-        border: 2px solid #e9ecef;
-        border-radius: 12px;
-        height: 48px;
-        font-size: 0.95rem;
-        transition: all 0.3s ease;
-    }
-    
-    .search-input:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-    
-    .filter-btn {
-        height: 48px;
-        border-radius: 12px;
-        font-weight: 600;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: none;
-        transition: all 0.3s ease;
-    }
-    
-    .filter-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-    }
-    
-    .data-table-card {
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-        overflow: hidden;
-    }
-    
-    .modern-table {
-        margin-bottom: 0;
-    }
-    
-    .modern-table thead {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    }
-    
-    .modern-table thead th {
-        border: none;
-        padding: 18px 16px;
-        font-weight: 700;
-        font-size: 0.875rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: #495057;
-    }
-    
-    .modern-table tbody tr {
-        transition: all 0.3s ease;
-        border-bottom: 1px solid #f1f3f5;
-    }
-    
-    .modern-table tbody tr:hover {
-        background: linear-gradient(90deg, rgba(250, 112, 154, 0.05) 0%, transparent 100%);
-        transform: scale(1.01);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-    
-    .modern-table tbody td {
-        padding: 16px;
-        vertical-align: middle;
-        border: none;
-    }
-    
-    .modern-table .badge {
-        padding: 6px 12px;
-        font-weight: 600;
-        font-size: 0.8rem;
-        border-radius: 8px;
-    }
-    
-    .modern-table .btn {
-        border-radius: 8px;
-        transition: all 0.3s ease;
-    }
-    
-    .modern-table .btn:hover {
-        transform: translateY(-2px);
-    }
-    
-    .mini-stat-card {
-        background: white;
-        border-radius: 16px;
-        padding: 20px;
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .mini-stat-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-    }
-    
-    .mini-stat-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    }
-    
-    .stat-purple::before {
-        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-    }
-    
-    .stat-blue::before {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-    
-    .stat-green::before {
-        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-    }
-    
-    .mini-stat-card .stat-icon {
-        width: 56px;
-        height: 56px;
-        border-radius: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        color: white;
-        flex-shrink: 0;
-    }
-    
-    .stat-purple .stat-icon {
-        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-    }
-    
-    .stat-blue .stat-icon {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-    
-    .stat-green .stat-icon {
-        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-    }
-    
-    .stat-info {
-        flex: 1;
-    }
-    
-    .stat-label {
-        font-size: 0.85rem;
-        color: #6c757d;
-        font-weight: 600;
-        margin-bottom: 6px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .stat-number {
-        font-size: 1.75rem;
-        font-weight: 700;
-        color: #212529;
-        margin: 0;
-    }
-</style>
 
 @section Scripts {
     <script>
@@ -480,10 +485,8 @@
             $('#btnLuuLoaiCongViec').click(function() {
                 var tenLoaiCongViec = $('#tenLoaiCongViecMoi').val();
                 var moTa = $('#moTaMoi').val();
-                var soLuongViTri = $('#soLuongViTriMoi').val();
-                var mucLuong = $('#mucLuongMoi').val();
 
-                if (!tenLoaiCongViec || !moTa || !mucLuong) {
+                if (!tenLoaiCongViec || !moTa) {
                     alert('Vui lòng nhập đầy đủ thông tin!');
                     return;
                 }
@@ -499,13 +502,11 @@
                 var ten = $(this).data('ten');
                 var moTa = $(this).data('mota');
                 var soLuong = $(this).data('soluong');
-                var luong = $(this).data('luong');
 
                 $('#maLoaiCongViecSua').val(ma);
                 $('#tenLoaiCongViecSua').val(ten);
                 $('#moTaSua').val(moTa);
                 $('#soLuongViTriSua').val(soLuong);
-                $('#mucLuongSua').val(luong);
 
                 $('#suaLoaiCongViecModal').modal('show');
             });
@@ -529,4 +530,3 @@
         });
     </script>
 }
-

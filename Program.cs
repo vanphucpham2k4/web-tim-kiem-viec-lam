@@ -20,6 +20,7 @@ builder.Services.AddSingleton<Unicareer.Repository.ITinTuyenDungRepository, Unic
 builder.Services.AddSingleton<Unicareer.Repository.ITinUngTuyenRepository, Unicareer.Repository.MockTinUngTuyenRepository>();
 builder.Services.AddSingleton<Unicareer.Repository.ILoaiCongViecRepository, Unicareer.Repository.MockLoaiCongViecRepository>();
 builder.Services.AddSingleton<Unicareer.Repository.INganhNgheRepository, Unicareer.Repository.MockNganhNgheRepository>();
+builder.Services.AddSingleton<Unicareer.Repository.ITruongDaiHocRepository, Unicareer.Repository.MockTruongDaiHocRepository>();
 
 // Cấu hình Session để lưu CAPTCHA
 builder.Services.AddSession(options =>

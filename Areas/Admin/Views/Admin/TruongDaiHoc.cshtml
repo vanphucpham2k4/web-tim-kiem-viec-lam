@@ -1,11 +1,11 @@
-@model List<Unicareer.Models.NganhNghe>
+@model List<Unicareer.Models.TruongDaiHoc>
 
 @{
-    ViewData["Title"] = "Quản lý Ngành nghề";
+    ViewData["Title"] = "Quản lý Trường đại học";
 }
 
 <style>
-    .nganhnghe-management-container {
+    .truongdaihoc-management-container {
         max-width: 1400px;
         margin: 0 auto;
     }
@@ -84,17 +84,17 @@
         overflow-x: auto;
     }
 
-    .nganhnghe-table {
+    .truongdaihoc-table {
         width: 100%;
         border-collapse: collapse;
     }
 
-    .nganhnghe-table thead {
+    .truongdaihoc-table thead {
         background: #f8f9fa;
         border-bottom: 2px solid #e9ecef;
     }
 
-    .nganhnghe-table th {
+    .truongdaihoc-table th {
         padding: 15px;
         text-align: left;
         font-weight: 600;
@@ -104,17 +104,17 @@
         letter-spacing: 0.5px;
     }
 
-    .nganhnghe-table td {
+    .truongdaihoc-table td {
         padding: 15px;
         border-bottom: 1px solid #e9ecef;
         vertical-align: middle;
     }
 
-    .nganhnghe-table tbody tr {
+    .truongdaihoc-table tbody tr {
         transition: all 0.2s ease;
     }
 
-    .nganhnghe-table tbody tr:hover {
+    .truongdaihoc-table tbody tr:hover {
         background: #f8f9fa;
     }
 
@@ -269,7 +269,7 @@
             grid-template-columns: 1fr;
         }
 
-        .nganhnghe-table {
+        .truongdaihoc-table {
             font-size: 0.85rem;
         }
 
@@ -289,14 +289,14 @@
     }
 </style>
 
-<div class="nganhnghe-management-container">
+<div class="truongdaihoc-management-container">
     <div class="page-header">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-                <h1><i class="bi bi-briefcase-fill"></i> Quản lý Ngành nghề</h1>
-                <p>Quản lý danh mục ngành nghề trong hệ thống</p>
+                <h1><i class="bi bi-building"></i> Quản lý Trường đại học</h1>
+                <p>Quản lý danh mục trường đại học trong hệ thống</p>
             </div>
-            <button class="btn" style="background: white; color: #2545B8; padding: 12px 30px; border-radius: 10px; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: all 0.3s;" data-bs-toggle="modal" data-bs-target="#themNganhNgheModal">
+            <button class="btn" style="background: white; color: #2545B8; padding: 12px 30px; border-radius: 10px; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: all 0.3s;" data-bs-toggle="modal" data-bs-target="#themTruongDaiHocModal">
                 <i class="bi bi-plus-circle"></i> Thêm mới
             </button>
         </div>
@@ -306,15 +306,7 @@
     <div class="stats-section">
         <div class="stat-card">
             <h3>@Model.Count</h3>
-            <p>Tổng ngành nghề</p>
-        </div>
-        <div class="stat-card">
-            <h3>@Model.Sum(n => n.SoLuongCongViec)</h3>
-            <p>Tổng công việc</p>
-        </div>
-        <div class="stat-card">
-            <h3>@(Model.Count > 0 ? ((int)Model.Average(n => n.SoLuongCongViec)) : 0)</h3>
-            <p>TB công việc/ngành</p>
+            <p>Tổng trường đại học</p>
         </div>
     </div>
 
@@ -323,7 +315,7 @@
         <form class="filter-form" onsubmit="return false;">
             <div>
                 <label for="timKiemInput" style="margin-bottom: 8px; display: block; font-weight: 600; color: #2d3748;">Tìm kiếm</label>
-                <input type="text" id="timKiemInput" placeholder="Tìm kiếm theo tên ngành nghề..." />
+                <input type="text" id="timKiemInput" placeholder="Tìm kiếm theo tên trường đại học..." />
             </div>
             <div>
                 <button type="button" class="btn-filter" id="btnTimKiem">
@@ -337,44 +329,39 @@
     <div class="table-container">
         @if (Model.Any())
         {
-            <table class="nganhnghe-table" id="bangNganhNghe">
+            <table class="truongdaihoc-table" id="bangTruongDaiHoc">
                 <thead>
                     <tr>
                         <th>Mã</th>
-                        <th>Tên ngành nghề</th>
+                        <th>Tên trường</th>
                         <th>Mô tả</th>
-                        <th>Số lượng CV</th>
                         <th>Ngày tạo</th>
                         <th>Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var nganhNghe in Model)
+                    @foreach (var truong in Model)
                     {
-                        <tr data-ma="@nganhNghe.MaNganhNghe">
-                            <td><strong>#@nganhNghe.MaNganhNghe</strong></td>
-                            <td><strong>@nganhNghe.TenNganhNghe</strong></td>
+                        <tr data-ma="@truong.MaTruong">
+                            <td><strong>#@truong.MaTruong</strong></td>
+                            <td><strong>@truong.TenTruong</strong></td>
                             <td>
                                 <span class="text-muted">
-                                    @(nganhNghe.MoTa != null && nganhNghe.MoTa.Length > 60 ? nganhNghe.MoTa.Substring(0, 60) + "..." : nganhNghe.MoTa ?? "")
+                                    @(truong.MoTa != null && truong.MoTa.Length > 60 ? truong.MoTa.Substring(0, 60) + "..." : truong.MoTa ?? "")
                                 </span>
                             </td>
-                            <td>
-                                <span class="badge-custom badge-primary-custom">@nganhNghe.SoLuongCongViec việc</span>
-                            </td>
-                            <td>@nganhNghe.NgayTao.ToString("dd/MM/yyyy")</td>
+                            <td>@truong.NgayTao.ToString("dd/MM/yyyy")</td>
                             <td>
                                 <div class="action-buttons">
                                     <button class="btn-action btn-edit btn-sua" 
-                                            data-ma="@nganhNghe.MaNganhNghe"
-                                            data-ten="@nganhNghe.TenNganhNghe"
-                                            data-mota="@nganhNghe.MoTa"
-                                            data-soluong="@nganhNghe.SoLuongCongViec"
+                                            data-ma="@truong.MaTruong"
+                                            data-ten="@truong.TenTruong"
+                                            data-mota="@truong.MoTa"
                                             title="Sửa">
                                         <i class="bi bi-pencil"></i>
                                     </button>
                                     <button class="btn-action btn-delete btn-xoa" 
-                                            data-ma="@nganhNghe.MaNganhNghe" 
+                                            data-ma="@truong.MaTruong" 
                                             title="Xóa">
                                         <i class="bi bi-trash"></i>
                                     </button>
@@ -388,37 +375,37 @@
         else
         {
             <div class="no-data">
-                <i class="bi bi-briefcase"></i>
-                <h3>Chưa có ngành nghề nào</h3>
-                <p>Hãy thêm ngành nghề mới để bắt đầu</p>
+                <i class="bi bi-building"></i>
+                <h3>Chưa có trường đại học nào</h3>
+                <p>Hãy thêm trường đại học mới để bắt đầu</p>
             </div>
         }
     </div>
 </div>
 
-<!-- Modal Thêm ngành nghề -->
-<div class="modal fade" id="themNganhNgheModal" tabindex="-1">
+<!-- Modal Thêm trường đại học -->
+<div class="modal fade" id="themTruongDaiHocModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Thêm ngành nghề mới</h5>
+                <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Thêm trường đại học mới</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="formThemNganhNghe">
+                <form id="formThemTruongDaiHoc">
                     <div class="form-group">
-                        <label for="tenNganhNgheMoi">Tên ngành nghề <span style="color: red;">*</span></label>
-                        <input type="text" class="form-control" id="tenNganhNgheMoi" required placeholder="Nhập tên ngành nghề">
+                        <label for="tenTruongMoi">Tên trường đại học <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="tenTruongMoi" required placeholder="Nhập tên trường đại học">
                     </div>
                     <div class="form-group">
                         <label for="moTaMoi">Mô tả <span style="color: red;">*</span></label>
-                        <textarea class="form-control" id="moTaMoi" rows="3" required placeholder="Nhập mô tả ngành nghề"></textarea>
+                        <textarea class="form-control" id="moTaMoi" rows="3" required placeholder="Nhập mô tả trường đại học"></textarea>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-primary" id="btnLuuNganhNghe">
+                <button type="button" class="btn btn-primary" id="btnLuuTruongDaiHoc">
                     <i class="bi bi-check-circle me-2"></i>Lưu
                 </button>
             </div>
@@ -426,30 +413,30 @@
     </div>
 </div>
 
-<!-- Modal Sửa ngành nghề -->
-<div class="modal fade" id="suaNganhNgheModal" tabindex="-1">
+<!-- Modal Sửa trường đại học -->
+<div class="modal fade" id="suaTruongDaiHocModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Sửa ngành nghề</h5>
+                <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Sửa trường đại học</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="formSuaNganhNghe">
-                    <input type="hidden" id="maNganhNgheSua">
+                <form id="formSuaTruongDaiHoc">
+                    <input type="hidden" id="maTruongSua">
                     <div class="form-group">
-                        <label for="tenNganhNgheSua">Tên ngành nghề <span style="color: red;">*</span></label>
-                        <input type="text" class="form-control" id="tenNganhNgheSua" required placeholder="Nhập tên ngành nghề">
+                        <label for="tenTruongSua">Tên trường đại học <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="tenTruongSua" required placeholder="Nhập tên trường đại học">
                     </div>
                     <div class="form-group">
                         <label for="moTaSua">Mô tả <span style="color: red;">*</span></label>
-                        <textarea class="form-control" id="moTaSua" rows="3" required placeholder="Nhập mô tả ngành nghề"></textarea>
+                        <textarea class="form-control" id="moTaSua" rows="3" required placeholder="Nhập mô tả trường đại học"></textarea>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-primary" id="btnCapNhatNganhNghe">
+                <button type="button" class="btn btn-primary" id="btnCapNhatTruongDaiHoc">
                     <i class="bi bi-check-circle me-2"></i>Cập nhật
                 </button>
             </div>
@@ -469,7 +456,7 @@
             });
 
             function locDuLieu(tuKhoa) {
-                $('#bangNganhNghe tbody tr').each(function() {
+                $('#bangTruongDaiHoc tbody tr').each(function() {
                     var row = $(this);
                     var ten = row.find('td:eq(1)').text().toLowerCase();
                     
@@ -481,50 +468,51 @@
                 });
             }
 
-            // Them nganh nghe
-            $('#btnLuuNganhNghe').click(function() {
-                var tenNganhNghe = $('#tenNganhNgheMoi').val();
+            // Them truong dai hoc
+            $('#btnLuuTruongDaiHoc').click(function() {
+                var tenTruong = $('#tenTruongMoi').val();
                 var moTa = $('#moTaMoi').val();
 
-                if (!tenNganhNghe || !moTa) {
+                if (!tenTruong || !moTa) {
                     alert('Vui lòng nhập đầy đủ thông tin!');
                     return;
                 }
 
-                alert('Đã thêm ngành nghề: ' + tenNganhNghe);
-                $('#themNganhNgheModal').modal('hide');
-                $('#formThemNganhNghe')[0].reset();
+                alert('Đã thêm trường đại học: ' + tenTruong);
+                $('#themTruongDaiHocModal').modal('hide');
+                $('#formThemTruongDaiHoc')[0].reset();
             });
 
-            // Sua nganh nghe
+            // Sua truong dai hoc
             $('.btn-sua').click(function() {
                 var ma = $(this).data('ma');
                 var ten = $(this).data('ten');
                 var moTa = $(this).data('mota');
 
-                $('#maNganhNgheSua').val(ma);
-                $('#tenNganhNgheSua').val(ten);
+                $('#maTruongSua').val(ma);
+                $('#tenTruongSua').val(ten);
                 $('#moTaSua').val(moTa);
 
-                $('#suaNganhNgheModal').modal('show');
+                $('#suaTruongDaiHocModal').modal('show');
             });
 
-            $('#btnCapNhatNganhNghe').click(function() {
-                var ma = $('#maNganhNgheSua').val();
-                var ten = $('#tenNganhNgheSua').val();
+            $('#btnCapNhatTruongDaiHoc').click(function() {
+                var ma = $('#maTruongSua').val();
+                var ten = $('#tenTruongSua').val();
 
-                alert('Đã cập nhật ngành nghề mã ' + ma + ': ' + ten);
-                $('#suaNganhNgheModal').modal('hide');
+                alert('Đã cập nhật trường đại học mã ' + ma + ': ' + ten);
+                $('#suaTruongDaiHocModal').modal('hide');
             });
 
-            // Xoa nganh nghe
+            // Xoa truong dai hoc
             $('.btn-xoa').click(function() {
                 var ma = $(this).data('ma');
-                if (confirm('Bạn có chắc chắn muốn xóa ngành nghề này?')) {
-                    alert('Đã xóa ngành nghề mã ' + ma);
+                if (confirm('Bạn có chắc chắn muốn xóa trường đại học này?')) {
+                    alert('Đã xóa trường đại học mã ' + ma);
                     $(this).closest('tr').fadeOut();
                 }
             });
         });
     </script>
 }
+

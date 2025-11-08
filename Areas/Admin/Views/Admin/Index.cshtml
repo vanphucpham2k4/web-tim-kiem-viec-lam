@@ -44,16 +44,6 @@
             </a>
         </div>
 
-        <!-- Quản lý tin ứng tuyển -->
-        <div class="col-xl-3 col-lg-4 col-md-6">
-            <a href="@Url.Action("TinUngTuyen", "Admin")" class="text-decoration-none">
-                <div class="dashboard-card">
-                    <i class="bi bi-envelope-paper"></i>
-                    <h5>Quản lý tin ứng tuyển</h5>
-                </div>
-            </a>
-        </div>
-
         <!-- Quản lý ngành nghề -->
         <div class="col-xl-3 col-lg-4 col-md-6">
             <a href="@Url.Action("NganhNghe", "Admin")" class="text-decoration-none">
@@ -70,6 +60,26 @@
                 <div class="dashboard-card">
                     <i class="bi bi-briefcase"></i>
                     <h5>Quản lý loại công việc</h5>
+                </div>
+            </a>
+        </div>
+
+        <!-- Quản lý người dùng -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("UserManagement", "AdminUser")" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <i class="bi bi-people"></i>
+                    <h5>Quản lý người dùng</h5>
+                </div>
+            </a>
+        </div>
+
+        <!-- Quản lý trường đại học -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("TruongDaiHoc", "Admin")" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <i class="bi bi-mortarboard"></i>
+                    <h5>Quản lý trường đại học</h5>
                 </div>
             </a>
         </div>
@@ -160,6 +170,8 @@
     .col-xl-3:nth-child(6) .dashboard-card { animation-delay: 0.35s; }
     .col-xl-3:nth-child(7) .dashboard-card { animation-delay: 0.4s; }
     .col-xl-3:nth-child(8) .dashboard-card { animation-delay: 0.45s; }
+    .col-xl-3:nth-child(9) .dashboard-card { animation-delay: 0.5s; }
+    .col-xl-3:nth-child(10) .dashboard-card { animation-delay: 0.55s; }
 
     @@keyframes fadeInUp {
         from {

@@ -169,7 +169,7 @@ namespace Unicareer.Areas.Admin.Controllers
 
         // GET: Admin/AdminUser/UserManagement
         [HttpGet]
-        public async Task<IActionResult> UserManagement(string? searchTerm, string? roleFilter)
+        public async Task<IActionResult> UserManagement(string? searchTerm, string? roleFilter, int pageNumber = 1, int pageSize = 50)
         {
             ViewData["Title"] = "Quản lý người dùng";
             
@@ -178,7 +178,9 @@ namespace Unicareer.Areas.Admin.Controllers
             {
                 SearchTerm = searchTerm,
                 RoleFilter = roleFilter,
-                AvailableRoles = _roleManager.Roles.Select(r => r.Name!).ToList()
+                AvailableRoles = _roleManager.Roles.Select(r => r.Name!).ToList(),
+                PageNumber = pageNumber,
+                PageSize = pageSize
             };
 
             // Lọc theo search term
@@ -199,8 +201,15 @@ namespace Unicareer.Areas.Admin.Controllers
                 allUsers = allUsers.Where(u => userIdsInRole.Contains(u.Id)).ToList();
             }
 
+            // Sắp xếp theo ngày đăng ký (mới nhất trước)
+            allUsers = allUsers.OrderByDescending(u => u.NgayDangKy).ToList();
+
+            // Tính toán phân trang
+            model.TotalCount = allUsers.Count;
+            var pagedUsers = allUsers.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+
             // Chuyển đổi sang UserInfo
-            foreach (var user in allUsers)
+            foreach (var user in pagedUsers)
             {
                 var roles = await _userManager.GetRolesAsync(user);
                 var isLockedOut = await _userManager.IsLockedOutAsync(user);
@@ -220,9 +229,6 @@ namespace Unicareer.Areas.Admin.Controllers
                     IsPrimaryAdmin = DbInitializer.IsPrimaryAdmin(user)
                 });
             }
-
-            // Sắp xếp theo ngày đăng ký (mới nhất trước)
-            model.Users = model.Users.OrderByDescending(u => u.NgayDangKy).ToList();
 
             return View(model);
         }
@@ -414,6 +420,155 @@ namespace Unicareer.Areas.Admin.Controllers
                 {
                     TempData["ErrorMessage"] = "Có lỗi xảy ra khi mở khóa tài khoản.";
                 }
+            }
+
+            return RedirectToAction("UserManagement");
+        }
+
+        // POST: Admin/AdminUser/BulkLockUnlockUsers
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BulkLockUnlockUsers(string userIds, bool lockUser)
+        {
+            if (string.IsNullOrEmpty(userIds))
+            {
+                TempData["ErrorMessage"] = "Vui lòng chọn ít nhất một người dùng!";
+                return RedirectToAction("UserManagement");
+            }
+
+            var userIdList = userIds.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
+            if (!userIdList.Any())
+            {
+                TempData["ErrorMessage"] = "Vui lòng chọn ít nhất một người dùng!";
+                return RedirectToAction("UserManagement");
+            }
+
+            int successCount = 0;
+            int failCount = 0;
+
+            foreach (var userId in userIdList)
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null) continue;
+
+                // BẢO VỆ: Không cho phép khóa admin đầu tiên
+                if (DbInitializer.IsPrimaryAdmin(user) && lockUser)
+                {
+                    failCount++;
+                    continue;
+                }
+
+                if (lockUser)
+                {
+                    var result = await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow.AddDays(365));
+                    if (result.Succeeded)
+                    {
+                        successCount++;
+                        _logger.LogInformation("ADMIN BULK LOCK USER: UserId={UserId}, Email={Email}, LockedBy={LockedBy}, IP={IP}, Time={Time}",
+                            user.Id, user.Email, User.Identity?.Name, HttpContext.Connection.RemoteIpAddress?.ToString(), DateTime.UtcNow);
+                    }
+                    else
+                    {
+                        failCount++;
+                    }
+                }
+                else
+                {
+                    var result = await _userManager.SetLockoutEndDateAsync(user, null);
+                    if (result.Succeeded)
+                    {
+                        successCount++;
+                        _logger.LogInformation("ADMIN BULK UNLOCK USER: UserId={UserId}, Email={Email}, UnlockedBy={UnlockedBy}, IP={IP}, Time={Time}",
+                            user.Id, user.Email, User.Identity?.Name, HttpContext.Connection.RemoteIpAddress?.ToString(), DateTime.UtcNow);
+                    }
+                    else
+                    {
+                        failCount++;
+                    }
+                }
+            }
+
+            if (successCount > 0)
+            {
+                TempData["SuccessMessage"] = $"Đã {(lockUser ? "khóa" : "mở khóa")} {successCount} tài khoản thành công!";
+            }
+            if (failCount > 0)
+            {
+                TempData["ErrorMessage"] = $"Không thể {(lockUser ? "khóa" : "mở khóa")} {failCount} tài khoản.";
+            }
+
+            return RedirectToAction("UserManagement");
+        }
+
+        // POST: Admin/AdminUser/BulkAssignRole
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BulkAssignRole(string userIds, string roleName)
+        {
+            if (string.IsNullOrEmpty(userIds) || string.IsNullOrEmpty(roleName))
+            {
+                TempData["ErrorMessage"] = "Vui lòng chọn ít nhất một người dùng và một role!";
+                return RedirectToAction("UserManagement");
+            }
+
+            var userIdList = userIds.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
+            if (!userIdList.Any())
+            {
+                TempData["ErrorMessage"] = "Vui lòng chọn ít nhất một người dùng!";
+                return RedirectToAction("UserManagement");
+            }
+
+            // Kiểm tra role có tồn tại không
+            if (!await _roleManager.RoleExistsAsync(roleName))
+            {
+                TempData["ErrorMessage"] = "Role không tồn tại!";
+                return RedirectToAction("UserManagement");
+            }
+
+            int successCount = 0;
+            int failCount = 0;
+
+            foreach (var userId in userIdList)
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null) continue;
+
+                // BẢO VỆ: Không cho phép thay đổi role của admin đầu tiên
+                if (DbInitializer.IsPrimaryAdmin(user))
+                {
+                    failCount++;
+                    continue;
+                }
+
+                // Xóa tất cả role hiện tại
+                var currentRoles = await _userManager.GetRolesAsync(user);
+                if (currentRoles.Any())
+                {
+                    await _userManager.RemoveFromRolesAsync(user, currentRoles);
+                }
+
+                // Gán role mới
+                var result = await _userManager.AddToRoleAsync(user, roleName);
+
+                if (result.Succeeded)
+                {
+                    successCount++;
+                    _logger.LogInformation("ADMIN BULK ASSIGN ROLE: UserId={UserId}, Email={Email}, Role={Role}, AssignedBy={AssignedBy}, IP={IP}, Time={Time}",
+                        user.Id, user.Email, roleName, User.Identity?.Name, HttpContext.Connection.RemoteIpAddress?.ToString(), DateTime.UtcNow);
+                }
+                else
+                {
+                    failCount++;
+                }
+            }
+
+            if (successCount > 0)
+            {
+                TempData["SuccessMessage"] = $"Đã gán role '{roleName}' cho {successCount} tài khoản thành công!";
+            }
+            if (failCount > 0)
+            {
+                TempData["ErrorMessage"] = $"Không thể gán role cho {failCount} tài khoản.";
             }
 
             return RedirectToAction("UserManagement");

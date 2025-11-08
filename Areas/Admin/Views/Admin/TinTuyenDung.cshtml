@@ -391,14 +391,6 @@
             <option value="Thiet ke do hoa">Thiết kế đồ họa</option>
         </select>
     </div>
-    <div>
-        <button class="btn btn-success" id="btnXuatExcel" title="Xuất Excel">
-            <i class="bi bi-file-earmark-spreadsheet"></i> Xuất Excel
-        </button>
-        <button class="btn btn-primary" id="btnDuyetHangLoat" title="Duyệt hàng loạt">
-            <i class="bi bi-check-all"></i> Duyệt hàng loạt
-        </button>
-    </div>
 </div>
 
 <div class="row">
@@ -462,15 +454,6 @@
                                             <a href="@Url.Action("ChiTietTinTuyenDung", "Admin", new { id = tin.MaTinTuyenDung })" class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
                                                 <i class="bi bi-eye"></i>
                                             </a>
-                                            <button class="btn btn-sm btn-outline-success btn-duyet" data-ma="@tin.MaTinTuyenDung" title="Duyệt tin">
-                                                <i class="bi bi-check-circle"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-warning btn-sua" data-ma="@tin.MaTinTuyenDung" title="Chỉnh sửa">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-info btn-xem-ung-vien" data-ma="@tin.MaTinTuyenDung" title="Xem ứng viên">
-                                                <i class="bi bi-people"></i>
-                                            </button>
                                             <button class="btn btn-sm btn-outline-danger btn-khoa" data-ma="@tin.MaTinTuyenDung" title="Khóa tin">
                                                 <i class="bi bi-lock"></i>
                                             </button>
@@ -540,28 +523,6 @@
     </div>
 </div>
 
-<!-- Modal Duyệt tin -->
-<div class="modal fade" id="duyetTinModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title"><i class="bi bi-check-circle me-2"></i>Duyệt tin tuyển dụng</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Bạn có chắc chắn muốn duyệt tin tuyển dụng này không?</p>
-                <input type="hidden" id="maTinDuyet">
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-success" id="btnXacNhanDuyet">
-                    <i class="bi bi-check-circle me-2"></i>Xác nhận duyệt
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Modal Khóa tin -->
 <div class="modal fade" id="khoaTinModal" tabindex="-1">
     <div class="modal-dialog">
@@ -583,26 +544,6 @@
                 <button type="button" class="btn btn-danger" id="btnXacNhanKhoa">
                     <i class="bi bi-lock me-2"></i>Xác nhận khóa
                 </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Xem ứng viên -->
-<div class="modal fade" id="xemUngVienModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-info text-white">
-                <h5 class="modal-title"><i class="bi bi-people me-2"></i>Danh sách ứng viên</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div id="danhSachUngVien">
-                    <p class="text-center text-muted">Đang tải dữ liệu...</p>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
             </div>
         </div>
     </div>
@@ -662,36 +603,6 @@
                 $('.chonTin').prop('checked', $(this).prop('checked'));
             });
             
-            // Duyệt tin
-            $('.btn-duyet').on('click', function(e) {
-                e.preventDefault();
-                var ma = $(this).data('ma');
-                $('#maTinDuyet').val(ma);
-                $('#duyetTinModal').modal('show');
-            });
-            
-            $('#btnXacNhanDuyet').on('click', function() {
-                var ma = $('#maTinDuyet').val();
-                // Gọi API duyệt tin
-                $.ajax({
-                    url: '@Url.Action("DuyetTinTuyenDung", "Admin")',
-                    type: 'POST',
-                    data: { id: ma },
-                    success: function(response) {
-                        if (response.success) {
-                            showNotification('Đã duyệt tin tuyển dụng thành công!', 'success');
-                            $('#duyetTinModal').modal('hide');
-                            location.reload();
-                        } else {
-                            showNotification(response.message || 'Có lỗi xảy ra!', 'error');
-                        }
-                    },
-                    error: function() {
-                        showNotification('Có lỗi xảy ra khi duyệt tin!', 'error');
-                    }
-                });
-            });
-            
             // Khóa tin
             $('.btn-khoa').on('click', function(e) {
                 e.preventDefault();
@@ -726,92 +637,6 @@
                         showNotification('Có lỗi xảy ra khi khóa tin!', 'error');
                     }
                 });
-            });
-            
-            // Xem ứng viên
-            $('.btn-xem-ung-vien').on('click', function(e) {
-                e.preventDefault();
-                var ma = $(this).data('ma');
-                $('#xemUngVienModal').modal('show');
-                $('#danhSachUngVien').html('<p class="text-center text-muted">Đang tải dữ liệu...</p>');
-                
-                // Gọi API lấy danh sách ứng viên
-                $.ajax({
-                    url: '@Url.Action("LayDanhSachUngVien", "Admin")',
-                    type: 'GET',
-                    data: { maTin: ma },
-                    success: function(response) {
-                        if (response.success && response.data && response.data.length > 0) {
-                            var html = '<table class="table table-hover"><thead><tr><th>Họ tên</th><th>Email</th><th>Điện thoại</th><th>Vị trí</th><th>Trạng thái</th><th>Ngày ứng tuyển</th><th>Thao tác</th></tr></thead><tbody>';
-                            response.data.forEach(function(uv) {
-                                html += '<tr>';
-                                html += '<td>' + uv.hoTen + '</td>';
-                                html += '<td>' + uv.email + '</td>';
-                                html += '<td>' + uv.soDienThoai + '</td>';
-                                html += '<td>' + uv.viTriUngTuyen + '</td>';
-                                html += '<td><span class="badge bg-info">' + uv.trangThaiXuLy + '</span></td>';
-                                html += '<td>' + uv.ngayUngTuyen + '</td>';
-                                html += '<td><a href="#" class="btn btn-sm btn-outline-primary btn-xem-cv" data-link="' + uv.linkCV + '"><i class="bi bi-file-earmark-pdf"></i> Xem CV</a></td>';
-                                html += '</tr>';
-                            });
-                            html += '</tbody></table>';
-                            $('#danhSachUngVien').html(html);
-                        } else {
-                            $('#danhSachUngVien').html('<p class="text-center text-muted">Chưa có ứng viên nào ứng tuyển cho tin này.</p>');
-                        }
-                    },
-                    error: function() {
-                        $('#danhSachUngVien').html('<p class="text-center text-danger">Có lỗi xảy ra khi tải dữ liệu!</p>');
-                    }
-                });
-            });
-            
-            // Xem CV
-            $(document).on('click', '.btn-xem-cv', function(e) {
-                e.preventDefault();
-                var linkCV = $(this).data('link');
-                if (linkCV) {
-                    window.open(linkCV, '_blank');
-                } else {
-                    alert('Chưa có CV!');
-                }
-            });
-            
-            // Duyệt hàng loạt
-            $('#btnDuyetHangLoat').on('click', function() {
-                var danhSachMa = [];
-                $('.chonTin:checked').each(function() {
-                    danhSachMa.push($(this).val());
-                });
-                
-                if (danhSachMa.length === 0) {
-                    alert('Vui lòng chọn ít nhất một tin để duyệt!');
-                    return;
-                }
-                
-                if (confirm('Bạn có chắc chắn muốn duyệt ' + danhSachMa.length + ' tin đã chọn không?')) {
-                    $.ajax({
-                        url: '@Url.Action("DuyetHangLoat", "Admin")',
-                        type: 'POST',
-                        data: { danhSachMa: danhSachMa },
-                        success: function(response) {
-                            if (response.success) {
-                                showNotification('Đã duyệt ' + response.count + ' tin thành công!', 'success');
-                                location.reload();
-                            } else {
-                                showNotification(response.message || 'Có lỗi xảy ra!', 'error');
-                            }
-                        },
-                        error: function() {
-                            showNotification('Có lỗi xảy ra khi duyệt hàng loạt!', 'error');
-                        }
-                    });
-                }
-            });
-            
-            // Xuất Excel
-            $('#btnXuatExcel').on('click', function() {
-                window.location.href = '@Url.Action("XuatExcel", "Admin")';
             });
             
             // Xóa tin
