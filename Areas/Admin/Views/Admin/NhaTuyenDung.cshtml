@@ -37,11 +37,13 @@
                 <i class="bi bi-geo-alt filter-icon"></i>
                 <select class="form-select filter-select" id="locTinhThanhPho">
                     <option value="">Tất cả tỉnh/TP</option>
-                    <option value="Ha Noi">Hà Nội</option>
-                    <option value="TP Ho Chi Minh">TP Hồ Chí Minh</option>
-                    <option value="Da Nang">Đà Nẵng</option>
-                    <option value="Hai Phong">Hải Phòng</option>
-                    <option value="Can Tho">Cần Thơ</option>
+                    @{
+                        var danhSachTinhThanh = ViewBag.DanhSachTinhThanh as List<Unicareer.Models.Province> ?? new List<Unicareer.Models.Province>();
+                    }
+                    @foreach (var tinh in danhSachTinhThanh)
+                    {
+                        <option value="@tinh.FullName" data-code="@tinh.Code" data-fullname="@tinh.FullName">@tinh.FullName</option>
+                    }
                 </select>
             </div>
         </div>
@@ -50,13 +52,6 @@
                 <i class="bi bi-map filter-icon"></i>
                 <select class="form-select filter-select" id="locQuanHuyen">
                     <option value="">Tất cả quận/huyện</option>
-                    <option value="Quan 1">Quận 1</option>
-                    <option value="Quan 3">Quận 3</option>
-                    <option value="Quan 4">Quận 4</option>
-                    <option value="Quan 7">Quận 7</option>
-                    <option value="Tan Binh">Tân Bình</option>
-                    <option value="Ba Dinh">Ba Đình</option>
-                    <option value="Cau Giay">Cầu Giấy</option>
                 </select>
             </div>
         </div>
@@ -639,13 +634,72 @@
 @section Scripts {
     <script>
         $(document).ready(function() {
+            // Function to load wards by province
+            function loadWardsByProvince(provinceCode) {
+                const $locQuanHuyen = $('#locQuanHuyen');
+                
+                // Reset quận/huyện dropdown
+                $locQuanHuyen.html('<option value="">Tất cả quận/huyện</option>');
+                
+                if (provinceCode) {
+                    // Show loading state
+                    $locQuanHuyen.prop('disabled', true);
+                    $locQuanHuyen.html('<option value="">Đang tải...</option>');
+                    
+                    // Fetch wards from API
+                    fetch(`/Admin/Admin/GetWardsByProvince?provinceCode=${encodeURIComponent(provinceCode)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            $locQuanHuyen.html('<option value="">Tất cả quận/huyện</option>');
+                            
+                            if (data && data.length > 0) {
+                                data.forEach(ward => {
+                                    const option = $('<option></option>')
+                                        .attr('value', ward.fullName)
+                                        .text(ward.fullName);
+                                    $locQuanHuyen.append(option);
+                                });
+                            } else {
+                                $locQuanHuyen.html('<option value="">Không có dữ liệu</option>');
+                            }
+                            
+                            $locQuanHuyen.prop('disabled', false);
+                        })
+                        .catch(error => {
+                            console.error('Error loading wards:', error);
+                            $locQuanHuyen.html('<option value="">Lỗi tải dữ liệu</option>');
+                            $locQuanHuyen.prop('disabled', false);
+                        });
+                } else {
+                    $locQuanHuyen.prop('disabled', false);
+                }
+            }
+
+            // Load wards when province changes
+            $('#locTinhThanhPho').on('change', function() {
+                var selectedOption = $(this).find('option:selected');
+                var provinceCode = selectedOption.data('code');
+                if (provinceCode) {
+                    loadWardsByProvince(provinceCode);
+                } else {
+                    $('#locQuanHuyen').html('<option value="">Tất cả quận/huyện</option>');
+                }
+                locDuLieu();
+            });
+
+            // Kiểm tra và load quận/huyện nếu tỉnh đã được chọn (khi quay lại bằng back button)
+            const selectedProvinceCode = $('#locTinhThanhPho option:selected').data('code');
+            if (selectedProvinceCode) {
+                loadWardsByProvince(selectedProvinceCode);
+            }
+
             // Tim kiem va loc
             $('#btnTimKiem, #timKiemInput').on('click keyup', function(e) {
                 if (e.type === 'keyup' && e.keyCode !== 13) return;
                 locDuLieu();
             });
 
-            $('#locTinhThanhPho, #locQuanHuyen, #locLinhVuc').on('change', function() {
+            $('#locQuanHuyen, #locLinhVuc').on('change', function() {
                 locDuLieu();
             });
 

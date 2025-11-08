@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using Unicareer.Models;
 using Unicareer.Models.ViewModels;
 using Unicareer.Repository;
+using Unicareer.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Unicareer.Areas.Recruiter.Controllers
 {
@@ -14,15 +16,18 @@ namespace Unicareer.Areas.Recruiter.Controllers
         private readonly ITinTuyenDungRepository _tinTuyenDungRepository;
         private readonly ITinUngTuyenRepository _tinUngTuyenRepository;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ApplicationDbContext _context;
 
         public RecruiterController(
             ITinTuyenDungRepository tinTuyenDungRepository, 
             ITinUngTuyenRepository tinUngTuyenRepository,
-            UserManager<ApplicationUser> userManager)
+            UserManager<ApplicationUser> userManager,
+            ApplicationDbContext context)
         {
             _tinTuyenDungRepository = tinTuyenDungRepository;
             _tinUngTuyenRepository = tinUngTuyenRepository;
             _userManager = userManager;
+            _context = context;
         }
         // GET: Trang chu nha tuyen dung
         public IActionResult Index()
@@ -49,6 +54,13 @@ namespace Unicareer.Areas.Recruiter.Controllers
         public IActionResult DangTinTuyenDung()
         {
             ViewData["Title"] = "Dang tuyen dung";
+            
+            // Lấy danh sách tỉnh/thành phố
+            var danhSachTinhThanh = _context.Provinces
+                .OrderBy(p => p.FullName)
+                .ToList();
+            
+            ViewBag.DanhSachTinhThanh = danhSachTinhThanh;
             return View();
         }
 
@@ -79,7 +91,35 @@ namespace Unicareer.Areas.Recruiter.Controllers
             
             // Nếu có lỗi validation, hiển thị lại form với lỗi
             ViewData["Title"] = "Dang tuyen dung";
+            
+            // Lấy danh sách tỉnh/thành phố
+            var danhSachTinhThanh = _context.Provinces
+                .OrderBy(p => p.FullName)
+                .ToList();
+            
+            ViewBag.DanhSachTinhThanh = danhSachTinhThanh;
             return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult GetWardsByProvince(string provinceCode)
+        {
+            if (string.IsNullOrEmpty(provinceCode))
+            {
+                return Json(new List<object>());
+            }
+
+            var wards = _context.Wards
+                .Where(w => w.ProvinceCode == provinceCode && !string.IsNullOrEmpty(w.FullName))
+                .OrderBy(w => w.FullName)
+                .Select(w => new
+                {
+                    code = w.Code,
+                    fullName = w.FullName
+                })
+                .ToList();
+
+            return Json(wards);
         }
 
         // GET: Danh sach tin da dang
@@ -94,9 +134,8 @@ namespace Unicareer.Areas.Recruiter.Controllers
         // GET: Chi tiet tin da dang
         public IActionResult ChiTietTinDaDang(int id)
         {
-            ViewData["Title"] = "Chi tiết tin tuyển dụng";
+            ViewData["Title"] = "Chi tiết tin đã đăng";
             
-            // Lấy thông tin tin tuyển dụng
             var tinTuyenDung = _tinTuyenDungRepository.LayTinTuyenDungTheoId(id);
             if (tinTuyenDung == null)
             {
@@ -109,7 +148,13 @@ namespace Unicareer.Areas.Recruiter.Controllers
                 .Where(t => t.MaTinTuyenDung == id.ToString())
                 .ToList();
             
+            // Lấy danh sách tỉnh/thành phố
+            var danhSachTinhThanh = _context.Provinces
+                .OrderBy(p => p.FullName)
+                .ToList();
+            
             ViewBag.DanhSachUngTuyen = danhSachUngTuyen;
+            ViewBag.DanhSachTinhThanh = danhSachTinhThanh;
             
             return View(tinTuyenDung);
         }
@@ -176,7 +221,14 @@ namespace Unicareer.Areas.Recruiter.Controllers
             var danhSachUngTuyen = _tinUngTuyenRepository.LayDanhSachTinUngTuyen()
                 .Where(t => t.MaTinTuyenDung == id.ToString())
                 .ToList();
+            
+            // Lấy danh sách tỉnh/thành phố
+            var danhSachTinhThanh = _context.Provinces
+                .OrderBy(p => p.FullName)
+                .ToList();
+            
             ViewBag.DanhSachUngTuyen = danhSachUngTuyen;
+            ViewBag.DanhSachTinhThanh = danhSachTinhThanh;
             return View("ChiTietTinDaDang", tinHienTai);
         }
 
@@ -266,6 +318,13 @@ namespace Unicareer.Areas.Recruiter.Controllers
             {
                 return NotFound();
             }
+            
+            // Lấy danh sách tỉnh/thành phố
+            var danhSachTinhThanh = _context.Provinces
+                .OrderBy(p => p.FullName)
+                .ToList();
+            
+            ViewBag.DanhSachTinhThanh = danhSachTinhThanh;
             return View(user);
         }
 

@@ -1309,70 +1309,28 @@
                                         <label class="form-label required-label">Làm việc tại Tỉnh/Thành phố</label>
                                         <select class="form-select" name="TinhThanhPho" id="editTinhThanhPho" required>
                                             <option value="">Chọn tỉnh/thành phố</option>
-                                            @if (Model.TinhThanhPho == "Ha Noi")
-                                            {
-                                                <option value="Ha Noi" selected>Hà Nội</option>
+                                            @{
+                                                var danhSachTinhThanh = ViewBag.DanhSachTinhThanh as List<Unicareer.Models.Province> ?? new List<Unicareer.Models.Province>();
                                             }
-                                            else
+                                            @foreach (var tinh in danhSachTinhThanh)
                                             {
-                                                <option value="Ha Noi">Hà Nội</option>
-                                            }
-                                            @if (Model.TinhThanhPho == "TP Ho Chi Minh")
-                                            {
-                                                <option value="TP Ho Chi Minh" selected>TP Hồ Chí Minh</option>
-                                            }
-                                            else
-                                            {
-                                                <option value="TP Ho Chi Minh">TP Hồ Chí Minh</option>
-                                            }
-                                            @if (Model.TinhThanhPho == "Da Nang")
-                                            {
-                                                <option value="Da Nang" selected>Đà Nẵng</option>
-                                            }
-                                            else
-                                            {
-                                                <option value="Da Nang">Đà Nẵng</option>
-                                            }
-                                            @if (Model.TinhThanhPho == "Hai Phong")
-                                            {
-                                                <option value="Hai Phong" selected>Hải Phòng</option>
-                                            }
-                                            else
-                                            {
-                                                <option value="Hai Phong">Hải Phòng</option>
-                                            }
-                                            @if (Model.TinhThanhPho == "Can Tho")
-                                            {
-                                                <option value="Can Tho" selected>Cần Thơ</option>
-                                            }
-                                            else
-                                            {
-                                                <option value="Can Tho">Cần Thơ</option>
-                                            }
-                                            @if (Model.TinhThanhPho == "Binh Duong")
-                                            {
-                                                <option value="Binh Duong" selected>Bình Dương</option>
-                                            }
-                                            else
-                                            {
-                                                <option value="Binh Duong">Bình Dương</option>
-                                            }
-                                            @if (Model.TinhThanhPho == "Dong Nai")
-                                            {
-                                                <option value="Dong Nai" selected>Đồng Nai</option>
-                                            }
-                                            else
-                                            {
-                                                <option value="Dong Nai">Đồng Nai</option>
+                                                @if (Model.TinhThanhPho == tinh.FullName)
+                                                {
+                                                    <option value="@tinh.FullName" data-code="@tinh.Code" data-fullname="@tinh.FullName" selected>@tinh.FullName</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@tinh.FullName" data-code="@tinh.Code" data-fullname="@tinh.FullName">@tinh.FullName</option>
+                                                }
                                             }
                                         </select>
                                         <span class="text-danger field-validation-valid" data-valmsg-for="TinhThanhPho" data-valmsg-replace="true"></span>
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">Quận/Huyện</label>
-                                        <input type="text" class="form-control" name="PhuongXa" 
-                                               id="editPhuongXa" value="@Model.PhuongXa"
-                                               placeholder="Nhập quận/huyện">
+                                        <select class="form-select" name="PhuongXa" id="editPhuongXa">
+                                            <option value="">Chọn quận/huyện</option>
+                                        </select>
                                     </div>
                                 </div>
 
@@ -1782,24 +1740,98 @@
                     });
 
                     // Update map when city changes
+                    // Function to load wards by province
+                    function loadWardsByProvince(provinceCode, selectedWardName = null) {
+                        const $editPhuongXa = $('#editPhuongXa');
+                        
+                        // Reset quận/huyện dropdown
+                        $editPhuongXa.html('<option value="">Chọn quận/huyện</option>');
+                        
+                        if (provinceCode) {
+                            // Show loading state
+                            $editPhuongXa.prop('disabled', true);
+                            $editPhuongXa.html('<option value="">Đang tải...</option>');
+                            
+                            // Fetch wards from API
+                            fetch(`/Recruiter/Recruiter/GetWardsByProvince?provinceCode=${encodeURIComponent(provinceCode)}`)
+                                .then(response => response.json())
+                                .then(data => {
+                                    $editPhuongXa.html('<option value="">Chọn quận/huyện</option>');
+                                    
+                                    if (data && data.length > 0) {
+                                        data.forEach(ward => {
+                                            const option = $('<option></option>')
+                                                .attr('value', ward.fullName)
+                                                .text(ward.fullName);
+                                            if (selectedWardName && ward.fullName === selectedWardName) {
+                                                option.attr('selected', 'selected');
+                                            }
+                                            $editPhuongXa.append(option);
+                                        });
+                                    } else {
+                                        $editPhuongXa.html('<option value="">Không có dữ liệu</option>');
+                                    }
+                                    
+                                    $editPhuongXa.prop('disabled', false);
+                                })
+                                .catch(error => {
+                                    console.error('Error loading wards:', error);
+                                    $editPhuongXa.html('<option value="">Lỗi tải dữ liệu</option>');
+                                    $editPhuongXa.prop('disabled', false);
+                                });
+                        } else {
+                            $editPhuongXa.prop('disabled', false);
+                        }
+                    }
+
                     $('#editTinhThanhPho').change(function() {
-                        var city = $(this).val();
+                        var selectedOption = $(this).find('option:selected');
+                        var cityName = $(this).val();
+                        var provinceCode = selectedOption.data('code');
+                        
+                        // Load wards for selected province
+                        if (provinceCode) {
+                            loadWardsByProvince(provinceCode);
+                        } else {
+                            $('#editPhuongXa').html('<option value="">Chọn quận/huyện</option>');
+                        }
+                        
+                        // Update map coordinates (simplified - you can enhance this with actual coordinates from database)
                         var coordinates = {
-                            'Ha Noi': [21.028511, 105.804817],
-                            'TP Ho Chi Minh': [10.762622, 106.660172],
-                            'Da Nang': [16.047079, 108.206230],
-                            'Hai Phong': [20.844892, 106.687973],
-                            'Can Tho': [10.045162, 105.746857],
-                            'Binh Duong': [10.980273, 106.652199],
-                            'Dong Nai': [10.951172, 107.036759]
+                            'Hà Nội': [21.028511, 105.804817],
+                            'Thành phố Hà Nội': [21.028511, 105.804817],
+                            'TP Hồ Chí Minh': [10.762622, 106.660172],
+                            'Thành phố Hồ Chí Minh': [10.762622, 106.660172],
+                            'Đà Nẵng': [16.047079, 108.206230],
+                            'Thành phố Đà Nẵng': [16.047079, 108.206230],
+                            'Hải Phòng': [20.844892, 106.687973],
+                            'Thành phố Hải Phòng': [20.844892, 106.687973],
+                            'Cần Thơ': [10.045162, 105.746857],
+                            'Thành phố Cần Thơ': [10.045162, 105.746857]
                         };
                         
-                        if (coordinates[city] && editMap) {
-                            editMap.setView(coordinates[city], 13);
-                            editMarker.setLatLng(coordinates[city]);
-                            updateEditCoordinates(coordinates[city][0], coordinates[city][1]);
+                        // Try to find matching coordinates
+                        var coords = null;
+                        for (var key in coordinates) {
+                            if (cityName && (cityName.includes(key) || key.includes(cityName))) {
+                                coords = coordinates[key];
+                                break;
+                            }
+                        }
+                        
+                        if (coords && editMap) {
+                            editMap.setView(coords, 13);
+                            editMarker.setLatLng(coords);
+                            updateEditCoordinates(coords[0], coords[1]);
                         }
                     });
+                    
+                    // Kiểm tra và load quận/huyện nếu tỉnh đã được chọn (khi quay lại bằng back button hoặc edit)
+                    const selectedProvinceCode = $('#editTinhThanhPho option:selected').data('code');
+                    const selectedWardName = '@Model.PhuongXa';
+                    if (selectedProvinceCode) {
+                        loadWardsByProvince(selectedProvinceCode, selectedWardName);
+                    }
 
                     // Allow Enter key to search address
                     $('#editDiaChiLamViec').keypress(function(e) {

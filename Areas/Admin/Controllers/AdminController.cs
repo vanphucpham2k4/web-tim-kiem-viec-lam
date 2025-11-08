@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Unicareer.Models;
 using Unicareer.Repository;
+using Unicareer.Data;
 
 namespace Unicareer.Areas.Admin.Controllers
 {
@@ -18,8 +19,9 @@ namespace Unicareer.Areas.Admin.Controllers
         private readonly INganhNgheRepository _nganhNgheRepository;
         private readonly ITruongDaiHocRepository _truongDaiHocRepository;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ApplicationDbContext _context;
 
-        public AdminController(INhaTuyenDungRepository nhaTuyenDungRepository, IUngVienRepository ungVienRepository, ITinTuyenDungRepository tinTuyenDungRepository, ITinUngTuyenRepository tinUngTuyenRepository, ILoaiCongViecRepository loaiCongViecRepository, INganhNgheRepository nganhNgheRepository, ITruongDaiHocRepository truongDaiHocRepository, UserManager<ApplicationUser> userManager)
+        public AdminController(INhaTuyenDungRepository nhaTuyenDungRepository, IUngVienRepository ungVienRepository, ITinTuyenDungRepository tinTuyenDungRepository, ITinUngTuyenRepository tinUngTuyenRepository, ILoaiCongViecRepository loaiCongViecRepository, INganhNgheRepository nganhNgheRepository, ITruongDaiHocRepository truongDaiHocRepository, UserManager<ApplicationUser> userManager, ApplicationDbContext context)
         {
             _nhaTuyenDungRepository = nhaTuyenDungRepository;
             _ungVienRepository = ungVienRepository;
@@ -29,6 +31,7 @@ namespace Unicareer.Areas.Admin.Controllers
             _nganhNgheRepository = nganhNgheRepository;
             _truongDaiHocRepository = truongDaiHocRepository;
             _userManager = userManager;
+            _context = context;
         }
 
         public IActionResult Index()
@@ -64,8 +67,12 @@ namespace Unicareer.Areas.Admin.Controllers
             var danhSachNhaTuyenDung = _nhaTuyenDungRepository.LayDanhSachNhaTuyenDung();
             var danhSachTinTuyenDung = _tinTuyenDungRepository.LayDanhSachTinTuyenDung();
             var danhSachTinUngTuyen = _tinUngTuyenRepository.LayDanhSachTinUngTuyen();
+            var danhSachTinhThanh = _context.Provinces
+                .OrderBy(p => p.FullName)
+                .ToList();
             ViewBag.DanhSachTinTuyenDung = danhSachTinTuyenDung;
             ViewBag.DanhSachTinUngTuyen = danhSachTinUngTuyen;
+            ViewBag.DanhSachTinhThanh = danhSachTinhThanh;
             return View(danhSachNhaTuyenDung);
         }
 
@@ -194,7 +201,13 @@ namespace Unicareer.Areas.Admin.Controllers
                 .Where(t => t.MaTinTuyenDung == id.ToString())
                 .ToList();
             
+            // Lấy danh sách tỉnh/thành phố
+            var danhSachTinhThanh = _context.Provinces
+                .OrderBy(p => p.FullName)
+                .ToList();
+            
             ViewBag.DanhSachUngTuyen = danhSachUngTuyen;
+            ViewBag.DanhSachTinhThanh = danhSachTinhThanh;
             
             return View(tinTuyenDung);
         }
@@ -402,7 +415,14 @@ namespace Unicareer.Areas.Admin.Controllers
             var danhSachUngTuyen = _tinUngTuyenRepository.LayDanhSachTinUngTuyen()
                 .Where(t => t.MaTinTuyenDung == id.ToString())
                 .ToList();
+            
+            // Lấy danh sách tỉnh/thành phố
+            var danhSachTinhThanh = _context.Provinces
+                .OrderBy(p => p.FullName)
+                .ToList();
+            
             ViewBag.DanhSachUngTuyen = danhSachUngTuyen;
+            ViewBag.DanhSachTinhThanh = danhSachTinhThanh;
 
             return View("ChiTietTinTuyenDung", tinHienTai);
         }
@@ -484,6 +504,26 @@ namespace Unicareer.Areas.Admin.Controllers
             {
                 return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
             }
+        }
+
+        // GET: Lấy danh sách quận/huyện theo tỉnh/thành phố
+        [HttpGet]
+        public IActionResult GetWardsByProvince(string provinceCode)
+        {
+            if (string.IsNullOrEmpty(provinceCode))
+            {
+                return Json(new List<object>());
+            }
+            var wards = _context.Wards
+                .Where(w => w.ProvinceCode == provinceCode && !string.IsNullOrEmpty(w.FullName))
+                .OrderBy(w => w.FullName)
+                .Select(w => new
+                {
+                    code = w.Code,
+                    fullName = w.FullName
+                })
+                .ToList();
+            return Json(wards);
         }
     }
 }

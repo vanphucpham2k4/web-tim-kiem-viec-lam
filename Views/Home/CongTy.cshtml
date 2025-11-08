@@ -340,12 +340,21 @@
                     <option value="Truyen thong">Truyền thông</option>
                 </select>
             </div>
-            <div class="col-md-4">
-                <select class="form-select form-select-sm" id="filterDiaDiem">
-                    <option value="">Địa điểm</option>
-                    <option value="Ha Noi">Hà Nội</option>
-                    <option value="TP Ho Chi Minh">TP Hồ Chí Minh</option>
-                    <option value="Da Nang">Đà Nẵng</option>
+            <div class="col-md-3">
+                <select class="form-select form-select-sm" id="filterTinhThanh">
+                    <option value="">Tỉnh/Thành Phố</option>
+                    @{
+                        var danhSachTinhThanh = ViewBag.DanhSachTinhThanh as List<Unicareer.Models.Province> ?? new List<Unicareer.Models.Province>();
+                    }
+                    @foreach (var tinh in danhSachTinhThanh)
+                    {
+                        <option value="@tinh.Code" data-fullname="@tinh.FullName">@tinh.FullName</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select form-select-sm" id="filterQuanHuyen">
+                    <option value="">Quận/Huyện</option>
                 </select>
             </div>
         </div>
@@ -368,7 +377,7 @@
     <div class="row" id="companyList">
         @foreach (var company in Model)
         {
-            <div class="col-md-6 col-lg-4" data-linhvuc="@company.LinhVuc" data-diadiem="@company.TinhThanhPho">
+            <div class="col-md-6 col-lg-4" data-linhvuc="@company.LinhVuc" data-tinhthanh="@company.TinhThanhPho" data-quanhuyen="@company.QuanHuyen">
                 <a href="/Home/ChiTietCongTy/@company.MaNhaTuyenDung" class="text-decoration-none" style="color: inherit;">
                     <div class="company-card">
                         <div class="company-logo">
@@ -406,34 +415,112 @@
 @section Scripts {
     <script>
         $(document).ready(function() {
+            // Function to load wards by province
+            function loadWardsByProvince(provinceCode) {
+                const $filterQuanHuyen = $('#filterQuanHuyen');
+                
+                // Reset quận/huyện dropdown
+                $filterQuanHuyen.html('<option value="">Quận/Huyện</option>');
+                
+                if (provinceCode) {
+                    // Show loading state
+                    $filterQuanHuyen.prop('disabled', true);
+                    $filterQuanHuyen.html('<option value="">Đang tải...</option>');
+                    
+                    // Fetch wards from API
+                    fetch(`/Home/GetWardsByProvince?provinceCode=${encodeURIComponent(provinceCode)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            $filterQuanHuyen.html('<option value="">Quận/Huyện</option>');
+                            
+                            if (data && data.length > 0) {
+                                data.forEach(ward => {
+                                    const option = $('<option></option>')
+                                        .attr('value', ward.code)
+                                        .attr('data-fullname', ward.fullName)
+                                        .text(ward.fullName);
+                                    $filterQuanHuyen.append(option);
+                                });
+                            } else {
+                                $filterQuanHuyen.html('<option value="">Không có dữ liệu</option>');
+                            }
+                            
+                            $filterQuanHuyen.prop('disabled', false);
+                        })
+                        .catch(error => {
+                            console.error('Error loading wards:', error);
+                            $filterQuanHuyen.html('<option value="">Lỗi tải dữ liệu</option>');
+                            $filterQuanHuyen.prop('disabled', false);
+                        });
+                } else {
+                    $filterQuanHuyen.prop('disabled', false);
+                }
+            }
+            
+            // Load wards when province is selected
+            $('#filterTinhThanh').on('change', function() {
+                loadWardsByProvince($(this).val());
+            });
+            
+            // Kiểm tra và load quận/huyện nếu tỉnh đã được chọn (khi quay lại bằng back button)
+            const selectedProvinceCode = $('#filterTinhThanh').val();
+            if (selectedProvinceCode) {
+                loadWardsByProvince(selectedProvinceCode);
+            }
+            
             // Search functionality
             $('#searchInput').on('keyup', function() {
                 filterCompanies();
             });
             
             // Filter functionality
-            $('#filterLinhVuc, #filterDiaDiem').on('change', function() {
+            $('#filterLinhVuc, #filterTinhThanh, #filterQuanHuyen').on('change', function() {
                 filterCompanies();
             });
             
             function filterCompanies() {
                 var searchText = $('#searchInput').val().toLowerCase();
                 var linhVuc = $('#filterLinhVuc').val();
-                var diaDiem = $('#filterDiaDiem').val();
+                var filterTinhThanhCode = $('#filterTinhThanh').val();
+                var filterTinhThanhName = $('#filterTinhThanh option:selected').text();
+                var filterQuanHuyenCode = $('#filterQuanHuyen').val();
+                var filterQuanHuyenName = $('#filterQuanHuyen option:selected').text();
                 
                 var visibleCount = 0;
                 
                 $('#companyList > div').each(function() {
                     var card = $(this);
                     var cardLinhVuc = card.data('linhvuc') || '';
-                    var cardDiaDiem = card.data('diadiem') || '';
+                    var cardTinhThanh = card.data('tinhthanh') || '';
+                    var cardQuanHuyen = card.data('quanhuyen') || '';
                     var cardText = card.text().toLowerCase();
                     
                     var matchSearch = searchText === '' || cardText.includes(searchText);
                     var matchLinhVuc = linhVuc === '' || cardLinhVuc.toLowerCase().includes(linhVuc.toLowerCase());
-                    var matchDiaDiem = diaDiem === '' || cardDiaDiem.includes(diaDiem);
                     
-                    if (matchSearch && matchLinhVuc && matchDiaDiem) {
+                    // Tìm kiếm tỉnh/thành phố - so sánh với tên tỉnh từ dropdown
+                    var matchTinhThanh = true;
+                    if (filterTinhThanhName && filterTinhThanhName !== '' && filterTinhThanhName !== 'Tỉnh/Thành Phố') {
+                        var tinhThanhLower = filterTinhThanhName.toLowerCase();
+                        var cardTinhThanhLower = cardTinhThanh.toLowerCase();
+                        
+                        // Tìm kiếm linh hoạt
+                        matchTinhThanh = cardTinhThanhLower.includes(tinhThanhLower) || 
+                                        cardTinhThanhLower === tinhThanhLower ||
+                                        tinhThanhLower.includes(cardTinhThanhLower);
+                    }
+                    
+                    // Tìm kiếm quận/huyện - so sánh với tên quận/huyện từ dropdown
+                    var matchQuanHuyen = true;
+                    if (filterQuanHuyenName && filterQuanHuyenName !== '' && filterQuanHuyenName !== 'Quận/Huyện' && filterQuanHuyenName !== 'Đang tải...' && filterQuanHuyenName !== 'Không có dữ liệu' && filterQuanHuyenName !== 'Lỗi tải dữ liệu') {
+                        var quanHuyenLower = filterQuanHuyenName.toLowerCase();
+                        var cardQuanHuyenLower = cardQuanHuyen.toLowerCase();
+                        matchQuanHuyen = cardQuanHuyenLower.includes(quanHuyenLower) || 
+                                        cardQuanHuyenLower === quanHuyenLower ||
+                                        quanHuyenLower.includes(cardQuanHuyenLower);
+                    }
+                    
+                    if (matchSearch && matchLinhVuc && matchTinhThanh && matchQuanHuyen) {
                         card.show();
                         visibleCount++;
                     } else {

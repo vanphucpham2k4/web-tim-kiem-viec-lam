@@ -462,27 +462,18 @@
                             <div class="col-md-3">
                                 <select class="form-select" id="searchTinhThanh">
                                     <option value="">Tỉnh/Thành Phố</option>
-                                    <option value="Hà Nội">Hà Nội</option>
-                                    <option value="TP Hồ Chí Minh">TP Hồ Chí Minh</option>
-                                    <option value="Đà Nẵng">Đà Nẵng</option>
-                                    <option value="Hải Phòng">Hải Phòng</option>
-                                    <option value="Cần Thơ">Cần Thơ</option>
-                                    <option value="Bình Dương">Bình Dương</option>
-                                    <option value="Đồng Nai">Đồng Nai</option>
-                                    <option value="Bắc Ninh">Bắc Ninh</option>
+                                    @{
+                                        var danhSachTinhThanh = ViewBag.DanhSachTinhThanh as List<Unicareer.Models.Province> ?? new List<Unicareer.Models.Province>();
+                                    }
+                                    @foreach (var tinh in danhSachTinhThanh)
+                                    {
+                                        <option value="@tinh.Code" data-fullname="@tinh.FullName">@tinh.FullName</option>
+                                    }
                                 </select>
                             </div>
                             <div class="col-md-2">
                                 <select class="form-select" id="searchQuanHuyen">
                                     <option value="">Quận/Huyện</option>
-                                    <option value="Quận 1">Quận 1</option>
-                                    <option value="Quận 3">Quận 3</option>
-                                    <option value="Quận 5">Quận 5</option>
-                                    <option value="Quận 7">Quận 7</option>
-                                    <option value="Quận 10">Quận 10</option>
-                                    <option value="Cầu Giấy">Cầu Giấy</option>
-                                    <option value="Đống Đa">Đống Đa</option>
-                                    <option value="Hai Bà Trưng">Hai Bà Trưng</option>
                                 </select>
                             </div>
                             <div class="col-md-2">
@@ -576,7 +567,7 @@
                 {
                     var mucLuongDisplay = job.MucLuongThapNhat == 0 && job.MucLuongCaoNhat == 0 ? "Thỏa thuận" : $"{job.MucLuongThapNhat}-{job.MucLuongCaoNhat} triệu";
                     <a href="/Home/ChiTietViecLam/@job.MaTinTuyenDung" class="text-decoration-none" style="color: inherit;">
-                        <div class="job-card" data-nganh="@job.NganhNghe" data-loai="@job.LoaiCongViec" data-luong="@mucLuongDisplay">
+                        <div class="job-card" data-nganh="@job.NganhNghe" data-loai="@job.LoaiCongViec" data-luong="@mucLuongDisplay" data-tinhthanh="@job.TinhThanhPho" data-phuongxa="@job.PhuongXa">
                             <div class="d-flex">
                                 <div class="job-logo">
                                     @job.CongTy.Substring(0, 1)
@@ -662,6 +653,59 @@
 @section Scripts {
     <script>
         $(document).ready(function() {
+            // Function to load wards by province
+            function loadWardsByProvince(provinceCode) {
+                const $searchQuanHuyen = $('#searchQuanHuyen');
+                
+                // Reset quận/huyện dropdown
+                $searchQuanHuyen.html('<option value="">Quận/Huyện</option>');
+                
+                if (provinceCode) {
+                    // Show loading state
+                    $searchQuanHuyen.prop('disabled', true);
+                    $searchQuanHuyen.html('<option value="">Đang tải...</option>');
+                    
+                    // Fetch wards from API
+                    fetch(`/Home/GetWardsByProvince?provinceCode=${encodeURIComponent(provinceCode)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            $searchQuanHuyen.html('<option value="">Quận/Huyện</option>');
+                            
+                            if (data && data.length > 0) {
+                                data.forEach(ward => {
+                                    const option = $('<option></option>')
+                                        .attr('value', ward.code)
+                                        .attr('data-fullname', ward.fullName)
+                                        .text(ward.fullName);
+                                    $searchQuanHuyen.append(option);
+                                });
+                            } else {
+                                $searchQuanHuyen.html('<option value="">Không có dữ liệu</option>');
+                            }
+                            
+                            $searchQuanHuyen.prop('disabled', false);
+                        })
+                        .catch(error => {
+                            console.error('Error loading wards:', error);
+                            $searchQuanHuyen.html('<option value="">Lỗi tải dữ liệu</option>');
+                            $searchQuanHuyen.prop('disabled', false);
+                        });
+                } else {
+                    $searchQuanHuyen.prop('disabled', false);
+                }
+            }
+            
+            // Load wards when province is selected
+            $('#searchTinhThanh').on('change', function() {
+                loadWardsByProvince($(this).val());
+            });
+            
+            // Kiểm tra và load quận/huyện nếu tỉnh đã được chọn (khi quay lại bằng back button)
+            const selectedProvinceCode = $('#searchTinhThanh').val();
+            if (selectedProvinceCode) {
+                loadWardsByProvince(selectedProvinceCode);
+            }
+            
             // Search functionality
             $('#searchForm').on('submit', function(e) {
                 e.preventDefault();
@@ -679,8 +723,10 @@
             
             function filterJobs() {
                 var searchText = $('#searchInput').val().toLowerCase();
-                var searchTinhThanh = $('#searchTinhThanh').val().toLowerCase();
-                var searchQuanHuyen = $('#searchQuanHuyen').val().toLowerCase();
+                var searchTinhThanhCode = $('#searchTinhThanh').val();
+                var searchTinhThanhName = $('#searchTinhThanh option:selected').text();
+                var searchQuanHuyenCode = $('#searchQuanHuyen').val();
+                var searchQuanHuyenName = $('#searchQuanHuyen option:selected').text();
                 var nganhNghe = $('#filterNganhNghe').val();
                 var mucLuong = $('#filterMucLuong').val();
                 
@@ -690,11 +736,34 @@
                     var card = $(this);
                     var jobNganh = card.data('nganh') || '';
                     var jobLuong = card.data('luong') || '';
+                    var jobTinhThanh = card.data('tinhthanh') || '';
+                    var jobPhuongXa = card.data('phuongxa') || '';
                     var jobText = card.text().toLowerCase();
                     
                     var matchSearch = searchText === '' || jobText.includes(searchText);
-                    var matchTinhThanh = searchTinhThanh === '' || jobText.includes(searchTinhThanh);
-                    var matchQuanHuyen = searchQuanHuyen === '' || jobText.includes(searchQuanHuyen);
+                    
+                    // Tìm kiếm tỉnh/thành phố - so sánh với tên tỉnh từ dropdown
+                    var matchTinhThanh = true;
+                    if (searchTinhThanhName && searchTinhThanhName !== '' && searchTinhThanhName !== 'Tỉnh/Thành Phố') {
+                        var tinhThanhLower = searchTinhThanhName.toLowerCase();
+                        var jobTinhThanhLower = jobTinhThanh.toLowerCase();
+                        
+                        // Tìm kiếm linh hoạt
+                        matchTinhThanh = jobTinhThanhLower.includes(tinhThanhLower) || 
+                                        jobTinhThanhLower === tinhThanhLower ||
+                                        tinhThanhLower.includes(jobTinhThanhLower);
+                    }
+                    
+                    // Tìm kiếm quận/huyện - so sánh với tên quận/huyện từ dropdown
+                    var matchQuanHuyen = true;
+                    if (searchQuanHuyenName && searchQuanHuyenName !== '' && searchQuanHuyenName !== 'Quận/Huyện' && searchQuanHuyenName !== 'Đang tải...' && searchQuanHuyenName !== 'Không có dữ liệu' && searchQuanHuyenName !== 'Lỗi tải dữ liệu') {
+                        var quanHuyenLower = searchQuanHuyenName.toLowerCase();
+                        var jobPhuongXaLower = jobPhuongXa.toLowerCase();
+                        matchQuanHuyen = jobPhuongXaLower.includes(quanHuyenLower) || 
+                                        jobPhuongXaLower === quanHuyenLower ||
+                                        quanHuyenLower.includes(jobPhuongXaLower);
+                    }
+                    
                     var matchNganh = nganhNghe === '' || jobNganh === nganhNghe;
                     
                     // Simple salary range matching

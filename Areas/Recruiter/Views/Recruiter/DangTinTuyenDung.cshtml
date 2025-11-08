@@ -379,13 +379,13 @@
                         <label asp-for="TinhThanhPho" class="form-label required-label">Làm việc tại Tỉnh/Thành phố</label>
                         <select asp-for="TinhThanhPho" class="form-select" id="tinhThanhPho" required>
                             <option value="">Chọn tỉnh/thành phố</option>
-                            <option value="Ha Noi">Hà Nội</option>
-                            <option value="TP Ho Chi Minh">TP Hồ Chí Minh</option>
-                            <option value="Da Nang">Đà Nẵng</option>
-                            <option value="Hai Phong">Hải Phòng</option>
-                            <option value="Can Tho">Cần Thơ</option>
-                            <option value="Binh Duong">Bình Dương</option>
-                            <option value="Dong Nai">Đồng Nai</option>
+                            @{
+                                var danhSachTinhThanh = ViewBag.DanhSachTinhThanh as List<Unicareer.Models.Province> ?? new List<Unicareer.Models.Province>();
+                            }
+                            @foreach (var tinh in danhSachTinhThanh)
+                            {
+                                <option value="@tinh.FullName" data-code="@tinh.Code" data-fullname="@tinh.FullName">@tinh.FullName</option>
+                            }
                         </select>
                         <span asp-validation-for="TinhThanhPho" class="text-danger"></span>
                     </div>
@@ -768,47 +768,96 @@
                 });
             });
 
+            // Function to load wards by province
+            function loadWardsByProvince(provinceCode) {
+                const $phuongXa = $('#phuongXa');
+                
+                // Reset quận/huyện dropdown
+                $phuongXa.html('<option value="">Chọn quận/huyện</option>');
+                
+                if (provinceCode) {
+                    // Show loading state
+                    $phuongXa.prop('disabled', true);
+                    $phuongXa.html('<option value="">Đang tải...</option>');
+                    
+                    // Fetch wards from API
+                    fetch(`/Recruiter/Recruiter/GetWardsByProvince?provinceCode=${encodeURIComponent(provinceCode)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            $phuongXa.html('<option value="">Chọn quận/huyện</option>');
+                            
+                            if (data && data.length > 0) {
+                                data.forEach(ward => {
+                                    const option = $('<option></option>')
+                                        .attr('value', ward.fullName)
+                                        .text(ward.fullName);
+                                    $phuongXa.append(option);
+                                });
+                            } else {
+                                $phuongXa.html('<option value="">Không có dữ liệu</option>');
+                            }
+                            
+                            $phuongXa.prop('disabled', false);
+                        })
+                        .catch(error => {
+                            console.error('Error loading wards:', error);
+                            $phuongXa.html('<option value="">Lỗi tải dữ liệu</option>');
+                            $phuongXa.prop('disabled', false);
+                        });
+                } else {
+                    $phuongXa.prop('disabled', false);
+                }
+            }
+
             // Update map when city changes
             $('#tinhThanhPho').change(function() {
-                var city = $(this).val();
+                var selectedOption = $(this).find('option:selected');
+                var cityName = $(this).val();
+                var provinceCode = selectedOption.data('code');
+                
+                // Load wards for selected province
+                if (provinceCode) {
+                    loadWardsByProvince(provinceCode);
+                }
+                
+                // Update map coordinates (simplified - you can enhance this with actual coordinates from database)
                 var coordinates = {
-                    'Ha Noi': [21.028511, 105.804817],
-                    'TP Ho Chi Minh': [10.762622, 106.660172],
-                    'Da Nang': [16.047079, 108.206230],
-                    'Hai Phong': [20.844892, 106.687973],
-                    'Can Tho': [10.045162, 105.746857],
-                    'Binh Duong': [10.980273, 106.652199],
-                    'Dong Nai': [10.951172, 107.036759]
+                    'Hà Nội': [21.028511, 105.804817],
+                    'Thành phố Hà Nội': [21.028511, 105.804817],
+                    'TP Hồ Chí Minh': [10.762622, 106.660172],
+                    'Thành phố Hồ Chí Minh': [10.762622, 106.660172],
+                    'Đà Nẵng': [16.047079, 108.206230],
+                    'Thành phố Đà Nẵng': [16.047079, 108.206230],
+                    'Hải Phòng': [20.844892, 106.687973],
+                    'Thành phố Hải Phòng': [20.844892, 106.687973],
+                    'Cần Thơ': [10.045162, 105.746857],
+                    'Thành phố Cần Thơ': [10.045162, 105.746857],
+                    'Bình Dương': [10.980273, 106.652199],
+                    'Tỉnh Bình Dương': [10.980273, 106.652199],
+                    'Đồng Nai': [10.951172, 107.036759],
+                    'Tỉnh Đồng Nai': [10.951172, 107.036759]
                 };
                 
-                if (coordinates[city]) {
-                    map.setView(coordinates[city], 13);
-                    marker.setLatLng(coordinates[city]);
-                    updateCoordinates(coordinates[city][0], coordinates[city][1]);
+                // Try to find matching coordinates
+                var coords = null;
+                for (var key in coordinates) {
+                    if (cityName && cityName.includes(key) || key.includes(cityName)) {
+                        coords = coordinates[key];
+                        break;
+                    }
                 }
-
-                // Update districts based on city
-                updateDistricts(city);
+                
+                if (coords) {
+                    map.setView(coords, 13);
+                    marker.setLatLng(coords);
+                    updateCoordinates(coords[0], coords[1]);
+                }
             });
-
-            function updateDistricts(city) {
-                var districts = {
-                    'Ha Noi': ['Ba Dinh', 'Hoan Kiem', 'Dong Da', 'Hai Ba Trung', 'Cau Giay', 'Tay Ho', 'Thanh Xuan', 'Long Bien'],
-                    'TP Ho Chi Minh': ['Quan 1', 'Quan 2', 'Quan 3', 'Quan 4', 'Quan 5', 'Quan 7', 'Tan Binh', 'Binh Thanh', 'Phu Nhuan'],
-                    'Da Nang': ['Hai Chau', 'Thanh Khe', 'Son Tra', 'Ngu Hanh Son', 'Lien Chieu', 'Cam Le', 'Hoa Vang'],
-                    'Hai Phong': ['Hong Bang', 'Ngo Quyen', 'Le Chan', 'Hai An', 'Kien An', 'Do Son'],
-                    'Can Tho': ['Ninh Kieu', 'Binh Thuy', 'Cai Rang', 'O Mon', 'Thot Not']
-                };
-
-                var $phuongXa = $('#phuongXa');
-                $phuongXa.empty();
-                $phuongXa.append('<option value="">Chon phuong/xa</option>');
-
-                if (districts[city]) {
-                    districts[city].forEach(function(district) {
-                        $phuongXa.append('<option value="' + district + '">' + district + '</option>');
-                    });
-                }
+            
+            // Kiểm tra và load quận/huyện nếu tỉnh đã được chọn (khi quay lại bằng back button hoặc edit)
+            const selectedProvinceCode = $('#tinhThanhPho option:selected').data('code');
+            if (selectedProvinceCode) {
+                loadWardsByProvince(selectedProvinceCode);
             }
 
             // Allow Enter key to search address

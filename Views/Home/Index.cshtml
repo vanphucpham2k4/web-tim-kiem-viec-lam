@@ -600,14 +600,18 @@
     <div class="search-container">
         <div class="search-bar">
             <input type="text" class="search-input" placeholder="Tìm kiếm việc làm, chức vụ, kỹ năng, công ty...">
-            <select class="dropdown">
-                <option>Tỉnh/Thành Phố</option>
-                <option>Hà Nội</option>
-                <option>TP Hồ Chí Minh</option>
-                <option>Đà Nẵng</option>
+            <select class="dropdown" id="selectTinhThanh">
+                <option value="">Tỉnh/Thành Phố</option>
+                @{
+                    var danhSachTinhThanh = ViewBag.DanhSachTinhThanh as List<Unicareer.Models.Province> ?? new List<Unicareer.Models.Province>();
+                }
+                @foreach (var tinh in danhSachTinhThanh)
+                {
+                    <option value="@tinh.Code">@tinh.FullName</option>
+                }
             </select>
-            <select class="dropdown">
-                <option>Quận/Huyện</option>
+            <select class="dropdown" id="selectQuanHuyen">
+                <option value="">Quận/Huyện</option>
             </select>
             <button class="search-btn">TÌM KIẾM 🔍</button>
         </div>
@@ -942,13 +946,83 @@
         });
     });
     
+    // Load wards when province is selected
+    const selectTinhThanh = document.getElementById('selectTinhThanh');
+    const selectQuanHuyen = document.getElementById('selectQuanHuyen');
+    
+    function loadWardsByProvince(provinceCode) {
+        // Reset quận/huyện dropdown
+        selectQuanHuyen.innerHTML = '<option value="">Quận/Huyện</option>';
+        
+        if (provinceCode) {
+            // Show loading state
+            selectQuanHuyen.disabled = true;
+            selectQuanHuyen.innerHTML = '<option value="">Đang tải...</option>';
+            
+            // Fetch wards from API
+            fetch(`/Home/GetWardsByProvince?provinceCode=${encodeURIComponent(provinceCode)}`)
+                .then(response => response.json())
+                .then(data => {
+                    selectQuanHuyen.innerHTML = '<option value="">Quận/Huyện</option>';
+                    
+                    if (data && data.length > 0) {
+                        data.forEach(ward => {
+                            const option = document.createElement('option');
+                            option.value = ward.code;
+                            option.textContent = ward.fullName;
+                            selectQuanHuyen.appendChild(option);
+                        });
+                    } else {
+                        selectQuanHuyen.innerHTML = '<option value="">Không có dữ liệu</option>';
+                    }
+                    
+                    selectQuanHuyen.disabled = false;
+                })
+                .catch(error => {
+                    console.error('Error loading wards:', error);
+                    selectQuanHuyen.innerHTML = '<option value="">Lỗi tải dữ liệu</option>';
+                    selectQuanHuyen.disabled = false;
+                });
+        } else {
+            selectQuanHuyen.disabled = false;
+        }
+    }
+    
+    selectTinhThanh.addEventListener('change', function() {
+        loadWardsByProvince(this.value);
+    });
+    
+    // Kiểm tra và load quận/huyện nếu tỉnh đã được chọn (khi quay lại bằng back button)
+    if (selectTinhThanh && selectTinhThanh.value) {
+        loadWardsByProvince(selectTinhThanh.value);
+    }
+    
     // Search button handler
     document.querySelector('.search-btn').addEventListener('click', function() {
         const searchValue = document.querySelector('.search-input').value;
-        if(searchValue) {
-            alert(`Đang tìm kiếm: ${searchValue}`);
+        const tinhThanh = selectTinhThanh.value;
+        const quanHuyen = selectQuanHuyen.value;
+        
+        // Build search URL
+        let searchUrl = '/Home/TimViec?';
+        const params = [];
+        
+        if (searchValue) {
+            params.push(`keyword=${encodeURIComponent(searchValue)}`);
+        }
+        if (tinhThanh) {
+            const tinhName = selectTinhThanh.options[selectTinhThanh.selectedIndex].text;
+            params.push(`tinhThanh=${encodeURIComponent(tinhName)}`);
+        }
+        if (quanHuyen) {
+            const quanName = selectQuanHuyen.options[selectQuanHuyen.selectedIndex].text;
+            params.push(`quanHuyen=${encodeURIComponent(quanName)}`);
+        }
+        
+        if (params.length > 0 || searchValue) {
+            window.location.href = searchUrl + params.join('&');
         } else {
-            alert('Vui lòng nhập từ khóa tìm kiếm');
+            window.location.href = '/Home/TimViec';
         }
     });
     

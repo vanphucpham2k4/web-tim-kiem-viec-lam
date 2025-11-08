@@ -103,69 +103,13 @@
                                                     </label>
                                                     <select id="tinhThanhPho" name="tinhThanhPho" required>
                                                         <option value="">-- Chọn tỉnh/thành phố --</option>
-                                                        <option value="Ha Noi">Hà Nội</option>
-                                                        <option value="TP Ho Chi Minh">TP. Hồ Chí Minh</option>
-                                                        <option value="Da Nang">Đà Nẵng</option>
-                                                        <option value="Hai Phong">Hải Phòng</option>
-                                                        <option value="Can Tho">Cần Thơ</option>
-                                                        <option value="An Giang">An Giang</option>
-                                                        <option value="Ba Ria - Vung Tau">Bà Rịa - Vũng Tàu</option>
-                                                        <option value="Bac Lieu">Bạc Liêu</option>
-                                                        <option value="Bac Kan">Bắc Kạn</option>
-                                                        <option value="Bac Giang">Bắc Giang</option>
-                                                        <option value="Bac Ninh">Bắc Ninh</option>
-                                                        <option value="Ben Tre">Bến Tre</option>
-                                                        <option value="Binh Dinh">Bình Định</option>
-                                                        <option value="Binh Duong">Bình Dương</option>
-                                                        <option value="Binh Phuoc">Bình Phước</option>
-                                                        <option value="Binh Thuan">Bình Thuận</option>
-                                                        <option value="Ca Mau">Cà Mau</option>
-                                                        <option value="Cao Bang">Cao Bằng</option>
-                                                        <option value="Dak Lak">Đắk Lắk</option>
-                                                        <option value="Dak Nong">Đắk Nông</option>
-                                                        <option value="Dien Bien">Điện Biên</option>
-                                                        <option value="Dong Nai">Đồng Nai</option>
-                                                        <option value="Dong Thap">Đồng Tháp</option>
-                                                        <option value="Gia Lai">Gia Lai</option>
-                                                        <option value="Ha Giang">Hà Giang</option>
-                                                        <option value="Ha Nam">Hà Nam</option>
-                                                        <option value="Ha Tinh">Hà Tĩnh</option>
-                                                        <option value="Hai Duong">Hải Dương</option>
-                                                        <option value="Hau Giang">Hậu Giang</option>
-                                                        <option value="Hoa Binh">Hòa Bình</option>
-                                                        <option value="Hung Yen">Hưng Yên</option>
-                                                        <option value="Khanh Hoa">Khánh Hòa</option>
-                                                        <option value="Kien Giang">Kiên Giang</option>
-                                                        <option value="Kon Tum">Kon Tum</option>
-                                                        <option value="Lai Chau">Lai Châu</option>
-                                                        <option value="Lam Dong">Lâm Đồng</option>
-                                                        <option value="Lang Son">Lạng Sơn</option>
-                                                        <option value="Lao Cai">Lào Cai</option>
-                                                        <option value="Long An">Long An</option>
-                                                        <option value="Nam Dinh">Nam Định</option>
-                                                        <option value="Nghe An">Nghệ An</option>
-                                                        <option value="Ninh Binh">Ninh Bình</option>
-                                                        <option value="Ninh Thuan">Ninh Thuận</option>
-                                                        <option value="Phu Tho">Phú Thọ</option>
-                                                        <option value="Phu Yen">Phú Yên</option>
-                                                        <option value="Quang Binh">Quảng Bình</option>
-                                                        <option value="Quang Nam">Quảng Nam</option>
-                                                        <option value="Quang Ngai">Quảng Ngãi</option>
-                                                        <option value="Quang Ninh">Quảng Ninh</option>
-                                                        <option value="Quang Tri">Quảng Trị</option>
-                                                        <option value="Soc Trang">Sóc Trăng</option>
-                                                        <option value="Son La">Sơn La</option>
-                                                        <option value="Tay Ninh">Tây Ninh</option>
-                                                        <option value="Thai Binh">Thái Bình</option>
-                                                        <option value="Thai Nguyen">Thái Nguyên</option>
-                                                        <option value="Thanh Hoa">Thanh Hóa</option>
-                                                        <option value="Thua Thien Hue">Thừa Thiên Huế</option>
-                                                        <option value="Tien Giang">Tiền Giang</option>
-                                                        <option value="Tra Vinh">Trà Vinh</option>
-                                                        <option value="Tuyen Quang">Tuyên Quang</option>
-                                                        <option value="Vinh Long">Vĩnh Long</option>
-                                                        <option value="Vinh Phuc">Vĩnh Phúc</option>
-                                                        <option value="Yen Bai">Yên Bái</option>
+                                                        @{
+                                                            var danhSachTinhThanh = ViewBag.DanhSachTinhThanh as List<Unicareer.Models.Province> ?? new List<Unicareer.Models.Province>();
+                                                        }
+                                                        @foreach (var tinh in danhSachTinhThanh)
+                                                        {
+                                                            <option value="@tinh.FullName" data-code="@tinh.Code" data-fullname="@tinh.FullName">@tinh.FullName</option>
+                                                        }
                                                     </select>
                                                 </div>
 
@@ -175,96 +119,6 @@
                                                     </label>
                                                     <select id="quanHuyen" name="quanHuyen">
                                                         <option value="">-- Chọn quận/huyện --</option>
-                                                        <!-- Hà Nội -->
-                                                        <option value="Ba Dinh">Ba Đình</option>
-                                                        <option value="Hoan Kiem">Hoàn Kiếm</option>
-                                                        <option value="Tay Ho">Tây Hồ</option>
-                                                        <option value="Long Bien">Long Biên</option>
-                                                        <option value="Cau Giay">Cầu Giấy</option>
-                                                        <option value="Dong Da">Đống Đa</option>
-                                                        <option value="Hai Ba Trung">Hai Bà Trưng</option>
-                                                        <option value="Hoang Mai">Hoàng Mai</option>
-                                                        <option value="Thanh Xuan">Thanh Xuân</option>
-                                                        <option value="Soc Son">Sóc Sơn</option>
-                                                        <option value="Dong Anh">Đông Anh</option>
-                                                        <option value="Gia Lam">Gia Lâm</option>
-                                                        <option value="Nam Tu Liem">Nam Từ Liêm</option>
-                                                        <option value="Bac Tu Liem">Bắc Từ Liêm</option>
-                                                        <option value="Me Linh">Mê Linh</option>
-                                                        <option value="Ha Dong">Hà Đông</option>
-                                                        <option value="Son Tay">Sơn Tây</option>
-                                                        <option value="Ba Vi">Ba Vì</option>
-                                                        <option value="Phuc Tho">Phúc Thọ</option>
-                                                        <option value="Dan Phuong">Đan Phượng</option>
-                                                        <option value="Hoai Duc">Hoài Đức</option>
-                                                        <option value="Quoc Oai">Quốc Oai</option>
-                                                        <option value="Thach That">Thạch Thất</option>
-                                                        <option value="Chuong My">Chương Mỹ</option>
-                                                        <option value="Thanh Oai">Thanh Oai</option>
-                                                        <option value="Thuong Tin">Thường Tín</option>
-                                                        <option value="Phu Xuyen">Phú Xuyên</option>
-                                                        <option value="Ung Hoa">Ứng Hòa</option>
-                                                        <option value="My Duc">Mỹ Đức</option>
-                                                        <!-- TP. Hồ Chí Minh -->
-                                                        <option value="Quan 1">Quận 1</option>
-                                                        <option value="Quan 2">Quận 2</option>
-                                                        <option value="Quan 3">Quận 3</option>
-                                                        <option value="Quan 4">Quận 4</option>
-                                                        <option value="Quan 5">Quận 5</option>
-                                                        <option value="Quan 6">Quận 6</option>
-                                                        <option value="Quan 7">Quận 7</option>
-                                                        <option value="Quan 8">Quận 8</option>
-                                                        <option value="Quan 9">Quận 9</option>
-                                                        <option value="Quan 10">Quận 10</option>
-                                                        <option value="Quan 11">Quận 11</option>
-                                                        <option value="Quan 12">Quận 12</option>
-                                                        <option value="Binh Thanh">Bình Thạnh</option>
-                                                        <option value="Tan Binh">Tân Bình</option>
-                                                        <option value="Tan Phu">Tân Phú</option>
-                                                        <option value="Phu Nhuan">Phú Nhuận</option>
-                                                        <option value="Thu Duc">Thủ Đức</option>
-                                                        <option value="Go Vap">Gò Vấp</option>
-                                                        <option value="Binh Tan">Bình Tân</option>
-                                                        <option value="Hoc Mon">Hóc Môn</option>
-                                                        <option value="Cu Chi">Củ Chi</option>
-                                                        <option value="Binh Chanh">Bình Chánh</option>
-                                                        <option value="Nha Be">Nhà Bè</option>
-                                                        <option value="Can Gio">Cần Giờ</option>
-                                                        <!-- Đà Nẵng -->
-                                                        <option value="Hai Chau">Hải Châu</option>
-                                                        <option value="Thanh Khe">Thanh Khê</option>
-                                                        <option value="Son Tra">Sơn Trà</option>
-                                                        <option value="Ngu Hanh Son">Ngũ Hành Sơn</option>
-                                                        <option value="Lien Chieu">Liên Chiểu</option>
-                                                        <option value="Cam Le">Cẩm Lệ</option>
-                                                        <option value="Hoa Vang">Hòa Vang</option>
-                                                        <option value="Hoang Sa">Hoàng Sa</option>
-                                                        <!-- Hải Phòng -->
-                                                        <option value="Hong Bang">Hồng Bàng</option>
-                                                        <option value="Ngo Quyen">Ngô Quyền</option>
-                                                        <option value="Le Chan">Lê Chân</option>
-                                                        <option value="Hai An">Hải An</option>
-                                                        <option value="Kien An">Kiến An</option>
-                                                        <option value="Do Son">Đồ Sơn</option>
-                                                        <option value="Duong Kinh">Dương Kinh</option>
-                                                        <option value="Thuy Nguyen">Thủy Nguyên</option>
-                                                        <option value="An Duong">An Dương</option>
-                                                        <option value="An Lao">An Lão</option>
-                                                        <option value="Kien Thuy">Kiến Thụy</option>
-                                                        <option value="Tien Lang">Tiên Lãng</option>
-                                                        <option value="Vinh Bao">Vĩnh Bảo</option>
-                                                        <option value="Cat Hai">Cát Hải</option>
-                                                        <option value="Bach Long Vi">Bạch Long Vĩ</option>
-                                                        <!-- Cần Thơ -->
-                                                        <option value="Ninh Kieu">Ninh Kiều</option>
-                                                        <option value="O Mon">Ô Môn</option>
-                                                        <option value="Binh Thuy">Bình Thủy</option>
-                                                        <option value="Cai Rang">Cái Răng</option>
-                                                        <option value="Thot Not">Thốt Nốt</option>
-                                                        <option value="Vinh Thanh">Vĩnh Thạnh</option>
-                                                        <option value="Co Do">Cờ Đỏ</option>
-                                                        <option value="Phong Dien">Phong Điền</option>
-                                                        <option value="Thoi Lai">Thới Lai</option>
                                                     </select>
                                                 </div>
                                             </div>
@@ -1381,27 +1235,97 @@
                     }
                 });
 
+                // Function to load wards by province
+                function loadWardsByProvince(provinceCode) {
+                    const $quanHuyen = $('#quanHuyen');
+                    
+                    // Reset quận/huyện dropdown
+                    $quanHuyen.html('<option value="">-- Chọn quận/huyện --</option>');
+                    
+                    if (provinceCode) {
+                        // Show loading state
+                        $quanHuyen.prop('disabled', true);
+                        $quanHuyen.html('<option value="">Đang tải...</option>');
+                        
+                        // Fetch wards from API
+                        fetch(`/Recruiter/Recruiter/GetWardsByProvince?provinceCode=${encodeURIComponent(provinceCode)}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                $quanHuyen.html('<option value="">-- Chọn quận/huyện --</option>');
+                                
+                                if (data && data.length > 0) {
+                                    data.forEach(ward => {
+                                        const option = $('<option></option>')
+                                            .attr('value', ward.fullName)
+                                            .text(ward.fullName);
+                                        $quanHuyen.append(option);
+                                    });
+                                } else {
+                                    $quanHuyen.html('<option value="">Không có dữ liệu</option>');
+                                }
+                                
+                                $quanHuyen.prop('disabled', false);
+                            })
+                            .catch(error => {
+                                console.error('Error loading wards:', error);
+                                $quanHuyen.html('<option value="">Lỗi tải dữ liệu</option>');
+                                $quanHuyen.prop('disabled', false);
+                            });
+                    } else {
+                        $quanHuyen.prop('disabled', false);
+                    }
+                }
+
                 // Update map when city changes
                 $('#tinhThanhPho').on('change', function() {
-                    var city = $(this).val();
+                    var selectedOption = $(this).find('option:selected');
+                    var cityName = $(this).val();
+                    var provinceCode = selectedOption.data('code');
+                    
+                    // Load wards for selected province
+                    if (provinceCode) {
+                        loadWardsByProvince(provinceCode);
+                    }
+                    
+                    // Update map coordinates (simplified - you can enhance this with actual coordinates from database)
                     var coordinates = {
-                        'Ha Noi': [21.028511, 105.804817],
-                        'TP Ho Chi Minh': [10.8231, 106.6297],
-                        'Da Nang': [16.0544, 108.2022],
-                        'Hai Phong': [20.8449, 106.6881],
-                        'Can Tho': [10.0452, 105.7469]
+                        'Hà Nội': [21.028511, 105.804817],
+                        'Thành phố Hà Nội': [21.028511, 105.804817],
+                        'TP Hồ Chí Minh': [10.762622, 106.660172],
+                        'Thành phố Hồ Chí Minh': [10.762622, 106.660172],
+                        'Đà Nẵng': [16.047079, 108.206230],
+                        'Thành phố Đà Nẵng': [16.047079, 108.206230],
+                        'Hải Phòng': [20.844892, 106.687973],
+                        'Thành phố Hải Phòng': [20.844892, 106.687973],
+                        'Cần Thơ': [10.045162, 105.746857],
+                        'Thành phố Cần Thơ': [10.045162, 105.746857]
                     };
                     
-                    if (coordinates[city] && companyMap) {
-                        companyMap.setView(coordinates[city], 13);
-                        var lat = coordinates[city][0];
-                        var lng = coordinates[city][1];
+                    // Try to find matching coordinates
+                    var coords = null;
+                    for (var key in coordinates) {
+                        if (cityName && (cityName.includes(key) || key.includes(cityName))) {
+                            coords = coordinates[key];
+                            break;
+                        }
+                    }
+                    
+                    if (coords && companyMap) {
+                        companyMap.setView(coords, 13);
+                        var lat = coords[0];
+                        var lng = coords[1];
                         companyMarker.setLatLng([lat, lng]);
                         $('#latitude').val(lat.toFixed(6));
                         $('#longitude').val(lng.toFixed(6));
                         $('#currentCoords').text(lat.toFixed(6) + ', ' + lng.toFixed(6));
                     }
                 });
+                
+                // Kiểm tra và load quận/huyện nếu tỉnh đã được chọn (khi quay lại bằng back button hoặc edit)
+                const selectedProvinceCode = $('#tinhThanhPho option:selected').data('code');
+                if (selectedProvinceCode) {
+                    loadWardsByProvince(selectedProvinceCode);
+                }
 
             } catch (error) {
                 console.error('Lỗi khi khởi tạo map:', error);
