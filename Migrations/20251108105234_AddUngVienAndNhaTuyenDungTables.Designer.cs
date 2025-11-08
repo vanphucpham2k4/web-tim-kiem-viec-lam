@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Unicareer.Data;
 
@@ -11,9 +12,11 @@ using Unicareer.Data;
 namespace Unicareer.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251108105234_AddUngVienAndNhaTuyenDungTables")]
+    partial class AddUngVienAndNhaTuyenDungTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -303,60 +306,6 @@ namespace Unicareer.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("Unicareer.Models.LoaiCongViec", b =>
-                {
-                    b.Property<int>("MaLoaiCongViec")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaLoaiCongViec"));
-
-                    b.Property<string>("MoTa")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("NgayTao")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("SoLuongViTri")
-                        .HasColumnType("int");
-
-                    b.Property<string>("TenLoaiCongViec")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("MaLoaiCongViec");
-
-                    b.ToTable("LoaiCongViecs");
-                });
-
-            modelBuilder.Entity("Unicareer.Models.NganhNghe", b =>
-                {
-                    b.Property<int>("MaNganhNghe")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaNganhNghe"));
-
-                    b.Property<string>("MoTa")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("NgayTao")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("SoLuongCongViec")
-                        .HasColumnType("int");
-
-                    b.Property<string>("TenNganhNghe")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("MaNganhNghe");
-
-                    b.ToTable("NganhNghes");
-                });
-
             modelBuilder.Entity("Unicareer.Models.NhaTuyenDung", b =>
                 {
                     b.Property<int>("MaNhaTuyenDung")
@@ -470,176 +419,6 @@ namespace Unicareer.Migrations
                         .HasDatabaseName("idx_provinces_unit");
 
                     b.ToTable("provinces");
-                });
-
-            modelBuilder.Entity("Unicareer.Models.TinTuyenDung", b =>
-                {
-                    b.Property<int>("MaTinTuyenDung")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaTinTuyenDung"));
-
-                    b.Property<string>("AnhVanPhong")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CongTy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DiaChiLamViec")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("EmailLienHe")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("HanNop")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("KinhNghiem")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("KyNang")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<double?>("Latitude")
-                        .HasColumnType("float");
-
-                    b.Property<string>("LoaiCongViec")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<double?>("Longitude")
-                        .HasColumnType("float");
-
-                    b.Property<string>("MoTa")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal?>("MucLuongCaoNhat")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("MucLuongThapNhat")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("NganhNghe")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("NganhNgheChiTiet")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("NgayDang")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("NgoaiNgu")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("NguoiLienHe")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PhuongXa")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("QuyenLoi")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SDTLienHe")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("SoLuongUngTuyen")
-                        .HasColumnType("int");
-
-                    b.Property<string>("TenViecLam")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TinhThanhPho")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TuKhoa")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ViTri")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("YeuCau")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("MaTinTuyenDung");
-
-                    b.ToTable("TinTuyenDungs");
-                });
-
-            modelBuilder.Entity("Unicareer.Models.TinUngTuyen", b =>
-                {
-                    b.Property<int>("MaTinUngTuyen")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaTinUngTuyen"));
-
-                    b.Property<string>("CongTy")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("GhiChu")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("HoTen")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LinkCV")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MaTinTuyenDung")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("NgayUngTuyen")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("SoDienThoai")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TrangThaiXuLy")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ViTriUngTuyen")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("MaTinUngTuyen");
-
-                    b.ToTable("TinUngTuyens");
-                });
-
-            modelBuilder.Entity("Unicareer.Models.TruongDaiHoc", b =>
-                {
-                    b.Property<int>("MaTruong")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaTruong"));
-
-                    b.Property<string>("MoTa")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("NgayTao")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("TenTruong")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("MaTruong");
-
-                    b.ToTable("TruongDaiHocs");
                 });
 
             modelBuilder.Entity("Unicareer.Models.UngVien", b =>

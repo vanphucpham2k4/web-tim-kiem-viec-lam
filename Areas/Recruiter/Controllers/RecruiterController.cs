@@ -319,12 +319,17 @@ namespace Unicareer.Areas.Recruiter.Controllers
                 return NotFound();
             }
             
+            // Lấy thông tin NhaTuyenDung từ database
+            var nhaTuyenDung = await _context.NhaTuyenDungs
+                .FirstOrDefaultAsync(n => n.UserId == user.Id);
+            
             // Lấy danh sách tỉnh/thành phố
             var danhSachTinhThanh = _context.Provinces
                 .OrderBy(p => p.FullName)
                 .ToList();
             
             ViewBag.DanhSachTinhThanh = danhSachTinhThanh;
+            ViewBag.NhaTuyenDung = nhaTuyenDung; // Truyền dữ liệu vào ViewBag
             return View(user);
         }
 
@@ -365,6 +370,84 @@ namespace Unicareer.Areas.Recruiter.Controllers
             ViewBag.ActiveTab = "baomat";
             ViewBag.PasswordModel = model;
             return View("CaiDat", user);
+        }
+
+        // POST: Cap nhat thong tin nha tuyen dung
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CapNhatThongTin(
+            string tenCongTy, string email, string soDienThoai, string? website,
+            string? tinhThanhPho, string? quanHuyen, string? diaChi,
+            string? nguoiDaiDien, string? chucVu, string? soDienThoaiNguoiDaiDien,
+            string? logo, string? moTa, string? latitude, string? longitude)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy người dùng" });
+            }
+
+            try
+            {
+                // Tìm hoặc tạo bản ghi NhaTuyenDung
+                var nhaTuyenDung = await _context.NhaTuyenDungs
+                    .FirstOrDefaultAsync(n => n.UserId == user.Id);
+
+                if (nhaTuyenDung == null)
+                {
+                    // Tạo mới nếu chưa có
+                    nhaTuyenDung = new NhaTuyenDung
+                    {
+                        UserId = user.Id,
+                        TenCongTy = tenCongTy,
+                        Email = email,
+                        SoDienThoai = soDienThoai,
+                        Website = website,
+                        TinhThanhPho = tinhThanhPho,
+                        QuanHuyen = quanHuyen,
+                        DiaChi = diaChi,
+                        NguoiDaiDien = nguoiDaiDien,
+                        ChucVu = chucVu,
+                        Logo = logo,
+                        MoTa = moTa,
+                        NgayDangKy = DateTime.Now,
+                        SoTinDaDang = 0,
+                        SoUngVienNhan = 0
+                    };
+                    _context.NhaTuyenDungs.Add(nhaTuyenDung);
+                }
+                else
+                {
+                    // Cập nhật thông tin
+                    nhaTuyenDung.TenCongTy = tenCongTy;
+                    nhaTuyenDung.Email = email;
+                    nhaTuyenDung.SoDienThoai = soDienThoai;
+                    nhaTuyenDung.Website = website;
+                    nhaTuyenDung.TinhThanhPho = tinhThanhPho;
+                    nhaTuyenDung.QuanHuyen = quanHuyen;
+                    nhaTuyenDung.DiaChi = diaChi;
+                    nhaTuyenDung.NguoiDaiDien = nguoiDaiDien;
+                    nhaTuyenDung.ChucVu = chucVu;
+                    nhaTuyenDung.Logo = logo;
+                    nhaTuyenDung.MoTa = moTa;
+                    _context.NhaTuyenDungs.Update(nhaTuyenDung);
+                }
+
+                // Cập nhật thông tin user
+                user.Email = email;
+                user.PhoneNumber = soDienThoai;
+                user.HoTen = nguoiDaiDien;
+                await _userManager.UpdateAsync(user);
+
+                // Lưu vào database
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true, message = "Cập nhật thông tin thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
         }
     }
 }

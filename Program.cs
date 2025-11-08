@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.Extensions.Logging;
 using Unicareer.Data;
 using Unicareer.Models;
+using Unicareer.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,14 +15,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 // Đăng ký Repository với Dependency Injection
-// Sử dụng AddSingleton cho Mock repositories để dữ liệu được lưu giữ giữa các request
-builder.Services.AddSingleton<Unicareer.Repository.INhaTuyenDungRepository, Unicareer.Repository.MockNhaTuyenDungRepository>();
-builder.Services.AddSingleton<Unicareer.Repository.IUngVienRepository, Unicareer.Repository.MockUngVienRepository>();
-builder.Services.AddSingleton<Unicareer.Repository.ITinTuyenDungRepository, Unicareer.Repository.MockTinTuyenDungRepository>();
-builder.Services.AddSingleton<Unicareer.Repository.ITinUngTuyenRepository, Unicareer.Repository.MockTinUngTuyenRepository>();
-builder.Services.AddSingleton<Unicareer.Repository.ILoaiCongViecRepository, Unicareer.Repository.MockLoaiCongViecRepository>();
-builder.Services.AddSingleton<Unicareer.Repository.INganhNgheRepository, Unicareer.Repository.MockNganhNgheRepository>();
-builder.Services.AddSingleton<Unicareer.Repository.ITruongDaiHocRepository, Unicareer.Repository.MockTruongDaiHocRepository>();
+// Tự động chuyển đổi giữa Mock Data và Real Data dựa trên cấu hình Repository:UseMockData
+// - Development: mặc định sử dụng Mock Data (có thể thay đổi trong appsettings.Development.json)
+// - Production: mặc định sử dụng Real Data (có thể thay đổi trong appsettings.json)
+var useMockData = builder.Configuration.GetValue<bool>("Repository:UseMockData", false);
+builder.Services.AddRepositories(builder.Configuration);
+
+// Log trạng thái sử dụng repository (sẽ log sau khi app được build)
 
 // Cấu hình Session để lưu CAPTCHA
 builder.Services.AddSession(options =>
@@ -125,6 +126,13 @@ if (!string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientS
 }
 
 var app = builder.Build();
+
+// Log trạng thái sử dụng repository
+var repositoryLogger = app.Services.GetRequiredService<ILogger<Program>>();
+repositoryLogger.LogInformation("=== REPOSITORY CONFIGURATION ===");
+repositoryLogger.LogInformation("UseMockData: {UseMockData}", useMockData);
+repositoryLogger.LogInformation("Repository Mode: {Mode}", useMockData ? "MOCK DATA" : "REAL DATABASE");
+repositoryLogger.LogInformation("================================");
 
 // Seed roles và admin user
 using (var scope = app.Services.CreateScope())

@@ -15,6 +15,7 @@
         _ => roleName
     };
     var hasSuccessMessage = TempData["ThanhCong"] != null;
+    var nhaTuyenDung = ViewBag.NhaTuyenDung as Unicareer.Models.NhaTuyenDung;
 }
 
 <div class="container-fluid">
@@ -57,6 +58,7 @@
                          role="tabpanel">
                         <div class="settings-panel">
                             <form id="profileForm">
+                                @Html.AntiForgeryToken()
                                 <div class="row">
                                     <div class="col-md-8">
                                         <!-- Thông tin công ty -->
@@ -70,7 +72,7 @@
                                                 <label for="tenCongTy">
                                                     Tên công ty <span class="required">*</span>
                                                 </label>
-                                                <input type="text" id="tenCongTy" name="tenCongTy" required />
+                                                <input type="text" id="tenCongTy" name="tenCongTy" value="@(nhaTuyenDung?.TenCongTy ?? "")" required />
                                             </div>
 
                                             <div class="form-row">
@@ -93,7 +95,7 @@
                                                 <label for="website">
                                                     Website
                                                 </label>
-                                                <input type="url" id="website" name="website" placeholder="https://example.com" />
+                                                <input type="url" id="website" name="website" value="@(nhaTuyenDung?.Website ?? "")" placeholder="https://example.com" />
                                             </div>
 
                                             <div class="form-row">
@@ -105,10 +107,11 @@
                                                         <option value="">-- Chọn tỉnh/thành phố --</option>
                                                         @{
                                                             var danhSachTinhThanh = ViewBag.DanhSachTinhThanh as List<Unicareer.Models.Province> ?? new List<Unicareer.Models.Province>();
+                                                            var tinhThanhPhoHienTai = nhaTuyenDung?.TinhThanhPho ?? "";
                                                         }
                                                         @foreach (var tinh in danhSachTinhThanh)
                                                         {
-                                                            <option value="@tinh.FullName" data-code="@tinh.Code" data-fullname="@tinh.FullName">@tinh.FullName</option>
+                                                            <option value="@tinh.FullName" data-code="@tinh.Code" data-fullname="@tinh.FullName" selected="@(tinh.FullName == tinhThanhPhoHienTai)">@tinh.FullName</option>
                                                         }
                                                     </select>
                                                 </div>
@@ -127,7 +130,7 @@
                                                 <label for="diaChi">
                                                     Địa chỉ <span class="required">*</span>
                                                 </label>
-                                                <input type="text" id="diaChi" name="diaChi" placeholder="Ví dụ: 123 Đường ABC, Quận XYZ" required />
+                                                <input type="text" id="diaChi" name="diaChi" value="@(nhaTuyenDung?.DiaChi ?? "")" placeholder="Ví dụ: 123 Đường ABC, Quận XYZ" required />
                                                 <small class="text-muted">
                                                     <i class="bi bi-info-circle"></i> Kéo marker 📍 trên bản đồ để chọn vị trí chính xác hoặc click vào bản đồ
                                                 </small>
@@ -159,14 +162,14 @@
                                                     <label for="nguoiDaiDien">
                                                         Họ và tên người đại diện <span class="required">*</span>
                                                     </label>
-                                                    <input type="text" id="nguoiDaiDien" name="nguoiDaiDien" value="@(Model.HoTen ?? "")" required />
+                                                    <input type="text" id="nguoiDaiDien" name="nguoiDaiDien" value="@(nhaTuyenDung?.NguoiDaiDien ?? Model.HoTen ?? "")" required />
                                                 </div>
 
                                                 <div class="form-group">
                                                     <label for="chucVu">
                                                         Chức vụ <span class="required">*</span>
                                                     </label>
-                                                    <input type="text" id="chucVu" name="chucVu" placeholder="Ví dụ: HR Manager, Giám đốc Nhân sự..." required />
+                                                    <input type="text" id="chucVu" name="chucVu" value="@(nhaTuyenDung?.ChucVu ?? "")" placeholder="Ví dụ: HR Manager, Giám đốc Nhân sự..." required />
                                                 </div>
                                             </div>
 
@@ -187,7 +190,14 @@
 
                                             <div class="logo-upload">
                                                 <div class="logo-preview" id="logoPreview">
-                                                    <span style="color: #cbd5e0;">Chưa có logo</span>
+                                                    @if (!string.IsNullOrEmpty(nhaTuyenDung?.Logo))
+                                                    {
+                                                        <img src="@nhaTuyenDung.Logo" alt="Logo công ty" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <span style="color: #cbd5e0;">Chưa có logo</span>
+                                                    }
                                                 </div>
                                                 <div class="logo-upload-controls">
                                                     <input type="file" id="logoFile" name="logoFile" accept="image/*" style="display: none;" />
@@ -195,7 +205,7 @@
                                                         <i class="bi bi-upload me-2"></i>Chọn logo
                                                     </button>
                                                     <div class="info-hint">Kích thước khuyến nghị: 200x200px. Định dạng: JPG, PNG</div>
-                                                    <input type="hidden" id="logo" name="logo" />
+                                                    <input type="hidden" id="logo" name="logo" value="@(nhaTuyenDung?.Logo ?? "")" />
                                                 </div>
                                             </div>
                                         </div>
@@ -942,7 +952,10 @@
             });
 
             // Load existing data (if any)
-            // loadProfileData();
+            // Load profile data after Quill is initialized
+            setTimeout(function() {
+                loadProfileData();
+            }, 100);
 
             // Form submit
             $('#profileForm').on('submit', function(e) {
@@ -1023,11 +1036,25 @@
                 return;
             }
 
-            // Here you can add AJAX call to save the data
-            console.log('Form data:', formData);
-            
-            // Show success message
-            showNotification('Đã lưu thông tin thành công!', 'success');
+            // AJAX call to save the data
+            $.ajax({
+                url: '@Url.Action("CapNhatThongTin", "Recruiter", new { area = "Recruiter" })',
+                type: 'POST',
+                data: formData,
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        showNotification(response.message, 'success');
+                    } else {
+                        showNotification(response.message, 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    showNotification('Có lỗi xảy ra khi lưu dữ liệu: ' + error, 'error');
+                }
+            });
         }
 
         function resetForm() {
@@ -1070,34 +1097,18 @@
 
         // Load profile data (if exists)
         function loadProfileData() {
-            // TODO: Load data from server
-            // Example:
-            // $.ajax({
-            //     url: '/Recruiter/Recruiter/GetProfile',
-            //     method: 'GET',
-            //     success: function(data) {
-            //         $('#tenCongTy').val(data.tenCongTy);
-            //         $('#email').val(data.email);
-            //         // ... populate other fields
-            //         if (data.moTa && quill) {
-            //             quill.root.innerHTML = data.moTa;
-            //             $('#moTa').val(data.moTa);
-            //         }
-            //         if (data.logo) {
-            //             $('#logoPreview').html('<img src="' + data.logo + '" alt="Logo công ty" />');
-            //             $('#logo').val(data.logo);
-            //         }
-            //         if (data.latitude && data.longitude && companyMap && companyMarker) {
-            //             var lat = parseFloat(data.latitude);
-            //             var lng = parseFloat(data.longitude);
-            //             companyMap.setView([lat, lng], 15);
-            //             companyMarker.setLatLng([lat, lng]);
-            //             $('#latitude').val(lat.toFixed(6));
-            //             $('#longitude').val(lng.toFixed(6));
-            //             $('#currentCoords').text(lat.toFixed(6) + ', ' + lng.toFixed(6));
-            //         }
-            //     }
-            // });
+            // Load data from server-side model
+            @if (nhaTuyenDung != null)
+            {
+                <text>
+                // Load moTa vào Quill editor sau khi Quill được khởi tạo
+                var moTaContent = @Html.Raw(Json.Serialize(nhaTuyenDung.MoTa ?? ""));
+                if (moTaContent && quill) {
+                    quill.root.innerHTML = moTaContent;
+                    $('#moTa').val(moTaContent);
+                }
+                </text>
+            }
         }
 
         // Map variables
@@ -1236,7 +1247,7 @@
                 });
 
                 // Function to load wards by province
-                function loadWardsByProvince(provinceCode) {
+                function loadWardsByProvince(provinceCode, selectedWardName = null) {
                     const $quanHuyen = $('#quanHuyen');
                     
                     // Reset quận/huyện dropdown
@@ -1258,6 +1269,12 @@
                                         const option = $('<option></option>')
                                             .attr('value', ward.fullName)
                                             .text(ward.fullName);
+                                        
+                                        // Select the ward if it matches the saved value
+                                        if (selectedWardName && ward.fullName === selectedWardName) {
+                                            option.prop('selected', true);
+                                        }
+                                        
                                         $quanHuyen.append(option);
                                     });
                                 } else {
@@ -1323,8 +1340,9 @@
                 
                 // Kiểm tra và load quận/huyện nếu tỉnh đã được chọn (khi quay lại bằng back button hoặc edit)
                 const selectedProvinceCode = $('#tinhThanhPho option:selected').data('code');
+                const savedQuanHuyen = @Html.Raw(Json.Serialize(nhaTuyenDung?.QuanHuyen ?? ""));
                 if (selectedProvinceCode) {
-                    loadWardsByProvince(selectedProvinceCode);
+                    loadWardsByProvince(selectedProvinceCode, savedQuanHuyen);
                 }
 
             } catch (error) {
