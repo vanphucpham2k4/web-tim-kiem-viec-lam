@@ -44,6 +44,7 @@ namespace Unicareer.Models
         public int? SoLuongUngTuyen { get; set; }
         public DateTime NgayDang { get; set; }
         public DateTime HanNop { get; set; }
+        public string? TrangThai { get; set; } = "Dang tuyen"; // Trạng thái: "Dang tuyen", "Het han", "Da dong"
         
         // Geolocation
         public double? Latitude { get; set; }

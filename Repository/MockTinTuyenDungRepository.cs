@@ -59,6 +59,7 @@ namespace Unicareer.Repository
                     SoLuongUngTuyen = 45,
                     NgayDang = DateTime.Now.AddDays(-5),
                     HanNop = DateTime.Now.AddDays(25),
+                    TrangThai = "Dang tuyen",
                     Latitude = 21.028511,
                     Longitude = 105.804817
                 },
@@ -109,6 +110,7 @@ namespace Unicareer.Repository
                     SoLuongUngTuyen = 32,
                     NgayDang = DateTime.Now.AddDays(-3),
                     HanNop = DateTime.Now.AddDays(27),
+                    TrangThai = "Dang tuyen",
                     Latitude = 10.762622,
                     Longitude = 106.660172
                 },
@@ -158,7 +160,8 @@ namespace Unicareer.Repository
                     AnhVanPhong = "",
                     SoLuongUngTuyen = 52,
                     NgayDang = DateTime.Now.AddDays(-2),
-                    HanNop = DateTime.Now.AddDays(28)
+                    HanNop = DateTime.Now.AddDays(28),
+                    TrangThai = "Dang tuyen"
                 },
                 new TinTuyenDung
                 {
@@ -206,7 +209,8 @@ namespace Unicareer.Repository
                     AnhVanPhong = "",
                     SoLuongUngTuyen = 38,
                     NgayDang = DateTime.Now.AddDays(-4),
-                    HanNop = DateTime.Now.AddDays(26)
+                    HanNop = DateTime.Now.AddDays(26),
+                    TrangThai = "Dang tuyen"
                 },
                 new TinTuyenDung
                 {
@@ -253,7 +257,8 @@ namespace Unicareer.Repository
                     AnhVanPhong = "",
                     SoLuongUngTuyen = 142,
                     NgayDang = DateTime.Now.AddDays(-1),
-                    HanNop = DateTime.Now.AddDays(29)
+                    HanNop = DateTime.Now.AddDays(29),
+                    TrangThai = "Dang tuyen"
                 }
             };
         }
@@ -295,6 +300,12 @@ namespace Unicareer.Repository
             // Khởi tạo số lượng ứng tuyển = 0
             tinTuyenDung.SoLuongUngTuyen = 0;
             
+            // Set trạng thái mặc định nếu chưa có
+            if (string.IsNullOrEmpty(tinTuyenDung.TrangThai))
+            {
+                tinTuyenDung.TrangThai = "Dang tuyen";
+            }
+            
             // Thêm vào danh sách
             _danhSachTinTuyenDung.Add(tinTuyenDung);
             
@@ -333,8 +344,21 @@ namespace Unicareer.Repository
             tinHienTai.HanNop = tinTuyenDung.HanNop;
             tinHienTai.Latitude = tinTuyenDung.Latitude;
             tinHienTai.Longitude = tinTuyenDung.Longitude;
+            tinHienTai.TrangThai = tinTuyenDung.TrangThai;
 
             return tinHienTai;
+        }
+
+        public TinTuyenDung? CapNhatTrangThai(int id, string trangThai)
+        {
+            var tinTuyenDung = _danhSachTinTuyenDung.FirstOrDefault(t => t.MaTinTuyenDung == id);
+            if (tinTuyenDung == null)
+            {
+                return null;
+            }
+
+            tinTuyenDung.TrangThai = trangThai;
+            return tinTuyenDung;
         }
 
         public bool XoaTinTuyenDung(int id)

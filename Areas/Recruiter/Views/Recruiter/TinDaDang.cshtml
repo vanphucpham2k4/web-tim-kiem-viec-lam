@@ -6,12 +6,12 @@
 
 <style>
     .page-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         border-radius: 20px;
         padding: 40px;
         margin-bottom: 30px;
         color: white;
-        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3);
     }
 
     .page-header h1 {
@@ -41,18 +41,18 @@
     }
 
     .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         border: none;
         border-radius: 12px;
         padding: 12px 30px;
         font-weight: 600;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
     }
 
     .btn-primary:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
     }
 
     .form-control, .form-select {
@@ -63,8 +63,8 @@
     }
 
     .form-control:focus, .form-select:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        border-color: #10b981;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
         outline: none;
     }
 
@@ -141,7 +141,7 @@
     }
 
     .badge.bg-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
     }
 
     .btn-sm {
@@ -152,12 +152,12 @@
     }
 
     .btn-outline-primary {
-        border: 2px solid #667eea;
-        color: #667eea;
+        border: 2px solid #10b981;
+        color: #10b981;
     }
 
     .btn-outline-primary:hover {
-        background: #667eea;
+        background: #10b981;
         color: white;
         transform: translateY(-2px);
     }
@@ -222,7 +222,7 @@
     }
 
     .stats-card.primary {
-        border-left: 5px solid #667eea;
+        border-left: 5px solid #10b981;
     }
 
     .stats-card.success {
@@ -302,7 +302,7 @@
                     <table class="table table-hover">
                         <thead class="table-light">
                             <tr>
-                                <th><i class="bi bi-hash"></i> Mã</th>
+                                <th><i class="bi bi-hash"></i> STT</th>
                                 <th><i class="bi bi-briefcase"></i> Tiêu đề</th>
                                 <th><i class="bi bi-award"></i> Vị trí</th>
                                 <th><i class="bi bi-calendar-plus"></i> Ngày đăng</th>
@@ -313,13 +313,32 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @{
+                                int stt = 1;
+                            }
                             @foreach (var tin in Model)
                             {
-                                var trangThai = tin.HanNop >= DateTime.Now ? "Đang tuyển" : "Hết hạn";
-                                var badgeClass = trangThai == "Đang tuyển" ? "bg-success" : "bg-secondary";
+                                // Lấy trạng thái từ database, nếu null thì tính từ HanNop
+                                var trangThai = !string.IsNullOrEmpty(tin.TrangThai) 
+                                    ? (tin.TrangThai == "Dang tuyen" ? "Đang tuyển" : 
+                                       tin.TrangThai == "Het han" ? "Hết hạn" : 
+                                       tin.TrangThai == "Da dong" ? "Đã đóng" : tin.TrangThai)
+                                    : (tin.HanNop >= DateTime.Now ? "Đang tuyển" : "Hết hạn");
                                 
-                                <tr>
-                                    <td><span class="text-muted">#@tin.MaTinTuyenDung</span></td>
+                                var trangThaiValue = !string.IsNullOrEmpty(tin.TrangThai) 
+                                    ? tin.TrangThai 
+                                    : (tin.HanNop >= DateTime.Now ? "Dang tuyen" : "Het han");
+                                
+                                var badgeClass = trangThai switch
+                                {
+                                    "Đang tuyển" => "bg-success",
+                                    "Hết hạn" => "bg-secondary",
+                                    "Đã đóng" => "bg-warning",
+                                    _ => "bg-secondary"
+                                };
+                                
+                                <tr data-id="@tin.MaTinTuyenDung" data-trangthai="@trangThaiValue">
+                                    <td><span class="text-muted">@stt</span></td>
                                     <td>
                                         <strong style="color: #2d3748; font-size: 1rem;">@tin.TenViecLam</strong><br/>
                                         <small class="text-muted"><i class="bi bi-clock"></i> @tin.LoaiCongViec</small>
@@ -331,17 +350,25 @@
                                         <span class="badge bg-primary">@tin.SoLuongUngTuyen</span>
                                     </td>
                                     <td>
-                                        <span class="badge @badgeClass">@trangThai</span>
+                                        <span class="badge @badgeClass trang-thai-badge">@trangThai</span>
                                     </td>
                                     <td>
                                         <a href="@Url.Action("ChiTietTinDaDang", "Recruiter", new { id = tin.MaTinTuyenDung })" class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
                                             <i class="bi bi-eye"></i>
                                         </a>
+                                        <button class="btn btn-sm btn-outline-warning btn-cap-nhat-trang-thai" 
+                                                data-id="@tin.MaTinTuyenDung" 
+                                                data-trangthai="@trangThaiValue"
+                                                data-title="@tin.TenViecLam" 
+                                                title="Điều chỉnh trạng thái">
+                                            <i class="bi bi-toggle-on"></i>
+                                        </button>
                                         <button class="btn btn-sm btn-outline-danger btn-xoa-tin" data-id="@tin.MaTinTuyenDung" data-title="@tin.TenViecLam" title="Xóa">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </td>
                                 </tr>
+                                stt++;
                             }
                         </tbody>
                     </table>
@@ -365,7 +392,7 @@
             <h6 class="card-title">
                 <i class="bi bi-check-circle"></i> Đang tuyển
             </h6>
-            <h2 class="text-success">@Model.Count(t => t.HanNop >= DateTime.Now)</h2>
+            <h2 class="text-success">@Model.Count(t => (t.TrangThai == "Dang tuyen" || (string.IsNullOrEmpty(t.TrangThai) && t.HanNop >= DateTime.Now)))</h2>
         </div>
     </div>
     <div class="col-md-3 mb-3">
@@ -373,7 +400,7 @@
             <h6 class="card-title">
                 <i class="bi bi-x-circle"></i> Hết hạn
             </h6>
-            <h2 class="text-secondary">@Model.Count(t => t.HanNop < DateTime.Now)</h2>
+            <h2 class="text-secondary">@Model.Count(t => (t.TrangThai == "Het han" || (string.IsNullOrEmpty(t.TrangThai) && t.HanNop < DateTime.Now)))</h2>
         </div>
     </div>
     <div class="col-md-3 mb-3">
@@ -382,6 +409,38 @@
                 <i class="bi bi-person-check"></i> Tổng ứng tuyển
             </h6>
             <h2 class="text-info">@Model.Sum(t => t.SoLuongUngTuyen)</h2>
+        </div>
+    </div>
+</div>
+
+<!-- Modal điều chỉnh trạng thái -->
+<div class="modal fade" id="trangThaiModal" tabindex="-1" aria-labelledby="trangThaiModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="trangThaiModalLabel">Điều chỉnh trạng thái</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formTrangThai">
+                    <input type="hidden" id="tinId" name="tinId" />
+                    <div class="mb-3">
+                        <label for="trangThaiMoi" class="form-label">Chọn trạng thái mới</label>
+                        <select class="form-select" id="trangThaiMoi" name="trangThaiMoi" required>
+                            <option value="Dang tuyen">Đang tuyển</option>
+                            <option value="Het han">Hết hạn</option>
+                            <option value="Da dong">Đã đóng</option>
+                        </select>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> <strong id="tinTitle"></strong>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="luuTrangThai()">Lưu thay đổi</button>
+            </div>
         </div>
     </div>
 </div>
@@ -426,6 +485,24 @@
             // Bind events
             $('#timKiemInput').on('keyup', filterTable);
             $('#locTrangThai').on('change', filterTable);
+            
+            // Xử lý nút điều chỉnh trạng thái
+            $('.btn-cap-nhat-trang-thai').on('click', function(e) {
+                e.preventDefault();
+                var button = $(this);
+                var tinId = button.data('id');
+                var trangThaiHienTai = button.data('trangthai');
+                var tinTitle = button.data('title');
+                
+                // Set giá trị vào modal
+                $('#tinId').val(tinId);
+                $('#tinTitle').text('Tin tuyển dụng: ' + tinTitle);
+                $('#trangThaiMoi').val(trangThaiHienTai);
+                
+                // Hiển thị modal
+                var modal = new bootstrap.Modal(document.getElementById('trangThaiModal'));
+                modal.show();
+            });
             
             // Add confirmation for delete buttons
             $('.btn-xoa-tin').on('click', function(e) {
@@ -478,7 +555,7 @@
                 }
             });
             
-            // Function to update stats after deletion
+            // Function to update stats after deletion or status change
             function updateStats() {
                 var totalRows = $('table tbody tr').length;
                 var activeRows = $('table tbody tr').filter(function() {
@@ -487,7 +564,7 @@
                 }).length;
                 var expiredRows = $('table tbody tr').filter(function() {
                     var status = $(this).find('td:eq(6) .badge').text().trim();
-                    return status === 'Hết hạn';
+                    return status === 'Hết hạn' || status === 'Đã đóng';
                 }).length;
                 var totalApplications = 0;
                 $('table tbody tr').each(function() {
@@ -495,11 +572,19 @@
                     totalApplications += count;
                 });
                 
-                // Update stats cards
-                $('.stats-card.primary h2').text(totalRows);
-                $('.stats-card.success h2').text(activeRows);
-                $('.stats-card.secondary h2').text(expiredRows);
-                $('.stats-card.info h2').text(totalApplications);
+                // Update stats cards with animation
+                $('.stats-card.primary h2').fadeOut(200, function() {
+                    $(this).text(totalRows).fadeIn(200);
+                });
+                $('.stats-card.success h2').fadeOut(200, function() {
+                    $(this).text(activeRows).fadeIn(200);
+                });
+                $('.stats-card.secondary h2').fadeOut(200, function() {
+                    $(this).text(expiredRows).fadeIn(200);
+                });
+                $('.stats-card.info h2').fadeOut(200, function() {
+                    $(this).text(totalApplications).fadeIn(200);
+                });
             }
             
             // Show notification function
@@ -556,6 +641,77 @@
                     }
                 });
             });
+            
+            // Hàm lưu trạng thái
+            window.luuTrangThai = function() {
+                var tinId = $('#tinId').val();
+                var trangThaiMoi = $('#trangThaiMoi').val();
+                
+                if (!trangThaiMoi) {
+                    showNotification('Vui lòng chọn trạng thái mới!', 'error');
+                    return;
+                }
+                
+                // Disable nút để tránh double submit
+                var btnLuu = $('button[onclick="luuTrangThai()"]');
+                btnLuu.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Đang lưu...');
+                
+                // Get anti-forgery token
+                var token = $('input[name="__RequestVerificationToken"]').val();
+                
+                // Gửi request cập nhật trạng thái
+                $.ajax({
+                    url: '@Url.Action("CapNhatTrangThaiTinTuyenDung", "Recruiter", new { area = "Recruiter" })',
+                    type: 'POST',
+                    data: {
+                        id: tinId,
+                        trangThai: trangThaiMoi,
+                        __RequestVerificationToken: token
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Cập nhật trạng thái trong bảng
+                            var row = $('tr[data-id="' + tinId + '"]');
+                            var badge = row.find('.trang-thai-badge');
+                            var btnTrangThai = row.find('.btn-cap-nhat-trang-thai');
+                            
+                            // Cập nhật badge
+                            badge.text(response.trangThai);
+                            badge.removeClass('bg-success bg-secondary bg-warning');
+                            
+                            var badgeClass = response.trangThai === 'Đang tuyển' ? 'bg-success' :
+                                            response.trangThai === 'Hết hạn' ? 'bg-secondary' : 'bg-warning';
+                            badge.addClass(badgeClass);
+                            
+                            // Cập nhật data attribute
+                            var trangThaiValue = trangThaiMoi;
+                            row.attr('data-trangthai', trangThaiValue);
+                            btnTrangThai.attr('data-trangthai', trangThaiValue);
+                            
+                            // Đóng modal
+                            var modal = bootstrap.Modal.getInstance(document.getElementById('trangThaiModal'));
+                            modal.hide();
+                            
+                            // Cập nhật stats
+                            updateStats();
+                            
+                            // Hiển thị thông báo thành công
+                            showNotification(response.message || 'Cập nhật trạng thái thành công!', 'success');
+                        } else {
+                            showNotification(response.message || 'Có lỗi xảy ra khi cập nhật trạng thái!', 'error');
+                            btnLuu.prop('disabled', false).html('Lưu thay đổi');
+                        }
+                    },
+                    error: function(xhr) {
+                        var errorMessage = 'Có lỗi xảy ra khi cập nhật trạng thái';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+                        showNotification(errorMessage, 'error');
+                        btnLuu.prop('disabled', false).html('Lưu thay đổi');
+                    }
+                });
+            };
         });
     </script>
 }

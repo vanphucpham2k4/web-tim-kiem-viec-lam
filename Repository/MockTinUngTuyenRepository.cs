@@ -90,6 +90,22 @@ namespace Unicareer.Repository
             return _danhSachTinUngTuyen;
         }
 
+        public List<TinUngTuyen> LayDanhSachTinUngTuyenTheoEmail(string email)
+        {
+            return _danhSachTinUngTuyen
+                .Where(t => t.Email.ToLower() == email.ToLower())
+                .OrderByDescending(t => t.NgayUngTuyen)
+                .ToList();
+        }
+
+        public List<TinUngTuyen> LayDanhSachTinUngTuyenTheoUserId(string userId)
+        {
+            return _danhSachTinUngTuyen
+                .Where(t => t.UserId == userId)
+                .OrderByDescending(t => t.NgayUngTuyen)
+                .ToList();
+        }
+
         public TinUngTuyen? LayTinUngTuyenTheoId(int id)
         {
             return _danhSachTinUngTuyen.FirstOrDefault(t => t.MaTinUngTuyen == id);
@@ -116,6 +132,33 @@ namespace Unicareer.Repository
             }
             
             _danhSachTinUngTuyen.Add(tinUngTuyen);
+            return tinUngTuyen;
+        }
+
+        public TinUngTuyen? CapNhatTrangThai(int id, string trangThai, string? ghiChu = null)
+        {
+            var tinUngTuyen = _danhSachTinUngTuyen.FirstOrDefault(t => t.MaTinUngTuyen == id);
+            if (tinUngTuyen == null)
+            {
+                return null;
+            }
+
+            tinUngTuyen.TrangThaiXuLy = trangThai;
+            
+            // Cập nhật ghi chú nếu có
+            if (!string.IsNullOrEmpty(ghiChu))
+            {
+                // Nếu đã có ghi chú, thêm ghi chú mới vào cuối
+                if (!string.IsNullOrEmpty(tinUngTuyen.GhiChu))
+                {
+                    tinUngTuyen.GhiChu = $"{tinUngTuyen.GhiChu}; {ghiChu}";
+                }
+                else
+                {
+                    tinUngTuyen.GhiChu = ghiChu;
+                }
+            }
+
             return tinUngTuyen;
         }
     }

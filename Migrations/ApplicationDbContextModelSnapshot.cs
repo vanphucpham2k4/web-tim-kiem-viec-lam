@@ -499,6 +499,11 @@ namespace Unicareer.Migrations
                         .HasColumnType("nvarchar(255)")
                         .HasColumnName("full_name_en");
 
+                    b.Property<string>("Image")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("img");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -603,6 +608,9 @@ namespace Unicareer.Migrations
                     b.Property<string>("TinhThanhPho")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("TrangThai")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("TuKhoa")
                         .HasColumnType("nvarchar(max)");
 
@@ -663,11 +671,16 @@ namespace Unicareer.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("ViTriUngTuyen")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("MaTinUngTuyen");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("TinUngTuyens");
                 });
@@ -989,6 +1002,16 @@ namespace Unicareer.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("NhaTuyenDung");
+                });
+
+            modelBuilder.Entity("Unicareer.Models.TinUngTuyen", b =>
+                {
+                    b.HasOne("Unicareer.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Unicareer.Models.UngVien", b =>

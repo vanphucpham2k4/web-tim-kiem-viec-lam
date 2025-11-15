@@ -6,11 +6,11 @@
 
 <style>
     :root {
-        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        --accent-color: #667eea;
-        --accent-dark: #764ba2;
+        --primary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        --secondary-gradient: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+        --success-gradient: linear-gradient(135deg, #6ee7b7 0%, #10b981 100%);
+        --accent-color: #10b981;
+        --accent-dark: #059669;
         --text-primary: #2d3748;
         --text-secondary: #718096;
     }
@@ -106,7 +106,7 @@
     
     .stat-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.15);
     }
     
     .stat-card .number {
@@ -252,7 +252,7 @@
         border-radius: 25px;
         font-size: 12px;
         font-weight: 700;
-        box-shadow: 0 4px 15px rgba(245, 87, 108, 0.3);
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
         letter-spacing: 0.5px;
         text-transform: uppercase;
         position: absolute;
@@ -386,7 +386,7 @@
                     </div>
                     <div class="stat-card">
                         <div class="number">@ViewBag.SoUngVienNhan</div>
-                        <div class="label">Ứng viên đã nhận</div>
+                        <div class="label">Đơn ứng tuyển</div>
                     </div>
                     <div class="stat-card">
                         <div class="number">@ViewBag.SoThangThamGia</div>
@@ -499,7 +499,7 @@
                     </div>
                     <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="color: var(--text-secondary); font-weight: 600;">Ứng viên đã nhận</span>
+                            <span style="color: var(--text-secondary); font-weight: 600;">Đơn ứng tuyển</span>
                             <span style="font-size: 24px; font-weight: 800; color: var(--accent-color);">@ViewBag.SoUngVienNhan</span>
                         </div>
                     </div>

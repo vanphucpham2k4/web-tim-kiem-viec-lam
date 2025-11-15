@@ -44,21 +44,32 @@ namespace Unicareer.Areas.Candidate.Controllers
             _context = context;
         }
         // GET: Trang chu ung vien
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             ViewData["Title"] = "Trang chủ";
-            // TODO: Lay tin ung tuyen theo ung vien dang nhap
-            var danhSachTinUngTuyen = _tinUngTuyenRepository.LayDanhSachTinUngTuyen();
-            var danhSachViecLamDaLuu = _tinTuyenDungRepository.LayDanhSachTinTuyenDung(); // TODO: Lay theo ung vien dang nhap
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            // Lấy tin ứng tuyển theo UserId (đã được sắp xếp theo NgayUngTuyen giảm dần trong repository)
+            var danhSachTinUngTuyen = _tinUngTuyenRepository.LayDanhSachTinUngTuyenTheoUserId(user.Id);
+            var danhSachViecLamDaLuu = _viecLamDaLuuRepository.LayDanhSachViecLamDaLuuTheoUserId(user.Id);
+            var danhSachTinTuyenDung = danhSachViecLamDaLuu
+                .Where(v => v.TinTuyenDung != null)
+                .Select(v => v.TinTuyenDung!)
+                .ToList();
             
             // Thống kê
             var tongTinUngTuyen = danhSachTinUngTuyen.Count;
             var dangXemXet = danhSachTinUngTuyen.Count(t => TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy) == TrangThaiXuLy.DangXemXet);
             var choPhongVan = danhSachTinUngTuyen.Count(t => TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy) == TrangThaiXuLy.ChoPhongVan);
             var daPhongVan = danhSachTinUngTuyen.Count(t => TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy) == TrangThaiXuLy.DaPhongVan);
-            var tongViecDaLuu = danhSachViecLamDaLuu.Count; // TODO: Lay theo ung vien dang nhap
+            var tongViecDaLuu = danhSachTinTuyenDung.Count;
             
-            ViewBag.DanhSachTinUngTuyenGanDay = danhSachTinUngTuyen.OrderByDescending(t => t.NgayUngTuyen).Take(3).ToList();
+            // Lấy 3 tin ứng tuyển gần đây nhất (đã được sắp xếp trong repository)
+            ViewBag.DanhSachTinUngTuyenGanDay = danhSachTinUngTuyen.Take(3).ToList();
             ViewBag.TongTinUngTuyen = tongTinUngTuyen;
             ViewBag.DangXemXet = dangXemXet;
             ViewBag.ChoPhongVan = choPhongVan;
@@ -69,23 +80,41 @@ namespace Unicareer.Areas.Candidate.Controllers
         }
 
         // GET: Danh sach tin ung tuyen
-        public IActionResult QuanLyTinUngTuyen()
+        public async Task<IActionResult> QuanLyTinUngTuyen()
         {
             ViewData["Title"] = "Quản lý tin ứng tuyển";
-            // TODO: Lay tin ung tuyen theo ung vien dang nhap
-            var danhSach = _tinUngTuyenRepository.LayDanhSachTinUngTuyen();
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            // Lấy tin ứng tuyển theo UserId
+            var danhSach = _tinUngTuyenRepository.LayDanhSachTinUngTuyenTheoUserId(user.Id);
             return View(danhSach);
         }
 
         // GET: Chi tiet tin ung tuyen
-        public IActionResult ChiTietTinUngTuyen(int id)
+        public async Task<IActionResult> ChiTietTinUngTuyen(int id)
         {
             ViewData["Title"] = "Chi tiết tin ứng tuyển";
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
             var tin = _tinUngTuyenRepository.LayTinUngTuyenTheoId(id);
             
             if (tin == null)
             {
                 return NotFound();
+            }
+
+            // Kiểm tra quyền truy cập: chỉ cho phép xem tin ứng tuyển của chính mình
+            if (tin.UserId != user.Id)
+            {
+                return Forbid();
             }
             
             return View(tin);

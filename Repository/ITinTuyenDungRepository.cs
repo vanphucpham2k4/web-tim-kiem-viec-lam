@@ -11,6 +11,7 @@ namespace Unicareer.Repository
         List<TinTuyenDung> LayDanhSachTheoMaNhaTuyenDung(int maNhaTuyenDung);
         TinTuyenDung ThemTinTuyenDung(TinTuyenDung tinTuyenDung);
         TinTuyenDung? CapNhatTinTuyenDung(int id, TinTuyenDung tinTuyenDung);
+        TinTuyenDung? CapNhatTrangThai(int id, string trangThai);
         bool XoaTinTuyenDung(int id);
     }
 }

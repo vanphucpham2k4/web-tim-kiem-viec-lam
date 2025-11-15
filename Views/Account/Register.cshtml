@@ -9,7 +9,7 @@
         min-height: 80vh;
         display: flex;
         align-items: center;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         background-image: url('https://haycafe.vn/wp-content/uploads/2022/03/Hinh-bat-tay-hop-tac.jpg');
         background-size: cover;
         background-position: center;
@@ -26,7 +26,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.85) 0%, rgba(118, 75, 162, 0.85) 100%);
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.85) 0%, rgba(5, 150, 105, 0.85) 100%);
         z-index: 0;
     }
 
@@ -73,11 +73,11 @@
     }
 
     .auth-card.ung-vien {
-        border-top: 5px solid #4CAF50;
+        border-top: 5px solid #10b981;
     }
 
     .auth-card.nha-tuyen-dung {
-        border-top: 5px solid #2196F3;
+        border-top: 5px solid #10b981;
     }
 
     .auth-title {
@@ -93,11 +93,11 @@
     }
 
     .auth-title.ung-vien {
-        color: #4CAF50;
+        color: #10b981;
     }
 
     .auth-title.nha-tuyen-dung {
-        color: #2196F3;
+        color: #10b981;
     }
 
     .auth-icon {
@@ -120,8 +120,8 @@
     }
 
     .form-control:focus {
-        border-color: #9c27b0;
-        box-shadow: 0 0 0 0.2rem rgba(156, 39, 176, 0.15);
+        border-color: #10b981;
+        box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.15);
         outline: none;
     }
 
@@ -138,33 +138,33 @@
     }
 
     .btn-auth.ung-vien {
-        background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
+        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
     }
 
     .btn-auth.ung-vien:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
-        background: linear-gradient(135deg, #388E3C 0%, #4CAF50 100%);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        background: linear-gradient(135deg, #059669 0%, #10b981 100%);
     }
 
     .btn-auth.nha-tuyen-dung {
-        background: linear-gradient(135deg, #2196F3 0%, #42A5F5 100%);
+        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
     }
 
     .btn-auth.nha-tuyen-dung:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
-        background: linear-gradient(135deg, #1976D2 0%, #2196F3 100%);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        background: linear-gradient(135deg, #059669 0%, #10b981 100%);
     }
 
     .auth-link {
-        color: #9c27b0;
+        color: #10b981;
         text-decoration: none;
         font-weight: 600;
     }
 
     .auth-link:hover {
-        color: #7b1fa2;
+        color: #059669;
         text-decoration: underline;
     }
 
@@ -387,7 +387,7 @@
             img.onerror = function() {
                 // Ảnh không load được, chỉ dùng nền tím, ẩn overlay
                 authContainer.style.backgroundImage = 'none';
-                authContainer.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                authContainer.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
                 // Ẩn overlay bằng cách set opacity = 0
                 const style = document.createElement('style');
                 style.textContent = '.auth-container::before { opacity: 0 !important; }';

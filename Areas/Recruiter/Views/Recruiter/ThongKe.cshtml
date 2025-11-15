@@ -146,11 +146,11 @@
 
 <style>
     .stats-header {
-        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         color: white;
         padding: 30px;
         border-radius: 20px;
-        box-shadow: 0 5px 20px rgba(37, 69, 184, 0.3);
+        box-shadow: 0 5px 20px rgba(16, 185, 129, 0.3);
     }
 
     .stats-header h2 {
@@ -200,7 +200,7 @@
     }
 
     .stat-primary .stat-icon {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     }
 
     .stat-success .stat-icon {
@@ -428,14 +428,14 @@
                 datasets: [{
                     data: thongKeNganhNghe.map(x => x.SoLuong || x.soLuong),
                     backgroundColor: [
-                        'rgba(102, 126, 234, 0.8)',
+                        'rgba(16, 185, 129, 0.8)',
                         'rgba(17, 153, 142, 0.8)',
                         'rgba(52, 148, 230, 0.8)',
                         'rgba(240, 147, 251, 0.8)',
                         'rgba(245, 87, 108, 0.8)'
                     ],
                     borderColor: [
-                        '#667eea',
+                        '#10b981',
                         '#11998e',
                         '#3494e6',
                         '#f093fb',
@@ -475,7 +475,7 @@
                 datasets: [{
                     data: thongKeTrangThai.map(x => x.SoLuong || x.soLuong),
                     backgroundColor: [
-                        'rgba(102, 126, 234, 0.8)',
+                        'rgba(16, 185, 129, 0.8)',
                         'rgba(17, 153, 142, 0.8)',
                         'rgba(52, 148, 230, 0.8)',
                         'rgba(240, 147, 251, 0.8)',
@@ -483,7 +483,7 @@
                         'rgba(255, 193, 7, 0.8)'
                     ],
                     borderColor: [
-                        '#667eea',
+                        '#10b981',
                         '#11998e',
                         '#3494e6',
                         '#f093fb',
@@ -530,8 +530,8 @@
                 datasets: [{
                     label: 'Số đơn ứng tuyển',
                     data: dataTopTin,
-                    backgroundColor: 'rgba(102, 126, 234, 0.8)',
-                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                    borderColor: '#10b981',
                     borderWidth: 2
                 }]
             },

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Unicareer.Models;
 using Unicareer.Models.ViewModels;
+using Unicareer.Models.Enums;
 using Unicareer.Repository;
 using Unicareer.Data;
 using Microsoft.EntityFrameworkCore;
@@ -78,7 +79,11 @@ namespace Unicareer.Areas.Recruiter.Controllers
             var tongTinDaDang = danhSachTinTuyenDung.Count;
             var tongDonUngTuyen = danhSachTinUngTuyen.Count;
             var tongLuotXem = danhSachTinTuyenDung.Sum(t => (t.SoLuongUngTuyen ?? 0) * 10); // Ước tính lượt xem
-            var tongUngVienPhuHop = danhSachTinUngTuyen.Count(t => t.TrangThaiXuLy == "Tuyen dung" || t.TrangThaiXuLy == "Cho phong van");
+            var tongUngVienPhuHop = danhSachTinUngTuyen.Count(t => 
+            {
+                var trangThai = TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy);
+                return trangThai.HasValue && trangThai.Value == TrangThaiXuLy.TuyenDung;
+            });
             
             // Dữ liệu chart cho 7 ngày gần nhất
             var ngayHienTai = DateTime.Now.Date;
@@ -641,6 +646,75 @@ namespace Unicareer.Areas.Recruiter.Controllers
             }
         }
 
+        // POST: Cap nhat trang thai tin tuyen dung
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CapNhatTrangThaiTinTuyenDung(int id, string trangThai)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy người dùng" });
+            }
+
+            // Lấy thông tin công ty của user đăng nhập
+            var nhaTuyenDung = _nhaTuyenDungRepository.LayNhaTuyenDungTheoUserId(user.Id);
+            if (nhaTuyenDung == null || string.IsNullOrEmpty(nhaTuyenDung.TenCongTy))
+            {
+                return Json(new { success = false, message = "Không tìm thấy thông tin công ty" });
+            }
+
+            // Lấy tin tuyển dụng từ database
+            var tinTuyenDung = _tinTuyenDungRepository.LayTinTuyenDungTheoId(id);
+            if (tinTuyenDung == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy tin tuyển dụng" });
+            }
+
+            // Kiểm tra quyền truy cập
+            if (tinTuyenDung.MaNhaTuyenDung != nhaTuyenDung.MaNhaTuyenDung)
+            {
+                return Json(new { success = false, message = "Bạn không có quyền cập nhật tin tuyển dụng này" });
+            }
+
+            // Kiểm tra trạng thái hợp lệ
+            var trangThaiHopLe = new[] { "Dang tuyen", "Het han", "Da dong" };
+            if (string.IsNullOrEmpty(trangThai) || !trangThaiHopLe.Contains(trangThai))
+            {
+                return Json(new { success = false, message = "Trạng thái không hợp lệ" });
+            }
+
+            try
+            {
+                // Cập nhật trạng thái
+                var tinDaCapNhat = _tinTuyenDungRepository.CapNhatTrangThai(id, trangThai);
+                
+                if (tinDaCapNhat == null)
+                {
+                    return Json(new { success = false, message = "Không thể cập nhật trạng thái" });
+                }
+
+                // Chuyển đổi trạng thái để hiển thị
+                var trangThaiDisplay = trangThai switch
+                {
+                    "Dang tuyen" => "Đang tuyển",
+                    "Het han" => "Hết hạn",
+                    "Da dong" => "Đã đóng",
+                    _ => trangThai
+                };
+
+                return Json(new { 
+                    success = true, 
+                    message = "Cập nhật trạng thái thành công!",
+                    trangThai = trangThaiDisplay
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
         // GET: Danh sach don ung tuyen
         public async Task<IActionResult> DonUngTuyen()
         {
@@ -677,10 +751,202 @@ namespace Unicareer.Areas.Recruiter.Controllers
             return View(danhSachDonUngTuyen);
         }
 
+        // GET: Chi tiet don ung tuyen
+        [HttpGet]
+        public async Task<IActionResult> ChiTietDonUngTuyen(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy người dùng" });
+            }
+
+            // Lấy thông tin công ty của user đăng nhập
+            var nhaTuyenDung = _nhaTuyenDungRepository.LayNhaTuyenDungTheoUserId(user.Id);
+            if (nhaTuyenDung == null || string.IsNullOrEmpty(nhaTuyenDung.TenCongTy))
+            {
+                return Json(new { success = false, message = "Không tìm thấy thông tin công ty" });
+            }
+
+            // Lấy đơn ứng tuyển từ database
+            var donUngTuyen = _tinUngTuyenRepository.LayTinUngTuyenTheoId(id);
+            if (donUngTuyen == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy đơn ứng tuyển" });
+            }
+
+            // Kiểm tra quyền truy cập: đơn ứng tuyển phải thuộc về một tin tuyển dụng của công ty này
+            var tinTuyenDung = _tinTuyenDungRepository.LayTinTuyenDungTheoId(
+                int.TryParse(donUngTuyen.MaTinTuyenDung, out int maTin) ? maTin : 0);
+            
+            if (tinTuyenDung == null || tinTuyenDung.MaNhaTuyenDung != nhaTuyenDung.MaNhaTuyenDung)
+            {
+                return Json(new { success = false, message = "Bạn không có quyền xem đơn ứng tuyển này" });
+            }
+
+            // Lấy thông tin tin tuyển dụng liên quan
+            var trangThaiEnum = Models.Enums.TrangThaiXuLyHelper.FromString(donUngTuyen.TrangThaiXuLy);
+            var trangThaiDisplay = trangThaiEnum.HasValue 
+                ? Models.Enums.TrangThaiXuLyHelper.ToString(trangThaiEnum.Value) 
+                : donUngTuyen.TrangThaiXuLy;
+
+            return Json(new
+            {
+                success = true,
+                data = new
+                {
+                    maTinUngTuyen = donUngTuyen.MaTinUngTuyen,
+                    userId = donUngTuyen.UserId, // UserId của người ứng tuyển
+                    hoTen = donUngTuyen.HoTen,
+                    email = donUngTuyen.Email,
+                    soDienThoai = donUngTuyen.SoDienThoai,
+                    viTriUngTuyen = donUngTuyen.ViTriUngTuyen,
+                    congTy = donUngTuyen.CongTy,
+                    maTinTuyenDung = donUngTuyen.MaTinTuyenDung,
+                    tenViecLam = tinTuyenDung.TenViecLam,
+                    trangThaiXuLy = trangThaiDisplay,
+                    linkCV = donUngTuyen.LinkCV,
+                    ghiChu = donUngTuyen.GhiChu,
+                    ngayUngTuyen = donUngTuyen.NgayUngTuyen.ToString("dd/MM/yyyy HH:mm")
+                }
+            });
+        }
+
+        // POST: Cap nhat trang thai don ung tuyen
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CapNhatTrangThaiDonUngTuyen(int maDonUngTuyen, string trangThaiMoi, string? ghiChu = null)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy người dùng" });
+            }
+
+            // Lấy thông tin công ty của user đăng nhập
+            var nhaTuyenDung = _nhaTuyenDungRepository.LayNhaTuyenDungTheoUserId(user.Id);
+            if (nhaTuyenDung == null || string.IsNullOrEmpty(nhaTuyenDung.TenCongTy))
+            {
+                return Json(new { success = false, message = "Không tìm thấy thông tin công ty" });
+            }
+
+            // Lấy đơn ứng tuyển từ database
+            var donUngTuyen = _tinUngTuyenRepository.LayTinUngTuyenTheoId(maDonUngTuyen);
+            if (donUngTuyen == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy đơn ứng tuyển" });
+            }
+
+            // Kiểm tra quyền truy cập: đơn ứng tuyển phải thuộc về một tin tuyển dụng của công ty này
+            var tinTuyenDung = _tinTuyenDungRepository.LayTinTuyenDungTheoId(
+                int.TryParse(donUngTuyen.MaTinTuyenDung, out int maTin) ? maTin : 0);
+            
+            if (tinTuyenDung == null || tinTuyenDung.MaNhaTuyenDung != nhaTuyenDung.MaNhaTuyenDung)
+            {
+                return Json(new { success = false, message = "Bạn không có quyền cập nhật đơn ứng tuyển này" });
+            }
+
+            // Kiểm tra trạng thái hợp lệ
+            if (string.IsNullOrEmpty(trangThaiMoi))
+            {
+                return Json(new { success = false, message = "Vui lòng chọn trạng thái mới" });
+            }
+
+            try
+            {
+                // Cập nhật trạng thái
+                var donDaCapNhat = _tinUngTuyenRepository.CapNhatTrangThai(maDonUngTuyen, trangThaiMoi, ghiChu);
+                
+                if (donDaCapNhat == null)
+                {
+                    return Json(new { success = false, message = "Không thể cập nhật trạng thái" });
+                }
+
+                return Json(new { success = true, message = "Cập nhật trạng thái thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
         // GET: Thong tin tai khoan (redirect to CaiDat)
         public IActionResult ThongTinTaiKhoan()
         {
             return RedirectToAction("CaiDat");
+        }
+
+        // GET: Thong tin tai khoan user theo userId
+        [HttpGet]
+        public async Task<IActionResult> ThongTinTaiKhoanUser(string userId)
+        {
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Json(new { success = false, message = "UserId không hợp lệ" });
+            }
+
+            try
+            {
+                // Lấy thông tin user
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy tài khoản" });
+                }
+
+                // Lấy roles của user
+                var roles = await _userManager.GetRolesAsync(user);
+
+                // Lấy thông tin UngVien nếu có
+                var ungVien = _context.UngViens
+                    .Include(u => u.ChuyenNganh)
+                    .FirstOrDefault(u => u.UserId == userId);
+
+                // Lấy số lượng đơn ứng tuyển của user
+                var soLuongDonUngTuyen = _context.TinUngTuyens
+                    .Count(t => t.UserId == userId);
+
+                return Json(new
+                {
+                    success = true,
+                    data = new
+                    {
+                        userId = user.Id,
+                        email = user.Email,
+                        phoneNumber = user.PhoneNumber,
+                        hoTen = user.HoTen,
+                        avatar = user.Avatar,
+                        loaiTaiKhoan = user.LoaiTaiKhoan,
+                        ngayDangKy = user.NgayDangKy.ToString("dd/MM/yyyy"),
+                        emailConfirmed = user.EmailConfirmed,
+                        roles = roles.ToList(),
+                        // Thông tin UngVien nếu có
+                        ungVien = ungVien != null ? new
+                        {
+                            maUngVien = ungVien.MaUngVien,
+                            ngaySinh = ungVien.NgaySinh.ToString("dd/MM/yyyy"),
+                            gioiTinh = ungVien.GioiTinh,
+                            diaChi = ungVien.DiaChi,
+                            hocVan = ungVien.HocVan,
+                            kinhNghiem = ungVien.KinhNghiem,
+                            kyNang = ungVien.KyNang,
+                            nganhNghe = ungVien.NganhNghe,
+                            chuyenNganh = ungVien.ChuyenNganh?.TenChuyenNganh,
+                            linkCV = ungVien.LinkCV,
+                            soLanUngTuyen = ungVien.SoLanUngTuyen,
+                            viTriMongMuon = ungVien.ViTriMongMuon,
+                            mucLuongKyVong = ungVien.MucLuongKyVong,
+                            noiLamViecMongMuon = ungVien.NoiLamViecMongMuon,
+                            trangThaiTimViec = ungVien.TrangThaiTimViec
+                        } : null,
+                        soLuongDonUngTuyen = soLuongDonUngTuyen
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
         }
 
         // GET: Thong ke
@@ -724,8 +990,13 @@ namespace Unicareer.Areas.Recruiter.Controllers
             var tongTinDaDang = danhSachTinTuyenDung.Count;
             var tongDonUngTuyen = danhSachTinUngTuyen.Count;
             var tongLuotXem = danhSachTinTuyenDung.Sum(t => t.SoLuongUngTuyen * 10);
+            // Tính tỷ lệ phù hợp: chỉ đếm các đơn có trạng thái "Tuyển dụng"
             var tyLePhuHop = tongDonUngTuyen > 0 
-                ? (danhSachTinUngTuyen.Count(t => t.TrangThaiXuLy == "Tuyen dung" || t.TrangThaiXuLy == "Cho phong van") * 100.0 / tongDonUngTuyen) 
+                ? (danhSachTinUngTuyen.Count(t => 
+                    {
+                        var trangThai = TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy);
+                        return trangThai.HasValue && trangThai.Value == TrangThaiXuLy.TuyenDung;
+                    }) * 100.0 / tongDonUngTuyen) 
                 : 0;
             
             // Thống kê theo ngành nghề - Top ngành nghề được ứng tuyển nhiều nhất

@@ -6,6 +6,8 @@ using Unicareer.Repository;
 using Unicareer.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Unicareer.Controllers
 {
@@ -15,15 +17,21 @@ namespace Unicareer.Controllers
         private readonly INhaTuyenDungRepository _nhaTuyenDungRepository;
         private readonly ITinTuyenDungRepository _tinTuyenDungRepository;
         private readonly IUngVienRepository _ungVienRepository;
+        private readonly ITruongDaiHocRepository _truongDaiHocRepository;
+        private readonly INganhNgheRepository _nganhNgheRepository;
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public HomeController(ILogger<HomeController> logger, INhaTuyenDungRepository nhaTuyenDungRepository, ITinTuyenDungRepository tinTuyenDungRepository, IUngVienRepository ungVienRepository, ApplicationDbContext context)
+        public HomeController(ILogger<HomeController> logger, INhaTuyenDungRepository nhaTuyenDungRepository, ITinTuyenDungRepository tinTuyenDungRepository, IUngVienRepository ungVienRepository, ITruongDaiHocRepository truongDaiHocRepository, INganhNgheRepository nganhNgheRepository, ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _logger = logger;
             _nhaTuyenDungRepository = nhaTuyenDungRepository;
             _tinTuyenDungRepository = tinTuyenDungRepository;
             _ungVienRepository = ungVienRepository;
+            _truongDaiHocRepository = truongDaiHocRepository;
+            _nganhNgheRepository = nganhNgheRepository;
             _context = context;
+            _userManager = userManager;
         }
 
         // Helper method để lấy logo theo tên công ty
@@ -50,6 +58,95 @@ namespace Unicareer.Controllers
                 .OrderBy(p => p.FullName)
                 .ToList();
             
+            // Lấy tất cả tin tuyển dụng để phân tích
+            var tatCaTinTuyenDung = _tinTuyenDungRepository.LayDanhSachTinTuyenDung();
+            
+            // Lấy danh sách 10 tỉnh thành ưu tiên cho phần "Bạn Muốn Làm Việc Ở Đâu?"
+            // Đếm số lượng việc làm theo tỉnh/thành phố
+            var soLuongViecLamTheoTinh = tatCaTinTuyenDung
+                .Where(t => !string.IsNullOrEmpty(t.TinhThanhPho))
+                .GroupBy(t => t.TinhThanhPho)
+                .Select(g => new { TinhThanhPho = g.Key, SoLuong = g.Count() })
+                .ToList();
+            
+            // Hàm helper để kiểm tra xem tên tỉnh/thành phố có khớp không (linh hoạt)
+            Func<string, string, bool> isMatch = (provinceFullName, jobCityName) =>
+            {
+                if (string.IsNullOrEmpty(provinceFullName) || string.IsNullOrEmpty(jobCityName))
+                    return false;
+                
+                // So sánh chính xác
+                if (provinceFullName.Equals(jobCityName, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                
+                // Loại bỏ "Thành phố" và "Tỉnh" để so sánh
+                var provinceNameOnly = provinceFullName
+                    .Replace("Thành phố ", "", StringComparison.OrdinalIgnoreCase)
+                    .Replace("Tỉnh ", "", StringComparison.OrdinalIgnoreCase)
+                    .Trim();
+                
+                var jobCityNameOnly = jobCityName
+                    .Replace("Thành phố ", "", StringComparison.OrdinalIgnoreCase)
+                    .Replace("Tỉnh ", "", StringComparison.OrdinalIgnoreCase)
+                    .Trim();
+                
+                // So sánh sau khi loại bỏ tiền tố
+                if (provinceNameOnly.Equals(jobCityNameOnly, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                
+                // Kiểm tra chứa (một phần)
+                if (provinceFullName.Contains(jobCityName, StringComparison.OrdinalIgnoreCase) ||
+                    jobCityName.Contains(provinceFullName, StringComparison.OrdinalIgnoreCase) ||
+                    provinceNameOnly.Contains(jobCityNameOnly, StringComparison.OrdinalIgnoreCase) ||
+                    jobCityNameOnly.Contains(provinceNameOnly, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                
+                return false;
+            };
+            
+            // Lấy danh sách tỉnh thành với thông tin số lượng việc làm
+            var danhSachTinhThanhWithCount = danhSachTinhThanh
+                .Select(p => new
+                {
+                    Province = p,
+                    SoLuongViecLam = soLuongViecLamTheoTinh
+                        .Where(x => isMatch(p.FullName, x.TinhThanhPho))
+                        .Sum(x => x.SoLuong),
+                    IsThanhPho = p.AdministrativeUnitId == 1
+                })
+                .ToList();
+            
+            // Kiểm tra xem có tỉnh thành nào có tin tuyển dụng không
+            var coTinhThanhCoTin = danhSachTinhThanhWithCount.Any(x => x.SoLuongViecLam > 0);
+            
+            List<Province> danhSachTinhThanhUuTien;
+            
+            if (!coTinhThanhCoTin)
+            {
+                // Nếu không có tỉnh thành nào có tin → ưu tiên hiển thị 10 thành phố
+                danhSachTinhThanhUuTien = danhSachTinhThanhWithCount
+                    .Where(x => x.IsThanhPho)
+                    .OrderBy(x => x.Province.FullName)
+                    .Take(10)
+                    .Select(x => x.Province)
+                    .ToList();
+            }
+            else
+            {
+                // Nếu có tỉnh thành có tin → sắp xếp theo logic:
+                // 1. Các tỉnh có tin → sắp xếp giảm dần theo số lượng
+                // 2. Các tỉnh không có tin → ưu tiên thành phố, sau đó là tỉnh
+                danhSachTinhThanhUuTien = danhSachTinhThanhWithCount
+                    .OrderByDescending(x => x.SoLuongViecLam > 0) // Ưu tiên tỉnh có tin
+                    .ThenByDescending(x => x.SoLuongViecLam) // Trong các tỉnh có tin: sắp xếp giảm dần
+                    .ThenByDescending(x => x.IsThanhPho) // Trong các tỉnh không có tin: ưu tiên thành phố
+                    .Take(10)
+                    .Select(x => x.Province)
+                    .ToList();
+            }
+            
+            ViewBag.DanhSachTinhThanhUuTien = danhSachTinhThanhUuTien;
+            
             // Lấy logo cho các công ty
             var companyNames = danhSachViecLam.Select(j => j.CongTy).Distinct().ToList();
             var companyLogos = GetCompanyLogos(companyNames);
@@ -72,9 +169,6 @@ namespace Unicareer.Controllers
             
             // Tạo danh sách gợi ý tìm kiếm từ dữ liệu thực tế
             var danhSachGoiYTimKiem = new List<GoiYTimKiem>();
-            
-            // Lấy tất cả tin tuyển dụng để phân tích
-            var tatCaTinTuyenDung = _tinTuyenDungRepository.LayDanhSachTinTuyenDung();
             
             // Top ngành nghề có nhiều việc làm nhất (lấy top 3)
             var topNganhNghe = tatCaTinTuyenDung
@@ -596,14 +690,14 @@ namespace Unicareer.Controllers
             var tatCaTinTuyenDung = _tinTuyenDungRepository.LayDanhSachTinTuyenDung();
             var soTinTheoCongTy = tatCaTinTuyenDung
                 .Where(t => !string.IsNullOrEmpty(t.CongTy))
-                .GroupBy(t => t.CongTy.ToLower())
+                .GroupBy(t => t.CongTy.ToLower().Trim())
                 .ToDictionary(g => g.Key, g => g.Count());
             
-            // Lấy tất cả tin ứng tuyển và nhóm theo công ty để tính số ứng viên đã nhận
+            // Lấy tất cả đơn ứng tuyển và nhóm theo công ty để tính tổng số đơn ứng tuyển
             var tatCaTinUngTuyen = _context.TinUngTuyens.ToList();
-            var soUngVienNhanTheoCongTy = tatCaTinUngTuyen
-                .Where(t => !string.IsNullOrEmpty(t.CongTy) && t.TrangThaiXuLy == "Tuyen dung")
-                .GroupBy(t => t.CongTy.ToLower())
+            var soDonUngTuyenTheoCongTy = tatCaTinUngTuyen
+                .Where(t => !string.IsNullOrEmpty(t.CongTy))
+                .GroupBy(t => t.CongTy.ToLower().Trim())
                 .ToDictionary(g => g.Key, g => g.Count());
             
             // Tạo dictionary để lưu thống kê cho mỗi công ty
@@ -611,15 +705,43 @@ namespace Unicareer.Controllers
             
             foreach (var congTy in danhSachCongTy)
             {
-                var tenCongTyLower = congTy.TenCongTy?.ToLower() ?? "";
-                var soTinDaDang = soTinTheoCongTy.ContainsKey(tenCongTyLower) 
-                    ? soTinTheoCongTy[tenCongTyLower] 
-                    : 0;
-                var soUngVienNhan = soUngVienNhanTheoCongTy.ContainsKey(tenCongTyLower) 
-                    ? soUngVienNhanTheoCongTy[tenCongTyLower] 
-                    : 0;
+                var tenCongTyLower = congTy.TenCongTy?.ToLower().Trim() ?? "";
                 
-                thongKeCongTy[congTy.MaNhaTuyenDung] = (soTinDaDang, soUngVienNhan);
+                // Tìm số tin đã đăng - kiểm tra cả exact match và partial match
+                var soTinDaDang = 0;
+                if (soTinTheoCongTy.ContainsKey(tenCongTyLower))
+                {
+                    soTinDaDang = soTinTheoCongTy[tenCongTyLower];
+                }
+                else
+                {
+                    // Thử tìm với partial match
+                    var matchingKey = soTinTheoCongTy.Keys
+                        .FirstOrDefault(k => k.Contains(tenCongTyLower) || tenCongTyLower.Contains(k));
+                    if (matchingKey != null)
+                    {
+                        soTinDaDang = soTinTheoCongTy[matchingKey];
+                    }
+                }
+                
+                // Tìm tổng số đơn ứng tuyển mà công ty nhận được - kiểm tra cả exact match và partial match
+                var soDonUngTuyen = 0;
+                if (soDonUngTuyenTheoCongTy.ContainsKey(tenCongTyLower))
+                {
+                    soDonUngTuyen = soDonUngTuyenTheoCongTy[tenCongTyLower];
+                }
+                else
+                {
+                    // Thử tìm với partial match (trường hợp tên công ty trong TinUngTuyen có thể khác một chút)
+                    var matchingKey = soDonUngTuyenTheoCongTy.Keys
+                        .FirstOrDefault(k => k.Contains(tenCongTyLower) || tenCongTyLower.Contains(k));
+                    if (matchingKey != null)
+                    {
+                        soDonUngTuyen = soDonUngTuyenTheoCongTy[matchingKey];
+                    }
+                }
+                
+                thongKeCongTy[congTy.MaNhaTuyenDung] = (soTinDaDang, soDonUngTuyen);
             }
             
             // Lấy danh sách tỉnh/thành phố
@@ -744,10 +866,13 @@ namespace Unicareer.Controllers
             // Tính toán số tin đã đăng từ dữ liệu thật
             var soTinDaDang = danhSachViecLam.Count;
             
-            // Tính toán số ứng viên đã nhận từ dữ liệu thật (trạng thái "Tuyen dung")
+            // Tính tổng số đơn ứng tuyển mà công ty nhận được (tất cả trạng thái)
+            var tenCongTyLower = congTy.TenCongTy?.ToLower().Trim() ?? "";
             var soUngVienNhan = _context.TinUngTuyens
-                .Where(t => t.CongTy != null && t.CongTy.ToLower() == congTy.TenCongTy.ToLower() 
-                    && t.TrangThaiXuLy == "Tuyen dung")
+                .Where(t => t.CongTy != null && 
+                    (t.CongTy.ToLower().Trim() == tenCongTyLower || 
+                     t.CongTy.ToLower().Trim().Contains(tenCongTyLower) ||
+                     tenCongTyLower.Contains(t.CongTy.ToLower().Trim())))
                 .Count();
             
             // Tính toán số tháng tham gia
@@ -770,16 +895,32 @@ namespace Unicareer.Controllers
                 return NotFound();
             }
             
+            // Tự động cập nhật trạng thái "Het han" nếu đã quá hạn nộp và chưa được set
+            if (tinTuyenDung.HanNop < DateTime.Now.Date && tinTuyenDung.TrangThai != "Het han" && tinTuyenDung.TrangThai != "Da dong")
+            {
+                tinTuyenDung.TrangThai = "Het han";
+                _context.SaveChanges();
+            }
+            
             // Lấy logo công ty
             var nhaTuyenDung = _context.NhaTuyenDungs
                 .FirstOrDefault(n => n.TenCongTy == tinTuyenDung.CongTy);
             ViewBag.CompanyLogo = nhaTuyenDung?.Logo;
+            
+            // Lấy danh sách trường đại học từ database
+            var danhSachTruongDaiHoc = _truongDaiHocRepository.LayDanhSachTruongDaiHoc();
+            ViewBag.DanhSachTruongDaiHoc = danhSachTruongDaiHoc;
+            
+            // Lấy danh sách ngành nghề từ database
+            var danhSachNganhNghe = _nganhNgheRepository.LayDanhSachNganhNghe();
+            ViewBag.DanhSachNganhNghe = danhSachNganhNghe;
             
             return View(tinTuyenDung);
         }
 
         // POST: Ung tuyen
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UngTuyen(
             int jobId, 
@@ -822,10 +963,28 @@ namespace Unicareer.Controllers
                     return Json(new { success = false, message = "Không tìm thấy tin tuyển dụng" });
                 }
 
-                // Kiểm tra hạn nộp
+                // Kiểm tra trạng thái tin tuyển dụng
+                if (tinTuyenDung.TrangThai == "Da dong")
+                {
+                    return Json(new { success = false, message = "Tin tuyển dụng này đã được đóng. Không thể ứng tuyển nữa." });
+                }
+
+                // Kiểm tra trạng thái hết hạn
+                if (tinTuyenDung.TrangThai == "Het han")
+                {
+                    return Json(new { success = false, message = "Tin tuyển dụng đã hết hạn. Không thể ứng tuyển nữa." });
+                }
+
+                // Kiểm tra hạn nộp (nếu trạng thái chưa được set là "Het han" nhưng đã quá hạn)
                 if (tinTuyenDung.HanNop < DateTime.Now.Date)
                 {
-                    return Json(new { success = false, message = "Tin tuyển dụng đã hết hạn nộp hồ sơ" });
+                    // Tự động cập nhật trạng thái thành "Het han" nếu chưa được set
+                    if (tinTuyenDung.TrangThai != "Het han")
+                    {
+                        tinTuyenDung.TrangThai = "Het han";
+                        _context.SaveChanges();
+                    }
+                    return Json(new { success = false, message = "Tin tuyển dụng đã hết hạn nộp hồ sơ. Không thể ứng tuyển nữa." });
                 }
 
                 // Upload CV file nếu có
@@ -839,9 +998,18 @@ namespace Unicareer.Controllers
                     }
                 }
 
+                // Lấy UserId (bắt buộc đăng nhập nên user luôn có)
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại." });
+                }
+                string userId = user.Id;
+
                 // Tạo tin ứng tuyển
                 var tinUngTuyen = new TinUngTuyen
                 {
+                    UserId = userId, // Bắt buộc đăng nhập nên UserId luôn có giá trị
                     HoTen = fullName.Trim(),
                     Email = email.Trim(),
                     SoDienThoai = phone.Trim(),

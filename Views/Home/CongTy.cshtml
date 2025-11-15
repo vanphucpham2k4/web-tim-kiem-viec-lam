@@ -6,11 +6,11 @@
 
 <style>
     :root {
-        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        --accent-color: #667eea;
-        --accent-dark: #764ba2;
+        --primary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        --secondary-gradient: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+        --success-gradient: linear-gradient(135deg, #6ee7b7 0%, #10b981 100%);
+        --accent-color: #10b981;
+        --accent-dark: #059669;
         --text-primary: #2d3748;
         --text-secondary: #718096;
     }
@@ -88,18 +88,22 @@
         background: var(--primary-gradient);
         color: white;
         border: none;
-        padding: 14px 40px;
+        padding: 14px 20px;
         border-radius: 0 10px 10px 0;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
     }
     
     .search-box .btn-search:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 25px rgba(102, 126, 234, 0.5);
+        box-shadow: 0 6px 25px rgba(16, 185, 129, 0.5);
     }
     
     .filter-bar {
@@ -123,7 +127,7 @@
     
     .filter-bar select:focus {
         border-color: var(--accent-color);
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
         outline: none;
     }
     
@@ -158,7 +162,7 @@
     
     .company-card:hover {
         border-color: var(--accent-color);
-        box-shadow: 0 12px 40px rgba(102, 126, 234, 0.15);
+        box-shadow: 0 12px 40px rgba(16, 185, 129, 0.15);
         transform: translateY(-8px);
     }
     
@@ -197,7 +201,7 @@
     
     .company-card:hover .company-logo {
         transform: scale(1.05);
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2);
     }
     
     .company-name {
@@ -261,7 +265,7 @@
     .badge-industry {
         display: inline-block;
         padding: 6px 14px;
-        background: rgba(102, 126, 234, 0.1);
+        background: rgba(16, 185, 129, 0.1);
         color: var(--accent-color);
         border-radius: 20px;
         font-size: 13px;
@@ -286,7 +290,7 @@
         border-radius: 20px;
         font-weight: 700;
         display: inline-block;
-        box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
     }
     
     @@keyframes fadeInUp {
@@ -331,7 +335,7 @@
                                placeholder="Tìm kiếm công ty theo tên, lĩnh vực..."
                                id="searchInput">
                         <button class="btn btn-search" type="button">
-                            <i class="bi bi-search me-2"></i>TÌM KIẾM
+                            <i class="bi bi-search"></i>
                         </button>
                     </div>
                 </div>
@@ -424,7 +428,7 @@
                             </div>
                             <div class="stat-item">
                                 <div class="stat-number">@thongKe.SoUngVienNhan</div>
-                                <div class="stat-label">Ứng viên</div>
+                                <div class="stat-label">Đơn ứng tuyển</div>
                             </div>
                         </div>
                     </div>

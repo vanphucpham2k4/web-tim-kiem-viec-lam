@@ -8,12 +8,12 @@
 
 <style>
     .page-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         border-radius: 20px;
         padding: 40px;
         margin-bottom: 30px;
         color: white;
-        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3);
     }
 
     .page-header h1 {
@@ -50,8 +50,8 @@
     }
 
     .form-control:focus, .form-select:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        border-color: #10b981;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
         outline: none;
     }
 
@@ -165,7 +165,7 @@
     }
 
     .stats-card.primary {
-        border-left: 5px solid #667eea;
+        border-left: 5px solid #10b981;
     }
 
     .stats-card.success {
@@ -188,6 +188,28 @@
         to {
             opacity: 1;
             transform: translateY(0);
+        }
+    }
+
+    @@keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @@keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
         }
     }
 
@@ -281,7 +303,7 @@
                     <table class="table table-hover">
                         <thead class="table-light">
                             <tr>
-                                <th><i class="bi bi-hash"></i> Mã</th>
+                                <th><i class="bi bi-hash"></i> STT</th>
                                 <th><i class="bi bi-person"></i> Ứng viên</th>
                                 <th><i class="bi bi-briefcase"></i> Vị trí ứng tuyển</th>
                                 <th><i class="bi bi-calendar-plus"></i> Ngày ứng tuyển</th>
@@ -291,6 +313,9 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @{
+                                int stt = 1;
+                            }
                             @foreach (var don in Model)
                             {
                                 var tinTuyenDung = danhSachTinTuyenDung.FirstOrDefault(t => t.MaTinTuyenDung.ToString() == don.MaTinTuyenDung);
@@ -302,27 +327,13 @@
                                     ? TrangThaiXuLyHelper.GetBadgeClass(trangThaiEnum.Value) 
                                     : "bg-secondary";
                                 
-                                <tr data-ma="@don.MaTinUngTuyen" data-trangthai="@trangThaiDisplay" data-tin="@don.MaTinTuyenDung">
-                                    <td><span class="text-muted">#@don.MaTinUngTuyen</span></td>
+                                <tr data-ma="@don.MaTinUngTuyen" data-trangthai="@trangThaiDisplay" data-tin="@don.MaTinTuyenDung" data-userid="@(don.UserId ?? "")">
+                                    <td><span class="text-muted">@stt</span></td>
                                     <td>
-                                        <div class="candidate-info">
-                                            <span class="candidate-name">@don.HoTen</span>
-                                            <div class="candidate-contact">
-                                                <i class="bi bi-envelope"></i> @don.Email<br/>
-                                                <i class="bi bi-telephone"></i> @don.SoDienThoai
-                                            </div>
-                                        </div>
+                                        <span class="candidate-name">@don.HoTen</span>
                                     </td>
                                     <td>
-                                        <div class="position-info">
-                                            <span class="position-title">@don.ViTriUngTuyen</span>
-                                            @if (tinTuyenDung != null)
-                                            {
-                                                <span class="position-company">
-                                                    <i class="bi bi-building"></i> @tinTuyenDung.CongTy
-                                                </span>
-                                            }
-                                        </div>
+                                        <span class="position-title">@don.ViTriUngTuyen</span>
                                     </td>
                                     <td>@don.NgayUngTuyen.ToString("dd/MM/yyyy HH:mm")</td>
                                     <td>
@@ -347,8 +358,15 @@
                                         <button class="btn btn-sm btn-outline-success" title="Cập nhật trạng thái" onclick="capNhatTrangThai(@don.MaTinUngTuyen)">
                                             <i class="bi bi-check-circle"></i>
                                         </button>
+                                        @if (!string.IsNullOrEmpty(don.UserId))
+                                        {
+                                            <button class="btn btn-sm btn-outline-secondary" title="Xem thông tin tài khoản" onclick="xemThongTinTaiKhoan('@don.UserId')">
+                                                <i class="bi bi-person-circle"></i>
+                                            </button>
+                                        }
                                     </td>
                                 </tr>
+                                stt++;
                             }
                         </tbody>
                     </table>
@@ -421,6 +439,7 @@
             </div>
             <div class="modal-body">
                 <form id="formCapNhatTrangThai">
+                    @Html.AntiForgeryToken()
                     <input type="hidden" id="maDonUngTuyen" name="maDonUngTuyen" />
                     <div class="mb-3">
                         <label for="trangThaiMoi" class="form-label">Trạng thái mới</label>
@@ -443,6 +462,24 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
                 <button type="button" class="btn btn-primary" onclick="luuTrangThai()">Lưu thay đổi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal thông tin tài khoản -->
+<div class="modal fade" id="taiKhoanModal" tabindex="-1" aria-labelledby="taiKhoanModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="taiKhoanModalLabel"><i class="bi bi-person-circle"></i> Thông tin tài khoản</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="taiKhoanModalBody">
+                <!-- Nội dung sẽ được load bằng JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
             </div>
         </div>
     </div>
@@ -481,35 +518,92 @@
         });
         
         function xemChiTiet(maDon) {
-            // TODO: Load chi tiết đơn ứng tuyển từ server
             var modal = new bootstrap.Modal(document.getElementById('chiTietModal'));
-            $('#chiTietModalBody').html('<p>Đang tải thông tin...</p>');
+            $('#chiTietModalBody').html('<div class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Đang tải...</span></div><p class="mt-2">Đang tải thông tin...</p></div>');
             modal.show();
             
-            // Giả lập dữ liệu (sẽ thay bằng AJAX call thực tế)
-            setTimeout(function() {
-                $('#chiTietModalBody').html(`
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6>Thông tin ứng viên</h6>
-                            <p><strong>Họ tên:</strong> [Tên ứng viên]</p>
-                    <p><strong>Email:</strong> [Email]</p>
-                    <p><strong>Số điện thoại:</strong> [SĐT]</p>
+            // Gọi API để lấy chi tiết đơn ứng tuyển từ database
+            $.ajax({
+                url: '@Url.Action("ChiTietDonUngTuyen", "Recruiter", new { area = "Recruiter" })',
+                type: 'GET',
+                data: { id: maDon },
+                success: function(response) {
+                    if (response.success && response.data) {
+                        var data = response.data;
+                        var cvSection = '';
+                        if (data.linkCV && data.linkCV.trim() !== '') {
+                            cvSection = `
+                                <div class="mt-3">
+                                    <h6><i class="bi bi-file-earmark-pdf"></i> CV ứng viên</h6>
+                                    <a href="${data.linkCV}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-download"></i> Tải CV
+                                    </a>
+                                </div>
+                            `;
+                        } else {
+                            cvSection = '<div class="mt-3"><p class="text-muted">Ứng viên chưa đính kèm CV</p></div>';
+                        }
+                        
+                        var ghiChuSection = '';
+                        if (data.ghiChu && data.ghiChu.trim() !== '') {
+                            // Parse ghi chú để hiển thị đẹp hơn
+                            var ghiChuParts = data.ghiChu.split(';');
+                            var ghiChuHtml = '<ul class="list-unstyled">';
+                            ghiChuParts.forEach(function(part) {
+                                if (part.trim()) {
+                                    ghiChuHtml += '<li><i class="bi bi-check-circle text-success me-2"></i>' + part.trim() + '</li>';
+                                }
+                            });
+                            ghiChuHtml += '</ul>';
+                            ghiChuSection = `
+                                <hr>
+                                <div>
+                                    <h6><i class="bi bi-sticky"></i> Thông tin bổ sung</h6>
+                                    ${ghiChuHtml}
+                                </div>
+                            `;
+                        }
+                        
+                        $('#chiTietModalBody').html(`
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="mb-3"><i class="bi bi-person-circle"></i> Thông tin ứng viên</h6>
+                                    <p><strong>Họ và tên:</strong> ${data.hoTen}</p>
+                                    <p><strong>Email:</strong> <a href="mailto:${data.email}">${data.email}</a></p>
+                                    <p><strong>Số điện thoại:</strong> <a href="tel:${data.soDienThoai}">${data.soDienThoai}</a></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="mb-3"><i class="bi bi-briefcase"></i> Thông tin ứng tuyển</h6>
+                                    <p><strong>Vị trí ứng tuyển:</strong> ${data.viTriUngTuyen}</p>
+                                    <p><strong>Tên công việc:</strong> ${data.tenViecLam || data.viTriUngTuyen}</p>
+                                    <p><strong>Công ty:</strong> ${data.congTy}</p>
+                                    <p><strong>Ngày ứng tuyển:</strong> ${data.ngayUngTuyen}</p>
+                                    <p><strong>Trạng thái:</strong> <span class="badge bg-info">${data.trangThaiXuLy}</span></p>
+                                </div>
+                            </div>
+                            ${cvSection}
+                            ${ghiChuSection}
+                        `);
+                    } else {
+                        $('#chiTietModalBody').html(`
+                            <div class="alert alert-danger">
+                                <i class="bi bi-exclamation-triangle"></i> ${response.message || 'Không thể tải thông tin đơn ứng tuyển'}
+                            </div>
+                        `);
+                    }
+                },
+                error: function(xhr) {
+                    var errorMessage = 'Có lỗi xảy ra khi tải thông tin';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                    $('#chiTietModalBody').html(`
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle"></i> ${errorMessage}
                         </div>
-                        <div class="col-md-6">
-                            <h6>Thông tin ứng tuyển</h6>
-                            <p><strong>Vị trí:</strong> [Vị trí]</p>
-                    <p><strong>Ngày ứng tuyển:</strong> [Ngày]</p>
-                    <p><strong>Trạng thái:</strong> [Trạng thái]</p>
-                        </div>
-                    </div>
-                    <hr>
-                    <div>
-                        <h6>Ghi chú</h6>
-                        <p>[Ghi chú từ ứng viên]</p>
-                    </div>
-                `);
-            }, 500);
+                    `);
+                }
+            });
         }
         
         function capNhatTrangThai(maDon) {
@@ -526,24 +620,208 @@
             var ghiChu = $('#ghiChu').val();
             
             if (!trangThaiMoi) {
-                alert('Vui lòng chọn trạng thái mới!');
+                showNotification('Vui lòng chọn trạng thái mới!', 'error');
                 return;
             }
             
-            // TODO: Gửi request cập nhật trạng thái lên server
-            console.log('Cập nhật trạng thái:', {
-                maDon: maDon,
-                trangThai: trangThaiMoi,
-                ghiChu: ghiChu
+            // Disable nút để tránh double submit
+            var btnLuu = $('button[onclick="luuTrangThai()"]');
+            btnLuu.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Đang lưu...');
+            
+            // Gửi request cập nhật trạng thái lên server
+            $.ajax({
+                url: '@Url.Action("CapNhatTrangThaiDonUngTuyen", "Recruiter", new { area = "Recruiter" })',
+                type: 'POST',
+                data: {
+                    maDonUngTuyen: maDon,
+                    trangThaiMoi: trangThaiMoi,
+                    ghiChu: ghiChu || null,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Hiển thị thông báo thành công
+                        showNotification(response.message || 'Cập nhật trạng thái thành công!', 'success');
+                        
+                        // Đóng modal
+                        var modal = bootstrap.Modal.getInstance(document.getElementById('trangThaiModal'));
+                        modal.hide();
+                        
+                        // Reload trang để cập nhật dữ liệu sau 1 giây để người dùng thấy thông báo
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        showNotification(response.message || 'Có lỗi xảy ra khi cập nhật trạng thái!', 'error');
+                        btnLuu.prop('disabled', false).html('Lưu thay đổi');
+                    }
+                },
+                error: function(xhr) {
+                    var errorMessage = 'Có lỗi xảy ra khi cập nhật trạng thái';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                    showNotification(errorMessage, 'error');
+                    btnLuu.prop('disabled', false).html('Lưu thay đổi');
+                }
             });
+        }
+        
+        // Hàm xem thông tin tài khoản
+        function xemThongTinTaiKhoan(userId) {
+            var modal = new bootstrap.Modal(document.getElementById('taiKhoanModal'));
+            $('#taiKhoanModalBody').html('<div class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Đang tải...</span></div><p class="mt-2">Đang tải thông tin tài khoản...</p></div>');
+            modal.show();
             
-            // Giả lập cập nhật thành công
-            alert('Cập nhật trạng thái thành công!');
-            var modal = bootstrap.Modal.getInstance(document.getElementById('trangThaiModal'));
-            modal.hide();
+            // Gọi API để lấy thông tin tài khoản
+            $.ajax({
+                url: '@Url.Action("ThongTinTaiKhoanUser", "Recruiter", new { area = "Recruiter" })',
+                type: 'GET',
+                data: { userId: userId },
+                success: function(response) {
+                    if (response.success && response.data) {
+                        var data = response.data;
+                        var avatarHtml = '';
+                        if (data.avatar) {
+                            avatarHtml = `<img src="${data.avatar}" alt="Avatar" class="rounded-circle mb-3" style="width: 100px; height: 100px; object-fit: cover;">`;
+                        } else {
+                            var initials = 'UV';
+                            if (data.hoTen) {
+                                var nameParts = data.hoTen.trim().split(' ');
+                                if (nameParts.length >= 2) {
+                                    initials = (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase();
+                                } else if (nameParts.length == 1) {
+                                    initials = nameParts[0].substring(0, Math.min(2, nameParts[0].length)).toUpperCase();
+                                }
+                            }
+                            avatarHtml = `<div class="rounded-circle mb-3 d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px; background: linear-gradient(135deg, #10b981, #059669); color: white; font-size: 36px; font-weight: bold;">${initials}</div>`;
+                        }
+                        
+                        var rolesHtml = '';
+                        if (data.roles && data.roles.length > 0) {
+                            var roleLabels = data.roles.map(function(role) {
+                                var label = role;
+                                if (role === 'UngVien') label = 'Ứng viên';
+                                else if (role === 'NhaTuyenDung') label = 'Nhà tuyển dụng';
+                                else if (role === 'Admin') label = 'Quản trị viên';
+                                return '<span class="badge bg-primary me-1">' + label + '</span>';
+                            }).join('');
+                            rolesHtml = `<p><strong>Vai trò:</strong> ${roleLabels}</p>`;
+                        }
+                        
+                        var emailConfirmedBadge = data.emailConfirmed 
+                            ? '<span class="badge bg-success">Đã xác thực</span>' 
+                            : '<span class="badge bg-warning">Chưa xác thực</span>';
+                        
+                        var ungVienSection = '';
+                        if (data.ungVien) {
+                            var ungVien = data.ungVien;
+                            var cvLinkHtml = '';
+                            if (ungVien.linkCV) {
+                                cvLinkHtml = `<p><strong>CV:</strong> <a href="${ungVien.linkCV}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-file-earmark-pdf"></i> Xem CV</a></p>`;
+                            }
+                            
+                            ungVienSection = `
+                                <hr>
+                                <div>
+                                    <h6 class="mb-3"><i class="bi bi-person-badge"></i> Thông tin ứng viên</h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>Mã ứng viên:</strong> #${ungVien.maUngVien}</p>
+                                            ${ungVien.ngaySinh ? `<p><strong>Ngày sinh:</strong> ${ungVien.ngaySinh}</p>` : ''}
+                                            ${ungVien.gioiTinh ? `<p><strong>Giới tính:</strong> ${ungVien.gioiTinh}</p>` : ''}
+                                            ${ungVien.diaChi ? `<p><strong>Địa chỉ:</strong> ${ungVien.diaChi}</p>` : ''}
+                                            ${ungVien.hocVan ? `<p><strong>Học vấn:</strong> ${ungVien.hocVan}</p>` : ''}
+                                        </div>
+                                        <div class="col-md-6">
+                                            ${ungVien.kinhNghiem ? `<p><strong>Kinh nghiệm:</strong> ${ungVien.kinhNghiem}</p>` : ''}
+                                            ${ungVien.kyNang ? `<p><strong>Kỹ năng:</strong> ${ungVien.kyNang}</p>` : ''}
+                                            ${ungVien.nganhNghe ? `<p><strong>Ngành nghề:</strong> ${ungVien.nganhNghe}</p>` : ''}
+                                            ${ungVien.chuyenNganh ? `<p><strong>Chuyên ngành:</strong> ${ungVien.chuyenNganh}</p>` : ''}
+                                            ${cvLinkHtml}
+                                        </div>
+                                    </div>
+                                    ${ungVien.viTriMongMuon ? `<p><strong>Vị trí mong muốn:</strong> ${ungVien.viTriMongMuon}</p>` : ''}
+                                    ${ungVien.mucLuongKyVong ? `<p><strong>Mức lương kỳ vọng:</strong> ${ungVien.mucLuongKyVong.toLocaleString('vi-VN')} triệu</p>` : ''}
+                                    ${ungVien.noiLamViecMongMuon ? `<p><strong>Nơi làm việc mong muốn:</strong> ${ungVien.noiLamViecMongMuon}</p>` : ''}
+                                    ${ungVien.trangThaiTimViec ? `<p><strong>Trạng thái tìm việc:</strong> ${ungVien.trangThaiTimViec}</p>` : ''}
+                                    <p><strong>Số lần ứng tuyển:</strong> ${ungVien.soLanUngTuyen}</p>
+                                </div>
+                            `;
+                        }
+                        
+                        $('#taiKhoanModalBody').html(`
+                            <div class="text-center mb-4">
+                                ${avatarHtml}
+                                <h5 class="mb-1">${data.hoTen || data.email || 'Chưa có tên'}</h5>
+                                <p class="text-muted mb-0">${data.email}</p>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="mb-3"><i class="bi bi-person-circle"></i> Thông tin tài khoản</h6>
+                                    <p><strong>Email:</strong> <a href="mailto:${data.email}">${data.email}</a> ${emailConfirmedBadge}</p>
+                                    ${data.phoneNumber ? `<p><strong>Số điện thoại:</strong> <a href="tel:${data.phoneNumber}">${data.phoneNumber}</a></p>` : ''}
+                                    <p><strong>Ngày đăng ký:</strong> ${data.ngayDangKy}</p>
+                                    ${rolesHtml}
+                                    <p><strong>Số đơn ứng tuyển:</strong> ${data.soLuongDonUngTuyen || 0}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    ${ungVienSection || '<p class="text-muted">Ứng viên chưa cập nhật hồ sơ.</p>'}
+                                </div>
+                            </div>
+                        `);
+                    } else {
+                        $('#taiKhoanModalBody').html(`
+                            <div class="alert alert-danger">
+                                <i class="bi bi-exclamation-triangle"></i> ${response.message || 'Không thể tải thông tin tài khoản'}
+                            </div>
+                        `);
+                    }
+                },
+                error: function(xhr) {
+                    var errorMessage = 'Có lỗi xảy ra khi tải thông tin tài khoản';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                    $('#taiKhoanModalBody').html(`
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle"></i> ${errorMessage}
+                        </div>
+                    `);
+                }
+            });
+        }
+        
+        // Hàm hiển thị thông báo toast
+        function showNotification(message, type) {
+            var bgColor = type === 'success' ? '#10b981' : '#e53e3e';
+            var icon = type === 'success' ? '<i class="bi bi-check-circle-fill me-2"></i>' : '<i class="bi bi-exclamation-circle-fill me-2"></i>';
+            var notification = $('<div>')
+                .css({
+                    position: 'fixed',
+                    top: '20px',
+                    right: '20px',
+                    background: bgColor,
+                    color: 'white',
+                    padding: '15px 25px',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                    zIndex: 10000,
+                    fontWeight: '600',
+                    maxWidth: '400px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    animation: 'slideInRight 0.3s ease'
+                })
+                .html(icon + message)
+                .appendTo('body');
             
-            // Reload trang để cập nhật dữ liệu
-            // location.reload();
+            setTimeout(function() {
+                notification.css('animation', 'slideOutRight 0.3s ease');
+                setTimeout(function() {
+                    notification.remove();
+                }, 300);
+            }, 3000);
         }
     </script>
 }

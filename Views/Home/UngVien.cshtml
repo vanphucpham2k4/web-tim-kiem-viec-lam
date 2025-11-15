@@ -90,13 +90,17 @@
         background: var(--primary-gradient);
         color: white;
         border: none;
-        padding: 14px 40px;
+        padding: 14px 20px;
         border-radius: 0 10px 10px 0;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         transition: all 0.3s ease;
         box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
     }
     
     .search-box .btn-search:hover {
@@ -463,7 +467,7 @@
                                value="@ViewBag.Keyword"
                                placeholder="Tìm kiếm ứng viên theo tên, vị trí, kỹ năng...">
                         <button class="btn btn-search" type="submit">
-                            <i class="bi bi-search me-2"></i>TÌM KIẾM
+                            <i class="bi bi-search"></i>
                         </button>
                     </div>
                 </form>

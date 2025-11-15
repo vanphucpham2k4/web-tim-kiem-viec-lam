@@ -1,0 +1,775 @@
+@model List<Unicareer.Models.Province>
+
+@{
+    ViewData["Title"] = "Quản lý Tỉnh thành";
+}
+
+<style>
+    .province-management-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 10px 40px rgba(37, 69, 184, 0.3);
+    }
+
+    .page-header h1 {
+        font-weight: 700;
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .page-header p {
+        font-size: 1.1rem;
+        opacity: 0.95;
+    }
+
+    .filter-section {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .filter-form {
+        display: grid;
+        grid-template-columns: 2fr auto;
+        gap: 15px;
+        align-items: end;
+    }
+
+    .filter-form input {
+        padding: 12px 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+
+    .filter-form input:focus {
+        outline: none;
+        border-color: #2545B8;
+        box-shadow: 0 0 0 3px rgba(37, 69, 184, 0.1);
+    }
+
+    .btn-filter {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-filter:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 69, 184, 0.4);
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        overflow-x: auto;
+    }
+
+    .province-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .province-table thead {
+        background: #f8f9fa;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .province-table th {
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+        color: #2d3748;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .province-table td {
+        padding: 15px;
+        border-bottom: 1px solid #e9ecef;
+        vertical-align: middle;
+    }
+
+    .province-table tbody tr {
+        transition: all 0.2s ease;
+    }
+
+    .province-table tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-edit {
+        background: #f3e8ff;
+        color: #6b21a8;
+    }
+
+    .btn-edit:hover {
+        background: #e9d5ff;
+    }
+
+    .btn-delete {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .btn-delete:hover {
+        background: #fecaca;
+    }
+
+    .stats-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        text-align: center;
+    }
+
+    .stat-card h3 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2545B8;
+        margin: 0;
+    }
+
+    .stat-card p {
+        color: #718096;
+        margin: 10px 0 0 0;
+        font-size: 0.9rem;
+    }
+
+    .modal-content {
+        border-radius: 16px;
+        border: none;
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        color: white;
+        border-radius: 16px 16px 0 0;
+        padding: 20px 30px;
+    }
+
+    .modal-body {
+        padding: 30px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: #2545B8;
+        box-shadow: 0 0 0 3px rgba(37, 69, 184, 0.1);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 69, 184, 0.4);
+    }
+
+    .no-data {
+        text-align: center;
+        padding: 60px 20px;
+        color: #718096;
+    }
+
+    .no-data i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+</style>
+
+@Html.AntiForgeryToken()
+
+<div class="province-management-container">
+    <div class="page-header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1><i class="bi bi-geo-alt-fill"></i> Quản lý Tỉnh thành</h1>
+                <p>Quản lý danh mục tỉnh thành trong hệ thống</p>
+            </div>
+            <button class="btn" style="background: white; color: #2545B8; padding: 12px 30px; border-radius: 10px; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: all 0.3s;" data-bs-toggle="modal" data-bs-target="#themProvinceModal">
+                <i class="bi bi-plus-circle"></i> Thêm mới
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="stats-section">
+        <div class="stat-card">
+            <h3>@Model.Count</h3>
+            <p>Tổng tỉnh thành</p>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <form class="filter-form" onsubmit="return false;">
+            <div>
+                <label for="timKiemInput" style="margin-bottom: 8px; display: block; font-weight: 600; color: #2d3748;">Tìm kiếm</label>
+                <input type="text" id="timKiemInput" placeholder="Tìm kiếm theo tên tỉnh thành..." />
+            </div>
+            <div>
+                <button type="button" class="btn-filter" id="btnTimKiem">
+                    <i class="bi bi-search"></i> Tìm kiếm
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Table Section -->
+    <div class="table-container">
+        @if (Model.Any())
+        {
+            <table class="province-table" id="bangProvince">
+                <thead>
+                    <tr>
+                        <th>Mã</th>
+                        <th>Ảnh</th>
+                        <th>Tên</th>
+                        <th>Tên đầy đủ</th>
+                        <th>Tên EN</th>
+                        <th>Đơn vị hành chính</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var province in Model)
+                    {
+                        <tr data-code="@province.Code">
+                            <td><strong>@province.Code</strong></td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(province.Image))
+                                {
+                                    <img src="@province.Image" alt="@province.Name" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;" />
+                                }
+                                else
+                                {
+                                    <div style="width: 60px; height: 60px; background: #e2e8f0; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="bi bi-image" style="font-size: 1.5rem; color: #94a3b8;"></i>
+                                    </div>
+                                }
+                            </td>
+                            <td><strong>@province.Name</strong></td>
+                            <td>@province.FullName</td>
+                            <td>@(province.NameEn ?? "-")</td>
+                            <td>@(province.AdministrativeUnit?.FullName ?? "-")</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-action btn-edit btn-sua" 
+                                            data-code="@province.Code"
+                                            data-name="@province.Name"
+                                            data-nameen="@province.NameEn"
+                                            data-fullname="@province.FullName"
+                                            data-fullnameen="@province.FullNameEn"
+                                            data-codename="@province.CodeName"
+                                            data-administrativeunitid="@province.AdministrativeUnitId"
+                                            data-image="@province.Image"
+                                            title="Sửa">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn-action btn-delete btn-xoa" 
+                                            data-code="@province.Code" 
+                                            title="Xóa">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="no-data">
+                <i class="bi bi-geo-alt"></i>
+                <h3>Chưa có tỉnh thành nào</h3>
+                <p>Hãy thêm tỉnh thành mới để bắt đầu</p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Modal Thêm tỉnh thành -->
+<div class="modal fade" id="themProvinceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Thêm tỉnh thành mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formThemProvince">
+                    <div class="form-group">
+                        <label for="codeMoi">Mã tỉnh thành <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="codeMoi" required placeholder="Nhập mã tỉnh thành">
+                    </div>
+                    <div class="form-group">
+                        <label for="nameMoi">Tên tỉnh thành <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="nameMoi" required placeholder="Nhập tên tỉnh thành">
+                    </div>
+                    <div class="form-group">
+                        <label for="fullNameMoi">Tên đầy đủ <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="fullNameMoi" required placeholder="Nhập tên đầy đủ">
+                    </div>
+                    <div class="form-group">
+                        <label for="nameEnMoi">Tên tiếng Anh</label>
+                        <input type="text" class="form-control" id="nameEnMoi" placeholder="Nhập tên tiếng Anh (tùy chọn)">
+                    </div>
+                    <div class="form-group">
+                        <label for="fullNameEnMoi">Tên đầy đủ tiếng Anh</label>
+                        <input type="text" class="form-control" id="fullNameEnMoi" placeholder="Nhập tên đầy đủ tiếng Anh (tùy chọn)">
+                    </div>
+                    <div class="form-group">
+                        <label for="codeNameMoi">Mã tên</label>
+                        <input type="text" class="form-control" id="codeNameMoi" placeholder="Nhập mã tên (tùy chọn)">
+                    </div>
+                    <div class="form-group">
+                        <label for="administrativeUnitIdMoi">Đơn vị hành chính</label>
+                        <select class="form-control" id="administrativeUnitIdMoi">
+                            <option value="">-- Chọn đơn vị hành chính --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="imageFileMoi">Ảnh poster <span style="color: #718096; font-size: 0.85rem;">(JPG, PNG, GIF, WEBP - Tối đa 10MB)</span></label>
+                        <input type="file" class="form-control" id="imageFileMoi" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp">
+                        <div id="imagePreviewMoi" style="margin-top: 10px; display: none;">
+                            <img id="previewImgMoi" src="" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="btnLuuProvince">
+                    <i class="bi bi-check-circle me-2"></i>Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Sửa tỉnh thành -->
+<div class="modal fade" id="suaProvinceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Sửa tỉnh thành</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formSuaProvince">
+                    <input type="hidden" id="codeSua">
+                    <div class="form-group">
+                        <label for="nameSua">Tên tỉnh thành <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="nameSua" required placeholder="Nhập tên tỉnh thành">
+                    </div>
+                    <div class="form-group">
+                        <label for="fullNameSua">Tên đầy đủ <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="fullNameSua" required placeholder="Nhập tên đầy đủ">
+                    </div>
+                    <div class="form-group">
+                        <label for="nameEnSua">Tên tiếng Anh</label>
+                        <input type="text" class="form-control" id="nameEnSua" placeholder="Nhập tên tiếng Anh (tùy chọn)">
+                    </div>
+                    <div class="form-group">
+                        <label for="fullNameEnSua">Tên đầy đủ tiếng Anh</label>
+                        <input type="text" class="form-control" id="fullNameEnSua" placeholder="Nhập tên đầy đủ tiếng Anh (tùy chọn)">
+                    </div>
+                    <div class="form-group">
+                        <label for="codeNameSua">Mã tên</label>
+                        <input type="text" class="form-control" id="codeNameSua" placeholder="Nhập mã tên (tùy chọn)">
+                    </div>
+                    <div class="form-group">
+                        <label for="administrativeUnitIdSua">Đơn vị hành chính</label>
+                        <select class="form-control" id="administrativeUnitIdSua">
+                            <option value="">-- Chọn đơn vị hành chính --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="imageFileSua">Ảnh poster <span style="color: #718096; font-size: 0.85rem;">(JPG, PNG, GIF, WEBP - Tối đa 10MB)</span></label>
+                        <input type="file" class="form-control" id="imageFileSua" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp">
+                        <div id="currentImageSua" style="margin-top: 10px; margin-bottom: 10px;">
+                            <small style="color: #718096;">Ảnh hiện tại:</small>
+                            <div id="currentImageContainerSua" style="margin-top: 5px;"></div>
+                        </div>
+                        <div id="imagePreviewSua" style="margin-top: 10px; display: none;">
+                            <small style="color: #718096;">Ảnh mới:</small>
+                            <img id="previewImgSua" src="" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 5px;">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="btnCapNhatProvince">
+                    <i class="bi bi-check-circle me-2"></i>Cập nhật
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Load danh sách AdministrativeUnit khi mở modal
+            function loadAdministrativeUnits(selectId) {
+                $.ajax({
+                    url: '@Url.Action("GetAdministrativeUnits", "Province", new { area = "Admin" })',
+                    type: 'GET',
+                    success: function(response) {
+                        if (response.success) {
+                            var select = $('#' + selectId);
+                            select.empty();
+                            select.append('<option value="">-- Chọn đơn vị hành chính --</option>');
+                            response.data.forEach(function(unit) {
+                                select.append('<option value="' + unit.id + '">' + unit.fullName + '</option>');
+                            });
+                        }
+                    }
+                });
+            }
+
+            $('#themProvinceModal').on('show.bs.modal', function() {
+                loadAdministrativeUnits('administrativeUnitIdMoi');
+            });
+
+            $('#suaProvinceModal').on('show.bs.modal', function() {
+                loadAdministrativeUnits('administrativeUnitIdSua');
+            });
+
+            // Tim kiem
+            $('#btnTimKiem, #timKiemInput').on('click keyup', function(e) {
+                if (e.type === 'keyup' && e.keyCode !== 13) return;
+                
+                var tuKhoa = $('#timKiemInput').val().toLowerCase();
+                locDuLieu(tuKhoa);
+            });
+
+            function locDuLieu(tuKhoa) {
+                $('#bangProvince tbody tr').each(function() {
+                    var row = $(this);
+                    var ten = row.find('td:eq(2)').text().toLowerCase();
+                    var fullName = row.find('td:eq(3)').text().toLowerCase();
+                    
+                    if (tuKhoa === '' || ten.includes(tuKhoa) || fullName.includes(tuKhoa)) {
+                        row.show();
+                    } else {
+                        row.hide();
+                    }
+                });
+            }
+
+            // Preview ảnh khi chọn file (Thêm mới)
+            $('#imageFileMoi').on('change', function(e) {
+                var file = e.target.files[0];
+                if (file) {
+                    // Kiểm tra kích thước
+                    var maxSize = 10 * 1024 * 1024; // 10MB
+                    if (file.size > maxSize) {
+                        alert('Kích thước file quá lớn. Tối đa 10MB.');
+                        $(this).val('');
+                        return;
+                    }
+
+                    // Kiểm tra định dạng
+                    var allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+                    if (!allowedTypes.includes(file.type)) {
+                        alert('Định dạng file không hợp lệ. Chỉ chấp nhận JPG, PNG, GIF, WEBP.');
+                        $(this).val('');
+                        return;
+                    }
+
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        $('#previewImgMoi').attr('src', e.target.result);
+                        $('#imagePreviewMoi').show();
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    $('#imagePreviewMoi').hide();
+                }
+            });
+
+            // Preview ảnh khi chọn file (Sửa)
+            $('#imageFileSua').on('change', function(e) {
+                var file = e.target.files[0];
+                if (file) {
+                    // Kiểm tra kích thước
+                    var maxSize = 10 * 1024 * 1024; // 10MB
+                    if (file.size > maxSize) {
+                        alert('Kích thước file quá lớn. Tối đa 10MB.');
+                        $(this).val('');
+                        return;
+                    }
+
+                    // Kiểm tra định dạng
+                    var allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+                    if (!allowedTypes.includes(file.type)) {
+                        alert('Định dạng file không hợp lệ. Chỉ chấp nhận JPG, PNG, GIF, WEBP.');
+                        $(this).val('');
+                        return;
+                    }
+
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        $('#previewImgSua').attr('src', e.target.result);
+                        $('#imagePreviewSua').show();
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    $('#imagePreviewSua').hide();
+                }
+            });
+
+            // Them province
+            $('#btnLuuProvince').click(function() {
+                var code = $('#codeMoi').val();
+                var name = $('#nameMoi').val();
+                var nameEn = $('#nameEnMoi').val();
+                var fullName = $('#fullNameMoi').val();
+                var fullNameEn = $('#fullNameEnMoi').val();
+                var codeName = $('#codeNameMoi').val();
+                var administrativeUnitId = $('#administrativeUnitIdMoi').val() || null;
+                var imageFile = $('#imageFileMoi')[0].files[0];
+
+                if (!code || !name || !fullName) {
+                    alert('Vui lòng nhập đầy đủ thông tin bắt buộc!');
+                    return;
+                }
+
+                var formData = new FormData();
+                formData.append('code', code);
+                formData.append('name', name);
+                formData.append('nameEn', nameEn || '');
+                formData.append('fullName', fullName);
+                formData.append('fullNameEn', fullNameEn || '');
+                formData.append('codeName', codeName || '');
+                if (administrativeUnitId) {
+                    formData.append('administrativeUnitId', administrativeUnitId);
+                }
+                if (imageFile) {
+                    formData.append('imageFile', imageFile);
+                }
+                formData.append('__RequestVerificationToken', $('input[name="__RequestVerificationToken"]').val());
+
+                $.ajax({
+                    url: '@Url.Action("Create", "Province", new { area = "Admin" })',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.success) {
+                            alert(response.message);
+                            $('#themProvinceModal').modal('hide');
+                            $('#formThemProvince')[0].reset();
+                            $('#imagePreviewMoi').hide();
+                            location.reload();
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Có lỗi xảy ra khi thêm tỉnh thành!');
+                    }
+                });
+            });
+
+            // Sua province
+            $(document).on('click', '.btn-sua', function() {
+                var code = $(this).data('code');
+                var name = $(this).data('name');
+                var nameEn = $(this).data('nameen');
+                var fullName = $(this).data('fullname');
+                var fullNameEn = $(this).data('fullnameen');
+                var codeName = $(this).data('codename');
+                var administrativeUnitId = $(this).data('administrativeunitid');
+                var image = $(this).data('image');
+
+                $('#codeSua').val(code);
+                $('#nameSua').val(name);
+                $('#nameEnSua').val(nameEn || '');
+                $('#fullNameSua').val(fullName);
+                $('#fullNameEnSua').val(fullNameEn || '');
+                $('#codeNameSua').val(codeName || '');
+                $('#imageFileSua').val('');
+                $('#imagePreviewSua').hide();
+                
+                // Hiển thị ảnh hiện tại
+                var currentImageHtml = '';
+                if (image) {
+                    currentImageHtml = '<img src="' + image + '" alt="Ảnh hiện tại" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 1px solid #e2e8f0;">';
+                } else {
+                    currentImageHtml = '<div style="width: 200px; height: 150px; background: #e2e8f0; border-radius: 8px; display: flex; align-items: center; justify-content: center;"><i class="bi bi-image" style="font-size: 2rem; color: #94a3b8;"></i></div>';
+                }
+                $('#currentImageContainerSua').html(currentImageHtml);
+                
+                // Set selected value after options are loaded
+                setTimeout(function() {
+                    $('#administrativeUnitIdSua').val(administrativeUnitId || '');
+                }, 500);
+
+                $('#suaProvinceModal').modal('show');
+            });
+
+            $('#btnCapNhatProvince').click(function() {
+                var code = $('#codeSua').val();
+                var name = $('#nameSua').val();
+                var nameEn = $('#nameEnSua').val();
+                var fullName = $('#fullNameSua').val();
+                var fullNameEn = $('#fullNameEnSua').val();
+                var codeName = $('#codeNameSua').val();
+                var administrativeUnitId = $('#administrativeUnitIdSua').val() || null;
+                var imageFile = $('#imageFileSua')[0].files[0];
+
+                if (!name || !fullName) {
+                    alert('Vui lòng nhập đầy đủ thông tin bắt buộc!');
+                    return;
+                }
+
+                var formData = new FormData();
+                formData.append('code', code);
+                formData.append('name', name);
+                formData.append('nameEn', nameEn || '');
+                formData.append('fullName', fullName);
+                formData.append('fullNameEn', fullNameEn || '');
+                formData.append('codeName', codeName || '');
+                if (administrativeUnitId) {
+                    formData.append('administrativeUnitId', administrativeUnitId);
+                }
+                if (imageFile) {
+                    formData.append('imageFile', imageFile);
+                }
+                formData.append('__RequestVerificationToken', $('input[name="__RequestVerificationToken"]').val());
+
+                $.ajax({
+                    url: '@Url.Action("Edit", "Province", new { area = "Admin" })',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.success) {
+                            alert(response.message);
+                            $('#suaProvinceModal').modal('hide');
+                            location.reload();
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Có lỗi xảy ra khi cập nhật tỉnh thành!');
+                    }
+                });
+            });
+
+            // Xoa province
+            $(document).on('click', '.btn-xoa', function() {
+                var code = $(this).data('code');
+                var row = $(this).closest('tr');
+                
+                if (confirm('Bạn có chắc chắn muốn xóa tỉnh thành này?')) {
+                    $.ajax({
+                        url: '@Url.Action("Delete", "Province", new { area = "Admin" })',
+                        type: 'POST',
+                        data: {
+                            code: code,
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                alert(response.message);
+                                row.fadeOut(300, function() {
+                                    $(this).remove();
+                                    location.reload();
+                                });
+                            } else {
+                                alert(response.message);
+                            }
+                        },
+                        error: function() {
+                            alert('Có lỗi xảy ra khi xóa tỉnh thành!');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}
+

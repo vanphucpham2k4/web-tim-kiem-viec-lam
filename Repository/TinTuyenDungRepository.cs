@@ -54,6 +54,11 @@ namespace Unicareer.Repository
         public TinTuyenDung ThemTinTuyenDung(TinTuyenDung tinTuyenDung)
         {
             tinTuyenDung.NgayDang = DateTime.Now;
+            // Set trạng thái mặc định nếu chưa có
+            if (string.IsNullOrEmpty(tinTuyenDung.TrangThai))
+            {
+                tinTuyenDung.TrangThai = "Dang tuyen";
+            }
             _context.TinTuyenDungs.Add(tinTuyenDung);
             _context.SaveChanges();
             return tinTuyenDung;
@@ -96,6 +101,20 @@ namespace Unicareer.Repository
             _context.TinTuyenDungs.Update(tinHienTai);
             _context.SaveChanges();
             return tinHienTai;
+        }
+
+        public TinTuyenDung? CapNhatTrangThai(int id, string trangThai)
+        {
+            var tinTuyenDung = _context.TinTuyenDungs.Find(id);
+            if (tinTuyenDung == null)
+            {
+                return null;
+            }
+
+            tinTuyenDung.TrangThai = trangThai;
+            _context.TinTuyenDungs.Update(tinTuyenDung);
+            _context.SaveChanges();
+            return tinTuyenDung;
         }
 
         public bool XoaTinTuyenDung(int id)

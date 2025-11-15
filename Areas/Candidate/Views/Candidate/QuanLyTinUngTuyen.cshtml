@@ -294,7 +294,7 @@
                     <table class="table table-hover">
                         <thead class="table-light">
                             <tr>
-                                <th><i class="bi bi-hash"></i> Mã</th>
+                                <th><i class="bi bi-hash"></i> STT</th>
                                 <th><i class="bi bi-briefcase"></i> Vị trí ứng tuyển</th>
                                 <th><i class="bi bi-building"></i> Công ty</th>
                                 <th><i class="bi bi-calendar-plus"></i> Ngày ứng tuyển</th>
@@ -303,6 +303,9 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @{
+                                int stt = 1;
+                            }
                             @foreach (var tin in Model)
                             {
                                 var trangThaiEnum = TrangThaiXuLyHelper.FromString(tin.TrangThaiXuLy);
@@ -314,7 +317,7 @@
                                     : "bg-secondary";
                                 
                                 <tr>
-                                    <td><span class="text-muted">#@tin.MaTinUngTuyen</span></td>
+                                    <td><span class="text-muted">@stt</span></td>
                                     <td>
                                         <strong style="color: #2d3748; font-size: 1rem;">@tin.ViTriUngTuyen</strong>
                                     </td>
@@ -329,6 +332,7 @@
                                         </a>
                                     </td>
                                 </tr>
+                                stt++;
                             }
                         </tbody>
                     </table>

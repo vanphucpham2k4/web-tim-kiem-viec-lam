@@ -155,6 +155,13 @@ namespace Unicareer.Data
                 .Property(t => t.MaTinUngTuyen)
                 .ValueGeneratedOnAdd();
 
+            // Cấu hình quan hệ TinUngTuyen -> ApplicationUser
+            builder.Entity<TinUngTuyen>()
+                .HasOne(t => t.User)
+                .WithMany()
+                .HasForeignKey(t => t.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             // Cấu hình primary key cho LoaiCongViec
             builder.Entity<LoaiCongViec>()
                 .HasKey(l => l.MaLoaiCongViec);

@@ -1,5 +1,6 @@
 @model Unicareer.Models.TinTuyenDung
 @using Microsoft.AspNetCore.Identity
+@using Unicareer.Models
 @inject SignInManager<Unicareer.Models.ApplicationUser> SignInManager
 @inject UserManager<Unicareer.Models.ApplicationUser> UserManager
 
@@ -9,12 +10,16 @@
         ? "Thỏa thuận" 
         : $"{Model.MucLuongThapNhat} - {Model.MucLuongCaoNhat} triệu VNĐ";
     var isNhaTuyenDung = User.IsInRole(Unicareer.Models.SD.Role_NhaTuyenDung);
+    var isDaDong = !string.IsNullOrEmpty(Model.TrangThai) && Model.TrangThai == "Da dong";
+    // Kiểm tra hết hạn: cả trạng thái "Het han" trong database và HanNop
+    var isHetHan = (!string.IsNullOrEmpty(Model.TrangThai) && Model.TrangThai == "Het han") || Model.HanNop < DateTime.Now.Date;
+    var coTheUngTuyen = !isNhaTuyenDung && !isDaDong && !isHetHan;
 }
 
 <style>
     :root {
-        --primary-color: #667eea;
-        --primary-dark: #764ba2;
+        --primary-color: #10b981;
+        --primary-dark: #059669;
         --text-primary: #2d3748;
         --text-secondary: #718096;
         --border-color: #e2e8f0;
@@ -136,7 +141,7 @@
     }
 
     .btn-apply {
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         color: white;
         border: none;
         padding: 14px 40px;
@@ -144,12 +149,12 @@
         font-weight: 700;
         font-size: 15px;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
     }
 
     .btn-apply:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
         color: white;
     }
 
@@ -396,6 +401,10 @@
         box-shadow: 0 4px 12px rgba(245, 101, 101, 0.3);
     }
 
+    .deadline-badge i {
+        color: white;
+    }
+
     @@media (max-width: 768px) {
         .job-header {
             padding: 25px;
@@ -470,7 +479,7 @@
     .apply-modal .modal-header {
         border-bottom: 1px solid var(--border-color);
         padding: 25px 30px;
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         border-radius: 16px 16px 0 0;
     }
 
@@ -527,7 +536,7 @@
     .apply-form-group textarea:focus {
         outline: none;
         border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
     }
 
     .apply-form-group textarea {
@@ -888,6 +897,16 @@
         <span style="color: var(--text-primary);">@Model.NganhNghe</span>
     </nav>
 
+    @if (isDaDong || isHetHan)
+    {
+        <div class="alert @(isDaDong ? "alert-warning" : "alert-danger") alert-dismissible fade show" role="alert" style="border-radius: 12px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px;">
+            <i class="bi @(isDaDong ? "bi-lock-fill" : "bi-clock-history") me-2"></i>
+            <strong>@(isDaDong ? "Tin tuyển dụng đã được đóng" : "Tin tuyển dụng đã hết hạn")</strong>
+            <p class="mb-0 mt-2">@(isDaDong ? "Tin tuyển dụng này đã được nhà tuyển dụng đóng. Không thể ứng tuyển nữa." : "Hạn nộp hồ sơ đã qua. Không thể ứng tuyển cho tin này.")</p>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
     <div class="row">
         <!-- Main Content -->
         <div class="col-lg-8">
@@ -925,9 +944,24 @@
                     @if (!isNhaTuyenDung)
                     {
                         @Html.AntiForgeryToken()
-                        <button class="btn btn-apply">
-                            <i class="bi bi-send-fill me-2"></i>ỨNG TUYỂN NGAY
-                        </button>
+                        @if (isDaDong)
+                        {
+                            <button class="btn btn-apply" disabled style="opacity: 0.6; cursor: not-allowed;">
+                                <i class="bi bi-lock-fill me-2"></i>TIN ĐÃ ĐÓNG
+                            </button>
+                        }
+                        else if (isHetHan)
+                        {
+                            <button class="btn btn-apply" disabled style="opacity: 0.6; cursor: not-allowed;">
+                                <i class="bi bi-clock-history me-2"></i>ĐÃ HẾT HẠN
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-apply">
+                                <i class="bi bi-send-fill me-2"></i>ỨNG TUYỂN NGAY
+                            </button>
+                        }
                         <button class="btn btn-save">
                             <i class="bi bi-bookmark me-2"></i>LƯU TIN
                         </button>
@@ -1303,15 +1337,13 @@
                         <label for="school">Trường học</label>
                         <select id="school" name="school">
                             <option value="">–</option>
-                            <option value="Đại học Bách khoa Hà Nội">Đại học Bách khoa Hà Nội</option>
-                            <option value="Đại học Kinh tế Quốc dân">Đại học Kinh tế Quốc dân</option>
-                            <option value="Đại học Ngoại thương">Đại học Ngoại thương</option>
-                            <option value="Đại học Quốc gia Hà Nội">Đại học Quốc gia Hà Nội</option>
-                            <option value="Đại học FPT">Đại học FPT</option>
-                            <option value="Đại học RMIT">Đại học RMIT</option>
-                            <option value="Đại học Kinh tế TP.HCM">Đại học Kinh tế TP.HCM</option>
-                            <option value="Đại học Công nghệ Thông tin">Đại học Công nghệ Thông tin</option>
-                            <option value="Đại học Sư phạm">Đại học Sư phạm</option>
+                            @if (ViewBag.DanhSachTruongDaiHoc != null)
+                            {
+                                @foreach (var truong in ViewBag.DanhSachTruongDaiHoc as List<TruongDaiHoc>)
+                                {
+                                    <option value="@truong.TenTruong">@truong.TenTruong</option>
+                                }
+                            }
                             <option value="Khác">Khác</option>
                         </select>
                     </div>
@@ -1320,18 +1352,13 @@
                         <label for="major">Ngành nghề</label>
                         <select id="major" name="major">
                             <option value="">–</option>
-                            <option value="Công nghệ thông tin">Công nghệ thông tin</option>
-                            <option value="Kinh doanh">Kinh doanh</option>
-                            <option value="Kế toán - Tài chính">Kế toán - Tài chính</option>
-                            <option value="Giáo dục - Đào tạo">Giáo dục - Đào tạo</option>
-                            <option value="Y tế - Dược phẩm">Y tế - Dược phẩm</option>
-                            <option value="Xây dựng - Kiến trúc">Xây dựng - Kiến trúc</option>
-                            <option value="Truyền thông - Media">Truyền thông - Media</option>
-                            <option value="Nhân sự">Nhân sự</option>
-                            <option value="Thiết kế đồ họa">Thiết kế đồ họa</option>
-                            <option value="Pháp lý - Luật sư">Pháp lý - Luật sư</option>
-                            <option value="Du lịch - Khách sạn">Du lịch - Khách sạn</option>
-                            <option value="Logistics - Vận tải">Logistics - Vận tải</option>
+                            @if (ViewBag.DanhSachNganhNghe != null)
+                            {
+                                @foreach (var nganhNghe in ViewBag.DanhSachNganhNghe as List<NganhNghe>)
+                                {
+                                    <option value="@nganhNghe.TenNganhNghe">@nganhNghe.TenNganhNghe</option>
+                                }
+                            }
                         </select>
                     </div>
 
@@ -1414,8 +1441,40 @@
             var marker = L.marker([lat, lng]).addTo(map);
             marker.bindPopup('<strong>@Model.CongTy</strong><br>@Model.DiaChiLamViec').openPopup();
 
-            // Apply button action - Show modal (only if button exists)
+            // Apply button action - Show modal (only if button exists and not disabled)
             $('.btn-apply').on('click', function() {
+                var button = $(this);
+                // Kiểm tra nếu nút bị disabled thì không làm gì
+                if (button.prop('disabled')) {
+                    return;
+                }
+                
+                // Kiểm tra đăng nhập
+                @if (!SignInManager.IsSignedIn(User))
+                {
+                    <text>
+                    // Chuyển hướng đến trang đăng nhập với returnUrl
+                    var returnUrl = window.location.pathname + window.location.search;
+                    window.location.href = '/Account/Login?ReturnUrl=' + encodeURIComponent(returnUrl);
+                    return;
+                    </text>
+                }
+                
+                @if (isDaDong)
+                {
+                    <text>
+                    showNotification('Tin tuyển dụng này đã được đóng. Không thể ứng tuyển nữa.', 'error');
+                    return;
+                    </text>
+                }
+                else if (isHetHan)
+                {
+                    <text>
+                    showNotification('Tin tuyển dụng đã hết hạn nộp hồ sơ.', 'error');
+                    return;
+                    </text>
+                }
+                
                 var applyModal = new bootstrap.Modal(document.getElementById('applyModal'));
                 applyModal.show();
             });

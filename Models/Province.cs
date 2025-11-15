@@ -36,6 +36,10 @@ namespace Unicareer.Models
         [Column("administrative_unit_id")]
         public int? AdministrativeUnitId { get; set; }
 
+        [MaxLength(500)]
+        [Column("img")]
+        public string? Image { get; set; }
+
         // Navigation properties
         [ForeignKey("AdministrativeUnitId")]
         public virtual AdministrativeUnit? AdministrativeUnit { get; set; }

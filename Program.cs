@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Unicareer.Data;
 using Unicareer.Models;
 using Unicareer.Repository;
+using Unicareer.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +21,9 @@ builder.Services.AddControllersWithViews();
 // - Production: mặc định sử dụng Real Data (có thể thay đổi trong appsettings.json)
 var useMockData = builder.Configuration.GetValue<bool>("Repository:UseMockData", false);
 builder.Services.AddRepositories(builder.Configuration);
+
+// Đăng ký Background Service để tự động cập nhật trạng thái tin tuyển dụng hết hạn
+builder.Services.AddHostedService<UpdateTrangThaiBackgroundService>();
 
 // Log trạng thái sử dụng repository (sẽ log sau khi app được build)
 
