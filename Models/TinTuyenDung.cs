@@ -6,6 +6,10 @@ namespace Unicareer.Models
         public string? TenViecLam { get; set; } = string.Empty; // Changed from TieuDe
         public string? CongTy { get; set; } = string.Empty; // Ten cong ty (lien ket voi NhaTuyenDung)
         
+        // Foreign key đến NhaTuyenDung
+        public int? MaNhaTuyenDung { get; set; }
+        public NhaTuyenDung? NhaTuyenDung { get; set; } // Navigation property
+        
         // Mo ta cong viec
         public string? NganhNghe { get; set; } = string.Empty;
         public string? NganhNgheChiTiet { get; set; } = string.Empty;

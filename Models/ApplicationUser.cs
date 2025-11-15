@@ -6,6 +6,7 @@ namespace Unicareer.Models
     {
         public string? HoTen { get; set; }
         public string? LoaiTaiKhoan { get; set; } // "UngVien" hoặc "NhaTuyenDung"
+        public string? Avatar { get; set; } // Đường dẫn đến file avatar
         public DateTime NgayDangKy { get; set; }
     }
 }

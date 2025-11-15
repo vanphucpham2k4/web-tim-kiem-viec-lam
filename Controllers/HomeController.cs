@@ -1,9 +1,11 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Unicareer.Models;
+using Unicareer.Models.Enums;
 using Unicareer.Repository;
 using Unicareer.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
 
 namespace Unicareer.Controllers
 {
@@ -12,14 +14,26 @@ namespace Unicareer.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly INhaTuyenDungRepository _nhaTuyenDungRepository;
         private readonly ITinTuyenDungRepository _tinTuyenDungRepository;
+        private readonly IUngVienRepository _ungVienRepository;
         private readonly ApplicationDbContext _context;
 
-        public HomeController(ILogger<HomeController> logger, INhaTuyenDungRepository nhaTuyenDungRepository, ITinTuyenDungRepository tinTuyenDungRepository, ApplicationDbContext context)
+        public HomeController(ILogger<HomeController> logger, INhaTuyenDungRepository nhaTuyenDungRepository, ITinTuyenDungRepository tinTuyenDungRepository, IUngVienRepository ungVienRepository, ApplicationDbContext context)
         {
             _logger = logger;
             _nhaTuyenDungRepository = nhaTuyenDungRepository;
             _tinTuyenDungRepository = tinTuyenDungRepository;
+            _ungVienRepository = ungVienRepository;
             _context = context;
+        }
+
+        // Helper method để lấy logo theo tên công ty
+        private Dictionary<string, string?> GetCompanyLogos(List<string> companyNames)
+        {
+            var logos = _context.NhaTuyenDungs
+                .Where(n => companyNames.Contains(n.TenCongTy))
+                .ToDictionary(n => n.TenCongTy, n => n.Logo);
+            
+            return logos;
         }
 
         public IActionResult Index()
@@ -36,8 +50,108 @@ namespace Unicareer.Controllers
                 .OrderBy(p => p.FullName)
                 .ToList();
             
+            // Lấy logo cho các công ty
+            var companyNames = danhSachViecLam.Select(j => j.CongTy).Distinct().ToList();
+            var companyLogos = GetCompanyLogos(companyNames);
+            
+            // Lấy danh sách ngành nghề từ database
+            var danhSachNganhNghe = _context.NganhNghes
+                .OrderBy(n => n.TenNganhNghe)
+                .ToList();
+            
+            // Lấy danh sách loại công việc từ database
+            var danhSachLoaiCongViec = _context.LoaiCongViecs
+                .OrderBy(l => l.TenLoaiCongViec)
+                .ToList();
+            
+            // Lấy danh sách cấp bậc (vị trí) từ DropdownOptions
+            var danhSachCapBac = DropdownOptions.ViTri;
+            
+            // Lấy danh sách kinh nghiệm từ DropdownOptions
+            var danhSachKinhNghiem = DropdownOptions.KinhNghiem;
+            
+            // Tạo danh sách gợi ý tìm kiếm từ dữ liệu thực tế
+            var danhSachGoiYTimKiem = new List<GoiYTimKiem>();
+            
+            // Lấy tất cả tin tuyển dụng để phân tích
+            var tatCaTinTuyenDung = _tinTuyenDungRepository.LayDanhSachTinTuyenDung();
+            
+            // Top ngành nghề có nhiều việc làm nhất (lấy top 3)
+            var topNganhNghe = tatCaTinTuyenDung
+                .Where(t => !string.IsNullOrEmpty(t.NganhNghe))
+                .GroupBy(t => t.NganhNghe)
+                .Select(g => new { Ten = g.Key, SoLuong = g.Count() })
+                .OrderByDescending(x => x.SoLuong)
+                .Take(3)
+                .ToList();
+            
+            foreach (var nganhNghe in topNganhNghe)
+            {
+                danhSachGoiYTimKiem.Add(new GoiYTimKiem 
+                { 
+                    Text = $"Việc làm {nganhNghe.Ten}", 
+                    Url = $"/Home/TimViec?nganhNghe={Uri.EscapeDataString(nganhNghe.Ten)}" 
+                });
+            }
+            
+            // Top loại công việc phổ biến (lấy top 2)
+            var topLoaiCongViec = tatCaTinTuyenDung
+                .Where(t => !string.IsNullOrEmpty(t.LoaiCongViec))
+                .GroupBy(t => t.LoaiCongViec)
+                .Select(g => new { Ten = g.Key, SoLuong = g.Count() })
+                .OrderByDescending(x => x.SoLuong)
+                .Take(2)
+                .ToList();
+            
+            foreach (var loaiCongViec in topLoaiCongViec)
+            {
+                danhSachGoiYTimKiem.Add(new GoiYTimKiem 
+                { 
+                    Text = $"Việc làm {loaiCongViec.Ten}", 
+                    Url = $"/Home/TimViec?loaiCongViec={Uri.EscapeDataString(loaiCongViec.Ten)}" 
+                });
+            }
+            
+            // Top tỉnh/thành phố có nhiều việc làm nhất (lấy top 1)
+            var topTinhThanh = tatCaTinTuyenDung
+                .Where(t => !string.IsNullOrEmpty(t.TinhThanhPho))
+                .GroupBy(t => t.TinhThanhPho)
+                .Select(g => new { Ten = g.Key, SoLuong = g.Count() })
+                .OrderByDescending(x => x.SoLuong)
+                .Take(1)
+                .ToList();
+            
+            foreach (var tinhThanh in topTinhThanh)
+            {
+                danhSachGoiYTimKiem.Add(new GoiYTimKiem 
+                { 
+                    Text = $"Việc làm tại {tinhThanh.Ten}", 
+                    Url = $"/Home/TimViec?tinhThanh={Uri.EscapeDataString(tinhThanh.Ten)}" 
+                });
+            }
+            
+            // Thêm gợi ý cố định
+            danhSachGoiYTimKiem.Add(new GoiYTimKiem { Text = "Việc làm thực tập", Url = "/Home/ThucTap" });
+            danhSachGoiYTimKiem.Add(new GoiYTimKiem { Text = "Việc làm mới nhất", Url = "/Home/TimViec?sort=mới nhất" });
+            
             ViewBag.DanhSachViecLamNoiBat = danhSachViecLam;
             ViewBag.DanhSachTinhThanh = danhSachTinhThanh;
+            ViewBag.CompanyLogos = companyLogos;
+            ViewBag.DanhSachNganhNghe = danhSachNganhNghe;
+            ViewBag.DanhSachLoaiCongViec = danhSachLoaiCongViec;
+            ViewBag.DanhSachCapBac = danhSachCapBac;
+            ViewBag.DanhSachKinhNghiem = danhSachKinhNghiem;
+            ViewBag.DanhSachGoiYTimKiem = danhSachGoiYTimKiem;
+            
+            // Lấy danh sách ứng viên công khai (chỉ hiển thị cho nhà tuyển dụng đã đăng nhập)
+            var danhSachUngVienCongKhai = _ungVienRepository.LayDanhSachUngVien()
+                .Where(u => u.HienThiCongKhai && !string.IsNullOrEmpty(u.HoTen))
+                .OrderByDescending(u => u.NgayDangKy)
+                .Take(6)
+                .ToList();
+            
+            ViewBag.DanhSachUngVienCongKhai = danhSachUngVienCongKhai;
+            
             return View();
         }
 
@@ -62,12 +176,118 @@ namespace Unicareer.Controllers
             return Json(wards);
         }
 
-        public IActionResult TimViec()
+        public IActionResult TimViec(string keyword, string tinhThanh, string quanHuyen, string nganhNghe, string loaiCongViec, string capBac, string kinhNghiem, string mucLuong, string sort)
         {
-            var danhSachTinTuyenDung = _tinTuyenDungRepository.LayDanhSachTinTuyenDung();
+            // Query trực tiếp từ database để tối ưu hiệu suất
+            var danhSachTinTuyenDung = _context.TinTuyenDungs.AsQueryable();
+            
+            // Tìm kiếm theo từ khóa (keyword) - tìm trong TuKhoa, TenViecLam, CongTy, MoTa, YeuCau, KyNang
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                var keywordTrimmed = keyword.Trim();
+                danhSachTinTuyenDung = danhSachTinTuyenDung.Where(t =>
+                    (!string.IsNullOrEmpty(t.TuKhoa) && t.TuKhoa.Contains(keywordTrimmed)) ||
+                    (!string.IsNullOrEmpty(t.TenViecLam) && t.TenViecLam.Contains(keywordTrimmed)) ||
+                    (!string.IsNullOrEmpty(t.CongTy) && t.CongTy.Contains(keywordTrimmed)) ||
+                    (!string.IsNullOrEmpty(t.MoTa) && t.MoTa.Contains(keywordTrimmed)) ||
+                    (!string.IsNullOrEmpty(t.YeuCau) && t.YeuCau.Contains(keywordTrimmed)) ||
+                    (!string.IsNullOrEmpty(t.KyNang) && t.KyNang.Contains(keywordTrimmed)) ||
+                    (!string.IsNullOrEmpty(t.NganhNghe) && t.NganhNghe.Contains(keywordTrimmed)) ||
+                    (!string.IsNullOrEmpty(t.NganhNgheChiTiet) && t.NganhNgheChiTiet.Contains(keywordTrimmed))
+                );
+            }
+            
+            // Lọc theo tỉnh/thành phố
+            if (!string.IsNullOrEmpty(tinhThanh))
+            {
+                danhSachTinTuyenDung = danhSachTinTuyenDung.Where(t => 
+                    !string.IsNullOrEmpty(t.TinhThanhPho) && t.TinhThanhPho.Contains(tinhThanh));
+            }
+            
+            // Lọc theo quận/huyện
+            if (!string.IsNullOrEmpty(quanHuyen))
+            {
+                danhSachTinTuyenDung = danhSachTinTuyenDung.Where(t => 
+                    !string.IsNullOrEmpty(t.PhuongXa) && t.PhuongXa.Contains(quanHuyen));
+            }
+            
+            // Lọc theo ngành nghề
+            if (!string.IsNullOrEmpty(nganhNghe))
+            {
+                danhSachTinTuyenDung = danhSachTinTuyenDung.Where(t => 
+                    !string.IsNullOrEmpty(t.NganhNghe) && t.NganhNghe == nganhNghe);
+            }
+            
+            // Lọc theo loại công việc
+            if (!string.IsNullOrEmpty(loaiCongViec))
+            {
+                danhSachTinTuyenDung = danhSachTinTuyenDung.Where(t => 
+                    !string.IsNullOrEmpty(t.LoaiCongViec) && t.LoaiCongViec == loaiCongViec);
+            }
+            
+            // Lọc theo cấp bậc (vị trí)
+            if (!string.IsNullOrEmpty(capBac))
+            {
+                danhSachTinTuyenDung = danhSachTinTuyenDung.Where(t => 
+                    !string.IsNullOrEmpty(t.ViTri) && t.ViTri == capBac);
+            }
+            
+            // Lọc theo kinh nghiệm
+            if (!string.IsNullOrEmpty(kinhNghiem))
+            {
+                danhSachTinTuyenDung = danhSachTinTuyenDung.Where(t => 
+                    !string.IsNullOrEmpty(t.KinhNghiem) && t.KinhNghiem == kinhNghiem);
+            }
+            
+            // Lọc theo mức lương
+            if (!string.IsNullOrEmpty(mucLuong))
+            {
+                if (mucLuong == "Dưới 10 triệu")
+                {
+                    danhSachTinTuyenDung = danhSachTinTuyenDung.Where(t => 
+                        t.MucLuongCaoNhat.HasValue && t.MucLuongCaoNhat < 10);
+                }
+                else if (mucLuong == "10-15 triệu")
+                {
+                    danhSachTinTuyenDung = danhSachTinTuyenDung.Where(t => 
+                        (t.MucLuongThapNhat.HasValue && t.MucLuongThapNhat >= 10 && t.MucLuongThapNhat <= 15) ||
+                        (t.MucLuongCaoNhat.HasValue && t.MucLuongCaoNhat >= 10 && t.MucLuongCaoNhat <= 15) ||
+                        (t.MucLuongThapNhat.HasValue && t.MucLuongCaoNhat.HasValue && 
+                         t.MucLuongThapNhat <= 15 && t.MucLuongCaoNhat >= 10));
+                }
+                else if (mucLuong == "15-25 triệu")
+                {
+                    danhSachTinTuyenDung = danhSachTinTuyenDung.Where(t => 
+                        (t.MucLuongThapNhat.HasValue && t.MucLuongThapNhat >= 15 && t.MucLuongThapNhat <= 25) ||
+                        (t.MucLuongCaoNhat.HasValue && t.MucLuongCaoNhat >= 15 && t.MucLuongCaoNhat <= 25) ||
+                        (t.MucLuongThapNhat.HasValue && t.MucLuongCaoNhat.HasValue && 
+                         t.MucLuongThapNhat <= 25 && t.MucLuongCaoNhat >= 15));
+                }
+                else if (mucLuong == "Trên 25 triệu")
+                {
+                    danhSachTinTuyenDung = danhSachTinTuyenDung.Where(t => 
+                        t.MucLuongThapNhat.HasValue && t.MucLuongThapNhat >= 25);
+                }
+            }
+            
+            // Sắp xếp
+            if (sort == "mới nhất" || sort == "moi nhat")
+            {
+                danhSachTinTuyenDung = danhSachTinTuyenDung.OrderByDescending(t => t.NgayDang);
+            }
+            else
+            {
+                // Mặc định sắp xếp theo số lượng ứng tuyển và ngày đăng
+                danhSachTinTuyenDung = danhSachTinTuyenDung
+                    .OrderByDescending(t => t.SoLuongUngTuyen ?? 0)
+                    .ThenByDescending(t => t.NgayDang);
+            }
+            
+            var ketQuaTimKiem = danhSachTinTuyenDung.ToList();
             
             // Đếm số lượng việc làm theo tỉnh/thành phố và sắp xếp từ cao đến thấp, lấy top 5
-            var soLuongViecLamTheoTinh = danhSachTinTuyenDung
+            var tatCaTinTuyenDung = _tinTuyenDungRepository.LayDanhSachTinTuyenDung();
+            var soLuongViecLamTheoTinh = tatCaTinTuyenDung
                 .GroupBy(job => job.TinhThanhPho)
                 .Select(g => new { TinhThanhPho = g.Key, SoLuong = g.Count() })
                 .OrderByDescending(x => x.SoLuong)
@@ -79,36 +299,435 @@ namespace Unicareer.Controllers
                 .OrderBy(p => p.FullName)
                 .ToList();
             
+            // Lấy logo cho các công ty
+            var companyNames = ketQuaTimKiem.Select(j => j.CongTy).Distinct().ToList();
+            var companyLogos = GetCompanyLogos(companyNames);
+            
+            // Lấy danh sách ngành nghề từ database
+            var danhSachNganhNghe = _context.NganhNghes
+                .OrderBy(n => n.TenNganhNghe)
+                .ToList();
+            
+            // Lấy danh sách loại công việc từ database
+            var danhSachLoaiCongViec = _context.LoaiCongViecs
+                .OrderBy(l => l.TenLoaiCongViec)
+                .ToList();
+            
+            // Lấy danh sách cấp bậc (vị trí) từ DropdownOptions
+            var danhSachCapBac = DropdownOptions.ViTri;
+            
+            // Lấy danh sách kinh nghiệm từ DropdownOptions
+            var danhSachKinhNghiem = DropdownOptions.KinhNghiem;
+            
+            // Truyền các tham số tìm kiếm vào ViewBag để hiển thị lại trong form
+            ViewBag.Keyword = keyword;
+            ViewBag.TinhThanh = tinhThanh;
+            ViewBag.QuanHuyen = quanHuyen;
+            ViewBag.NganhNghe = nganhNghe;
+            ViewBag.LoaiCongViec = loaiCongViec;
+            ViewBag.CapBac = capBac;
+            ViewBag.KinhNghiem = kinhNghiem;
+            ViewBag.MucLuong = mucLuong;
+            ViewBag.Sort = sort;
             ViewBag.SoLuongViecLamTheoTinh = soLuongViecLamTheoTinh;
             ViewBag.DanhSachTinhThanh = danhSachTinhThanh;
+            ViewBag.CompanyLogos = companyLogos;
+            ViewBag.DanhSachNganhNghe = danhSachNganhNghe;
+            ViewBag.DanhSachLoaiCongViec = danhSachLoaiCongViec;
+            ViewBag.DanhSachCapBac = danhSachCapBac;
+            ViewBag.DanhSachKinhNghiem = danhSachKinhNghiem;
             
-            return View(danhSachTinTuyenDung);
+            // Tạo danh sách gợi ý tìm kiếm từ dữ liệu thực tế
+            var danhSachGoiYTimKiem = new List<GoiYTimKiem>();
+            
+            // Top ngành nghề có nhiều việc làm nhất (lấy top 3)
+            var topNganhNghe = tatCaTinTuyenDung
+                .Where(t => !string.IsNullOrEmpty(t.NganhNghe))
+                .GroupBy(t => t.NganhNghe)
+                .Select(g => new { Ten = g.Key, SoLuong = g.Count() })
+                .OrderByDescending(x => x.SoLuong)
+                .Take(3)
+                .ToList();
+            
+            foreach (var nganhNgheItem in topNganhNghe)
+            {
+                danhSachGoiYTimKiem.Add(new GoiYTimKiem 
+                { 
+                    Text = $"Việc làm {nganhNgheItem.Ten}", 
+                    Url = $"/Home/TimViec?nganhNghe={Uri.EscapeDataString(nganhNgheItem.Ten)}" 
+                });
+            }
+            
+            // Top loại công việc phổ biến (lấy top 2)
+            var topLoaiCongViec = tatCaTinTuyenDung
+                .Where(t => !string.IsNullOrEmpty(t.LoaiCongViec))
+                .GroupBy(t => t.LoaiCongViec)
+                .Select(g => new { Ten = g.Key, SoLuong = g.Count() })
+                .OrderByDescending(x => x.SoLuong)
+                .Take(2)
+                .ToList();
+            
+            foreach (var loaiCongViecItem in topLoaiCongViec)
+            {
+                danhSachGoiYTimKiem.Add(new GoiYTimKiem 
+                { 
+                    Text = $"Việc làm {loaiCongViecItem.Ten}", 
+                    Url = $"/Home/TimViec?loaiCongViec={Uri.EscapeDataString(loaiCongViecItem.Ten)}" 
+                });
+            }
+            
+            // Thêm gợi ý cố định
+            danhSachGoiYTimKiem.Add(new GoiYTimKiem { Text = "Việc làm thực tập", Url = "/Home/ThucTap" });
+            danhSachGoiYTimKiem.Add(new GoiYTimKiem { Text = "Việc làm mới nhất", Url = "/Home/TimViec?sort=mới nhất" });
+            
+            ViewBag.DanhSachGoiYTimKiem = danhSachGoiYTimKiem;
+            
+            return View(ketQuaTimKiem);
         }
 
-        public IActionResult ThucTap()
+        public IActionResult ThucTap(string keyword, string tinhThanh, string quanHuyen, string nganhNghe, string loaiCongViec, string capBac, string kinhNghiem, string mucLuong)
         {
-            var danhSachThucTap = _tinTuyenDungRepository.LayDanhSachThucTap();
+            // Query trực tiếp từ database để tối ưu hiệu suất - chỉ lấy các tin thực tập
+            var danhSachThucTap = _context.TinTuyenDungs
+                .Where(t => t.LoaiCongViec != null && t.LoaiCongViec.ToLower().Contains("thực tập"))
+                .AsQueryable();
+            
+            // Tìm kiếm theo từ khóa (keyword) - tìm trong TuKhoa, TenViecLam, CongTy, MoTa, YeuCau, KyNang
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                var keywordTrimmed = keyword.Trim();
+                danhSachThucTap = danhSachThucTap.Where(t =>
+                    (!string.IsNullOrEmpty(t.TuKhoa) && t.TuKhoa.Contains(keywordTrimmed)) ||
+                    (!string.IsNullOrEmpty(t.TenViecLam) && t.TenViecLam.Contains(keywordTrimmed)) ||
+                    (!string.IsNullOrEmpty(t.CongTy) && t.CongTy.Contains(keywordTrimmed)) ||
+                    (!string.IsNullOrEmpty(t.MoTa) && t.MoTa.Contains(keywordTrimmed)) ||
+                    (!string.IsNullOrEmpty(t.YeuCau) && t.YeuCau.Contains(keywordTrimmed)) ||
+                    (!string.IsNullOrEmpty(t.KyNang) && t.KyNang.Contains(keywordTrimmed)) ||
+                    (!string.IsNullOrEmpty(t.NganhNghe) && t.NganhNghe.Contains(keywordTrimmed)) ||
+                    (!string.IsNullOrEmpty(t.NganhNgheChiTiet) && t.NganhNgheChiTiet.Contains(keywordTrimmed))
+                );
+            }
+            
+            // Lọc theo tỉnh/thành phố
+            if (!string.IsNullOrEmpty(tinhThanh))
+            {
+                danhSachThucTap = danhSachThucTap.Where(t => 
+                    !string.IsNullOrEmpty(t.TinhThanhPho) && t.TinhThanhPho.Contains(tinhThanh));
+            }
+            
+            // Lọc theo quận/huyện
+            if (!string.IsNullOrEmpty(quanHuyen))
+            {
+                danhSachThucTap = danhSachThucTap.Where(t => 
+                    !string.IsNullOrEmpty(t.PhuongXa) && t.PhuongXa.Contains(quanHuyen));
+            }
+            
+            // Lọc theo ngành nghề
+            if (!string.IsNullOrEmpty(nganhNghe))
+            {
+                danhSachThucTap = danhSachThucTap.Where(t => 
+                    !string.IsNullOrEmpty(t.NganhNghe) && t.NganhNghe == nganhNghe);
+            }
+            
+            // Lọc theo loại công việc
+            if (!string.IsNullOrEmpty(loaiCongViec))
+            {
+                danhSachThucTap = danhSachThucTap.Where(t => 
+                    !string.IsNullOrEmpty(t.LoaiCongViec) && t.LoaiCongViec == loaiCongViec);
+            }
+            
+            // Lọc theo cấp bậc (vị trí)
+            if (!string.IsNullOrEmpty(capBac))
+            {
+                danhSachThucTap = danhSachThucTap.Where(t => 
+                    !string.IsNullOrEmpty(t.ViTri) && t.ViTri == capBac);
+            }
+            
+            // Lọc theo kinh nghiệm
+            if (!string.IsNullOrEmpty(kinhNghiem))
+            {
+                danhSachThucTap = danhSachThucTap.Where(t => 
+                    !string.IsNullOrEmpty(t.KinhNghiem) && t.KinhNghiem == kinhNghiem);
+            }
+            
+            // Lọc theo mức lương (phụ cấp)
+            if (!string.IsNullOrEmpty(mucLuong))
+            {
+                if (mucLuong == "Dưới 5 triệu")
+                {
+                    danhSachThucTap = danhSachThucTap.Where(t => 
+                        t.MucLuongCaoNhat.HasValue && t.MucLuongCaoNhat < 5);
+                }
+                else if (mucLuong == "5-7 triệu")
+                {
+                    danhSachThucTap = danhSachThucTap.Where(t => 
+                        (t.MucLuongThapNhat.HasValue && t.MucLuongThapNhat >= 5 && t.MucLuongThapNhat <= 7) ||
+                        (t.MucLuongCaoNhat.HasValue && t.MucLuongCaoNhat >= 5 && t.MucLuongCaoNhat <= 7) ||
+                        (t.MucLuongThapNhat.HasValue && t.MucLuongCaoNhat.HasValue && 
+                         t.MucLuongThapNhat <= 7 && t.MucLuongCaoNhat >= 5));
+                }
+                else if (mucLuong == "7-10 triệu")
+                {
+                    danhSachThucTap = danhSachThucTap.Where(t => 
+                        (t.MucLuongThapNhat.HasValue && t.MucLuongThapNhat >= 7 && t.MucLuongThapNhat <= 10) ||
+                        (t.MucLuongCaoNhat.HasValue && t.MucLuongCaoNhat >= 7 && t.MucLuongCaoNhat <= 10) ||
+                        (t.MucLuongThapNhat.HasValue && t.MucLuongCaoNhat.HasValue && 
+                         t.MucLuongThapNhat <= 10 && t.MucLuongCaoNhat >= 7));
+                }
+                else if (mucLuong == "Trên 10 triệu")
+                {
+                    danhSachThucTap = danhSachThucTap.Where(t => 
+                        t.MucLuongThapNhat.HasValue && t.MucLuongThapNhat >= 10);
+                }
+            }
+            
+            // Sắp xếp theo số lượng ứng tuyển và ngày đăng
+            danhSachThucTap = danhSachThucTap
+                .OrderByDescending(t => t.SoLuongUngTuyen ?? 0)
+                .ThenByDescending(t => t.NgayDang);
+            
+            var ketQuaTimKiem = danhSachThucTap.ToList();
+            
+            // Đếm số lượng việc làm thực tập theo tỉnh/thành phố và sắp xếp từ cao đến thấp
+            var tatCaTinThucTapForCount = _context.TinTuyenDungs
+                .Where(t => t.LoaiCongViec != null && t.LoaiCongViec.ToLower().Contains("thực tập"));
+            var soLuongViecLamTheoTinh = tatCaTinThucTapForCount
+                .GroupBy(job => job.TinhThanhPho)
+                .Select(g => new { TinhThanhPho = g.Key, SoLuong = g.Count() })
+                .OrderByDescending(x => x.SoLuong)
+                .ToList();
             
             // Lấy danh sách tỉnh/thành phố
             var danhSachTinhThanh = _context.Provinces
                 .OrderBy(p => p.FullName)
                 .ToList();
             
+            // Lấy logo cho các công ty
+            var companyNames = ketQuaTimKiem.Select(j => j.CongTy).Distinct().ToList();
+            var companyLogos = GetCompanyLogos(companyNames);
+            
+            // Lấy danh sách ngành nghề từ database
+            var danhSachNganhNghe = _context.NganhNghes
+                .OrderBy(n => n.TenNganhNghe)
+                .ToList();
+            
+            // Lấy danh sách loại công việc từ database
+            var danhSachLoaiCongViec = _context.LoaiCongViecs
+                .OrderBy(l => l.TenLoaiCongViec)
+                .ToList();
+            
+            // Lấy danh sách cấp bậc (vị trí) từ DropdownOptions
+            var danhSachCapBac = DropdownOptions.ViTri;
+            
+            // Lấy danh sách kinh nghiệm từ DropdownOptions
+            var danhSachKinhNghiem = DropdownOptions.KinhNghiem;
+            
+            // Lấy tất cả tin thực tập để tạo gợi ý
+            var tatCaTinThucTap = _tinTuyenDungRepository.LayDanhSachThucTap();
+            
+            // Tạo danh sách gợi ý tìm kiếm từ dữ liệu thực tế
+            var danhSachGoiYTimKiem = new List<GoiYTimKiem>();
+            
+            // Top ngành nghề có nhiều việc thực tập nhất (lấy top 3)
+            var topNganhNghe = tatCaTinThucTap
+                .Where(t => !string.IsNullOrEmpty(t.NganhNghe))
+                .GroupBy(t => t.NganhNghe)
+                .Select(g => new { Ten = g.Key, SoLuong = g.Count() })
+                .OrderByDescending(x => x.SoLuong)
+                .Take(3)
+                .ToList();
+            
+            foreach (var nganhNgheItem in topNganhNghe)
+            {
+                danhSachGoiYTimKiem.Add(new GoiYTimKiem 
+                { 
+                    Text = $"Thực tập {nganhNgheItem.Ten}", 
+                    Url = $"/Home/ThucTap?nganhNghe={Uri.EscapeDataString(nganhNgheItem.Ten)}" 
+                });
+            }
+            
+            // Top tỉnh/thành phố có nhiều việc thực tập nhất (lấy top 2)
+            var topTinhThanh = tatCaTinThucTap
+                .Where(t => !string.IsNullOrEmpty(t.TinhThanhPho))
+                .GroupBy(t => t.TinhThanhPho)
+                .Select(g => new { Ten = g.Key, SoLuong = g.Count() })
+                .OrderByDescending(x => x.SoLuong)
+                .Take(2)
+                .ToList();
+            
+            foreach (var tinhThanhItem in topTinhThanh)
+            {
+                danhSachGoiYTimKiem.Add(new GoiYTimKiem 
+                { 
+                    Text = $"Thực tập tại {tinhThanhItem.Ten}", 
+                    Url = $"/Home/ThucTap?tinhThanh={Uri.EscapeDataString(tinhThanhItem.Ten)}" 
+                });
+            }
+            
+            // Thêm gợi ý cố định
+            danhSachGoiYTimKiem.Add(new GoiYTimKiem { Text = "Thực tập có lương", Url = "/Home/ThucTap?mucLuong=Trên 10 triệu" });
+            
+            // Truyền các tham số tìm kiếm vào ViewBag để hiển thị lại trong form
+            ViewBag.Keyword = keyword;
+            ViewBag.TinhThanh = tinhThanh;
+            ViewBag.QuanHuyen = quanHuyen;
+            ViewBag.NganhNghe = nganhNghe;
+            ViewBag.LoaiCongViec = loaiCongViec;
+            ViewBag.CapBac = capBac;
+            ViewBag.KinhNghiem = kinhNghiem;
+            ViewBag.MucLuong = mucLuong;
+            ViewBag.SoLuongViecLamTheoTinh = soLuongViecLamTheoTinh;
             ViewBag.DanhSachTinhThanh = danhSachTinhThanh;
-            return View(danhSachThucTap);
+            ViewBag.CompanyLogos = companyLogos;
+            ViewBag.DanhSachNganhNghe = danhSachNganhNghe;
+            ViewBag.DanhSachLoaiCongViec = danhSachLoaiCongViec;
+            ViewBag.DanhSachCapBac = danhSachCapBac;
+            ViewBag.DanhSachKinhNghiem = danhSachKinhNghiem;
+            ViewBag.DanhSachGoiYTimKiem = danhSachGoiYTimKiem;
+            
+            return View(ketQuaTimKiem);
         }
 
         public IActionResult CongTy()
         {
             var danhSachCongTy = _nhaTuyenDungRepository.LayDanhSachNhaTuyenDung();
             
+            // Lấy tất cả tin tuyển dụng và nhóm theo tên công ty để tính số tin đã đăng
+            var tatCaTinTuyenDung = _tinTuyenDungRepository.LayDanhSachTinTuyenDung();
+            var soTinTheoCongTy = tatCaTinTuyenDung
+                .Where(t => !string.IsNullOrEmpty(t.CongTy))
+                .GroupBy(t => t.CongTy.ToLower())
+                .ToDictionary(g => g.Key, g => g.Count());
+            
+            // Lấy tất cả tin ứng tuyển và nhóm theo công ty để tính số ứng viên đã nhận
+            var tatCaTinUngTuyen = _context.TinUngTuyens.ToList();
+            var soUngVienNhanTheoCongTy = tatCaTinUngTuyen
+                .Where(t => !string.IsNullOrEmpty(t.CongTy) && t.TrangThaiXuLy == "Tuyen dung")
+                .GroupBy(t => t.CongTy.ToLower())
+                .ToDictionary(g => g.Key, g => g.Count());
+            
+            // Tạo dictionary để lưu thống kê cho mỗi công ty
+            var thongKeCongTy = new Dictionary<int, (int SoTinDaDang, int SoUngVienNhan)>();
+            
+            foreach (var congTy in danhSachCongTy)
+            {
+                var tenCongTyLower = congTy.TenCongTy?.ToLower() ?? "";
+                var soTinDaDang = soTinTheoCongTy.ContainsKey(tenCongTyLower) 
+                    ? soTinTheoCongTy[tenCongTyLower] 
+                    : 0;
+                var soUngVienNhan = soUngVienNhanTheoCongTy.ContainsKey(tenCongTyLower) 
+                    ? soUngVienNhanTheoCongTy[tenCongTyLower] 
+                    : 0;
+                
+                thongKeCongTy[congTy.MaNhaTuyenDung] = (soTinDaDang, soUngVienNhan);
+            }
+            
             // Lấy danh sách tỉnh/thành phố
             var danhSachTinhThanh = _context.Provinces
                 .OrderBy(p => p.FullName)
                 .ToList();
             
             ViewBag.DanhSachTinhThanh = danhSachTinhThanh;
+            ViewBag.ThongKeCongTy = thongKeCongTy;
             return View(danhSachCongTy);
+        }
+
+        public IActionResult UngVien(string keyword, string tinhThanh, string nganhNghe, string trangThaiTimViec, string mucLuong)
+        {
+            // Chỉ cho phép nhà tuyển dụng và admin xem
+            if (!User.IsInRole(Unicareer.Models.SD.Role_NhaTuyenDung) && !User.IsInRole(Unicareer.Models.SD.Role_Admin))
+            {
+                return RedirectToAction("Index");
+            }
+
+            // Query trực tiếp từ database
+            var danhSachUngVien = _context.UngViens
+                .Include(u => u.User)
+                .Include(u => u.ChuyenNganh)
+                    .ThenInclude(c => c!.NganhNghe)
+                .Where(u => u.HienThiCongKhai && !string.IsNullOrEmpty(u.HoTen))
+                .AsQueryable();
+
+            // Tìm kiếm theo từ khóa
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                var keywordTrimmed = keyword.Trim();
+                danhSachUngVien = danhSachUngVien.Where(u =>
+                    (!string.IsNullOrEmpty(u.HoTen) && u.HoTen.Contains(keywordTrimmed)) ||
+                    (!string.IsNullOrEmpty(u.ViTriMongMuon) && u.ViTriMongMuon.Contains(keywordTrimmed)) ||
+                    (!string.IsNullOrEmpty(u.MoTaBanThan) && u.MoTaBanThan.Contains(keywordTrimmed)) ||
+                    (!string.IsNullOrEmpty(u.KyNangChiTiet) && u.KyNangChiTiet.Contains(keywordTrimmed)) ||
+                    (u.ChuyenNganh != null && !string.IsNullOrEmpty(u.ChuyenNganh.TenChuyenNganh) && u.ChuyenNganh.TenChuyenNganh.Contains(keywordTrimmed))
+                );
+            }
+
+            // Lọc theo tỉnh/thành phố
+            if (!string.IsNullOrEmpty(tinhThanh))
+            {
+                danhSachUngVien = danhSachUngVien.Where(u =>
+                    !string.IsNullOrEmpty(u.NoiLamViecMongMuon) && u.NoiLamViecMongMuon.Contains(tinhThanh));
+            }
+
+            // Lọc theo chuyên ngành
+            if (!string.IsNullOrEmpty(nganhNghe))
+            {
+                danhSachUngVien = danhSachUngVien.Where(u =>
+                    u.ChuyenNganh != null && u.ChuyenNganh.NganhNghe != null && u.ChuyenNganh.NganhNghe.TenNganhNghe == nganhNghe);
+            }
+
+            // Lọc theo trạng thái tìm việc
+            if (!string.IsNullOrEmpty(trangThaiTimViec))
+            {
+                danhSachUngVien = danhSachUngVien.Where(u => u.TrangThaiTimViec == trangThaiTimViec);
+            }
+
+            // Lọc theo mức lương kỳ vọng
+            if (!string.IsNullOrEmpty(mucLuong))
+            {
+                if (mucLuong == "Dưới 10 triệu")
+                {
+                    danhSachUngVien = danhSachUngVien.Where(u => u.MucLuongKyVong.HasValue && u.MucLuongKyVong < 10);
+                }
+                else if (mucLuong == "10-15 triệu")
+                {
+                    danhSachUngVien = danhSachUngVien.Where(u => u.MucLuongKyVong.HasValue && u.MucLuongKyVong >= 10 && u.MucLuongKyVong <= 15);
+                }
+                else if (mucLuong == "15-25 triệu")
+                {
+                    danhSachUngVien = danhSachUngVien.Where(u => u.MucLuongKyVong.HasValue && u.MucLuongKyVong >= 15 && u.MucLuongKyVong <= 25);
+                }
+                else if (mucLuong == "Trên 25 triệu")
+                {
+                    danhSachUngVien = danhSachUngVien.Where(u => u.MucLuongKyVong.HasValue && u.MucLuongKyVong >= 25);
+                }
+            }
+
+            // Sắp xếp theo ngày đăng ký mới nhất
+            danhSachUngVien = danhSachUngVien.OrderByDescending(u => u.NgayDangKy);
+
+            var ketQuaTimKiem = danhSachUngVien.ToList();
+
+            // Lấy danh sách tỉnh/thành phố
+            var danhSachTinhThanh = _context.Provinces
+                .OrderBy(p => p.FullName)
+                .ToList();
+
+            // Lấy danh sách ngành nghề
+            var danhSachNganhNghe = _context.NganhNghes
+                .OrderBy(n => n.TenNganhNghe)
+                .ToList();
+
+            // Truyền các tham số tìm kiếm vào ViewBag
+            ViewBag.Keyword = keyword;
+            ViewBag.TinhThanh = tinhThanh;
+            ViewBag.NganhNghe = nganhNghe;
+            ViewBag.TrangThaiTimViec = trangThaiTimViec;
+            ViewBag.MucLuong = mucLuong;
+            ViewBag.DanhSachTinhThanh = danhSachTinhThanh;
+            ViewBag.DanhSachNganhNghe = danhSachNganhNghe;
+            ViewBag.TrangThaiTimViecOptions = new List<string> { "Đang tìm việc", "Đang thực tập", "Đã có việc" };
+
+            return View(ketQuaTimKiem);
         }
 
         public IActionResult ChiTietCongTy(int id)
@@ -122,7 +741,24 @@ namespace Unicareer.Controllers
             // Lấy danh sách công việc của công ty
             var danhSachViecLam = _tinTuyenDungRepository.LayDanhSachTheoCongTy(congTy.TenCongTy);
             
+            // Tính toán số tin đã đăng từ dữ liệu thật
+            var soTinDaDang = danhSachViecLam.Count;
+            
+            // Tính toán số ứng viên đã nhận từ dữ liệu thật (trạng thái "Tuyen dung")
+            var soUngVienNhan = _context.TinUngTuyens
+                .Where(t => t.CongTy != null && t.CongTy.ToLower() == congTy.TenCongTy.ToLower() 
+                    && t.TrangThaiXuLy == "Tuyen dung")
+                .Count();
+            
+            // Tính toán số tháng tham gia
+            var soThangThamGia = congTy.NgayDangKy <= DateTime.Now 
+                ? Math.Max(1, (DateTime.Now - congTy.NgayDangKy).Days / 30) 
+                : 0;
+            
             ViewBag.DanhSachViecLam = danhSachViecLam;
+            ViewBag.SoTinDaDang = soTinDaDang;
+            ViewBag.SoUngVienNhan = soUngVienNhan;
+            ViewBag.SoThangThamGia = soThangThamGia;
             return View(congTy);
         }
 
@@ -133,7 +769,182 @@ namespace Unicareer.Controllers
             {
                 return NotFound();
             }
+            
+            // Lấy logo công ty
+            var nhaTuyenDung = _context.NhaTuyenDungs
+                .FirstOrDefault(n => n.TenCongTy == tinTuyenDung.CongTy);
+            ViewBag.CompanyLogo = nhaTuyenDung?.Logo;
+            
             return View(tinTuyenDung);
+        }
+
+        // POST: Ung tuyen
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UngTuyen(
+            int jobId, 
+            string fullName, 
+            string email, 
+            string phone, 
+            string? school, 
+            string? major, 
+            string content,
+            IFormFile? cvFile)
+        {
+            try
+            {
+                // Validate required fields
+                if (string.IsNullOrWhiteSpace(fullName) || 
+                    string.IsNullOrWhiteSpace(email) || 
+                    string.IsNullOrWhiteSpace(phone) || 
+                    string.IsNullOrWhiteSpace(content))
+                {
+                    return Json(new { success = false, message = "Vui lòng điền đầy đủ các trường bắt buộc" });
+                }
+
+                // Validate email format
+                if (!email.Contains("@") || !email.Contains("."))
+                {
+                    return Json(new { success = false, message = "Email không hợp lệ" });
+                }
+
+                // Validate phone format (10-11 digits)
+                var phoneDigits = phone.Replace(" ", "").Replace("-", "");
+                if (phoneDigits.Length < 10 || phoneDigits.Length > 11 || !phoneDigits.All(char.IsDigit))
+                {
+                    return Json(new { success = false, message = "Số điện thoại không hợp lệ" });
+                }
+
+                // Kiểm tra tin tuyển dụng có tồn tại không
+                var tinTuyenDung = _tinTuyenDungRepository.LayTinTuyenDungTheoId(jobId);
+                if (tinTuyenDung == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy tin tuyển dụng" });
+                }
+
+                // Kiểm tra hạn nộp
+                if (tinTuyenDung.HanNop < DateTime.Now.Date)
+                {
+                    return Json(new { success = false, message = "Tin tuyển dụng đã hết hạn nộp hồ sơ" });
+                }
+
+                // Upload CV file nếu có
+                string? cvPath = null;
+                if (cvFile != null && cvFile.Length > 0)
+                {
+                    cvPath = await UploadCVFileAsync(cvFile);
+                    if (string.IsNullOrEmpty(cvPath))
+                    {
+                        return Json(new { success = false, message = "Không thể upload file CV" });
+                    }
+                }
+
+                // Tạo tin ứng tuyển
+                var tinUngTuyen = new TinUngTuyen
+                {
+                    HoTen = fullName.Trim(),
+                    Email = email.Trim(),
+                    SoDienThoai = phone.Trim(),
+                    ViTriUngTuyen = tinTuyenDung.TenViecLam ?? "",
+                    CongTy = tinTuyenDung.CongTy ?? "",
+                    MaTinTuyenDung = jobId.ToString(),
+                    TrangThaiXuLy = TrangThaiXuLyHelper.ToString(TrangThaiXuLy.DangXemXet),
+                    LinkCV = cvPath ?? "",
+                    GhiChu = $"Trường: {school ?? "Không có"}; Ngành: {major ?? "Không có"}; Nội dung: {content.Trim()}",
+                    NgayUngTuyen = DateTime.Now
+                };
+
+                // Lưu vào database
+                _context.TinUngTuyens.Add(tinUngTuyen);
+
+                // Cập nhật số lượng ứng tuyển
+                if (tinTuyenDung.SoLuongUngTuyen == null)
+                {
+                    tinTuyenDung.SoLuongUngTuyen = 0;
+                }
+                tinTuyenDung.SoLuongUngTuyen++;
+
+                _context.SaveChanges();
+
+                return Json(new { success = true, message = "Đã gửi đơn ứng tuyển thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
+        // Helper method để upload CV file
+        private async Task<string?> UploadCVFileAsync(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return null;
+
+            // Kiểm tra định dạng file (cho phép PDF, DOC, DOCX, PNG, JPEG, JPG)
+            var allowedExtensions = new[] { ".pdf", ".doc", ".docx", ".png", ".jpeg", ".jpg" };
+            var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            
+            if (!allowedExtensions.Contains(fileExtension))
+            {
+                throw new Exception("Định dạng file không hợp lệ. Chỉ chấp nhận PDF, DOC, DOCX, PNG, JPEG, JPG.");
+            }
+
+            // Kiểm tra kích thước file (tối đa 2048KB = 2MB)
+            var maxSize = 2048 * 1024; // 2MB
+            if (file.Length > maxSize)
+            {
+                throw new Exception("Kích thước file quá lớn. Tối đa 2048KB.");
+            }
+
+            // Tạo tên file unique
+            var fileName = $"CV_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid():N}{fileExtension}";
+            var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "cvs");
+            
+            // Đảm bảo thư mục tồn tại
+            if (!Directory.Exists(uploadsPath))
+            {
+                Directory.CreateDirectory(uploadsPath);
+            }
+
+            var filePath = Path.Combine(uploadsPath, fileName);
+            
+            // Lưu file
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            // Trả về đường dẫn URL
+            return $"/uploads/cvs/{fileName}";
+        }
+
+        public IActionResult ChiTietUngVien(int id)
+        {
+            // Chỉ cho phép nhà tuyển dụng và admin xem
+            if (!User.IsInRole(Unicareer.Models.SD.Role_NhaTuyenDung) && !User.IsInRole(Unicareer.Models.SD.Role_Admin))
+            {
+                return RedirectToAction("Index");
+            }
+
+            var ungVien = _context.UngViens
+                .Include(u => u.User)
+                .Include(u => u.ChuyenNganh)
+                    .ThenInclude(c => c!.NganhNghe)
+                .FirstOrDefault(u => u.MaUngVien == id);
+
+            if (ungVien == null)
+            {
+                return NotFound();
+            }
+
+            // Kiểm tra xem ứng viên có cho phép hiển thị công khai không
+            if (!ungVien.HienThiCongKhai)
+            {
+                TempData["Loi"] = "Ứng viên này không cho phép hiển thị hồ sơ công khai.";
+                return RedirectToAction("UngVien");
+            }
+
+            return View(ungVien);
         }
 
         public IActionResult Privacy()

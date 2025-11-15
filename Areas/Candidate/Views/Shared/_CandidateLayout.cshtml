@@ -301,6 +301,16 @@
             justify-content: center;
             font-weight: 700;
             font-size: 1rem;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            display: block;
         }
 
         .user-info {
@@ -463,7 +473,12 @@
                 var roles = await UserManager.GetRolesAsync(currentUser);
                 var roleName = roles.FirstOrDefault() ?? "User";
                 
-                // Lấy chữ cái đầu của tên để làm avatar
+                // Lấy avatar URL (nếu có) hoặc dùng avatar mặc định
+                var avatarUrl = !string.IsNullOrEmpty(currentUser?.Avatar) 
+                    ? currentUser.Avatar 
+                    : "/images/default-avatar.png";
+                
+                // Lấy chữ cái đầu của tên để làm fallback
                 var initials = "UV";
                 if (!string.IsNullOrEmpty(currentUser?.HoTen))
                 {
@@ -490,15 +505,25 @@
 
                 <div class="user-profile dropdown">
                     <a href="#" class="d-flex align-items-center gap-2" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none;">
-                        <div class="user-avatar">@initials</div>
+                        <div class="user-avatar">
+                            @if (!string.IsNullOrEmpty(currentUser?.Avatar))
+                            {
+                                <img src="@currentUser.Avatar?v=@DateTime.Now.Ticks" alt="Avatar" />
+                            }
+                            else
+                            {
+                                <img src="@avatarUrl" alt="Avatar mặc định" style="opacity: 0.7;" />
+                                <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; font-size: 0.9rem;">@initials</span>
+                            }
+                        </div>
                         <div class="user-info">
                             <div class="user-name">@currentUser?.HoTen</div>
                             <div class="user-role">@roleDisplay</div>
                         </div>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="@Url.Action("ThongTinTaiKhoan", "Candidate")"><i class="bi bi-person"></i> Thông tin cá nhân</a></li>
-                        <li><a class="dropdown-item" href="@Url.Action("CVCuaToi", "Candidate")"><i class="bi bi-file-earmark-person"></i> CV của tôi</a></li>
+                        <li><a class="dropdown-item" href="@Url.Action("CaiDat", "Candidate")"><i class="bi bi-person"></i> Thông tin cá nhân</a></li>
+                        <li><a class="dropdown-item" href="@Url.Action("HoSoUngVien", "Candidate")"><i class="bi bi-person-badge"></i> Hồ sơ ứng viên</a></li>
                         <li><a class="dropdown-item" href="@Url.Action("CaiDat", "Candidate")"><i class="bi bi-gear"></i> Cài đặt</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="/"><i class="bi bi-house"></i> Về trang chủ</a></li>
@@ -551,9 +576,9 @@
                 <i class="bi bi-bookmark"></i>
                 <span>Việc đã lưu</span>
             </a>
-            <a href="@Url.Action("CVCuaToi", "Candidate")" class="menu-item">
-                <i class="bi bi-file-earmark-person"></i>
-                <span>CV của tôi</span>
+            <a href="@Url.Action("HoSoUngVien", "Candidate")" class="menu-item">
+                <i class="bi bi-person-badge"></i>
+                <span>Hồ sơ ứng viên</span>
             </a>
             <a href="#" class="menu-item">
                 <i class="bi bi-graph-up"></i>

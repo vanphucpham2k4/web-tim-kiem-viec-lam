@@ -1,4 +1,5 @@
 @model List<Unicareer.Models.TinUngTuyen>
+@using Unicareer.Models.Enums
 
 @{
     ViewData["Title"] = "Đơn ứng tuyển";
@@ -255,11 +256,12 @@
         </div>
         <select class="form-select" id="locTrangThai" style="max-width: 200px;">
             <option value="">Tất cả trạng thái</option>
-            <option value="Dang xem xet">Đang xem xét</option>
-            <option value="Cho phong van">Chờ phỏng vấn</option>
-            <option value="Da phong van">Đã phỏng vấn</option>
-            <option value="Tuyen dung">Tuyển dụng</option>
-            <option value="Tu choi">Từ chối</option>
+            <option value="Đang xem xét">Đang xem xét</option>
+            <option value="Chờ phỏng vấn">Chờ phỏng vấn</option>
+            <option value="Đã phỏng vấn">Đã phỏng vấn</option>
+            <option value="Tuyển dụng">Tuyển dụng</option>
+            <option value="Từ chối">Từ chối</option>
+            <option value="Không phù hợp">Không phù hợp</option>
         </select>
         <select class="form-select" id="locTinTuyenDung" style="max-width: 250px;">
             <option value="">Tất cả tin tuyển dụng</option>
@@ -292,17 +294,15 @@
                             @foreach (var don in Model)
                             {
                                 var tinTuyenDung = danhSachTinTuyenDung.FirstOrDefault(t => t.MaTinTuyenDung.ToString() == don.MaTinTuyenDung);
-                                var badgeClass = don.TrangThaiXuLy switch
-                                {
-                                    "Dang xem xet" => "bg-secondary",
-                                    "Cho phong van" => "bg-warning",
-                                    "Da phong van" => "bg-info",
-                                    "Tuyen dung" => "bg-success",
-                                    "Tu choi" => "bg-danger",
-                                    _ => "bg-secondary"
-                                };
+                                var trangThaiEnum = TrangThaiXuLyHelper.FromString(don.TrangThaiXuLy);
+                                var trangThaiDisplay = trangThaiEnum.HasValue 
+                                    ? TrangThaiXuLyHelper.ToString(trangThaiEnum.Value) 
+                                    : don.TrangThaiXuLy;
+                                var badgeClass = trangThaiEnum.HasValue 
+                                    ? TrangThaiXuLyHelper.GetBadgeClass(trangThaiEnum.Value) 
+                                    : "bg-secondary";
                                 
-                                <tr data-ma="@don.MaTinUngTuyen" data-trangthai="@don.TrangThaiXuLy" data-tin="@don.MaTinTuyenDung">
+                                <tr data-ma="@don.MaTinUngTuyen" data-trangthai="@trangThaiDisplay" data-tin="@don.MaTinTuyenDung">
                                     <td><span class="text-muted">#@don.MaTinUngTuyen</span></td>
                                     <td>
                                         <div class="candidate-info">
@@ -326,7 +326,7 @@
                                     </td>
                                     <td>@don.NgayUngTuyen.ToString("dd/MM/yyyy HH:mm")</td>
                                     <td>
-                                        <span class="badge @badgeClass">@don.TrangThaiXuLy</span>
+                                        <span class="badge @badgeClass">@trangThaiDisplay</span>
                                     </td>
                                     <td>
                                         @if (!string.IsNullOrEmpty(don.LinkCV))
@@ -372,7 +372,7 @@
             <h6 class="card-title">
                 <i class="bi bi-clock-history"></i> Đang xem xét
             </h6>
-            <h2 class="text-warning">@Model.Count(t => t.TrangThaiXuLy == "Dang xem xet")</h2>
+            <h2 class="text-warning">@Model.Count(t => TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy) == TrangThaiXuLy.DangXemXet)</h2>
         </div>
     </div>
     <div class="col-md-3 mb-3">
@@ -380,7 +380,7 @@
             <h6 class="card-title">
                 <i class="bi bi-calendar-check"></i> Chờ phỏng vấn
             </h6>
-            <h2 class="text-info">@Model.Count(t => t.TrangThaiXuLy == "Cho phong van")</h2>
+            <h2 class="text-info">@Model.Count(t => TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy) == TrangThaiXuLy.ChoPhongVan)</h2>
         </div>
     </div>
     <div class="col-md-3 mb-3">
@@ -388,7 +388,7 @@
             <h6 class="card-title">
                 <i class="bi bi-person-check"></i> Đã tuyển dụng
             </h6>
-            <h2 class="text-success">@Model.Count(t => t.TrangThaiXuLy == "Tuyen dung")</h2>
+            <h2 class="text-success">@Model.Count(t => TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy) == TrangThaiXuLy.TuyenDung)</h2>
         </div>
     </div>
 </div>
@@ -426,11 +426,12 @@
                         <label for="trangThaiMoi" class="form-label">Trạng thái mới</label>
                         <select class="form-select" id="trangThaiMoi" name="trangThaiMoi" required>
                             <option value="">-- Chọn trạng thái --</option>
-                            <option value="Dang xem xet">Đang xem xét</option>
-                            <option value="Cho phong van">Chờ phỏng vấn</option>
-                            <option value="Da phong van">Đã phỏng vấn</option>
-                            <option value="Tuyen dung">Tuyển dụng</option>
-                            <option value="Tu choi">Từ chối</option>
+                            <option value="@TrangThaiXuLyHelper.ToString(TrangThaiXuLy.DangXemXet)">Đang xem xét</option>
+                            <option value="@TrangThaiXuLyHelper.ToString(TrangThaiXuLy.ChoPhongVan)">Chờ phỏng vấn</option>
+                            <option value="@TrangThaiXuLyHelper.ToString(TrangThaiXuLy.DaPhongVan)">Đã phỏng vấn</option>
+                            <option value="@TrangThaiXuLyHelper.ToString(TrangThaiXuLy.TuyenDung)">Tuyển dụng</option>
+                            <option value="@TrangThaiXuLyHelper.ToString(TrangThaiXuLy.TuChoi)">Từ chối</option>
+                            <option value="@TrangThaiXuLyHelper.ToString(TrangThaiXuLy.KhongPhuHop)">Không phù hợp</option>
                         </select>
                     </div>
                     <div class="mb-3">

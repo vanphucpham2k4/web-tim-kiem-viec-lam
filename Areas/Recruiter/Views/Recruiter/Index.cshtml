@@ -360,21 +360,36 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        // Lấy dữ liệu từ ViewBag
+        @{
+            var chartDataForJS = ViewBag.ChartData;
+            if (chartDataForJS == null)
+            {
+                chartDataForJS = new { labels = new string[0], views = new int[0], applications = new int[0] };
+            }
+        }
+        var chartData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(chartDataForJS));
+        
+        // Đảm bảo có dữ liệu mặc định nếu không có dữ liệu
+        var labels = chartData.labels && chartData.labels.length > 0 ? chartData.labels : ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+        var views = chartData.views && chartData.views.length > 0 ? chartData.views : [0, 0, 0, 0, 0, 0, 0];
+        var applications = chartData.applications && chartData.applications.length > 0 ? chartData.applications : [0, 0, 0, 0, 0, 0, 0];
+        
         var ctx = document.getElementById('chartTuanNay').getContext('2d');
         var chart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+                labels: labels,
                 datasets: [{
                     label: 'Lượt xem tin',
-                    data: [65, 89, 80, 81, 96, 105, 94],
+                    data: views,
                     borderColor: '#667eea',
                     backgroundColor: 'rgba(102, 126, 234, 0.1)',
                     tension: 0.4,
                     fill: true
                 }, {
                     label: 'Đơn ứng tuyển',
-                    data: [12, 19, 15, 17, 22, 24, 20],
+                    data: applications,
                     borderColor: '#11998e',
                     backgroundColor: 'rgba(17, 153, 142, 0.1)',
                     tension: 0.4,

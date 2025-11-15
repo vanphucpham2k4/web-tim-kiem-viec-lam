@@ -1,6 +1,7 @@
 @model List<Unicareer.Models.NhaTuyenDung>
 @{
     ViewData["Title"] = "Danh sách công ty";
+    var thongKeCongTy = ViewBag.ThongKeCongTy as Dictionary<int, (int SoTinDaDang, int SoUngVienNhan)> ?? new Dictionary<int, (int, int)>();
 }
 
 <style>
@@ -164,7 +165,12 @@
     .company-logo {
         width: 100px;
         height: 100px;
-        background: linear-gradient(135deg, #f5f7fa 0%, #e8ebf0 100%);
+        min-width: 100px;
+        max-width: 100px;
+        min-height: 100px;
+        max-height: 100px;
+        background: #ffffff;
+        border: 1px solid #e0e0e0;
         border-radius: 20px;
         display: flex;
         align-items: center;
@@ -175,6 +181,18 @@
         box-shadow: 0 4px 15px rgba(0,0,0,0.08);
         transition: all 0.3s ease;
         margin-bottom: 20px;
+        overflow: hidden;
+        flex-shrink: 0;
+        position: relative;
+    }
+    
+    .company-logo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 20px;
+        display: block;
+        flex-shrink: 0;
     }
     
     .company-card:hover .company-logo {
@@ -330,17 +348,7 @@
             <div class="col-auto">
                 <strong style="color: var(--text-primary);">Lọc theo:</strong>
             </div>
-            <div class="col-md-4">
-                <select class="form-select form-select-sm" id="filterLinhVuc">
-                    <option value="">Lĩnh vực</option>
-                    <option value="Cong nghe thong tin">Công nghệ thông tin</option>
-                    <option value="Thuong mai dien tu">Thương mại điện tử</option>
-                    <option value="Fintech">Fintech</option>
-                    <option value="F&B">F&B - Nhà hàng</option>
-                    <option value="Truyen thong">Truyền thông</option>
-                </select>
-            </div>
-            <div class="col-md-3">
+            <div class="col-md-5">
                 <select class="form-select form-select-sm" id="filterTinhThanh">
                     <option value="">Tỉnh/Thành Phố</option>
                     @{
@@ -352,7 +360,7 @@
                     }
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-5">
                 <select class="form-select form-select-sm" id="filterQuanHuyen">
                     <option value="">Quận/Huyện</option>
                 </select>
@@ -377,12 +385,21 @@
     <div class="row" id="companyList">
         @foreach (var company in Model)
         {
-            <div class="col-md-6 col-lg-4" data-linhvuc="@company.LinhVuc" data-tinhthanh="@company.TinhThanhPho" data-quanhuyen="@company.QuanHuyen">
+            <div class="col-md-6 col-lg-4" data-tinhthanh="@company.TinhThanhPho" data-quanhuyen="@company.QuanHuyen">
                 <a href="/Home/ChiTietCongTy/@company.MaNhaTuyenDung" class="text-decoration-none" style="color: inherit;">
                     <div class="company-card">
-                        <div class="company-logo">
-                            @company.TenCongTy.Substring(0, 1)
-                        </div>
+                        @if (!string.IsNullOrEmpty(company.Logo))
+                        {
+                            <div class="company-logo">
+                                <img src="@company.Logo" alt="@company.TenCongTy">
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="company-logo">
+                                @company.TenCongTy.Substring(0, 1)
+                            </div>
+                        }
                         <h5 class="company-name">@company.TenCongTy</h5>
                         <div class="company-info">
                             <i class="bi bi-briefcase"></i>
@@ -396,12 +413,17 @@
                         <span class="badge-industry">@company.LinhVuc</span>
                         
                         <div class="company-stats">
+                            @{
+                                var thongKe = thongKeCongTy.ContainsKey(company.MaNhaTuyenDung) 
+                                    ? thongKeCongTy[company.MaNhaTuyenDung] 
+                                    : (SoTinDaDang: 0, SoUngVienNhan: 0);
+                            }
                             <div class="stat-item">
-                                <div class="stat-number">@company.SoTinDaDang</div>
+                                <div class="stat-number">@thongKe.SoTinDaDang</div>
                                 <div class="stat-label">Vị trí tuyển dụng</div>
                             </div>
                             <div class="stat-item">
-                                <div class="stat-number">@company.SoUngVienNhan</div>
+                                <div class="stat-number">@thongKe.SoUngVienNhan</div>
                                 <div class="stat-label">Ứng viên</div>
                             </div>
                         </div>
@@ -474,29 +496,24 @@
             });
             
             // Filter functionality
-            $('#filterLinhVuc, #filterTinhThanh, #filterQuanHuyen').on('change', function() {
+            $('#filterTinhThanh, #filterQuanHuyen').on('change', function() {
                 filterCompanies();
             });
             
             function filterCompanies() {
                 var searchText = $('#searchInput').val().toLowerCase();
-                var linhVuc = $('#filterLinhVuc').val();
-                var filterTinhThanhCode = $('#filterTinhThanh').val();
                 var filterTinhThanhName = $('#filterTinhThanh option:selected').text();
-                var filterQuanHuyenCode = $('#filterQuanHuyen').val();
                 var filterQuanHuyenName = $('#filterQuanHuyen option:selected').text();
                 
                 var visibleCount = 0;
                 
                 $('#companyList > div').each(function() {
                     var card = $(this);
-                    var cardLinhVuc = card.data('linhvuc') || '';
                     var cardTinhThanh = card.data('tinhthanh') || '';
                     var cardQuanHuyen = card.data('quanhuyen') || '';
                     var cardText = card.text().toLowerCase();
                     
                     var matchSearch = searchText === '' || cardText.includes(searchText);
-                    var matchLinhVuc = linhVuc === '' || cardLinhVuc.toLowerCase().includes(linhVuc.toLowerCase());
                     
                     // Tìm kiếm tỉnh/thành phố - so sánh với tên tỉnh từ dropdown
                     var matchTinhThanh = true;
@@ -520,7 +537,7 @@
                                         quanHuyenLower.includes(cardQuanHuyenLower);
                     }
                     
-                    if (matchSearch && matchLinhVuc && matchTinhThanh && matchQuanHuyen) {
+                    if (matchSearch && matchTinhThanh && matchQuanHuyen) {
                         card.show();
                         visibleCount++;
                     } else {

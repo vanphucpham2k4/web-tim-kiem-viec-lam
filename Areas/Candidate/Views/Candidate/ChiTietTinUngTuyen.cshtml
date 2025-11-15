@@ -1,7 +1,15 @@
 @model Unicareer.Models.TinUngTuyen
+@using Unicareer.Models.Enums
 
 @{
     ViewData["Title"] = "Chi tiết tin ứng tuyển";
+    var trangThaiEnum = TrangThaiXuLyHelper.FromString(Model.TrangThaiXuLy);
+    var trangThaiDisplay = trangThaiEnum.HasValue 
+        ? TrangThaiXuLyHelper.ToString(trangThaiEnum.Value) 
+        : Model.TrangThaiXuLy;
+    var badgeClass = trangThaiEnum.HasValue 
+        ? TrangThaiXuLyHelper.GetBadgeClass(trangThaiEnum.Value) 
+        : "bg-secondary";
 }
 
 <style>
@@ -138,6 +146,23 @@
         transform: translateY(-2px);
     }
 
+    .btn-info {
+        background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+        border: none;
+        border-radius: 12px;
+        padding: 12px 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(66, 153, 225, 0.4);
+        color: white;
+    }
+
+    .btn-info:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(66, 153, 225, 0.5);
+        color: white;
+    }
+
     .notes-section {
         background: #f7fafc;
         border-left: 4px solid #10b981;
@@ -208,18 +233,7 @@
             <div class="info-row">
                 <div class="info-label">Trạng thái:</div>
                 <div class="info-value">
-                    @{
-                        var badgeClass = Model.TrangThaiXuLy switch
-                        {
-                            "Dang xem xet" => "bg-warning",
-                            "Cho phong van" => "bg-info",
-                            "Da phong van" => "bg-primary",
-                            "Tuyen dung" => "bg-success",
-                            "Tu choi" => "bg-danger",
-                            _ => "bg-secondary"
-                        };
-                    }
-                    <span class="badge @badgeClass">@Model.TrangThaiXuLy</span>
+                    <span class="badge @badgeClass">@trangThaiDisplay</span>
                 </div>
             </div>
         </div>
@@ -263,6 +277,12 @@
         <div class="info-card">
             <h4><i class="bi bi-lightning"></i> Hành động</h4>
             <div class="d-grid gap-2">
+                @if (!string.IsNullOrEmpty(Model.MaTinTuyenDung) && int.TryParse(Model.MaTinTuyenDung, out int maTinTuyenDung))
+                {
+                    <a href="@Url.Action("ChiTietViecLam", "Home", new { area = "", id = maTinTuyenDung })" class="btn btn-info" target="_blank">
+                        <i class="bi bi-briefcase"></i> Xem tin tuyển dụng
+                    </a>
+                }
                 @if (!string.IsNullOrEmpty(Model.LinkCV))
                 {
                     <a href="@Model.LinkCV" target="_blank" class="btn btn-primary">
@@ -282,6 +302,8 @@
                 <p><strong>Đang xem xét:</strong> Hồ sơ của bạn đang được nhà tuyển dụng xem xét. Vui lòng chờ phản hồi.</p>
                 <p class="mt-3"><strong>Chờ phỏng vấn:</strong> Bạn đã được chọn để phỏng vấn. Nhà tuyển dụng sẽ liên hệ với bạn sớm.</p>
                 <p class="mt-3"><strong>Đã phỏng vấn:</strong> Cuộc phỏng vấn đã hoàn tất. Chờ kết quả từ nhà tuyển dụng.</p>
+                <p class="mt-3"><strong>Tuyển dụng:</strong> Chúc mừng! Bạn đã được tuyển dụng. Nhà tuyển dụng sẽ liên hệ để thông báo chi tiết.</p>
+                <p class="mt-3"><strong>Từ chối:</strong> Rất tiếc, bạn không phù hợp với vị trí này. Hãy tiếp tục tìm kiếm cơ hội khác.</p>
             </div>
         </div>
     </div>

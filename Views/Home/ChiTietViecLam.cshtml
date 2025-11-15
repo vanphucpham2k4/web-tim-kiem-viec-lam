@@ -1,10 +1,14 @@
 @model Unicareer.Models.TinTuyenDung
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<Unicareer.Models.ApplicationUser> SignInManager
+@inject UserManager<Unicareer.Models.ApplicationUser> UserManager
 
 @{
     ViewData["Title"] = Model.TenViecLam;
     var mucLuongDisplay = Model.MucLuongThapNhat == 0 && Model.MucLuongCaoNhat == 0 
         ? "Thỏa thuận" 
         : $"{Model.MucLuongThapNhat} - {Model.MucLuongCaoNhat} triệu VNĐ";
+    var isNhaTuyenDung = User.IsInRole(Unicareer.Models.SD.Role_NhaTuyenDung);
 }
 
 <style>
@@ -55,15 +59,31 @@
     .company-logo {
         width: 100px;
         height: 100px;
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        min-width: 100px;
+        max-width: 100px;
+        min-height: 100px;
+        max-height: 100px;
+        background: #ffffff;
+        border: 1px solid #e0e0e0;
         border-radius: 20px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 42px;
         font-weight: bold;
-        color: white;
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        color: var(--accent-color);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        flex-shrink: 0;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .company-logo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 20px;
+        display: block;
         flex-shrink: 0;
     }
 
@@ -649,6 +669,213 @@
     .apply-form-group.has-error .form-error {
         display: block;
     }
+
+    /* Image Gallery Styles */
+    .image-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 25px;
+        margin-top: 20px;
+    }
+
+    .gallery-item {
+        position: relative;
+        overflow: hidden;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        aspect-ratio: 4/3;
+        background: #f7fafc;
+    }
+
+    @@media (max-width: 768px) {
+        .image-gallery {
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+    }
+
+    .gallery-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    }
+
+    .gallery-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .gallery-item:hover img {
+        transform: scale(1.1);
+    }
+
+    .gallery-item::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.3) 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .gallery-item:hover::after {
+        opacity: 1;
+    }
+
+    .gallery-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 2rem;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 10;
+    }
+
+    .gallery-item:hover .gallery-overlay {
+        opacity: 1;
+    }
+
+    .empty-gallery {
+        text-align: center;
+        padding: 40px 20px;
+        color: #a0aec0;
+    }
+
+    .empty-gallery i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        opacity: 0.5;
+    }
+
+    .empty-gallery p {
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    /* Lightbox Styles */
+    .lightbox {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 10000;
+        justify-content: center;
+        align-items: center;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .lightbox.active {
+        display: flex;
+    }
+
+    .lightbox-content {
+        position: relative;
+        max-width: 90%;
+        max-height: 90%;
+        animation: zoomIn 0.3s ease;
+    }
+
+    .lightbox-content img {
+        max-width: 100%;
+        max-height: 90vh;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+
+    .lightbox-close {
+        position: absolute;
+        top: -40px;
+        right: 0;
+        color: white;
+        font-size: 2rem;
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.2);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .lightbox-close:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: rotate(90deg);
+    }
+
+    .lightbox-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        color: white;
+        font-size: 2rem;
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.2);
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .lightbox-nav:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .lightbox-prev {
+        left: 20px;
+    }
+
+    .lightbox-next {
+        right: 20px;
+    }
+
+    .lightbox-counter {
+        position: absolute;
+        bottom: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: white;
+        font-size: 1rem;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 8px 16px;
+        border-radius: 20px;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @@keyframes zoomIn {
+        from {
+            transform: scale(0.8);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
 </style>
 
 <div class="container-fluid px-4 px-lg-5 py-4">
@@ -667,9 +894,18 @@
             <!-- Job Header -->
             <div class="job-header">
                 <div class="d-flex gap-4 align-items-start">
-                    <div class="company-logo">
-                        @Model.CongTy.Substring(0, 1)
-                    </div>
+                        @if (!string.IsNullOrEmpty(ViewBag.CompanyLogo as string))
+                        {
+                            <div class="company-logo">
+                                <img src="@ViewBag.CompanyLogo" alt="@Model.CongTy">
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="company-logo">
+                                @Model.CongTy.Substring(0, 1)
+                            </div>
+                        }
                     <div class="flex-grow-1">
                         <h1>@Model.TenViecLam</h1>
                         <div class="company-name">
@@ -686,13 +922,17 @@
                 </div>
 
                 <div class="action-buttons">
-                    <button class="btn btn-apply">
-                        <i class="bi bi-send-fill me-2"></i>ỨNG TUYỂN NGAY
-                    </button>
-                    <button class="btn btn-save">
-                        <i class="bi bi-bookmark me-2"></i>LƯU TIN
-                    </button>
-                    <div class="share-buttons ms-auto">
+                    @if (!isNhaTuyenDung)
+                    {
+                        @Html.AntiForgeryToken()
+                        <button class="btn btn-apply">
+                            <i class="bi bi-send-fill me-2"></i>ỨNG TUYỂN NGAY
+                        </button>
+                        <button class="btn btn-save">
+                            <i class="bi bi-bookmark me-2"></i>LƯU TIN
+                        </button>
+                    }
+                    <div class="share-buttons @(isNhaTuyenDung ? "" : "ms-auto")">
                         <div class="share-btn facebook" title="Share on Facebook">
                             <i class="bi bi-facebook"></i>
                         </div>
@@ -813,6 +1053,102 @@
                                 }
                             </div>
                         </div>
+
+                        <!-- Anh van phong/cua hang -->
+                        @if (!string.IsNullOrEmpty(Model.AnhVanPhong))
+                        {
+                            <div class="content-section">
+                                <h3 class="section-title">
+                                    <i class="bi bi-images"></i>
+                                    Ảnh văn phòng/cửa hàng
+                                </h3>
+                                @{
+                                    // Parse ảnh từ string (JSON array hoặc comma-separated)
+                                    var anhVanPhongList = new List<string>();
+                                    try
+                                    {
+                                        var anhVanPhongValue = Model.AnhVanPhong?.Trim();
+                                        if (string.IsNullOrEmpty(anhVanPhongValue))
+                                        {
+                                            anhVanPhongList = new List<string>();
+                                        }
+                                        else
+                                        {
+                                            // Thử parse JSON array trước (format mới)
+                                            if (anhVanPhongValue.StartsWith("["))
+                                            {
+                                                try
+                                                {
+                                                    var jsonArray = System.Text.Json.JsonSerializer.Deserialize<string[]>(anhVanPhongValue);
+                                                    if (jsonArray != null && jsonArray.Length > 0)
+                                                    {
+                                                        anhVanPhongList = jsonArray.ToList();
+                                                    }
+                                                }
+                                                catch
+                                                {
+                                                    // Nếu parse JSON thất bại, xử lý như chuỗi thông thường
+                                                    anhVanPhongList = anhVanPhongValue
+                                                        .Trim('[', ']')
+                                                        .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                                        .Select(s => s.Trim().Trim('"', '\'', ' '))
+                                                        .Where(s => !string.IsNullOrEmpty(s))
+                                                        .ToList();
+                                                }
+                                            }
+                                            else
+                                            {
+                                                // Split bằng dấu phẩy cho chuỗi thông thường (format cũ)
+                                                anhVanPhongList = anhVanPhongValue
+                                                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                                    .Select(s => s.Trim())
+                                                    .Where(s => !string.IsNullOrEmpty(s))
+                                                    .ToList();
+                                            }
+                                        }
+                                    }
+                                    catch
+                                    {
+                                        // Nếu có lỗi, thử split đơn giản nhất
+                                        try
+                                        {
+                                            anhVanPhongList = Model.AnhVanPhong?
+                                                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                                .Select(s => s.Trim())
+                                                .Where(s => !string.IsNullOrEmpty(s))
+                                                .ToList() ?? new List<string>();
+                                        }
+                                        catch
+                                        {
+                                            anhVanPhongList = new List<string>();
+                                        }
+                                    }
+                                }
+
+                                @if (anhVanPhongList != null && anhVanPhongList.Count > 0)
+                                {
+                                    <div class="image-gallery" id="officeImagesGallery">
+                                        @foreach (var imagePath in anhVanPhongList)
+                                        {
+                                            <div class="gallery-item" data-image="@imagePath">
+                                                <img src="@imagePath" alt="Ảnh văn phòng/cửa hàng" loading="lazy" 
+                                                     onerror="this.src='/images/placeholder.png'; this.onerror=null;">
+                                                <div class="gallery-overlay">
+                                                    <i class="bi bi-zoom-in"></i>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="empty-gallery">
+                                        <i class="bi bi-image"></i>
+                                        <p>Chưa có ảnh văn phòng/cửa hàng</p>
+                                    </div>
+                                }
+                            </div>
+                        }
                     </div>
 
                     <!-- Tab Việc làm khác -->
@@ -936,6 +1272,7 @@
             </div>
             <div class="modal-body">
                 <form id="applyForm" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
                     <input type="hidden" id="jobId" value="@Model.MaTinTuyenDung" />
                     
                     <div class="apply-form-group">
@@ -1077,23 +1414,104 @@
             var marker = L.marker([lat, lng]).addTo(map);
             marker.bindPopup('<strong>@Model.CongTy</strong><br>@Model.DiaChiLamViec').openPopup();
 
-            // Apply button action - Show modal
+            // Apply button action - Show modal (only if button exists)
             $('.btn-apply').on('click', function() {
                 var applyModal = new bootstrap.Modal(document.getElementById('applyModal'));
                 applyModal.show();
             });
 
-            // Save button action
+            // Check if job is saved on page load
+            var jobId = @Model.MaTinTuyenDung;
+            var isJobSaved = false;
+            
+            // Check saved status if user is logged in
+            @if (SignInManager.IsSignedIn(User) && !isNhaTuyenDung)
+            {
+                <text>
+                $.ajax({
+                    url: '@Url.Action("KiemTraDaLuu", "Candidate", new { area = "Candidate" })',
+                    type: 'GET',
+                    data: { id: jobId },
+                    success: function(response) {
+                        if (response.isSaved) {
+                            isJobSaved = true;
+                            $('.btn-save').addClass('saved');
+                            $('.btn-save').html('<i class="bi bi-bookmark-fill me-2"></i>ĐÃ LƯU');
+                        }
+                    },
+                    error: function() {
+                        // Silently fail if user is not logged in or error occurs
+                    }
+                });
+                </text>
+            }
+
+            // Save button action (only if button exists)
             $('.btn-save').on('click', function() {
                 var btn = $(this);
+                var jobId = @Model.MaTinTuyenDung;
+                
+                // Get anti-forgery token
+                var token = $('input[name="__RequestVerificationToken"]').val();
+                if (!token) {
+                    // Try to get from form
+                    token = $('form input[name="__RequestVerificationToken"]').val();
+                }
+                
                 if (btn.hasClass('saved')) {
-                    btn.removeClass('saved');
-                    btn.html('<i class="bi bi-bookmark me-2"></i>LƯU TIN');
-                    showNotification('Đã bỏ lưu tin tuyển dụng', 'info');
+                    // Unsave job
+                    $.ajax({
+                        url: '@Url.Action("BoLuuViecLam", "Candidate", new { area = "Candidate" })',
+                        type: 'POST',
+                        data: {
+                            id: jobId,
+                            __RequestVerificationToken: token
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                btn.removeClass('saved');
+                                btn.html('<i class="bi bi-bookmark me-2"></i>LƯU TIN');
+                                isJobSaved = false;
+                                showNotification(response.message || 'Đã bỏ lưu tin tuyển dụng', 'info');
+                            } else {
+                                showNotification(response.message || 'Có lỗi xảy ra khi bỏ lưu', 'error');
+                            }
+                        },
+                        error: function(xhr) {
+                            if (xhr.status === 401 || xhr.status === 403) {
+                                showNotification('Vui lòng đăng nhập để sử dụng chức năng này', 'error');
+                            } else {
+                                showNotification('Có lỗi xảy ra khi bỏ lưu tin tuyển dụng', 'error');
+                            }
+                        }
+                    });
                 } else {
-                    btn.addClass('saved');
-                    btn.html('<i class="bi bi-bookmark-fill me-2"></i>ĐÃ LƯU');
-                    showNotification('Đã lưu tin tuyển dụng thành công!', 'success');
+                    // Save job
+                    $.ajax({
+                        url: '@Url.Action("LuuViecLam", "Candidate", new { area = "Candidate" })',
+                        type: 'POST',
+                        data: {
+                            id: jobId,
+                            __RequestVerificationToken: token
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                btn.addClass('saved');
+                                btn.html('<i class="bi bi-bookmark-fill me-2"></i>ĐÃ LƯU');
+                                isJobSaved = true;
+                                showNotification(response.message || 'Đã lưu tin tuyển dụng thành công!', 'success');
+                            } else {
+                                showNotification(response.message || 'Có lỗi xảy ra khi lưu tin', 'error');
+                            }
+                        },
+                        error: function(xhr) {
+                            if (xhr.status === 401 || xhr.status === 403) {
+                                showNotification('Vui lòng đăng nhập để sử dụng chức năng này', 'error');
+                            } else {
+                                showNotification('Có lỗi xảy ra khi lưu tin tuyển dụng', 'error');
+                            }
+                        }
+                    });
                 }
             });
 
@@ -1217,30 +1635,78 @@
                     return;
                 }
 
-                // Here you can add AJAX call to submit the form
-                // For now, just show success message
-                var formData = {
-                    jobId: $('#jobId').val(),
-                    fullName: $('#fullName').val(),
-                    email: $('#email').val(),
-                    phone: $('#phone').val(),
-                    school: $('#school').val(),
-                    major: $('#major').val(),
-                    content: $('#content').val()
-                };
+                // Get anti-forgery token
+                var token = $('input[name="__RequestVerificationToken"]').val();
+                if (!token) {
+                    token = $('form input[name="__RequestVerificationToken"]').val();
+                }
 
-                console.log('Form data:', formData);
+                // Create FormData for file upload
+                var formData = new FormData();
+                formData.append('jobId', $('#jobId').val());
+                formData.append('fullName', $('#fullName').val().trim());
+                formData.append('email', $('#email').val().trim());
+                formData.append('phone', $('#phone').val().trim());
+                formData.append('school', $('#school').val() || '');
+                formData.append('major', $('#major').val() || '');
+                formData.append('content', $('#content').val().trim());
                 
-                // Close modal
-                var applyModal = bootstrap.Modal.getInstance(document.getElementById('applyModal'));
-                applyModal.hide();
+                // Add CV file if selected
+                var cvFile = $('#cvFile')[0].files[0];
+                if (cvFile) {
+                    formData.append('cvFile', cvFile);
+                }
+                
+                // Add anti-forgery token
+                if (token) {
+                    formData.append('__RequestVerificationToken', token);
+                }
 
-                // Reset form
-                $('#applyForm')[0].reset();
-                $('#fileSelected').hide();
+                // Disable submit button to prevent double submission
+                var submitBtn = $('.btn-send-apply');
+                submitBtn.prop('disabled', true);
+                submitBtn.html('<i class="bi bi-hourglass-split me-2"></i>Đang gửi...');
 
-                // Show success message
-                showNotification('Đã gửi đơn ứng tuyển thành công!', 'success');
+                // Send AJAX request
+                $.ajax({
+                    url: '@Url.Action("UngTuyen", "Home")',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.success) {
+                            // Close modal
+                            var applyModal = bootstrap.Modal.getInstance(document.getElementById('applyModal'));
+                            applyModal.hide();
+
+                            // Reset form
+                            $('#applyForm')[0].reset();
+                            $('#fileSelected').hide();
+                            $('.apply-form-group').removeClass('has-error');
+
+                            // Show success message
+                            showNotification(response.message || 'Đã gửi đơn ứng tuyển thành công!', 'success');
+                        } else {
+                            showNotification(response.message || 'Có lỗi xảy ra khi gửi đơn ứng tuyển', 'error');
+                            submitBtn.prop('disabled', false);
+                            submitBtn.html('Gửi');
+                        }
+                    },
+                    error: function(xhr) {
+                        var errorMessage = 'Có lỗi xảy ra khi gửi đơn ứng tuyển';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        } else if (xhr.status === 401 || xhr.status === 403) {
+                            errorMessage = 'Vui lòng đăng nhập để ứng tuyển';
+                        } else if (xhr.status === 400) {
+                            errorMessage = 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.';
+                        }
+                        showNotification(errorMessage, 'error');
+                        submitBtn.prop('disabled', false);
+                        submitBtn.html('Gửi');
+                    }
+                });
             };
 
             // Reset form when modal is closed
@@ -1249,6 +1715,166 @@
                 $('.apply-form-group').removeClass('has-error');
                 $('#fileSelected').hide();
             });
+
+            // Lightbox functionality for image gallery
+            // Create lightbox HTML if it doesn't exist
+            if ($('#imageLightbox').length === 0) {
+                $('body').append(`
+                    <div id="imageLightbox" class="lightbox">
+                        <div class="lightbox-content">
+                            <span class="lightbox-close">&times;</span>
+                            <div class="lightbox-nav lightbox-prev">
+                                <i class="bi bi-chevron-left"></i>
+                            </div>
+                            <div class="lightbox-nav lightbox-next">
+                                <i class="bi bi-chevron-right"></i>
+                            </div>
+                            <img id="lightboxImage" src="" alt="Ảnh văn phòng/cửa hàng">
+                            <div class="lightbox-counter">
+                                <span id="lightboxCurrent">1</span> / <span id="lightboxTotal">1</span>
+                            </div>
+                        </div>
+                    </div>
+                `);
+            }
+
+            var currentImageIndex = 0;
+            var images = [];
+
+            // Initialize images array from gallery
+            function initImages() {
+                images = [];
+                $('.gallery-item').each(function() {
+                    var imageSrc = $(this).data('image') || $(this).find('img').attr('src');
+                    if (imageSrc) {
+                        images.push(imageSrc);
+                    }
+                });
+                $('#lightboxTotal').text(images.length);
+            }
+
+            // Open lightbox
+            function openLightbox(index) {
+                if (images.length === 0) return;
+                currentImageIndex = index;
+                updateLightboxImage();
+                $('#imageLightbox').addClass('active');
+                $('body').css('overflow', 'hidden');
+            }
+
+            // Close lightbox
+            function closeLightbox() {
+                $('#imageLightbox').removeClass('active');
+                $('body').css('overflow', '');
+            }
+
+            // Update lightbox image
+            function updateLightboxImage() {
+                if (images.length === 0) return;
+                var imageSrc = images[currentImageIndex];
+                $('#lightboxImage').attr('src', imageSrc);
+                $('#lightboxCurrent').text(currentImageIndex + 1);
+            }
+
+            // Next image
+            function nextImage() {
+                if (images.length === 0) return;
+                currentImageIndex = (currentImageIndex + 1) % images.length;
+                updateLightboxImage();
+            }
+
+            // Previous image
+            function prevImage() {
+                if (images.length === 0) return;
+                currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
+                updateLightboxImage();
+            }
+
+            // Initialize images on page load
+            initImages();
+
+            // Click on gallery item to open lightbox
+            $(document).on('click', '.gallery-item', function() {
+                var imageSrc = $(this).data('image') || $(this).find('img').attr('src');
+                if (imageSrc) {
+                    initImages(); // Re-initialize in case images changed
+                    var index = images.indexOf(imageSrc);
+                    if (index !== -1) {
+                        openLightbox(index);
+                    } else {
+                        // If image not found in array, add it and open
+                        images = [imageSrc];
+                        openLightbox(0);
+                    }
+                }
+            });
+
+            // Close lightbox on close button click
+            $(document).on('click', '.lightbox-close', function(e) {
+                e.stopPropagation();
+                closeLightbox();
+            });
+
+            // Close lightbox on background click
+            $(document).on('click', '#imageLightbox', function(e) {
+                if ($(e.target).is('#imageLightbox')) {
+                    closeLightbox();
+                }
+            });
+
+            // Next image on next button click
+            $(document).on('click', '.lightbox-next', function(e) {
+                e.stopPropagation();
+                nextImage();
+            });
+
+            // Previous image on prev button click
+            $(document).on('click', '.lightbox-prev', function(e) {
+                e.stopPropagation();
+                prevImage();
+            });
+
+            // Keyboard navigation
+            $(document).on('keydown', function(e) {
+                if ($('#imageLightbox').hasClass('active')) {
+                    if (e.key === 'Escape') {
+                        closeLightbox();
+                    } else if (e.key === 'ArrowRight') {
+                        nextImage();
+                    } else if (e.key === 'ArrowLeft') {
+                        prevImage();
+                    }
+                }
+            });
+
+            // Prevent lightbox content click from closing
+            $(document).on('click', '.lightbox-content', function(e) {
+                e.stopPropagation();
+            });
+
+            // Touch/swipe support for mobile
+            var touchStartX = 0;
+            var touchEndX = 0;
+
+            $(document).on('touchstart', '#lightboxImage', function(e) {
+                touchStartX = e.originalEvent.touches[0].clientX;
+            });
+
+            $(document).on('touchend', '#lightboxImage', function(e) {
+                touchEndX = e.originalEvent.changedTouches[0].clientX;
+                handleSwipe();
+            });
+
+            function handleSwipe() {
+                if (touchEndX < touchStartX - 50) {
+                    // Swipe left - next image
+                    nextImage();
+                }
+                if (touchEndX > touchStartX + 50) {
+                    // Swipe right - previous image
+                    prevImage();
+                }
+            }
         });
     </script>
     

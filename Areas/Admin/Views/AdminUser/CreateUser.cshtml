@@ -191,11 +191,12 @@
             <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
             <div class="form-group">
-                <label for="HoTen">
+                <label for="HoTen" id="labelHoTen">
                     Họ và tên <span class="required">*</span>
                 </label>
                 <input type="text" id="HoTen" name="HoTen" asp-for="HoTen" class="form-control" placeholder="Nhập họ và tên" required />
                 <span asp-validation-for="HoTen" class="text-danger"></span>
+                <div class="info-hint" id="hintHoTen"></div>
             </div>
 
             <div class="form-group">
@@ -260,5 +261,34 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $(document).ready(function() {
+            // Hàm cập nhật label và placeholder dựa trên role được chọn
+            function updateHoTenLabel() {
+                var selectedRole = $('#Role').val();
+                var labelElement = $('#labelHoTen');
+                var inputElement = $('#HoTen');
+                var hintElement = $('#hintHoTen');
+                
+                if (selectedRole === 'NhaTuyenDung') {
+                    labelElement.html('Tên công ty <span class="required">*</span>');
+                    inputElement.attr('placeholder', 'Nhập tên công ty');
+                    hintElement.text('Với tài khoản nhà tuyển dụng, đây là tên công ty, không phải tên người đại diện');
+                } else {
+                    labelElement.html('Họ và tên <span class="required">*</span>');
+                    inputElement.attr('placeholder', 'Nhập họ và tên');
+                    hintElement.text('');
+                }
+            }
+            
+            // Cập nhật khi trang được load (nếu đã có role được chọn)
+            updateHoTenLabel();
+            
+            // Cập nhật khi role thay đổi
+            $('#Role').on('change', function() {
+                updateHoTenLabel();
+            });
+        });
+    </script>
 }
 

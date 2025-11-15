@@ -107,6 +107,35 @@ namespace Unicareer.Repository
         {
             return _danhSachUngVien.FirstOrDefault(u => u.MaUngVien == id);
         }
+
+        public UngVien? LayUngVienTheoUserId(string userId)
+        {
+            return _danhSachUngVien.FirstOrDefault(u => u.UserId == userId);
+        }
+
+        public UngVien? ThemUngVien(UngVien ungVien)
+        {
+            if (ungVien.MaUngVien == 0)
+            {
+                ungVien.MaUngVien = _danhSachUngVien.Count > 0 
+                    ? _danhSachUngVien.Max(u => u.MaUngVien) + 1 
+                    : 1;
+            }
+            _danhSachUngVien.Add(ungVien);
+            return ungVien;
+        }
+
+        public UngVien? CapNhatUngVien(UngVien ungVien)
+        {
+            var existing = _danhSachUngVien.FirstOrDefault(u => u.MaUngVien == ungVien.MaUngVien);
+            if (existing != null)
+            {
+                var index = _danhSachUngVien.IndexOf(existing);
+                _danhSachUngVien[index] = ungVien;
+                return ungVien;
+            }
+            return null;
+        }
     }
 }
 

@@ -179,16 +179,33 @@
     .job-logo {
         width: 70px;
         height: 70px;
-        background: var(--primary-gradient);
+        min-width: 70px;
+        max-width: 70px;
+        min-height: 70px;
+        max-height: 70px;
+        background: #ffffff;
+        border: 1px solid #e0e0e0;
         border-radius: 16px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: bold;
-        color: white;
+        color: var(--accent-color);
         font-size: 24px;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
         transition: all 0.3s ease;
+        overflow: hidden;
+        flex-shrink: 0;
+        position: relative;
+    }
+    
+    .job-logo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 16px;
+        display: block;
+        flex-shrink: 0;
     }
     
     .job-card:hover .job-logo {
@@ -402,17 +419,33 @@
     .quick-job-logo {
         width: 50px;
         height: 50px;
-        background: var(--success-gradient);
+        min-width: 50px;
+        max-width: 50px;
+        min-height: 50px;
+        max-height: 50px;
+        background: #ffffff;
+        border: 1px solid #e0e0e0;
         border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: bold;
-        color: white;
+        color: var(--accent-color);
         font-size: 16px;
         margin-right: 14px;
         flex-shrink: 0;
-        box-shadow: 0 4px 12px rgba(79, 172, 254, 0.3);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .quick-job-logo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 12px;
+        display: block;
+        flex-shrink: 0;
     }
     
     .quick-job-info h6 {
@@ -530,8 +563,9 @@
                                         <i class="bi bi-search text-muted"></i>
                                     </span>
                                     <input type="text" class="form-control border-start-0" 
-                                           placeholder="Tìm kiếm việc làm, chức vụ, kỹ năng, công ty..."
-                                           id="searchInput">
+                                           placeholder="Tìm kiếm việc làm, chức vụ, kỹ năng, công ty, từ khóa..."
+                                           id="searchInput" 
+                                           value="@ViewBag.Keyword">
                                 </div>
                             </div>
                             <div class="col-md-3">
@@ -572,48 +606,69 @@
             <div class="col-md-2">
                 <select class="form-select form-select-sm" id="filterNganhNghe">
                     <option value="">Ngành nghề</option>
-                    <option value="Công nghệ thông tin">Công nghệ thông tin</option>
-                    <option value="Kinh doanh">Kinh doanh</option>
-                    <option value="Kế toán - Tài chính">Kế toán - Tài chính</option>
-                    <option value="Thiết kế đồ họa">Thiết kế đồ họa</option>
-                    <option value="Nhân sự">Nhân sự</option>
-                    <option value="Truyền thông - Media">Truyền thông - Media</option>
+                    @{
+                        var danhSachNganhNghe = ViewBag.DanhSachNganhNghe as List<Unicareer.Models.NganhNghe> ?? new List<Unicareer.Models.NganhNghe>();
+                        var selectedNganhNghe = ViewBag.NganhNghe as string;
+                    }
+                    @foreach (var nganhNghe in danhSachNganhNghe)
+                    {
+                        var isSelected = selectedNganhNghe == nganhNghe.TenNganhNghe;
+                        <option value="@nganhNghe.TenNganhNghe" selected="@isSelected">@nganhNghe.TenNganhNghe</option>
+                    }
                 </select>
             </div>
             <div class="col-md-2">
                 <select class="form-select form-select-sm" id="filterCapBac">
                     <option value="">Cấp bậc</option>
-                    <option value="Intern">Thực tập sinh</option>
-                    <option value="Junior">Nhân viên</option>
-                    <option value="Senior">Nhân viên cấp cao</option>
-                    <option value="Manager">Quản lý</option>
+                    @{
+                        var danhSachCapBac = ViewBag.DanhSachCapBac as List<string> ?? new List<string>();
+                        var selectedCapBac = ViewBag.CapBac as string;
+                    }
+                    @foreach (var capBac in danhSachCapBac)
+                    {
+                        var isSelected = selectedCapBac == capBac;
+                        <option value="@capBac" selected="@isSelected">@capBac</option>
+                    }
                 </select>
             </div>
             <div class="col-md-2">
                 <select class="form-select form-select-sm" id="filterKinhNghiem">
                     <option value="">Kinh nghiệm</option>
-                    <option value="Không yêu cầu">Không yêu cầu</option>
-                    <option value="Dưới 1 năm">Dưới 1 năm</option>
-                    <option value="1-3 năm">1-3 năm</option>
-                    <option value="Trên 3 năm">Trên 3 năm</option>
+                    @{
+                        var danhSachKinhNghiem = ViewBag.DanhSachKinhNghiem as List<string> ?? new List<string>();
+                        var selectedKinhNghiem = ViewBag.KinhNghiem as string;
+                    }
+                    @foreach (var kinhNghiem in danhSachKinhNghiem)
+                    {
+                        var isSelected = selectedKinhNghiem == kinhNghiem;
+                        <option value="@kinhNghiem" selected="@isSelected">@kinhNghiem</option>
+                    }
                 </select>
             </div>
             <div class="col-md-2">
                 <select class="form-select form-select-sm" id="filterMucLuong">
                     <option value="">Mức lương</option>
-                    <option value="Dưới 10 triệu">Dưới 10 triệu</option>
-                    <option value="10-15 triệu">10-15 triệu</option>
-                    <option value="15-25 triệu">15-25 triệu</option>
-                    <option value="Trên 25 triệu">Trên 25 triệu</option>
+                    @{
+                        var selectedMucLuong = ViewBag.MucLuong as string;
+                    }
+                    <option value="Dưới 10 triệu" selected="@(selectedMucLuong == "Dưới 10 triệu")">Dưới 10 triệu</option>
+                    <option value="10-15 triệu" selected="@(selectedMucLuong == "10-15 triệu")">10-15 triệu</option>
+                    <option value="15-25 triệu" selected="@(selectedMucLuong == "15-25 triệu")">15-25 triệu</option>
+                    <option value="Trên 25 triệu" selected="@(selectedMucLuong == "Trên 25 triệu")">Trên 25 triệu</option>
                 </select>
             </div>
             <div class="col-md-2">
                 <select class="form-select form-select-sm" id="filterLoaiCongViec">
                     <option value="">Loại công việc</option>
-                    <option value="Full-time">Toàn thời gian</option>
-                    <option value="Part-time">Bán thời gian</option>
-                    <option value="Internship">Thực tập</option>
-                    <option value="Freelance">Tự do</option>
+                    @{
+                        var danhSachLoaiCongViec = ViewBag.DanhSachLoaiCongViec as List<Unicareer.Models.LoaiCongViec> ?? new List<Unicareer.Models.LoaiCongViec>();
+                        var selectedLoaiCongViec = ViewBag.LoaiCongViec as string;
+                    }
+                    @foreach (var loaiCongViec in danhSachLoaiCongViec)
+                    {
+                        var isSelected = selectedLoaiCongViec == loaiCongViec.TenLoaiCongViec;
+                        <option value="@loaiCongViec.TenLoaiCongViec" selected="@isSelected">@loaiCongViec.TenLoaiCongViec</option>
+                    }
                 </select>
             </div>
         </div>
@@ -622,12 +677,13 @@
     <!-- Suggestion Section -->
     <div class="suggestion-section">
         <strong>Gợi Ý Tìm Kiếm:</strong>
-        <a href="#" class="suggestion-tag">Việc làm thực tập</a>
-        <a href="#" class="suggestion-tag">Việc làm theo trường</a>
-        <a href="#" class="suggestion-tag">Việc làm online</a>
-        <a href="#" class="suggestion-tag">Việc làm thời vụ</a>
-        <a href="#" class="suggestion-tag">Việc làm Full Time</a>
-        <a href="#" class="suggestion-tag">Việc làm mới nhất</a>
+        @{
+            var danhSachGoiYTimKiem = ViewBag.DanhSachGoiYTimKiem as List<Unicareer.Models.GoiYTimKiem> ?? new List<Unicareer.Models.GoiYTimKiem>();
+        }
+        @foreach (var goiY in danhSachGoiYTimKiem)
+        {
+            <a href="@goiY.Url" class="suggestion-tag">@goiY.Text</a>
+        }
     </div>
     
     <!-- Breadcrumb -->
@@ -655,9 +711,22 @@
                     <a href="/Home/ChiTietViecLam/@job.MaTinTuyenDung" class="text-decoration-none" style="color: inherit;">
                         <div class="job-card" data-nganh="@job.NganhNghe" data-loai="@job.LoaiCongViec" data-luong="@mucLuongDisplay" data-tinhthanh="@job.TinhThanhPho" data-phuongxa="@job.PhuongXa">
                             <div class="d-flex">
-                                <div class="job-logo">
-                                    @job.CongTy.Substring(0, 1)
-                                </div>
+                                @{
+                                    var companyLogos = ViewBag.CompanyLogos as Dictionary<string, string?>;
+                                    var companyLogo = companyLogos?.ContainsKey(job.CongTy) == true ? companyLogos[job.CongTy] : null;
+                                }
+                                @if (!string.IsNullOrEmpty(companyLogo))
+                                {
+                                    <div class="job-logo">
+                                        <img src="@companyLogo" alt="@job.CongTy">
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="job-logo">
+                                        @job.CongTy.Substring(0, 1)
+                                    </div>
+                                }
                                 <div class="flex-grow-1 ms-3">
                                     <div class="d-flex justify-content-between align-items-start">
                                         <div>
@@ -688,7 +757,7 @@
         <div class="col-lg-4">
             <!-- Việc làm 2025 -->
             <div class="sidebar-section">
-                <h5><i class="bi bi-calendar-check me-2"></i>Việc làm 2025</h5>
+                <h5><i class="bi bi-calendar-check me-2"></i>Việc làm @DateTime.Now.Year</h5>
                 <div>
                     @if (ViewBag.SoLuongViecLamTheoTinh != null)
                     {
@@ -750,9 +819,22 @@
                     {
                         <a href="/Home/ChiTietViecLam/@job.MaTinTuyenDung" class="text-decoration-none">
                             <div class="quick-job-item">
-                                <div class="quick-job-logo">
-                                    @job.CongTy.Substring(0, 1)
-                                </div>
+                                @{
+                                    var companyLogos = ViewBag.CompanyLogos as Dictionary<string, string?>;
+                                    var companyLogo = companyLogos?.ContainsKey(job.CongTy) == true ? companyLogos[job.CongTy] : null;
+                                }
+                                @if (!string.IsNullOrEmpty(companyLogo))
+                                {
+                                    <div class="quick-job-logo">
+                                        <img src="@companyLogo" alt="@job.CongTy">
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="quick-job-logo">
+                                        @job.CongTy.Substring(0, 1)
+                                    </div>
+                                }
                                 <div class="quick-job-info flex-grow-1">
                                     <h6>@(job.TenViecLam.Length > 40 ? job.TenViecLam.Substring(0, 40) + "..." : job.TenViecLam)</h6>
                                     <p><i class="bi bi-geo-alt-fill"></i> @job.TinhThanhPho</p>
@@ -872,102 +954,79 @@
                             if ($matchingWard.length > 0) {
                                 $('#searchQuanHuyen').val($matchingWard.val());
                             }
-                            
-                            filterJobs();
                         }, 500);
-                    } else {
-                        setTimeout(function() {
-                            filterJobs();
-                        }, 100);
                     }
-                } else {
-                    // Nếu không tìm thấy trong dropdown, vẫn filter theo text
-                    setTimeout(function() {
-                        filterJobs();
-                    }, 100);
                 }
+            }
+            
+            // Function to build search URL and redirect
+            function performSearch() {
+                var keyword = $('#searchInput').val().trim();
+                var searchTinhThanhName = $('#searchTinhThanh option:selected').data('fullname') || $('#searchTinhThanh option:selected').text();
+                var searchQuanHuyenName = $('#searchQuanHuyen option:selected').data('fullname') || $('#searchQuanHuyen option:selected').text();
+                var nganhNghe = $('#filterNganhNghe').val();
+                var loaiCongViec = $('#filterLoaiCongViec').val();
+                var capBac = $('#filterCapBac').val();
+                var kinhNghiem = $('#filterKinhNghiem').val();
+                var mucLuong = $('#filterMucLuong').val();
+                
+                var params = [];
+                
+                if (keyword) {
+                    params.push('keyword=' + encodeURIComponent(keyword));
+                }
+                if (searchTinhThanhName && searchTinhThanhName !== 'Tỉnh/Thành Phố') {
+                    params.push('tinhThanh=' + encodeURIComponent(searchTinhThanhName));
+                }
+                if (searchQuanHuyenName && searchQuanHuyenName !== 'Quận/Huyện' && searchQuanHuyenName !== 'Đang tải...' && searchQuanHuyenName !== 'Không có dữ liệu' && searchQuanHuyenName !== 'Lỗi tải dữ liệu') {
+                    params.push('quanHuyen=' + encodeURIComponent(searchQuanHuyenName));
+                }
+                if (nganhNghe) {
+                    params.push('nganhNghe=' + encodeURIComponent(nganhNghe));
+                }
+                if (loaiCongViec) {
+                    params.push('loaiCongViec=' + encodeURIComponent(loaiCongViec));
+                }
+                if (capBac) {
+                    params.push('capBac=' + encodeURIComponent(capBac));
+                }
+                if (kinhNghiem) {
+                    params.push('kinhNghiem=' + encodeURIComponent(kinhNghiem));
+                }
+                if (mucLuong) {
+                    params.push('mucLuong=' + encodeURIComponent(mucLuong));
+                }
+                
+                var url = '/Home/TimViec';
+                if (params.length > 0) {
+                    url += '?' + params.join('&');
+                }
+                
+                window.location.href = url;
             }
             
             // Search functionality
             $('#searchForm').on('submit', function(e) {
                 e.preventDefault();
-                filterJobs();
+                performSearch();
             });
             
-            $('#searchInput').on('keyup', function() {
-                filterJobs();
+            // Enter key handler for search input
+            $('#searchInput').on('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    performSearch();
+                }
             });
             
-            // Filter functionality
+            // Filter functionality - redirect to server-side filtering
             $('#filterNganhNghe, #filterCapBac, #filterKinhNghiem, #filterMucLuong, #filterLoaiCongViec').on('change', function() {
-                filterJobs();
+                performSearch();
             });
-            
-            function filterJobs() {
-                var searchText = $('#searchInput').val().toLowerCase();
-                var searchTinhThanhCode = $('#searchTinhThanh').val();
-                var searchTinhThanhName = $('#searchTinhThanh option:selected').text();
-                var searchQuanHuyenCode = $('#searchQuanHuyen').val();
-                var searchQuanHuyenName = $('#searchQuanHuyen option:selected').text();
-                var nganhNghe = $('#filterNganhNghe').val();
-                var loaiCongViec = $('#filterLoaiCongViec').val();
-                var mucLuong = $('#filterMucLuong').val();
-                
-                var visibleCount = 0;
-                
-                $('.job-card').each(function() {
-                    var card = $(this);
-                    var jobNganh = card.data('nganh') || '';
-                    var jobLoai = card.data('loai') || '';
-                    var jobLuong = card.data('luong') || '';
-                    var jobTinhThanh = card.data('tinhthanh') || '';
-                    var jobPhuongXa = card.data('phuongxa') || '';
-                    var jobText = card.text().toLowerCase();
-                    
-                    var matchSearch = searchText === '' || jobText.includes(searchText);
-                    
-                    // Tìm kiếm tỉnh/thành phố - so sánh với tên tỉnh từ dropdown
-                    var matchTinhThanh = true;
-                    if (searchTinhThanhName && searchTinhThanhName !== '' && searchTinhThanhName !== 'Tỉnh/Thành Phố') {
-                        var tinhThanhLower = searchTinhThanhName.toLowerCase();
-                        var jobTinhThanhLower = jobTinhThanh.toLowerCase();
-                        
-                        // Tìm kiếm linh hoạt
-                        matchTinhThanh = jobTinhThanhLower.includes(tinhThanhLower) || 
-                                        jobTinhThanhLower === tinhThanhLower ||
-                                        tinhThanhLower.includes(jobTinhThanhLower);
-                    }
-                    
-                    // Tìm kiếm quận/huyện - so sánh với tên quận/huyện từ dropdown
-                    var matchQuanHuyen = true;
-                    if (searchQuanHuyenName && searchQuanHuyenName !== '' && searchQuanHuyenName !== 'Quận/Huyện' && searchQuanHuyenName !== 'Đang tải...' && searchQuanHuyenName !== 'Không có dữ liệu' && searchQuanHuyenName !== 'Lỗi tải dữ liệu') {
-                        var quanHuyenLower = searchQuanHuyenName.toLowerCase();
-                        var jobPhuongXaLower = jobPhuongXa.toLowerCase();
-                        matchQuanHuyen = jobPhuongXaLower.includes(quanHuyenLower) || 
-                                        jobPhuongXaLower === quanHuyenLower ||
-                                        quanHuyenLower.includes(jobPhuongXaLower);
-                    }
-                    
-                    var matchNganh = nganhNghe === '' || jobNganh === nganhNghe;
-                    var matchLoai = loaiCongViec === '' || jobLoai === loaiCongViec;
-                    
-                    // Simple salary range matching
-                    var matchLuong = mucLuong === '' || true; // Simplified for demo
-                    
-                    if (matchSearch && matchTinhThanh && matchQuanHuyen && matchNganh && matchLoai && matchLuong) {
-                        card.show();
-                        visibleCount++;
-                    } else {
-                        card.hide();
-                    }
-                });
-                
-                $('#jobCount').text(visibleCount);
-            }
             
             // Listen to location filters in hero section
             $('#searchTinhThanh, #searchQuanHuyen').on('change', function() {
-                filterJobs();
+                // Don't auto-search on location change, wait for user to click search button
             });
         });
     </script>

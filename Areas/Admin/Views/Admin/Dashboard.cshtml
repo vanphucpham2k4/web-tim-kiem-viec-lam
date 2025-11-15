@@ -534,7 +534,7 @@
                             </tr>
                             <tr>
                                 <td><i class="bi bi-graph-up text-warning"></i> TB ứng tuyển/người:</td>
-                                <td><strong style="color: #2545B8;">@((int)danhSachUngVien.Average(u => u.SoLanUngTuyen))</strong></td>
+                                <td><strong style="color: #2545B8;">@(danhSachUngVien.Any() ? ((int)danhSachUngVien.Average(u => u.SoLanUngTuyen)) : 0)</strong></td>
                             </tr>
                         </table>
                     </div>
@@ -557,7 +557,7 @@
                             </tr>
                             <tr>
                                 <td><i class="bi bi-graph-up-arrow text-warning"></i> TB tin/công ty:</td>
-                                <td><strong style="color: #11998e;">@((int)danhSachNhaTuyenDung.Average(n => n.SoTinDaDang))</strong></td>
+                                <td><strong style="color: #11998e;">@(danhSachNhaTuyenDung.Any() ? ((int)danhSachNhaTuyenDung.Average(n => n.SoTinDaDang)) : 0)</strong></td>
                             </tr>
                         </table>
                     </div>
@@ -629,7 +629,7 @@
                         }
                         @foreach (var item in tinTheoNganh)
                         {
-                            var phanTram = (item.SoLuong * 100.0 / tongTinTuyenDung);
+                            var phanTram = tongTinTuyenDung > 0 ? (item.SoLuong * 100.0 / tongTinTuyenDung) : 0;
                             <div class="mb-3">
                                 <div class="d-flex justify-content-between mb-2">
                                     <span style="font-weight: 600;"><i class="bi bi-tag-fill" style="color: #2545B8;"></i> @item.NganhNghe</span>
@@ -656,7 +656,7 @@
                         }
                         @foreach (var item in trangThaiGroups)
                         {
-                            var phanTram = (item.SoLuong * 100.0 / tongTinUngTuyen);
+                            var phanTram = tongTinUngTuyen > 0 ? (item.SoLuong * 100.0 / tongTinUngTuyen) : 0;
                             var gradientColor = item.TrangThai switch {
                                 "Tuyen dung" => "background: linear-gradient(90deg, #11998e 0%, #38ef7d 100%);",
                                 "Tu choi" => "background: linear-gradient(90deg, #fa709a 0%, #fee140 100%);",
@@ -694,7 +694,7 @@
                         }
                         @foreach (var item in topDiaDiem)
                         {
-                            var phanTram = (item.SoLuong * 100.0 / tongTinTuyenDung);
+                            var phanTram = tongTinTuyenDung > 0 ? (item.SoLuong * 100.0 / tongTinTuyenDung) : 0;
                             <div class="mb-3">
                                 <div class="d-flex justify-content-between mb-2">
                                     <span style="font-weight: 600;"><i class="bi bi-geo-alt-fill" style="color: #2545B8;"></i> @item.TinhThanhPho</span>
@@ -722,7 +722,7 @@
                         }
                         @foreach (var item in topUngVienTheoKhuVuc)
                         {
-                            var phanTram = (item.SoLuong * 100.0 / tongUngVien);
+                            var phanTram = tongUngVien > 0 ? (item.SoLuong * 100.0 / tongUngVien) : 0;
                             <div class="mb-3">
                                 <div class="d-flex justify-content-between mb-2">
                                     <span style="font-weight: 600;"><i class="bi bi-geo-alt-fill" style="color: #11998e;"></i> @item.DiaChi</span>
@@ -921,33 +921,49 @@
                         <h5 class="mb-0"><i class="bi bi-activity"></i> Hoạt động gần đây</h5>
                     </div>
                     <div class="card-body">
-                        <div class="activity-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <i class="bi bi-person-plus" style="color: #11998e; font-size: 1.2rem;"></i>
-                                    <strong style="color: #2545B8;">@danhSachUngVien.OrderByDescending(u => u.NgayDangKy).First().HoTen</strong> đăng ký
+                        @if (danhSachUngVien.Any())
+                        {
+                            <div class="activity-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="bi bi-person-plus" style="color: #11998e; font-size: 1.2rem;"></i>
+                                        <strong style="color: #2545B8;">@danhSachUngVien.OrderByDescending(u => u.NgayDangKy).First().HoTen</strong> đăng ký
+                                    </div>
+                                    <small class="text-muted"><i class="bi bi-clock"></i> @danhSachUngVien.OrderByDescending(u => u.NgayDangKy).First().NgayDangKy.ToString("dd/MM HH:mm")</small>
                                 </div>
-                                <small class="text-muted"><i class="bi bi-clock"></i> @danhSachUngVien.OrderByDescending(u => u.NgayDangKy).First().NgayDangKy.ToString("dd/MM HH:mm")</small>
                             </div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <i class="bi bi-building" style="color: #2545B8; font-size: 1.2rem;"></i>
-                                    <strong style="color: #2545B8;">@danhSachNhaTuyenDung.OrderByDescending(n => n.NgayDangKy).First().TenCongTy</strong> đăng ký
+                        }
+                        @if (danhSachNhaTuyenDung.Any())
+                        {
+                            <div class="activity-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="bi bi-building" style="color: #2545B8; font-size: 1.2rem;"></i>
+                                        <strong style="color: #2545B8;">@danhSachNhaTuyenDung.OrderByDescending(n => n.NgayDangKy).First().TenCongTy</strong> đăng ký
+                                    </div>
+                                    <small class="text-muted"><i class="bi bi-clock"></i> @danhSachNhaTuyenDung.OrderByDescending(n => n.NgayDangKy).First().NgayDangKy.ToString("dd/MM HH:mm")</small>
                                 </div>
-                                <small class="text-muted"><i class="bi bi-clock"></i> @danhSachNhaTuyenDung.OrderByDescending(n => n.NgayDangKy).First().NgayDangKy.ToString("dd/MM HH:mm")</small>
                             </div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <i class="bi bi-newspaper" style="color: #2545B8; font-size: 1.2rem;"></i>
-                                    <strong style="color: #2545B8;">@danhSachTinTuyenDung.OrderByDescending(t => t.NgayDang).First().TenViecLam</strong>
+                        }
+                        @if (danhSachTinTuyenDung.Any())
+                        {
+                            <div class="activity-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="bi bi-newspaper" style="color: #2545B8; font-size: 1.2rem;"></i>
+                                        <strong style="color: #2545B8;">@danhSachTinTuyenDung.OrderByDescending(t => t.NgayDang).First().TenViecLam</strong>
+                                    </div>
+                                    <small class="text-muted"><i class="bi bi-clock"></i> @danhSachTinTuyenDung.OrderByDescending(t => t.NgayDang).First().NgayDang.ToString("dd/MM HH:mm")</small>
                                 </div>
-                                <small class="text-muted"><i class="bi bi-clock"></i> @danhSachTinTuyenDung.OrderByDescending(t => t.NgayDang).First().NgayDang.ToString("dd/MM HH:mm")</small>
                             </div>
-                        </div>
+                        }
+                        @if (!danhSachUngVien.Any() && !danhSachNhaTuyenDung.Any() && !danhSachTinTuyenDung.Any())
+                        {
+                            <div class="text-center text-muted">
+                                <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                                <p class="mt-2">Chưa có hoạt động nào</p>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>

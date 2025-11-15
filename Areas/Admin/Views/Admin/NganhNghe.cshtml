@@ -289,6 +289,8 @@
     }
 </style>
 
+@Html.AntiForgeryToken()
+
 <div class="nganhnghe-management-container">
     <div class="page-header">
         <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -411,8 +413,8 @@
                         <input type="text" class="form-control" id="tenNganhNgheMoi" required placeholder="Nhập tên ngành nghề">
                     </div>
                     <div class="form-group">
-                        <label for="moTaMoi">Mô tả <span style="color: red;">*</span></label>
-                        <textarea class="form-control" id="moTaMoi" rows="3" required placeholder="Nhập mô tả ngành nghề"></textarea>
+                        <label for="moTaMoi">Mô tả</label>
+                        <textarea class="form-control" id="moTaMoi" rows="3" placeholder="Nhập mô tả ngành nghề (tùy chọn)"></textarea>
                     </div>
                 </form>
             </div>
@@ -442,8 +444,8 @@
                         <input type="text" class="form-control" id="tenNganhNgheSua" required placeholder="Nhập tên ngành nghề">
                     </div>
                     <div class="form-group">
-                        <label for="moTaSua">Mô tả <span style="color: red;">*</span></label>
-                        <textarea class="form-control" id="moTaSua" rows="3" required placeholder="Nhập mô tả ngành nghề"></textarea>
+                        <label for="moTaSua">Mô tả</label>
+                        <textarea class="form-control" id="moTaSua" rows="3" placeholder="Nhập mô tả ngành nghề (tùy chọn)"></textarea>
                     </div>
                 </form>
             </div>
@@ -486,18 +488,37 @@
                 var tenNganhNghe = $('#tenNganhNgheMoi').val();
                 var moTa = $('#moTaMoi').val();
 
-                if (!tenNganhNghe || !moTa) {
-                    alert('Vui lòng nhập đầy đủ thông tin!');
+                if (!tenNganhNghe) {
+                    alert('Vui lòng nhập tên ngành nghề!');
                     return;
                 }
 
-                alert('Đã thêm ngành nghề: ' + tenNganhNghe);
-                $('#themNganhNgheModal').modal('hide');
-                $('#formThemNganhNghe')[0].reset();
+                $.ajax({
+                    url: '@Url.Action("ThemNganhNghe", "Admin", new { area = "Admin" })',
+                    type: 'POST',
+                    data: {
+                        tenNganhNghe: tenNganhNghe,
+                        moTa: moTa,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            alert(response.message);
+                            $('#themNganhNgheModal').modal('hide');
+                            $('#formThemNganhNghe')[0].reset();
+                            location.reload();
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Có lỗi xảy ra khi thêm ngành nghề!');
+                    }
+                });
             });
 
             // Sua nganh nghe
-            $('.btn-sua').click(function() {
+            $(document).on('click', '.btn-sua', function() {
                 var ma = $(this).data('ma');
                 var ten = $(this).data('ten');
                 var moTa = $(this).data('mota');
@@ -512,17 +533,65 @@
             $('#btnCapNhatNganhNghe').click(function() {
                 var ma = $('#maNganhNgheSua').val();
                 var ten = $('#tenNganhNgheSua').val();
+                var moTa = $('#moTaSua').val();
 
-                alert('Đã cập nhật ngành nghề mã ' + ma + ': ' + ten);
-                $('#suaNganhNgheModal').modal('hide');
+                if (!ten) {
+                    alert('Vui lòng nhập tên ngành nghề!');
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("CapNhatNganhNghe", "Admin", new { area = "Admin" })',
+                    type: 'POST',
+                    data: {
+                        id: ma,
+                        tenNganhNghe: ten,
+                        moTa: moTa,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            alert(response.message);
+                            $('#suaNganhNgheModal').modal('hide');
+                            location.reload();
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Có lỗi xảy ra khi cập nhật ngành nghề!');
+                    }
+                });
             });
 
             // Xoa nganh nghe
-            $('.btn-xoa').click(function() {
+            $(document).on('click', '.btn-xoa', function() {
                 var ma = $(this).data('ma');
+                var row = $(this).closest('tr');
+                
                 if (confirm('Bạn có chắc chắn muốn xóa ngành nghề này?')) {
-                    alert('Đã xóa ngành nghề mã ' + ma);
-                    $(this).closest('tr').fadeOut();
+                    $.ajax({
+                        url: '@Url.Action("XoaNganhNghe", "Admin", new { area = "Admin" })',
+                        type: 'POST',
+                        data: {
+                            id: ma,
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                alert(response.message);
+                                row.fadeOut(300, function() {
+                                    $(this).remove();
+                                    location.reload();
+                                });
+                            } else {
+                                alert(response.message);
+                            }
+                        },
+                        error: function() {
+                            alert('Có lỗi xảy ra khi xóa ngành nghề!');
+                        }
+                    });
                 }
             });
         });

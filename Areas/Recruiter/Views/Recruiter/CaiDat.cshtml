@@ -72,7 +72,7 @@
                                                 <label for="tenCongTy">
                                                     Tên công ty <span class="required">*</span>
                                                 </label>
-                                                <input type="text" id="tenCongTy" name="tenCongTy" value="@(nhaTuyenDung?.TenCongTy ?? "")" required />
+                                                <input type="text" id="tenCongTy" name="tenCongTy" value="@(nhaTuyenDung?.TenCongTy ?? Model.HoTen ?? "")" required />
                                             </div>
 
                                             <div class="form-row">
@@ -137,8 +137,8 @@
                                             </div>
 
                                             <!-- Hidden fields for coordinates -->
-                                            <input type="hidden" id="latitude" name="latitude" value="21.028511">
-                                            <input type="hidden" id="longitude" name="longitude" value="105.804817">
+                                            <input type="hidden" id="latitude" name="latitude" value="@(nhaTuyenDung?.Latitude?.ToString("F6") ?? "21.028511")">
+                                            <input type="hidden" id="longitude" name="longitude" value="@(nhaTuyenDung?.Longitude?.ToString("F6") ?? "105.804817")">
 
                                             <!-- Map Container -->
                                             <div class="map-container">
@@ -160,24 +160,33 @@
                                             <div class="form-row">
                                                 <div class="form-group">
                                                     <label for="nguoiDaiDien">
-                                                        Họ và tên người đại diện <span class="required">*</span>
+                                                        Họ và tên người đại diện
                                                     </label>
-                                                    <input type="text" id="nguoiDaiDien" name="nguoiDaiDien" value="@(nhaTuyenDung?.NguoiDaiDien ?? Model.HoTen ?? "")" required />
+                                                    <input type="text" id="nguoiDaiDien" name="nguoiDaiDien" value="@(nhaTuyenDung?.NguoiDaiDien ?? Model.HoTen ?? "")" />
                                                 </div>
 
                                                 <div class="form-group">
                                                     <label for="chucVu">
-                                                        Chức vụ <span class="required">*</span>
+                                                        Chức vụ
                                                     </label>
-                                                    <input type="text" id="chucVu" name="chucVu" value="@(nhaTuyenDung?.ChucVu ?? "")" placeholder="Ví dụ: HR Manager, Giám đốc Nhân sự..." required />
+                                                    <input type="text" id="chucVu" name="chucVu" value="@(nhaTuyenDung?.ChucVu ?? "")" placeholder="Ví dụ: HR Manager, Giám đốc Nhân sự..." />
                                                 </div>
                                             </div>
 
-                                            <div class="form-group">
-                                                <label for="soDienThoaiNguoiDaiDien">
-                                                    Số điện thoại người đại diện <span class="required">*</span>
-                                                </label>
-                                                <input type="tel" id="soDienThoaiNguoiDaiDien" name="soDienThoaiNguoiDaiDien" placeholder="Ví dụ: 0901234567" required />
+                                            <div class="form-row">
+                                                <div class="form-group">
+                                                    <label for="soDienThoaiNguoiDaiDien">
+                                                        Số điện thoại người đại diện
+                                                    </label>
+                                                    <input type="tel" id="soDienThoaiNguoiDaiDien" name="soDienThoaiNguoiDaiDien" value="@(nhaTuyenDung?.SoDienThoaiNguoiDaiDien ?? "")" placeholder="Ví dụ: 0901234567" />
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label for="emailNguoiDaiDien">
+                                                        Email người đại diện
+                                                    </label>
+                                                    <input type="email" id="emailNguoiDaiDien" name="emailNguoiDaiDien" value="@(nhaTuyenDung?.EmailNguoiDaiDien ?? "")" placeholder="Ví dụ: nguoidaidien@example.com" />
+                                                </div>
                                             </div>
                                         </div>
 
@@ -189,23 +198,62 @@
                                             </h4>
 
                                             <div class="logo-upload">
-                                                <div class="logo-preview" id="logoPreview">
+                                                <div class="logo-preview @(!string.IsNullOrEmpty(nhaTuyenDung?.Logo) ? "has-image" : "")" id="logoPreview">
                                                     @if (!string.IsNullOrEmpty(nhaTuyenDung?.Logo))
                                                     {
                                                         <img src="@nhaTuyenDung.Logo" alt="Logo công ty" />
                                                     }
                                                     else
                                                     {
-                                                        <span style="color: #cbd5e0;">Chưa có logo</span>
+                                                        <img src="/images/default-avatar.png" alt="Logo mặc định" style="opacity: 0.5;" />
                                                     }
+                                                    <div class="crop-guide-overlay">
+                                                        <div class="crop-guide-frame"></div>
+                                                    </div>
                                                 </div>
                                                 <div class="logo-upload-controls">
-                                                    <input type="file" id="logoFile" name="logoFile" accept="image/*" style="display: none;" />
-                                                    <button type="button" class="btn-upload" onclick="document.getElementById('logoFile').click()">
-                                                        <i class="bi bi-upload me-2"></i>Chọn logo
-                                                    </button>
-                                                    <div class="info-hint">Kích thước khuyến nghị: 200x200px. Định dạng: JPG, PNG</div>
+                                                    <input type="file" id="logoFile" name="logoFile" accept="image/jpeg,image/jpg,image/png,image/gif" style="display: none;" />
+                                                    <div class="logo-buttons">
+                                                        <button type="button" class="btn-upload" id="btnChonLogo" onclick="document.getElementById('logoFile').click()">
+                                                            <i class="bi bi-upload me-2"></i><span id="btnLogoText">@(!string.IsNullOrEmpty(nhaTuyenDung?.Logo) ? "Thay đổi logo" : "Chọn logo")</span>
+                                                        </button>
+                                                        @if (!string.IsNullOrEmpty(nhaTuyenDung?.Logo))
+                                                        {
+                                                            <button type="button" class="btn-remove-logo" id="btnXoaLogo" onclick="xoaLogo()">
+                                                                <i class="bi bi-trash me-2"></i>Xóa logo
+                                                            </button>
+                                                        }
+                                                    </div>
+                                                    <div class="info-hint">Kích thước khuyến nghị: 200x200px. Định dạng: JPG, PNG, GIF (tối đa 5MB)</div>
                                                     <input type="hidden" id="logo" name="logo" value="@(nhaTuyenDung?.Logo ?? "")" />
+                                                    <input type="hidden" id="xoaLogo" name="xoaLogo" value="false" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Modal Crop Logo -->
+                                        <div class="modal fade" id="cropLogoModal" tabindex="-1" aria-labelledby="cropLogoModalLabel" aria-hidden="true">
+                                            <div class="modal-dialog modal-lg modal-dialog-centered">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="cropLogoModalLabel">
+                                                            <i class="bi bi-crop me-2"></i>Căn chỉnh logo
+                                                        </h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="crop-container" style="max-width: 100%; max-height: 500px; overflow: hidden;">
+                                                            <img id="cropLogoImage" src="" alt="Logo để crop" style="max-width: 100%; display: block;" />
+                                                        </div>
+                                                        <div class="crop-actions mt-3 text-center">
+                                                            <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal" tabindex="-1">
+                                                                <i class="bi bi-x-circle me-2"></i>Hủy
+                                                            </button>
+                                                            <button type="button" class="btn btn-primary" id="cropLogoBtn" tabindex="-1">
+                                                                <i class="bi bi-check-circle me-2"></i>Xác nhận
+                                                            </button>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -721,8 +769,8 @@
     }
 
     .logo-preview {
-        width: 150px;
-        height: 150px;
+        width: 200px;
+        height: 200px;
         border: 2px dashed #cbd5e0;
         border-radius: 12px;
         display: flex;
@@ -730,12 +778,71 @@
         justify-content: center;
         overflow: hidden;
         background: #f7fafc;
+        position: relative;
     }
 
     .logo-preview img {
         max-width: 100%;
         max-height: 100%;
         object-fit: contain;
+    }
+
+    /* Crop Guide Overlay */
+    .crop-guide-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        z-index: 10;
+    }
+
+    .crop-guide-frame {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 80%;
+        height: 80%;
+        border: 3px solid #2545B8;
+        border-radius: 8px;
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.3);
+    }
+
+    .crop-guide-frame::before {
+        content: 'Khu vực hiển thị';
+        position: absolute;
+        top: -25px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #2545B8;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .crop-guide-frame::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+        height: 100%;
+        border: 2px dashed rgba(255, 255, 255, 0.8);
+        border-radius: 6px;
+    }
+
+    .logo-preview.has-image .crop-guide-overlay {
+        display: block;
+    }
+
+    .logo-preview:not(.has-image) .crop-guide-overlay {
+        display: none;
     }
 
     .logo-upload-controls {
@@ -756,6 +863,28 @@
 
     .btn-upload:hover {
         background: #1a3599;
+    }
+
+    .logo-buttons {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .btn-remove-logo {
+        background: #e53e3e;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-remove-logo:hover {
+        background: #c53030;
     }
 
     /* Quill Editor Styles */
@@ -904,6 +1033,10 @@
 </style>
 
 @section Scripts {
+    <!-- Cropper.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+    <!-- Cropper.js JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     
     <!-- Quill Editor CSS -->
@@ -937,17 +1070,304 @@
                 $('#moTa').val(quill.root.innerHTML);
             });
 
-            // Handle logo file upload
+            var logoCropper = null;
+            var currentLogoFile = null;
+
+            // Handle logo file upload - Mở modal crop
             $('#logoFile').on('change', function(e) {
                 var file = e.target.files[0];
+                console.log('==========================================================');
+                console.log('🏢 LOGO FILE SELECTED');
+                console.log('File name:', file ? file.name : 'NULL');
+                console.log('File type:', file ? file.type : 'NULL');
+                console.log('File size:', file ? file.size : 'NULL');
+                console.log('==========================================================');
+                
                 if (file) {
+                    // Kiểm tra kích thước file (5MB)
+                    var maxSize = 5 * 1024 * 1024;
+                    if (file.size > maxSize) {
+                        console.error('❌ File too large');
+                        showNotification('Kích thước file quá lớn. Tối đa 5MB.', 'error');
+                        $(this).val('');
+                        return;
+                    }
+
+                    // Kiểm tra định dạng file
+                    var allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+                    if (!allowedTypes.includes(file.type)) {
+                        console.error('❌ Invalid file type');
+                        showNotification('Định dạng file không hợp lệ. Chỉ chấp nhận JPG, PNG, GIF.', 'error');
+                        $(this).val('');
+                        return;
+                    }
+
+                    currentLogoFile = file;
+                    console.log('✅ currentLogoFile set:', currentLogoFile.name, currentLogoFile.type);
+                    
+                    // Nếu là GIF, bỏ qua crop và hiển thị trực tiếp để giữ animation
+                    if (file.type === 'image/gif') {
+                        console.log('🎬 GIF LOGO DETECTED - SKIPPING CROP MODAL');
+                        console.log('File name:', file.name);
+                        console.log('File size:', file.size, 'bytes');
+                        console.log('File type:', file.type);
+                        
+                        var reader = new FileReader();
+                        reader.onload = function(e) {
+                            console.log('📸 Loading GIF logo preview...');
+                            var preview = $('#logoPreview');
+                            preview.html(
+                                '<img src="' + e.target.result + '" alt="Logo công ty" style="max-width: 100%; max-height: 100%; object-fit: contain;" />' +
+                                '<div class="crop-guide-overlay">' +
+                                '<div class="crop-guide-frame"></div>' +
+                                '</div>'
+                            );
+                            preview.addClass('has-image');
+                            
+                            // Hiển thị nút xóa logo nếu chưa có
+                            if ($('#btnXoaLogo').length === 0 || !$('#btnXoaLogo').is(':visible')) {
+                                var btnXoaLogo = $('<button>')
+                                    .attr('type', 'button')
+                                    .addClass('btn-remove-logo')
+                                    .attr('id', 'btnXoaLogo')
+                                    .attr('onclick', 'xoaLogo()')
+                                    .html('<i class="bi bi-trash me-2"></i>Xóa logo');
+                                $('#btnChonLogo').after(btnXoaLogo);
+                            }
+                            
+                            // Cập nhật text button
+                            $('#btnLogoText').text('Thay đổi logo');
+                            
+                            // Reset flag xóa logo
+                            $('#xoaLogo').val('false');
+                            
+                            console.log('✅ GIF logo preview loaded successfully - NO CROP MODAL!');
+                            showNotification('Đã chọn ảnh GIF (giữ nguyên animation, không cần crop)', 'success');
+                        };
+                        reader.readAsDataURL(file);
+                        console.log('⏩ RETURN - Skipping crop modal completely for GIF logo');
+                        return;
+                    }
+                    
+                    console.log('📐 JPG/PNG logo detected - Opening crop modal');
+                    
+                    // Đọc file và hiển thị trong modal crop (chỉ cho JPG/PNG)
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        var cropImage = document.getElementById('cropLogoImage');
+                        cropImage.src = e.target.result;
+                        
+                        // Mở modal
+                        var cropModal = new bootstrap.Modal(document.getElementById('cropLogoModal'));
+                        cropModal.show();
+                        
+                        // Khởi tạo cropper sau khi modal hiển thị
+                        $('#cropLogoModal').off('shown.bs.modal').on('shown.bs.modal', function() {
+                            if (logoCropper) {
+                                logoCropper.destroy();
+                            }
+                            
+                            logoCropper = new Cropper(cropImage, {
+                                aspectRatio: 1, // Logo vuông 1:1
+                                viewMode: 1,
+                                dragMode: 'move',
+                                autoCropArea: 0.8,
+                                restore: false,
+                                guides: true,
+                                center: true,
+                                highlight: false,
+                                cropBoxMovable: true,
+                                cropBoxResizable: true,
+                                toggleDragModeOnDblclick: false,
+                                minCropBoxWidth: 100,
+                                minCropBoxHeight: 100
+                            });
+                            
+                            // Cho phép focus vào button sau khi modal đã hiển thị hoàn toàn
+                            setTimeout(function() {
+                                $('#cropLogoBtn, #cropLogoModal .btn-secondary').removeAttr('tabindex');
+                            }, 100);
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Function để xóa logo
+            window.xoaLogo = function() {
+                if (confirm('Bạn có chắc muốn xóa logo hiện tại?')) {
+                    // Xóa preview
+                    $('#logoPreview').html(
+                        '<img src="/images/default-avatar.png" alt="Logo mặc định" style="opacity: 0.5;" />' +
+                        '<div class="crop-guide-overlay" style="display: none;">' +
+                        '<div class="crop-guide-frame"></div>' +
+                        '</div>'
+                    );
+                    $('#logoPreview').removeClass('has-image');
+                    
+                    // Xóa file input
+                    $('#logoFile').val('');
+                    $('#logo').val('');
+                    
+                    // Đánh dấu là xóa logo
+                    $('#xoaLogo').val('true');
+                    
+                    // Ẩn nút xóa logo
+                    $('#btnXoaLogo').hide();
+                    
+                    // Cập nhật text button
+                    $('#btnLogoText').text('Chọn logo');
+                    
+                    showNotification('Đã xóa logo. Logo sẽ bị xóa khi bạn lưu thông tin.', 'success');
+                }
+            };
+
+            // Xử lý khi đóng modal - destroy cropper
+            $('#cropLogoModal').on('hidden.bs.modal', function() {
+                if (logoCropper) {
+                    logoCropper.destroy();
+                    logoCropper = null;
+                }
+                // KHÔNG reset file input ở đây vì sẽ xóa file đã crop!
+                // $('#logoFile').val(''); // ← COMMENTED OUT
+                
+                console.log('Modal closed - NOT resetting file input');
+                
+                // Khôi phục tabindex để tránh focus khi modal ẩn
+                $('#cropLogoBtn, #cropLogoModal .btn-secondary').attr('tabindex', '-1');
+            });
+
+            // Xác nhận crop logo
+            $('#cropLogoBtn').on('click', function() {
+                // Bỏ focus khỏi button ngay lập tức để tránh lỗi aria-hidden
+                $(this).blur();
+                
+                // QUAN TRỌNG: Nếu là GIF, KHÔNG crop - chỉ đóng modal và giữ file gốc
+                if (currentLogoFile && currentLogoFile.type === 'image/gif') {
+                    console.log('==========================================================');
+                    console.log('🎬 CROP BUTTON CLICKED - BUT FILE IS GIF LOGO!');
+                    console.log('currentLogoFile:', currentLogoFile.name, currentLogoFile.type);
+                    console.log('✅ Skipping crop, keeping original GIF logo file');
+                    console.log('==========================================================');
+                    
+                    // Hiển thị preview GIF gốc (không crop)
                     var reader = new FileReader();
                     reader.onload = function(e) {
                         var preview = $('#logoPreview');
-                        preview.html('<img src="' + e.target.result + '" alt="Logo công ty" />');
-                        $('#logo').val(e.target.result); // Store base64 or URL
+                        preview.html(
+                            '<img src="' + e.target.result + '" alt="Logo công ty" style="max-width: 100%; max-height: 100%; object-fit: contain;" />' +
+                            '<div class="crop-guide-overlay">' +
+                            '<div class="crop-guide-frame"></div>' +
+                            '</div>'
+                        );
+                        preview.addClass('has-image');
+                        
+                        // Hiển thị nút xóa logo nếu chưa có
+                        if ($('#btnXoaLogo').length === 0 || !$('#btnXoaLogo').is(':visible')) {
+                            var btnXoaLogo = $('<button>')
+                                .attr('type', 'button')
+                                .addClass('btn-remove-logo')
+                                .attr('id', 'btnXoaLogo')
+                                .attr('onclick', 'xoaLogo()')
+                                .html('<i class="bi bi-trash me-2"></i>Xóa logo');
+                            $('#btnChonLogo').after(btnXoaLogo);
+                        }
+                        
+                        // Cập nhật text button
+                        $('#btnLogoText').text('Thay đổi logo');
+                        
+                        // Reset flag xóa logo
+                        $('#xoaLogo').val('false');
                     };
-                    reader.readAsDataURL(file);
+                    reader.readAsDataURL(currentLogoFile);
+                    
+                    // Đóng modal
+                    var cropModal = bootstrap.Modal.getInstance(document.getElementById('cropLogoModal'));
+                    cropModal.hide();
+                    
+                    showNotification('Đã chọn ảnh GIF (giữ nguyên animation, không cần crop)', 'success');
+                    return;
+                }
+                
+                if (logoCropper) {
+                    // Lấy canvas đã crop
+                    var canvas = logoCropper.getCroppedCanvas({
+                        width: 400,
+                        height: 400,
+                        imageSmoothingEnabled: true,
+                        imageSmoothingQuality: 'high'
+                    });
+                    
+                    if (canvas) {
+                        // Chuyển canvas thành blob - luôn dùng PNG vì canvas không hỗ trợ GIF
+                        var outputType = 'image/png';
+                        var outputExtension = '.png';
+                        
+                        // Nếu file gốc là JPEG, giữ JPEG
+                        if (currentLogoFile.type === 'image/jpeg' || currentLogoFile.type === 'image/jpg') {
+                            outputType = 'image/jpeg';
+                            outputExtension = '.jpg';
+                        }
+                        
+                        canvas.toBlob(function(blob) {
+                            // Đổi tên file để match với extension
+                            var originalName = currentLogoFile.name.replace(/\.[^/.]+$/, "");
+                            var newFileName = originalName + outputExtension;
+                            
+                            // Tạo File từ blob với type đúng
+                            var croppedFile = new File([blob], newFileName, {
+                                type: outputType,
+                                lastModified: Date.now()
+                            });
+                            
+                            // Tạo DataTransfer để cập nhật file input
+                            var dataTransfer = new DataTransfer();
+                            dataTransfer.items.add(croppedFile);
+                            $('#logoFile')[0].files = dataTransfer.files;
+                            
+                            // Debug: kiểm tra file đã được gán vào input chưa
+                            console.log('=== AFTER CROP - File assigned to input ===');
+                            console.log('Input files:', $('#logoFile')[0].files);
+                            console.log('Input files[0]:', $('#logoFile')[0].files[0]);
+                            console.log('File name:', $('#logoFile')[0].files[0]?.name);
+                            console.log('File size:', $('#logoFile')[0].files[0]?.size);
+                            console.log('Output type:', outputType);
+                            
+                            // Hiển thị preview ảnh đã crop
+                            var croppedDataUrl = canvas.toDataURL(outputType, 0.9);
+                            var preview = $('#logoPreview');
+                            preview.html(
+                                '<img src="' + croppedDataUrl + '" alt="Logo công ty" style="max-width: 100%; max-height: 100%; object-fit: contain;" />' +
+                                '<div class="crop-guide-overlay">' +
+                                '<div class="crop-guide-frame"></div>' +
+                                '</div>'
+                            );
+                            preview.addClass('has-image');
+                            
+                            // Hiển thị nút xóa logo nếu chưa có
+                            if ($('#btnXoaLogo').length === 0 || !$('#btnXoaLogo').is(':visible')) {
+                                var btnXoaLogo = $('<button>')
+                                    .attr('type', 'button')
+                                    .addClass('btn-remove-logo')
+                                    .attr('id', 'btnXoaLogo')
+                                    .attr('onclick', 'xoaLogo()')
+                                    .html('<i class="bi bi-trash me-2"></i>Xóa logo');
+                                $('#btnChonLogo').after(btnXoaLogo);
+                            }
+                            
+                            // Cập nhật text button
+                            $('#btnLogoText').text('Thay đổi logo');
+                            
+                            // Reset flag xóa logo
+                            $('#xoaLogo').val('false');
+                            
+                            // Đóng modal
+                            var cropModal = bootstrap.Modal.getInstance(document.getElementById('cropLogoModal'));
+                            cropModal.hide();
+                            
+                            showNotification('Đã căn chỉnh logo thành công!', 'success');
+                        }, outputType, 0.9);
+                    }
                 }
             });
 
@@ -962,6 +1382,9 @@
                 e.preventDefault();
                 saveProfile();
             });
+
+            // Cập nhật hàm saveProfile để upload file thực tế
+            window.saveProfileOriginal = saveProfile;
 
             // Initialize Map for Company Location
             initCompanyMap();
@@ -996,6 +1419,8 @@
         });
 
         function saveProfile() {
+            console.log('=== saveProfile START ===');
+            
             // Get content from Quill editor
             var moTa = '';
             if (quill) {
@@ -1004,55 +1429,124 @@
             }
 
             // Collect form data
-            var formData = {
-                tenCongTy: $('#tenCongTy').val(),
-                email: $('#email').val(),
-                soDienThoai: $('#soDienThoai').val(),
-                website: $('#website').val(),
-                tinhThanhPho: $('#tinhThanhPho').val(),
-                quanHuyen: $('#quanHuyen').val(),
-                diaChi: $('#diaChi').val(),
-                nguoiDaiDien: $('#nguoiDaiDien').val(),
-                chucVu: $('#chucVu').val(),
-                soDienThoaiNguoiDaiDien: $('#soDienThoaiNguoiDaiDien').val(),
-                logo: $('#logo').val(),
-                moTa: moTa,
-                latitude: $('#latitude').val(),
-                longitude: $('#longitude').val()
-            };
+            var tenCongTy = $('#tenCongTy').val();
+            var email = $('#email').val();
+            var soDienThoai = $('#soDienThoai').val();
+            var tinhThanhPho = $('#tinhThanhPho').val();
+            var diaChi = $('#diaChi').val();
 
-            // Validate required fields
-            if (!formData.tenCongTy || !formData.email || !formData.soDienThoai || 
-                !formData.tinhThanhPho || !formData.diaChi ||
-                !formData.nguoiDaiDien || !formData.chucVu || !formData.soDienThoaiNguoiDaiDien) {
+            console.log('Form fields:', {
+                tenCongTy: tenCongTy,
+                email: email,
+                soDienThoai: soDienThoai,
+                tinhThanhPho: tinhThanhPho,
+                diaChi: diaChi
+            });
+
+            // Validate required fields (không bao gồm thông tin người đại diện)
+            if (!tenCongTy || !email || !soDienThoai || !tinhThanhPho || !diaChi) {
+                console.log('Validation failed: missing required fields');
                 showNotification('Vui lòng điền đầy đủ các trường bắt buộc', 'error');
                 return;
             }
 
-            // Validate email format
+            // Validate email format (chỉ validate nếu có nhập)
             var emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
-            if (!emailRegex.test(formData.email)) {
+            if (email && !emailRegex.test(email)) {
                 showNotification('Email không hợp lệ', 'error');
                 return;
             }
 
+            var emailNguoiDaiDien = $('#emailNguoiDaiDien').val();
+            // Validate email người đại diện (chỉ validate nếu có nhập)
+            if (emailNguoiDaiDien && !emailRegex.test(emailNguoiDaiDien)) {
+                showNotification('Email người đại diện không hợp lệ', 'error');
+                return;
+            }
+
+            // Tạo FormData để gửi file
+            var formData = new FormData();
+            formData.append('tenCongTy', tenCongTy);
+            formData.append('email', email);
+            formData.append('soDienThoai', soDienThoai);
+            formData.append('website', $('#website').val() || '');
+            formData.append('tinhThanhPho', tinhThanhPho);
+            formData.append('quanHuyen', $('#quanHuyen').val() || '');
+            formData.append('diaChi', diaChi);
+            formData.append('nguoiDaiDien', $('#nguoiDaiDien').val() || '');
+            formData.append('chucVu', $('#chucVu').val() || '');
+            formData.append('soDienThoaiNguoiDaiDien', $('#soDienThoaiNguoiDaiDien').val() || '');
+            formData.append('emailNguoiDaiDien', emailNguoiDaiDien || '');
+            formData.append('moTa', moTa);
+            formData.append('latitude', $('#latitude').val());
+            formData.append('longitude', $('#longitude').val());
+
+            // Thêm file logo nếu có
+            var logoFileInput = $('#logoFile')[0];
+            var logoFile = logoFileInput ? logoFileInput.files[0] : null;
+            
+            console.log('==========================================================');
+            console.log('📤 SUBMITTING FORM - CHECKING LOGO FILE');
+            console.log('Logo file input element:', logoFileInput);
+            console.log('Files count:', logoFileInput ? logoFileInput.files.length : 0);
+            console.log('Logo file:', logoFile);
+            console.log('Logo file is defined:', logoFile !== undefined);
+            console.log('Logo file is not null:', logoFile !== null);
+            
+            if (logoFile) {
+                console.log('✅ LOGO FILE FOUND:');
+                console.log('  Name:', logoFile.name);
+                console.log('  Size:', logoFile.size, 'bytes');
+                console.log('  Type:', logoFile.type);
+                console.log('  Extension:', logoFile.name.split('.').pop());
+                console.log('  Is GIF?', logoFile.type === 'image/gif');
+                console.log('==========================================================');
+                formData.append('logoFile', logoFile);
+                console.log('📦 Logo file appended to FormData');
+            } else {
+                console.log('❌ NO logo file to upload');
+                console.log('==========================================================');
+            }
+            
+            // Thêm flag xóa logo nếu có
+            var xoaLogo = $('#xoaLogo').val();
+            console.log('xoaLogo flag:', xoaLogo);
+            if (xoaLogo === 'true') {
+                formData.append('xoaLogo', 'true');
+                console.log('xoaLogo flag appended');
+            }
+
+            console.log('=== SENDING AJAX REQUEST ===');
+            
             // AJAX call to save the data
             $.ajax({
                 url: '@Url.Action("CapNhatThongTin", "Recruiter", new { area = "Recruiter" })',
                 type: 'POST',
                 data: formData,
+                processData: false,
+                contentType: false,
                 headers: {
                     'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
                 },
                 success: function(response) {
+                    console.log('Response:', response); // Debug
                     if (response.success) {
                         showNotification(response.message, 'success');
+                        // Reload trang sau 1.5 giây để hiển thị logo mới
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1500);
                     } else {
                         showNotification(response.message, 'error');
                     }
                 },
                 error: function(xhr, status, error) {
-                    showNotification('Có lỗi xảy ra khi lưu dữ liệu: ' + error, 'error');
+                    console.error('Upload error:', xhr, status, error); // Debug
+                    var errorMessage = 'Có lỗi xảy ra khi lưu dữ liệu';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                    showNotification(errorMessage, 'error');
                 }
             });
         }
@@ -1064,8 +1558,35 @@
                     quill.setContents([]);
                     $('#moTa').val('');
                 }
-                $('#logoPreview').html('<span style="color: #cbd5e0;">Chưa có logo</span>');
-                $('#logo').val('');
+                
+                // Reset logo về trạng thái ban đầu
+                var originalLogo = @Html.Raw(Json.Serialize(nhaTuyenDung?.Logo ?? ""));
+                if (originalLogo) {
+                    $('#logoPreview').html(
+                        '<img src="' + originalLogo + '" alt="Logo công ty" />' +
+                        '<div class="crop-guide-overlay">' +
+                        '<div class="crop-guide-frame"></div>' +
+                        '</div>'
+                    );
+                    $('#logoPreview').addClass('has-image');
+                    $('#logo').val(originalLogo);
+                    $('#btnXoaLogo').show();
+                    $('#btnLogoText').text('Thay đổi logo');
+                } else {
+                    $('#logoPreview').html(
+                        '<img src="/images/default-avatar.png" alt="Logo mặc định" style="opacity: 0.5;" />' +
+                        '<div class="crop-guide-overlay" style="display: none;">' +
+                        '<div class="crop-guide-frame"></div>' +
+                        '</div>'
+                    );
+                    $('#logoPreview').removeClass('has-image');
+                    $('#logo').val('');
+                    $('#btnXoaLogo').hide();
+                    $('#btnLogoText').text('Chọn logo');
+                }
+                
+                $('#logoFile').val('');
+                $('#xoaLogo').val('false');
             }
         }
 
@@ -1124,8 +1645,18 @@
             }
 
             try {
-                var mapLat = parseFloat($('#latitude').val()) || 21.028511;
-                var mapLng = parseFloat($('#longitude').val()) || 105.804817;
+                // Load tọa độ đã lưu hoặc dùng giá trị mặc định
+                var savedLat = @Html.Raw(Json.Serialize(nhaTuyenDung?.Latitude));
+                var savedLng = @Html.Raw(Json.Serialize(nhaTuyenDung?.Longitude));
+                var mapLat = savedLat || parseFloat($('#latitude').val()) || 21.028511;
+                var mapLng = savedLng || parseFloat($('#longitude').val()) || 105.804817;
+                
+                // Cập nhật hidden fields nếu có tọa độ đã lưu
+                if (savedLat && savedLng) {
+                    $('#latitude').val(mapLat.toFixed(6));
+                    $('#longitude').val(mapLng.toFixed(6));
+                    $('#currentCoords').text(mapLat.toFixed(6) + ', ' + mapLng.toFixed(6));
+                }
 
                 // Initialize Leaflet Map
                 companyMap = L.map('mapCompany', {

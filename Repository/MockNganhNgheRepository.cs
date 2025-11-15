@@ -118,6 +118,37 @@ namespace Unicareer.Repository
         {
             return _danhSachNganhNghe.FirstOrDefault(n => n.MaNganhNghe == id);
         }
+
+        public NganhNghe? ThemNganhNghe(NganhNghe nganhNghe)
+        {
+            var maxId = _danhSachNganhNghe.Any() ? _danhSachNganhNghe.Max(n => n.MaNganhNghe) : 0;
+            nganhNghe.MaNganhNghe = maxId + 1;
+            nganhNghe.NgayTao = DateTime.Now;
+            nganhNghe.SoLuongCongViec = 0;
+            _danhSachNganhNghe.Add(nganhNghe);
+            return nganhNghe;
+        }
+
+        public NganhNghe? CapNhatNganhNghe(NganhNghe nganhNghe)
+        {
+            var existing = _danhSachNganhNghe.FirstOrDefault(n => n.MaNganhNghe == nganhNghe.MaNganhNghe);
+            if (existing == null)
+                return null;
+
+            existing.TenNganhNghe = nganhNghe.TenNganhNghe;
+            existing.MoTa = nganhNghe.MoTa;
+            return existing;
+        }
+
+        public bool XoaNganhNghe(int id)
+        {
+            var nganhNghe = _danhSachNganhNghe.FirstOrDefault(n => n.MaNganhNghe == id);
+            if (nganhNghe == null)
+                return false;
+
+            _danhSachNganhNghe.Remove(nganhNghe);
+            return true;
+        }
     }
 }
 

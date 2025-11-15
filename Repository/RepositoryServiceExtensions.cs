@@ -24,8 +24,10 @@ namespace Unicareer.Repository
                 services.AddScoped<IUngVienRepository, MockUngVienRepository>();
                 services.AddScoped<ITinTuyenDungRepository, MockTinTuyenDungRepository>();
                 services.AddScoped<ITinUngTuyenRepository, MockTinUngTuyenRepository>();
+                services.AddScoped<IViecLamDaLuuRepository, MockViecLamDaLuuRepository>();
                 services.AddScoped<ILoaiCongViecRepository, MockLoaiCongViecRepository>();
                 services.AddScoped<INganhNgheRepository, MockNganhNgheRepository>();
+                services.AddScoped<IChuyenNganhRepository, MockChuyenNganhRepository>();
                 services.AddScoped<ITruongDaiHocRepository, MockTruongDaiHocRepository>();
             }
             else
@@ -35,8 +37,10 @@ namespace Unicareer.Repository
                 services.AddScoped<IUngVienRepository, UngVienRepository>();
                 services.AddScoped<ITinTuyenDungRepository, TinTuyenDungRepository>();
                 services.AddScoped<ITinUngTuyenRepository, TinUngTuyenRepository>();
+                services.AddScoped<IViecLamDaLuuRepository, ViecLamDaLuuRepository>();
                 services.AddScoped<ILoaiCongViecRepository, LoaiCongViecRepository>();
                 services.AddScoped<INganhNgheRepository, NganhNgheRepository>();
+                services.AddScoped<IChuyenNganhRepository, ChuyenNganhRepository>();
                 services.AddScoped<ITruongDaiHocRepository, TruongDaiHocRepository>();
             }
         }

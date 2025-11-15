@@ -17,6 +17,8 @@ namespace Unicareer.Repository
         {
             return _context.UngViens
                 .Include(u => u.User)
+                .Include(u => u.ChuyenNganh)
+                    .ThenInclude(c => c!.NganhNghe)
                 .ToList();
         }
 
@@ -24,7 +26,46 @@ namespace Unicareer.Repository
         {
             return _context.UngViens
                 .Include(u => u.User)
+                .Include(u => u.ChuyenNganh)
+                    .ThenInclude(c => c!.NganhNghe)
                 .FirstOrDefault(u => u.MaUngVien == id);
+        }
+
+        public UngVien? LayUngVienTheoUserId(string userId)
+        {
+            return _context.UngViens
+                .Include(u => u.User)
+                .Include(u => u.ChuyenNganh)
+                    .ThenInclude(c => c!.NganhNghe)
+                .FirstOrDefault(u => u.UserId == userId);
+        }
+
+        public UngVien? ThemUngVien(UngVien ungVien)
+        {
+            try
+            {
+                _context.UngViens.Add(ungVien);
+                _context.SaveChanges();
+                return ungVien;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public UngVien? CapNhatUngVien(UngVien ungVien)
+        {
+            try
+            {
+                _context.UngViens.Update(ungVien);
+                _context.SaveChanges();
+                return ungVien;
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

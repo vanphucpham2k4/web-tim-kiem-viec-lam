@@ -8,8 +8,10 @@ namespace Unicareer.Repository
         TinTuyenDung? LayTinTuyenDungTheoId(int id);
         List<TinTuyenDung> LayDanhSachThucTap();
         List<TinTuyenDung> LayDanhSachTheoCongTy(string tenCongTy);
+        List<TinTuyenDung> LayDanhSachTheoMaNhaTuyenDung(int maNhaTuyenDung);
         TinTuyenDung ThemTinTuyenDung(TinTuyenDung tinTuyenDung);
         TinTuyenDung? CapNhatTinTuyenDung(int id, TinTuyenDung tinTuyenDung);
+        bool XoaTinTuyenDung(int id);
     }
 }
 

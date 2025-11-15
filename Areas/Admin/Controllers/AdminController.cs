@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using Unicareer.Models;
 using Unicareer.Repository;
 using Unicareer.Data;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 namespace Unicareer.Areas.Admin.Controllers
 {
@@ -17,11 +19,12 @@ namespace Unicareer.Areas.Admin.Controllers
         private readonly ITinUngTuyenRepository _tinUngTuyenRepository;
         private readonly ILoaiCongViecRepository _loaiCongViecRepository;
         private readonly INganhNgheRepository _nganhNgheRepository;
+        private readonly IChuyenNganhRepository _chuyenNganhRepository;
         private readonly ITruongDaiHocRepository _truongDaiHocRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
 
-        public AdminController(INhaTuyenDungRepository nhaTuyenDungRepository, IUngVienRepository ungVienRepository, ITinTuyenDungRepository tinTuyenDungRepository, ITinUngTuyenRepository tinUngTuyenRepository, ILoaiCongViecRepository loaiCongViecRepository, INganhNgheRepository nganhNgheRepository, ITruongDaiHocRepository truongDaiHocRepository, UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        public AdminController(INhaTuyenDungRepository nhaTuyenDungRepository, IUngVienRepository ungVienRepository, ITinTuyenDungRepository tinTuyenDungRepository, ITinUngTuyenRepository tinUngTuyenRepository, ILoaiCongViecRepository loaiCongViecRepository, INganhNgheRepository nganhNgheRepository, IChuyenNganhRepository chuyenNganhRepository, ITruongDaiHocRepository truongDaiHocRepository, UserManager<ApplicationUser> userManager, ApplicationDbContext context)
         {
             _nhaTuyenDungRepository = nhaTuyenDungRepository;
             _ungVienRepository = ungVienRepository;
@@ -29,6 +32,7 @@ namespace Unicareer.Areas.Admin.Controllers
             _tinUngTuyenRepository = tinUngTuyenRepository;
             _loaiCongViecRepository = loaiCongViecRepository;
             _nganhNgheRepository = nganhNgheRepository;
+            _chuyenNganhRepository = chuyenNganhRepository;
             _truongDaiHocRepository = truongDaiHocRepository;
             _userManager = userManager;
             _context = context;
@@ -140,6 +144,119 @@ namespace Unicareer.Areas.Admin.Controllers
             }
         }
 
+        // Helper method để xử lý upload file
+        private async Task<string?> UploadFileAsync(IFormFile? file, string folder, string userId)
+        {
+            if (file == null || file.Length == 0)
+                return null;
+
+            // Kiểm tra định dạng file (cho phép JPG, PNG, GIF)
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+            var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            
+            if (!allowedExtensions.Contains(fileExtension))
+            {
+                throw new Exception("Định dạng file không hợp lệ. Chỉ chấp nhận JPG, PNG, GIF.");
+            }
+
+            // Kiểm tra kích thước file (tối đa 5MB)
+            var maxSize = 5 * 1024 * 1024; // 5MB
+            if (file.Length > maxSize)
+            {
+                throw new Exception("Kích thước file quá lớn. Tối đa 5MB.");
+            }
+
+            // Tạo tên file unique
+            var fileName = $"{userId}_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid():N}{fileExtension}";
+            var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", folder);
+            
+            // Đảm bảo thư mục tồn tại
+            if (!Directory.Exists(uploadsPath))
+            {
+                Directory.CreateDirectory(uploadsPath);
+            }
+
+            var filePath = Path.Combine(uploadsPath, fileName);
+            
+            // Lưu file
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            // Trả về đường dẫn URL
+            return $"/uploads/{folder}/{fileName}";
+        }
+
+        // POST: Upload avatar
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UploadAvatar(IFormFile? avatarFile)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy người dùng" });
+            }
+
+            try
+            {
+                if (avatarFile != null && avatarFile.Length > 0)
+                {
+                    // Upload file mới
+                    var avatarPath = await UploadFileAsync(avatarFile, "avatars", user.Id);
+                    
+                    if (string.IsNullOrEmpty(avatarPath))
+                    {
+                        return Json(new { success = false, message = "Không thể upload file" });
+                    }
+                    
+                    // Xóa avatar cũ nếu có
+                    if (!string.IsNullOrEmpty(user.Avatar) && user.Avatar.StartsWith("/uploads/"))
+                    {
+                        var oldAvatarPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", user.Avatar.TrimStart('/'));
+                        if (System.IO.File.Exists(oldAvatarPath))
+                        {
+                            try
+                            {
+                                System.IO.File.Delete(oldAvatarPath);
+                            }
+                            catch
+                            {
+                                // Bỏ qua lỗi xóa file cũ
+                            }
+                        }
+                    }
+                    
+                    // Reload user từ database để đảm bảo tracking đúng
+                    var dbUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == user.Id);
+                    if (dbUser == null)
+                    {
+                        return Json(new { success = false, message = "Không tìm thấy người dùng trong database" });
+                    }
+                    
+                    // Cập nhật avatar
+                    dbUser.Avatar = avatarPath;
+                    
+                    // Lưu vào database
+                    await _context.SaveChangesAsync();
+                    
+                    // Cập nhật lại user trong UserManager để đồng bộ
+                    await _userManager.UpdateAsync(dbUser);
+                    
+                    return Json(new { success = true, message = "Cập nhật avatar thành công!", avatarUrl = avatarPath });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Vui lòng chọn file ảnh" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
         public IActionResult NganhNghe()
         {
             var danhSachNganhNghe = _nganhNgheRepository.LayDanhSachNganhNghe();
@@ -156,6 +273,98 @@ namespace Unicareer.Areas.Admin.Controllers
             return View(danhSachNganhNghe);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ThemNganhNghe(string tenNganhNghe, string? moTa)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(tenNganhNghe))
+                {
+                    return Json(new { success = false, message = "Tên ngành nghề không được để trống!" });
+                }
+
+                var nganhNghe = new NganhNghe
+                {
+                    TenNganhNghe = tenNganhNghe,
+                    MoTa = string.IsNullOrWhiteSpace(moTa) ? null : moTa
+                };
+
+                var ketQua = _nganhNgheRepository.ThemNganhNghe(nganhNghe);
+                if (ketQua == null)
+                {
+                    return Json(new { success = false, message = "Có lỗi xảy ra khi thêm ngành nghề!" });
+                }
+
+                return Json(new { success = true, message = "Thêm ngành nghề thành công!", data = new { ma = ketQua.MaNganhNghe, ten = ketQua.TenNganhNghe, moTa = ketQua.MoTa, ngayTao = ketQua.NgayTao.ToString("dd/MM/yyyy") } });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CapNhatNganhNghe(int id, string tenNganhNghe, string? moTa)
+        {
+            try
+            {
+                var nganhNghe = _nganhNgheRepository.LayNganhNgheTheoId(id);
+                if (nganhNghe == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy ngành nghề!" });
+                }
+
+                if (string.IsNullOrWhiteSpace(tenNganhNghe))
+                {
+                    return Json(new { success = false, message = "Tên ngành nghề không được để trống!" });
+                }
+
+                nganhNghe.TenNganhNghe = tenNganhNghe;
+                nganhNghe.MoTa = string.IsNullOrWhiteSpace(moTa) ? null : moTa;
+
+                var ketQua = _nganhNgheRepository.CapNhatNganhNghe(nganhNghe);
+                if (ketQua == null)
+                {
+                    return Json(new { success = false, message = "Có lỗi xảy ra khi cập nhật ngành nghề!" });
+                }
+
+                return Json(new { success = true, message = "Cập nhật ngành nghề thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult XoaNganhNghe(int id)
+        {
+            try
+            {
+                // Kiểm tra ngành nghề có tồn tại không
+                var nganhNghe = _nganhNgheRepository.LayNganhNgheTheoId(id);
+                if (nganhNghe == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy ngành nghề để xóa!" });
+                }
+
+                var ketQua = _nganhNgheRepository.XoaNganhNghe(id);
+                if (!ketQua)
+                {
+                    return Json(new { success = false, message = "Không thể xóa ngành nghề. Có thể do ràng buộc dữ liệu!" });
+                }
+
+                return Json(new { success = true, message = "Xóa ngành nghề thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
         public IActionResult LoaiCongViec()
         {
             var danhSachLoaiCongViec = _loaiCongViecRepository.LayDanhSachLoaiCongViec();
@@ -170,6 +379,288 @@ namespace Unicareer.Areas.Admin.Controllers
             }
             
             return View(danhSachLoaiCongViec);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ThemLoaiCongViec(string tenLoaiCongViec, string? moTa)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(tenLoaiCongViec))
+                {
+                    return Json(new { success = false, message = "Tên loại công việc không được để trống!" });
+                }
+
+                var loaiCongViec = new LoaiCongViec
+                {
+                    TenLoaiCongViec = tenLoaiCongViec,
+                    MoTa = string.IsNullOrWhiteSpace(moTa) ? string.Empty : moTa
+                };
+
+                var ketQua = _loaiCongViecRepository.ThemLoaiCongViec(loaiCongViec);
+                if (ketQua == null)
+                {
+                    return Json(new { success = false, message = "Có lỗi xảy ra khi thêm loại công việc!" });
+                }
+
+                return Json(new { success = true, message = "Thêm loại công việc thành công!", data = new { ma = ketQua.MaLoaiCongViec, ten = ketQua.TenLoaiCongViec, moTa = ketQua.MoTa, ngayTao = ketQua.NgayTao.ToString("dd/MM/yyyy") } });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CapNhatLoaiCongViec(int id, string tenLoaiCongViec, string? moTa)
+        {
+            try
+            {
+                var loaiCongViec = _loaiCongViecRepository.LayLoaiCongViecTheoId(id);
+                if (loaiCongViec == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy loại công việc!" });
+                }
+
+                if (string.IsNullOrWhiteSpace(tenLoaiCongViec))
+                {
+                    return Json(new { success = false, message = "Tên loại công việc không được để trống!" });
+                }
+
+                loaiCongViec.TenLoaiCongViec = tenLoaiCongViec;
+                loaiCongViec.MoTa = string.IsNullOrWhiteSpace(moTa) ? string.Empty : moTa;
+
+                var ketQua = _loaiCongViecRepository.CapNhatLoaiCongViec(loaiCongViec);
+                if (ketQua == null)
+                {
+                    return Json(new { success = false, message = "Có lỗi xảy ra khi cập nhật loại công việc!" });
+                }
+
+                return Json(new { success = true, message = "Cập nhật loại công việc thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult XoaLoaiCongViec(int id)
+        {
+            try
+            {
+                var loaiCongViec = _loaiCongViecRepository.LayLoaiCongViecTheoId(id);
+                if (loaiCongViec == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy loại công việc để xóa!" });
+                }
+
+                var ketQua = _loaiCongViecRepository.XoaLoaiCongViec(id);
+                if (!ketQua)
+                {
+                    return Json(new { success = false, message = "Không thể xóa loại công việc. Có thể do ràng buộc dữ liệu!" });
+                }
+
+                return Json(new { success = true, message = "Xóa loại công việc thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
+        public IActionResult ChuyenNganh()
+        {
+            var danhSachChuyenNganh = _chuyenNganhRepository.LayDanhSachChuyenNganh();
+            var danhSachNganhNghe = _nganhNgheRepository.LayDanhSachNganhNghe();
+            ViewBag.DanhSachNganhNghe = danhSachNganhNghe;
+            return View(danhSachChuyenNganh);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ThemChuyenNganh(string tenChuyenNganh, string? moTa, int maNganhNghe)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(tenChuyenNganh))
+                {
+                    return Json(new { success = false, message = "Tên chuyên ngành không được để trống!" });
+                }
+
+                var chuyenNganh = new ChuyenNganh
+                {
+                    TenChuyenNganh = tenChuyenNganh,
+                    MoTa = moTa,
+                    MaNganhNghe = maNganhNghe
+                };
+
+                var ketQua = _chuyenNganhRepository.ThemChuyenNganh(chuyenNganh);
+                if (ketQua == null)
+                {
+                    return Json(new { success = false, message = "Có lỗi xảy ra khi thêm chuyên ngành!" });
+                }
+
+                return Json(new { success = true, message = "Thêm chuyên ngành thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ThemNhieuChuyenNganh([FromBody] ThemNhieuChuyenNganhRequest request)
+        {
+            try
+            {
+                if (request == null || request.MaNganhNghe <= 0)
+                {
+                    return Json(new { success = false, message = "Vui lòng chọn ngành nghề!" });
+                }
+
+                if (request.DanhSachChuyenNganh == null || request.DanhSachChuyenNganh.Count == 0)
+                {
+                    return Json(new { success = false, message = "Vui lòng thêm ít nhất một chuyên ngành!" });
+                }
+
+                var danhSachThanhCong = new List<string>();
+                var danhSachLoi = new List<string>();
+
+                foreach (var input in request.DanhSachChuyenNganh)
+                {
+                    if (string.IsNullOrWhiteSpace(input.TenChuyenNganh))
+                    {
+                        danhSachLoi.Add("Có chuyên ngành chưa nhập tên");
+                        continue;
+                    }
+
+                    var chuyenNganh = new ChuyenNganh
+                    {
+                        TenChuyenNganh = input.TenChuyenNganh.Trim(),
+                        MoTa = string.IsNullOrWhiteSpace(input.MoTa) ? null : input.MoTa.Trim(),
+                        MaNganhNghe = request.MaNganhNghe
+                    };
+
+                    var ketQua = _chuyenNganhRepository.ThemChuyenNganh(chuyenNganh);
+                    if (ketQua != null)
+                    {
+                        danhSachThanhCong.Add(input.TenChuyenNganh);
+                    }
+                    else
+                    {
+                        danhSachLoi.Add(input.TenChuyenNganh);
+                    }
+                }
+
+                if (danhSachLoi.Count > 0 && danhSachThanhCong.Count == 0)
+                {
+                    return Json(new { success = false, message = "Không thể thêm bất kỳ chuyên ngành nào!" });
+                }
+
+                var message = $"Đã thêm thành công {danhSachThanhCong.Count} chuyên ngành";
+                if (danhSachLoi.Count > 0)
+                {
+                    message += $". Có {danhSachLoi.Count} chuyên ngành thất bại.";
+                }
+
+                return Json(new { success = true, message = message, count = danhSachThanhCong.Count });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
+        public class ChuyenNganhInput
+        {
+            public string TenChuyenNganh { get; set; } = string.Empty;
+            public string? MoTa { get; set; }
+        }
+
+        public class ThemNhieuChuyenNganhRequest
+        {
+            public int MaNganhNghe { get; set; }
+            public List<ChuyenNganhInput> DanhSachChuyenNganh { get; set; } = new();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CapNhatChuyenNganh(int id, string tenChuyenNganh, string? moTa, int maNganhNghe)
+        {
+            try
+            {
+                var chuyenNganh = _chuyenNganhRepository.LayChuyenNganhTheoId(id);
+                if (chuyenNganh == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy chuyên ngành!" });
+                }
+
+                if (string.IsNullOrWhiteSpace(tenChuyenNganh))
+                {
+                    return Json(new { success = false, message = "Tên chuyên ngành không được để trống!" });
+                }
+
+                chuyenNganh.TenChuyenNganh = tenChuyenNganh;
+                chuyenNganh.MoTa = moTa;
+                chuyenNganh.MaNganhNghe = maNganhNghe;
+
+                var ketQua = _chuyenNganhRepository.CapNhatChuyenNganh(chuyenNganh);
+                if (ketQua == null)
+                {
+                    return Json(new { success = false, message = "Có lỗi xảy ra khi cập nhật chuyên ngành!" });
+                }
+
+                return Json(new { success = true, message = "Cập nhật chuyên ngành thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult XoaChuyenNganh(int id)
+        {
+            try
+            {
+                var ketQua = _chuyenNganhRepository.XoaChuyenNganh(id);
+                if (!ketQua)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy chuyên ngành để xóa!" });
+                }
+
+                return Json(new { success = true, message = "Xóa chuyên ngành thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public IActionResult LayChuyenNganhTheoNganhNghe(int maNganhNghe)
+        {
+            try
+            {
+                var danhSachChuyenNganh = _chuyenNganhRepository.LayChuyenNganhTheoNganhNghe(maNganhNghe);
+                var ketQua = danhSachChuyenNganh.Select(c => new
+                {
+                    maChuyenNganh = c.MaChuyenNganh,
+                    tenChuyenNganh = c.TenChuyenNganh
+                }).ToList();
+
+                return Json(new { success = true, data = ketQua });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
         }
 
         public IActionResult TruongDaiHoc()

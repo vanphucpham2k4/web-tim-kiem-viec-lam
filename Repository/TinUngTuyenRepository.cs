@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Unicareer.Data;
 using Unicareer.Models;
+using Unicareer.Models.Enums;
 
 namespace Unicareer.Repository
 {
@@ -24,6 +25,18 @@ namespace Unicareer.Repository
         {
             return _context.TinUngTuyens
                 .FirstOrDefault(t => t.MaTinUngTuyen == id);
+        }
+
+        public TinUngTuyen ThemTinUngTuyen(TinUngTuyen tinUngTuyen)
+        {
+            tinUngTuyen.NgayUngTuyen = DateTime.Now;
+            if (string.IsNullOrEmpty(tinUngTuyen.TrangThaiXuLy))
+            {
+                tinUngTuyen.TrangThaiXuLy = TrangThaiXuLyHelper.ToString(TrangThaiXuLy.DangXemXet);
+            }
+            _context.TinUngTuyens.Add(tinUngTuyen);
+            _context.SaveChanges();
+            return tinUngTuyen;
         }
     }
 }

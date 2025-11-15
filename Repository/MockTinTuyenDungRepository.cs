@@ -278,6 +278,11 @@ namespace Unicareer.Repository
             return _danhSachTinTuyenDung.Where(t => t.CongTy.Equals(tenCongTy, StringComparison.OrdinalIgnoreCase)).ToList();
         }
 
+        public List<TinTuyenDung> LayDanhSachTheoMaNhaTuyenDung(int maNhaTuyenDung)
+        {
+            return _danhSachTinTuyenDung.Where(t => t.MaNhaTuyenDung == maNhaTuyenDung).ToList();
+        }
+
         public TinTuyenDung ThemTinTuyenDung(TinTuyenDung tinTuyenDung)
         {
             // Tạo mã tin mới (tăng dần từ số lớn nhất hiện có)
@@ -330,6 +335,18 @@ namespace Unicareer.Repository
             tinHienTai.Longitude = tinTuyenDung.Longitude;
 
             return tinHienTai;
+        }
+
+        public bool XoaTinTuyenDung(int id)
+        {
+            var tinTuyenDung = _danhSachTinTuyenDung.FirstOrDefault(t => t.MaTinTuyenDung == id);
+            if (tinTuyenDung == null)
+            {
+                return false;
+            }
+
+            _danhSachTinTuyenDung.Remove(tinTuyenDung);
+            return true;
         }
     }
 }

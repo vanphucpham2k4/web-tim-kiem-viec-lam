@@ -22,8 +22,10 @@ namespace Unicareer.Data
         public DbSet<NhaTuyenDung> NhaTuyenDungs { get; set; }
         public DbSet<TinTuyenDung> TinTuyenDungs { get; set; }
         public DbSet<TinUngTuyen> TinUngTuyens { get; set; }
+        public DbSet<ViecLamDaLuu> ViecLamDaLuus { get; set; }
         public DbSet<LoaiCongViec> LoaiCongViecs { get; set; }
         public DbSet<NganhNghe> NganhNghes { get; set; }
+        public DbSet<ChuyenNganh> ChuyenNganhs { get; set; }
         public DbSet<TruongDaiHoc> TruongDaiHocs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -120,6 +122,17 @@ namespace Unicareer.Data
                 .Property(t => t.MaTinTuyenDung)
                 .ValueGeneratedOnAdd();
 
+            // Cấu hình quan hệ TinTuyenDung -> NhaTuyenDung
+            builder.Entity<TinTuyenDung>()
+                .HasOne(t => t.NhaTuyenDung)
+                .WithMany()
+                .HasForeignKey(t => t.MaNhaTuyenDung)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<TinTuyenDung>()
+                .HasIndex(t => t.MaNhaTuyenDung)
+                .HasDatabaseName("idx_tintuyendung_nhatuyendung");
+
             // Cấu hình precision cho decimal fields
             builder.Entity<TinTuyenDung>()
                 .Property(t => t.MucLuongThapNhat)
@@ -127,6 +140,11 @@ namespace Unicareer.Data
 
             builder.Entity<TinTuyenDung>()
                 .Property(t => t.MucLuongCaoNhat)
+                .HasPrecision(18, 2);
+
+            // Cấu hình precision cho UngVien decimal fields
+            builder.Entity<UngVien>()
+                .Property(u => u.MucLuongKyVong)
                 .HasPrecision(18, 2);
 
             // Cấu hình primary key cho TinUngTuyen
@@ -153,6 +171,36 @@ namespace Unicareer.Data
                 .Property(n => n.MaNganhNghe)
                 .ValueGeneratedOnAdd();
 
+            // Cấu hình primary key và quan hệ cho ChuyenNganh
+            builder.Entity<ChuyenNganh>()
+                .HasKey(c => c.MaChuyenNganh);
+
+            builder.Entity<ChuyenNganh>()
+                .Property(c => c.MaChuyenNganh)
+                .ValueGeneratedOnAdd();
+
+            // ChuyenNganh -> NganhNghe
+            builder.Entity<ChuyenNganh>()
+                .HasOne(c => c.NganhNghe)
+                .WithMany()
+                .HasForeignKey(c => c.MaNganhNghe)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<ChuyenNganh>()
+                .HasIndex(c => c.MaNganhNghe)
+                .HasDatabaseName("idx_chuyennganh_nganhnghe");
+
+            // UngVien -> ChuyenNganh
+            builder.Entity<UngVien>()
+                .HasOne(u => u.ChuyenNganh)
+                .WithMany()
+                .HasForeignKey(u => u.MaChuyenNganh)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<UngVien>()
+                .HasIndex(u => u.MaChuyenNganh)
+                .HasDatabaseName("idx_ungvien_chuyennganh");
+
             // Cấu hình primary key cho TruongDaiHoc
             builder.Entity<TruongDaiHoc>()
                 .HasKey(t => t.MaTruong);
@@ -160,6 +208,42 @@ namespace Unicareer.Data
             builder.Entity<TruongDaiHoc>()
                 .Property(t => t.MaTruong)
                 .ValueGeneratedOnAdd();
+
+            // Cấu hình primary key và quan hệ cho ViecLamDaLuu
+            builder.Entity<ViecLamDaLuu>()
+                .HasKey(v => v.MaViecLamDaLuu);
+
+            builder.Entity<ViecLamDaLuu>()
+                .Property(v => v.MaViecLamDaLuu)
+                .ValueGeneratedOnAdd();
+
+            // ViecLamDaLuu -> ApplicationUser
+            builder.Entity<ViecLamDaLuu>()
+                .HasOne(v => v.User)
+                .WithMany()
+                .HasForeignKey(v => v.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // ViecLamDaLuu -> TinTuyenDung
+            builder.Entity<ViecLamDaLuu>()
+                .HasOne(v => v.TinTuyenDung)
+                .WithMany()
+                .HasForeignKey(v => v.MaTinTuyenDung)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Tạo index và unique constraint để tránh lưu trùng
+            builder.Entity<ViecLamDaLuu>()
+                .HasIndex(v => new { v.UserId, v.MaTinTuyenDung })
+                .IsUnique()
+                .HasDatabaseName("idx_vieclamdaluu_userid_matintuyendung");
+
+            builder.Entity<ViecLamDaLuu>()
+                .HasIndex(v => v.UserId)
+                .HasDatabaseName("idx_vieclamdaluu_userid");
+
+            builder.Entity<ViecLamDaLuu>()
+                .HasIndex(v => v.MaTinTuyenDung)
+                .HasDatabaseName("idx_vieclamdaluu_matintuyendung");
         }
     }
 }

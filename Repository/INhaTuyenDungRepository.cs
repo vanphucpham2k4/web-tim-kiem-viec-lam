@@ -7,6 +7,7 @@ namespace Unicareer.Repository
         List<NhaTuyenDung> LayDanhSachNhaTuyenDung();
         NhaTuyenDung? LayNhaTuyenDungTheoId(int id);
         NhaTuyenDung? LayNhaTuyenDungTheoTen(string tenCongTy);
+        NhaTuyenDung? LayNhaTuyenDungTheoUserId(string userId);
     }
 }
 

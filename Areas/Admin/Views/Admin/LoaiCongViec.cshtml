@@ -4,6 +4,8 @@
     ViewData["Title"] = "Quản lý Loại công việc";
 }
 
+@Html.AntiForgeryToken()
+
 <style>
     .loaicongviec-management-container {
         max-width: 1400px;
@@ -486,27 +488,44 @@
                 var tenLoaiCongViec = $('#tenLoaiCongViecMoi').val();
                 var moTa = $('#moTaMoi').val();
 
-                if (!tenLoaiCongViec || !moTa) {
-                    alert('Vui lòng nhập đầy đủ thông tin!');
+                if (!tenLoaiCongViec) {
+                    alert('Vui lòng nhập tên loại công việc!');
                     return;
                 }
 
-                alert('Đã thêm loại công việc: ' + tenLoaiCongViec);
-                $('#themLoaiCongViecModal').modal('hide');
-                $('#formThemLoaiCongViec')[0].reset();
+                $.ajax({
+                    url: '@Url.Action("ThemLoaiCongViec", "Admin", new { area = "Admin" })',
+                    type: 'POST',
+                    data: {
+                        tenLoaiCongViec: tenLoaiCongViec,
+                        moTa: moTa,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            alert(response.message);
+                            $('#themLoaiCongViecModal').modal('hide');
+                            $('#formThemLoaiCongViec')[0].reset();
+                            location.reload();
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Có lỗi xảy ra khi thêm loại công việc!');
+                    }
+                });
             });
 
             // Sua loai cong viec
-            $('.btn-sua').click(function() {
+            $(document).on('click', '.btn-sua', function() {
                 var ma = $(this).data('ma');
                 var ten = $(this).data('ten');
-                var moTa = $(this).data('mota');
-                var soLuong = $(this).data('soluong');
+                var moTa = $(this).data('mota') || '';
 
                 $('#maLoaiCongViecSua').val(ma);
                 $('#tenLoaiCongViecSua').val(ten);
                 $('#moTaSua').val(moTa);
-                $('#soLuongViTriSua').val(soLuong);
 
                 $('#suaLoaiCongViecModal').modal('show');
             });
@@ -514,17 +533,65 @@
             $('#btnCapNhatLoaiCongViec').click(function() {
                 var ma = $('#maLoaiCongViecSua').val();
                 var ten = $('#tenLoaiCongViecSua').val();
+                var moTa = $('#moTaSua').val();
 
-                alert('Đã cập nhật loại công việc mã ' + ma + ': ' + ten);
-                $('#suaLoaiCongViecModal').modal('hide');
+                if (!ten) {
+                    alert('Vui lòng nhập tên loại công việc!');
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("CapNhatLoaiCongViec", "Admin", new { area = "Admin" })',
+                    type: 'POST',
+                    data: {
+                        id: ma,
+                        tenLoaiCongViec: ten,
+                        moTa: moTa,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            alert(response.message);
+                            $('#suaLoaiCongViecModal').modal('hide');
+                            location.reload();
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Có lỗi xảy ra khi cập nhật loại công việc!');
+                    }
+                });
             });
 
             // Xoa loai cong viec
-            $('.btn-xoa').click(function() {
+            $(document).on('click', '.btn-xoa', function() {
                 var ma = $(this).data('ma');
+                var row = $(this).closest('tr');
+                
                 if (confirm('Bạn có chắc chắn muốn xóa loại công việc này?')) {
-                    alert('Đã xóa loại công việc mã ' + ma);
-                    $(this).closest('tr').fadeOut();
+                    $.ajax({
+                        url: '@Url.Action("XoaLoaiCongViec", "Admin", new { area = "Admin" })',
+                        type: 'POST',
+                        data: {
+                            id: ma,
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                alert(response.message);
+                                row.fadeOut(300, function() {
+                                    $(this).remove();
+                                    location.reload();
+                                });
+                            } else {
+                                alert(response.message);
+                            }
+                        },
+                        error: function() {
+                            alert('Có lỗi xảy ra khi xóa loại công việc!');
+                        }
+                    });
                 }
             });
         });

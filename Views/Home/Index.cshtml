@@ -330,8 +330,15 @@
         height: 60px;
         border-radius: 8px;
         object-fit: cover;
-        background: #f0f0f0;
+        background: #ffffff;
+        border: 1px solid #e0e0e0;
         flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: var(--accent-color);
+        font-size: 24px;
     }
     .job-info {
         flex: 1;
@@ -599,7 +606,7 @@
 <div class="search-section">
     <div class="search-container">
         <div class="search-bar">
-            <input type="text" class="search-input" placeholder="Tìm kiếm việc làm, chức vụ, kỹ năng, công ty...">
+            <input type="text" class="search-input" id="searchKeyword" placeholder="Tìm kiếm việc làm, chức vụ, kỹ năng, công ty, từ khóa...">
             <select class="dropdown" id="selectTinhThanh">
                 <option value="">Tỉnh/Thành Phố</option>
                 @{
@@ -623,26 +630,33 @@
     <div class="search-container" style="width: 100%; display: flex; gap: 15px; flex-wrap: wrap;">
         <select id="filterNganhNghe">
             <option value="">Ngành nghề</option>
-            <option value="Công nghệ thông tin">Công nghệ thông tin</option>
-            <option value="Kinh doanh">Kinh doanh</option>
-            <option value="Kế toán - Tài chính">Kế toán - Tài chính</option>
-            <option value="Thiết kế đồ họa">Thiết kế đồ họa</option>
-            <option value="Nhân sự">Nhân sự</option>
-            <option value="Truyền thông - Media">Truyền thông - Media</option>
+            @{
+                var danhSachNganhNghe = ViewBag.DanhSachNganhNghe as List<Unicareer.Models.NganhNghe> ?? new List<Unicareer.Models.NganhNghe>();
+            }
+            @foreach (var nganhNghe in danhSachNganhNghe)
+            {
+                <option value="@nganhNghe.TenNganhNghe">@nganhNghe.TenNganhNghe</option>
+            }
         </select>
         <select id="filterCapBac">
             <option value="">Cấp bậc</option>
-            <option value="Intern">Thực tập sinh</option>
-            <option value="Junior">Nhân viên</option>
-            <option value="Senior">Nhân viên cấp cao</option>
-            <option value="Manager">Quản lý</option>
+            @{
+                var danhSachCapBac = ViewBag.DanhSachCapBac as List<string> ?? new List<string>();
+            }
+            @foreach (var capBac in danhSachCapBac)
+            {
+                <option value="@capBac">@capBac</option>
+            }
         </select>
         <select id="filterKinhNghiem">
             <option value="">Kinh nghiệm</option>
-            <option value="Không yêu cầu">Không yêu cầu</option>
-            <option value="Dưới 1 năm">Dưới 1 năm</option>
-            <option value="1-3 năm">1-3 năm</option>
-            <option value="Trên 3 năm">Trên 3 năm</option>
+            @{
+                var danhSachKinhNghiem = ViewBag.DanhSachKinhNghiem as List<string> ?? new List<string>();
+            }
+            @foreach (var kinhNghiem in danhSachKinhNghiem)
+            {
+                <option value="@kinhNghiem">@kinhNghiem</option>
+            }
         </select>
         <select id="filterMucLuong">
             <option value="">Mức lương</option>
@@ -653,10 +667,13 @@
         </select>
         <select id="filterLoaiCongViec">
             <option value="">Loại công việc</option>
-            <option value="Full-time">Toàn thời gian</option>
-            <option value="Part-time">Bán thời gian</option>
-            <option value="Internship">Thực tập</option>
-            <option value="Freelance">Tự do</option>
+            @{
+                var danhSachLoaiCongViec = ViewBag.DanhSachLoaiCongViec as List<Unicareer.Models.LoaiCongViec> ?? new List<Unicareer.Models.LoaiCongViec>();
+            }
+            @foreach (var loaiCongViec in danhSachLoaiCongViec)
+            {
+                <option value="@loaiCongViec.TenLoaiCongViec">@loaiCongViec.TenLoaiCongViec</option>
+            }
         </select>
     </div>
 </div>
@@ -664,12 +681,13 @@
 <!-- Quick Links -->
 <div class="quick-links">
     <strong>Gợi Ý Tìm Kiếm:</strong>
-    <button class="quick-link-btn">Việc làm thực tập</button>
-    <button class="quick-link-btn">Việc làm theo trường</button>
-    <button class="quick-link-btn">Việc làm online</button>
-    <button class="quick-link-btn">Việc làm thời vụ</button>
-    <button class="quick-link-btn">Việc làm Full Time</button>
-    <button class="quick-link-btn">Việc làm mới nhất</button>
+    @{
+        var danhSachGoiYTimKiem = ViewBag.DanhSachGoiYTimKiem as List<Unicareer.Models.GoiYTimKiem> ?? new List<Unicareer.Models.GoiYTimKiem>();
+    }
+    @foreach (var goiY in danhSachGoiYTimKiem)
+    {
+        <a href="@goiY.Url" class="quick-link-btn" style="text-decoration: none; display: inline-block;">@goiY.Text</a>
+    }
 </div>
 
 <!-- Banner Section -->
@@ -790,7 +808,20 @@
                         <span class="job-badge badge-urgent" style="position: absolute; top: 15px; right: 15px;">KHẨN CẤP</span>
                     }
                     <div class="job-header">
-                        <img src="https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=100" alt="@job.CongTy" class="job-company-logo">
+                        @{
+                            var companyLogos = ViewBag.CompanyLogos as Dictionary<string, string?>;
+                            var companyLogo = companyLogos?.ContainsKey(job.CongTy) == true ? companyLogos[job.CongTy] : null;
+                        }
+                        @if (!string.IsNullOrEmpty(companyLogo))
+                        {
+                            <img src="@companyLogo" alt="@job.CongTy" class="job-company-logo">
+                        }
+                        else
+                        {
+                            <div class="job-company-logo" style="width: 100px; height: 100px; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: var(--accent-color); font-weight: bold; font-size: 36px;">
+                                @job.CongTy.Substring(0, 1)
+                            </div>
+                        }
                         <div class="job-info">
                             <h3 class="job-title">@job.TenViecLam</h3>
                             <div class="job-company">@job.CongTy</div>
@@ -818,6 +849,127 @@
     </div>
     <a href="/Home/TimViec" class="view-more-btn" style="text-decoration: none;">Xem Thêm Việc Làm</a>
 </div>
+
+<!-- Candidates Section -->
+@if (User.IsInRole(Unicareer.Models.SD.Role_NhaTuyenDung) || User.IsInRole(Unicareer.Models.SD.Role_Admin))
+{
+    <div class="candidates-section" style="max-width: 1400px; margin: 60px auto; padding: 0 20px;">
+        <h2 style="font-size: 28px; margin-bottom: 30px; color: #333; display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 32px;">👥</span>
+            Ứng Viên Nổi Bật
+        </h2>
+        <div class="candidates-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px; margin-bottom: 30px;">
+            @{
+                var danhSachUngVienCongKhai = ViewBag.DanhSachUngVienCongKhai as List<Unicareer.Models.UngVien> ?? new List<Unicareer.Models.UngVien>();
+            }
+            @if (danhSachUngVienCongKhai.Any())
+            {
+                @foreach (var ungVien in danhSachUngVienCongKhai)
+                {
+                    <div class="candidate-card" style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.3s; cursor: pointer; border: 2px solid transparent; position: relative; overflow: hidden;">
+                        <div class="candidate-header" style="display: flex; align-items: flex-start; gap: 15px; margin-bottom: 15px;">
+                            <div class="candidate-avatar" style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #2ecc71, #27ae60); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 24px; flex-shrink: 0;">
+                                @if (!string.IsNullOrEmpty(ungVien.User?.Avatar))
+                                {
+                                    <img src="@ungVien.User.Avatar" alt="@ungVien.HoTen" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                }
+                                else
+                                {
+                                    @ungVien.HoTen.Substring(0, Math.Min(2, ungVien.HoTen.Length)).ToUpper()
+                                }
+                            </div>
+                            <div class="candidate-info" style="flex: 1;">
+                                <h3 class="candidate-name" style="font-size: 18px; font-weight: bold; color: #333; margin-bottom: 5px; line-height: 1.3;">@ungVien.HoTen</h3>
+                                @if (!string.IsNullOrEmpty(ungVien.ViTriMongMuon))
+                                {
+                                    <div class="candidate-position" style="font-size: 14px; color: #666; margin-bottom: 8px;">@ungVien.ViTriMongMuon</div>
+                                }
+                                @if (!string.IsNullOrEmpty(ungVien.NoiLamViecMongMuon))
+                                {
+                                    <div class="candidate-location" style="font-size: 13px; color: #999; display: flex; align-items: center; gap: 5px;">📍 @ungVien.NoiLamViecMongMuon</div>
+                                }
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(ungVien.MoTaBanThan))
+                        {
+                            <div class="candidate-description" style="font-size: 14px; color: #666; line-height: 1.6; margin-bottom: 15px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                @ungVien.MoTaBanThan
+                            </div>
+                        }
+                        <div class="candidate-badges" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;">
+                            @if (ungVien.MucLuongKyVong.HasValue)
+                            {
+                                <span class="candidate-badge" style="padding: 5px 12px; border-radius: 15px; font-size: 12px; font-weight: 600; background: #e8f8f5; color: #27ae60;">
+                                    @ungVien.MucLuongKyVong.Value.ToString("N0") triệu
+                                </span>
+                            }
+                            @if (!string.IsNullOrEmpty(ungVien.TrangThaiTimViec))
+                            {
+                                <span class="candidate-badge" style="padding: 5px 12px; border-radius: 15px; font-size: 12px; font-weight: 600; background: #d1ecf1; color: #0c5460;">
+                                    @ungVien.TrangThaiTimViec
+                                </span>
+                            }
+                            @if (ungVien.ChuyenNganh != null)
+                            {
+                                <span class="candidate-badge" style="padding: 5px 12px; border-radius: 15px; font-size: 12px; font-weight: 600; background: #fff3cd; color: #856404;">
+                                    @ungVien.ChuyenNganh.TenChuyenNganh
+                                </span>
+                            }
+                        </div>
+                        <div class="candidate-footer" style="display: flex; justify-content: space-between; align-items: center; padding-top: 15px; border-top: 1px solid #eee;">
+                            <span class="candidate-posted" style="font-size: 12px; color: #999;">
+                                Đăng ký @ungVien.NgayDangKy.ToString("dd/MM/yyyy")
+                            </span>
+                            <button class="candidate-view-btn" style="padding: 8px 20px; background: linear-gradient(135deg, #2ecc71, #27ae60); color: white; border: none; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.3s;">
+                                Xem hồ sơ
+                            </button>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12 text-center text-muted" style="padding: 40px; grid-column: 1 / -1;">
+                    <p>Hiện chưa có ứng viên nào đăng hồ sơ công khai</p>
+                </div>
+            }
+        </div>
+    </div>
+    
+    <style>
+        .candidate-card {
+            position: relative;
+        }
+        .candidate-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            transform: scaleY(0);
+            transition: transform 0.3s;
+        }
+        .candidate-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(46, 204, 113, 0.2);
+            border-color: #2ecc71;
+        }
+        .candidate-card:hover::before {
+            transform: scaleY(1);
+        }
+        .candidate-view-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4);
+        }
+        @@media (max-width: 768px) {
+            .candidates-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+}
 
 <!-- Blog Section -->
 <div class="blog-section">
@@ -997,9 +1149,9 @@
         loadWardsByProvince(selectTinhThanh.value);
     }
     
-    // Search button handler
-    document.querySelector('.search-btn').addEventListener('click', function() {
-        const searchValue = document.querySelector('.search-input').value;
+    // Function to perform search
+    function performSearch() {
+        const searchValue = document.getElementById('searchKeyword').value.trim();
         const tinhThanh = selectTinhThanh.value;
         const quanHuyen = selectQuanHuyen.value;
         
@@ -1023,6 +1175,19 @@
             window.location.href = searchUrl + params.join('&');
         } else {
             window.location.href = '/Home/TimViec';
+        }
+    }
+    
+    // Search button handler
+    document.querySelector('.search-btn').addEventListener('click', function() {
+        performSearch();
+    });
+    
+    // Enter key handler for search input
+    document.getElementById('searchKeyword').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            performSearch();
         }
     });
     

@@ -181,7 +181,7 @@
             </div>
             <div class="stat-info">
                 <h6 class="stat-label">TB ứng tuyển/người</h6>
-                <h3 class="stat-number">@((int)Model.Average(u => u.SoLanUngTuyen))</h3>
+                <h3 class="stat-number">@(Model.Any() ? ((int)Model.Average(u => u.SoLanUngTuyen)) : 0)</h3>
             </div>
         </div>
     </div>

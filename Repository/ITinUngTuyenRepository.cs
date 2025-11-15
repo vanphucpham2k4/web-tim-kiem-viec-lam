@@ -6,6 +6,7 @@ namespace Unicareer.Repository
     {
         List<TinUngTuyen> LayDanhSachTinUngTuyen();
         TinUngTuyen? LayTinUngTuyenTheoId(int id);
+        TinUngTuyen ThemTinUngTuyen(TinUngTuyen tinUngTuyen);
     }
 }
 

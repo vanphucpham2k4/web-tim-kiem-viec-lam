@@ -14,12 +14,18 @@ namespace Unicareer.Models
         public string? Website { get; set; }
         public string? NguoiDaiDien { get; set; }
         public string? ChucVu { get; set; }
+        public string? SoDienThoaiNguoiDaiDien { get; set; }
+        public string? EmailNguoiDaiDien { get; set; }
         public string? LinhVuc { get; set; }
         public string? MoTa { get; set; }
         public string? Logo { get; set; }
         public int SoTinDaDang { get; set; }
         public int SoUngVienNhan { get; set; }
         public DateTime NgayDangKy { get; set; }
+        
+        // Geolocation
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
     }
 }
 

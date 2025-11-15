@@ -33,6 +33,13 @@ namespace Unicareer.Repository
                 .Include(n => n.User)
                 .FirstOrDefault(n => n.TenCongTy != null && n.TenCongTy.ToLower() == tenCongTy.ToLower());
         }
+
+        public NhaTuyenDung? LayNhaTuyenDungTheoUserId(string userId)
+        {
+            return _context.NhaTuyenDungs
+                .Include(n => n.User)
+                .FirstOrDefault(n => n.UserId == userId);
+        }
     }
 }
 

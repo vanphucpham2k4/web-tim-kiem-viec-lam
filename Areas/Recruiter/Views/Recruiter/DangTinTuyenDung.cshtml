@@ -169,6 +169,118 @@
             transform: translateY(0);
         }
     }
+
+    /* Image Preview Styles */
+    .image-preview-container {
+        margin-top: 20px;
+        padding: 20px;
+        background: #f7fafc;
+        border-radius: 12px;
+        border: 2px dashed #cbd5e0;
+    }
+
+    .image-preview-container.has-images {
+        border: 2px solid #667eea;
+        background: #ffffff;
+    }
+
+    .preview-section-title {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 15px;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .preview-section-title i {
+        color: #667eea;
+    }
+
+    .preview-images-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+    }
+
+    .preview-image-item {
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        aspect-ratio: 4/3;
+        background: #ffffff;
+        border: 2px solid #e2e8f0;
+        transition: all 0.3s ease;
+    }
+
+    .preview-image-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .preview-image-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .preview-image-item .remove-btn {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: rgba(245, 101, 101, 0.9);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 1.2rem;
+        transition: all 0.3s ease;
+        z-index: 10;
+        font-weight: bold;
+        line-height: 1;
+    }
+
+    .preview-image-item .remove-btn:hover {
+        background: rgba(229, 62, 62, 1);
+        transform: scale(1.1);
+    }
+
+    .preview-image-item .image-label {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(180deg, transparent 0%, rgba(72, 187, 120, 0.8) 100%);
+        color: white;
+        padding: 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .no-preview {
+        text-align: center;
+        padding: 30px;
+        color: #a0aec0;
+    }
+
+    .no-preview i {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        opacity: 0.5;
+    }
+
+    .no-preview p {
+        margin: 0;
+        font-size: 0.9rem;
+    }
 </style>
 
 <div class="page-header">
@@ -214,30 +326,43 @@
             <div class="form-section">
                 <h4><i class="bi bi-file-text"></i> Mô tả công việc</h4>
                 
+                @{
+                    var danhSachNganhNghe = ViewBag.DanhSachNganhNghe as List<Unicareer.Models.NganhNghe> ?? new List<Unicareer.Models.NganhNghe>();
+                    var danhSachChuyenNganh = ViewBag.DanhSachChuyenNganh as List<Unicareer.Models.ChuyenNganh> ?? new List<Unicareer.Models.ChuyenNganh>();
+                }
+                
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label asp-for="NganhNghe" class="form-label required-label">Ngành nghề</label>
-                        <select asp-for="NganhNghe" class="form-select" required>
+                        <select asp-for="NganhNghe" class="form-select" id="nganhNgheSelect" required>
                             <option value="">Chọn ngành nghề</option>
-                            <option value="Cong nghe thong tin">Công nghệ thông tin</option>
-                            <option value="Kinh doanh">Kinh doanh</option>
-                            <option value="Ke toan - Tai chinh">Kế toán - Tài chính</option>
-                            <option value="Nhan su">Nhân sự</option>
-                            <option value="Marketing">Marketing</option>
-                            <option value="Thiet ke do hoa">Thiết kế đồ họa</option>
-                            <option value="Truyen thong - Media">Truyền thông - Media</option>
+                            @foreach (var nganhNghe in danhSachNganhNghe)
+                            {
+                                var isSelected = Model?.NganhNghe == nganhNghe.TenNganhNghe;
+                                <option value="@nganhNghe.TenNganhNghe" data-ma="@nganhNghe.MaNganhNghe" selected="@isSelected">@nganhNghe.TenNganhNghe</option>
+                            }
                         </select>
                         <span asp-validation-for="NganhNghe" class="text-danger"></span>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label asp-for="NganhNgheChiTiet" class="form-label">Ngành nghề chi tiết</label>
-                        <select asp-for="NganhNgheChiTiet" class="form-select">
-                            <option value="">Chọn ngành nghề chi tiết</option>
-                            <option value="Web Developer">Web Developer</option>
-                            <option value="Mobile Developer">Mobile Developer</option>
-                            <option value="Data Analyst">Data Analyst</option>
-                            <option value="UI/UX Designer">UI/UX Designer</option>
+                        <label asp-for="NganhNgheChiTiet" class="form-label">Chuyên ngành</label>
+                        <select asp-for="NganhNgheChiTiet" class="form-select" id="chuyenNganhSelect">
+                            <option value="">Chọn chuyên ngành</option>
+                            @if (!string.IsNullOrEmpty(Model?.NganhNghe))
+                            {
+                                var selectedNganhNghe = danhSachNganhNghe.FirstOrDefault(n => n.TenNganhNghe == Model.NganhNghe);
+                                if (selectedNganhNghe != null)
+                                {
+                                    var chuyenNganhTheoNganhNghe = danhSachChuyenNganh.Where(c => c.MaNganhNghe == selectedNganhNghe.MaNganhNghe).ToList();
+                                    foreach (var chuyenNganh in chuyenNganhTheoNganhNghe)
+                                    {
+                                        var isSelected = Model.NganhNgheChiTiet == chuyenNganh.TenChuyenNganh;
+                                        <option value="@chuyenNganh.TenChuyenNganh" selected="@isSelected">@chuyenNganh.TenChuyenNganh</option>
+                                    }
+                                }
+                            }
                         </select>
+                        <small class="text-muted"><i class="bi bi-info-circle"></i> Vui lòng chọn ngành nghề trước</small>
                     </div>
                 </div>
 
@@ -246,11 +371,13 @@
                         <label asp-for="LoaiCongViec" class="form-label required-label">Hình thức làm việc</label>
                         <select asp-for="LoaiCongViec" class="form-select" required>
                             <option value="">Chọn hình thức</option>
-                            <option value="Full-time">Full-time</option>
-                            <option value="Part-time">Part-time</option>
-                            <option value="Internship">Internship</option>
-                            <option value="Remote">Remote</option>
-                            <option value="Hybrid">Hybrid</option>
+                            @{
+                                var danhSachLoaiCongViec = ViewBag.DanhSachLoaiCongViec as List<Unicareer.Models.LoaiCongViec> ?? new List<Unicareer.Models.LoaiCongViec>();
+                            }
+                            @foreach (var loaiCongViec in danhSachLoaiCongViec)
+                            {
+                                <option value="@loaiCongViec.TenLoaiCongViec">@loaiCongViec.TenLoaiCongViec</option>
+                            }
                         </select>
                         <span asp-validation-for="LoaiCongViec" class="text-danger"></span>
                     </div>
@@ -258,11 +385,17 @@
                         <label class="form-label">Kinh nghiệm làm việc</label>
                         <select class="form-select" name="KinhNghiem">
                             <option value="">Chọn kinh nghiệm</option>
-                            <option value="Khong yeu cau">Không yêu cầu</option>
-                            <option value="Duoi 1 nam">Dưới 1 năm</option>
-                            <option value="1-2 nam">1-2 năm</option>
-                            <option value="2-5 nam">2-5 năm</option>
-                            <option value="Tren 5 nam">Trên 5 năm</option>
+                            @foreach (var kn in Unicareer.Models.DropdownOptions.KinhNghiem)
+                            {
+                                @if (Model?.KinhNghiem == kn)
+                                {
+                                    <option value="@kn" selected>@kn</option>
+                                }
+                                else
+                                {
+                                    <option value="@kn">@kn</option>
+                                }
+                            }
                         </select>
                     </div>
                 </div>
@@ -272,10 +405,17 @@
                         <label asp-for="ViTri" class="form-label required-label">Vị trí</label>
                         <select asp-for="ViTri" class="form-select" required>
                             <option value="">Chọn vị trí</option>
-                            <option value="Nhan vien">Nhân viên</option>
-                            <option value="Truong nhom">Trưởng nhóm</option>
-                            <option value="Quan ly">Quản lý</option>
-                            <option value="Giam doc">Giám đốc</option>
+                            @foreach (var vt in Unicareer.Models.DropdownOptions.ViTri)
+                            {
+                                @if (Model?.ViTri == vt)
+                                {
+                                    <option value="@vt" selected>@vt</option>
+                                }
+                                else
+                                {
+                                    <option value="@vt">@vt</option>
+                                }
+                            }
                         </select>
                         <span asp-validation-for="ViTri" class="text-danger"></span>
                     </div>
@@ -283,11 +423,17 @@
                         <label class="form-label">Ngoại ngữ</label>
                         <select class="form-select" name="NgoaiNgu">
                             <option value="">Chọn ngoại ngữ</option>
-                            <option value="Khong yeu cau">Không yêu cầu</option>
-                            <option value="Tieng Anh">Tiếng Anh</option>
-                            <option value="Tieng Nhat">Tiếng Nhật</option>
-                            <option value="Tieng Han">Tiếng Hàn</option>
-                            <option value="Tieng Trung">Tiếng Trung</option>
+                            @foreach (var nn in Unicareer.Models.DropdownOptions.NgoaiNgu)
+                            {
+                                @if (Model?.NgoaiNgu == nn)
+                                {
+                                    <option value="@nn" selected>@nn</option>
+                                }
+                                else
+                                {
+                                    <option value="@nn">@nn</option>
+                                }
+                            }
                         </select>
                     </div>
                 </div>
@@ -432,8 +578,25 @@
                 <div class="mb-3">
                     <label class="form-label">Tải lên hình ảnh</label>
                     <input type="file" class="form-control" name="AnhVanPhong" 
-                           accept="image/*" multiple>
+                           id="anhVanPhongInput" accept="image/*" multiple>
                     <small class="text-muted"><i class="bi bi-info-circle"></i> Có thể chọn nhiều ảnh. Định dạng: JPG, PNG, GIF</small>
+                </div>
+                
+                <!-- Preview Area -->
+                <div id="imagePreviewContainer" class="image-preview-container">
+                    <!-- Preview Images -->
+                    <div id="previewImagesSection" class="preview-section" style="display: none;">
+                        <div class="preview-section-title">
+                            <i class="bi bi-image"></i> Ảnh đã chọn
+                        </div>
+                        <div id="previewImagesGrid" class="preview-images-grid"></div>
+                    </div>
+                    
+                    <!-- No Preview Message -->
+                    <div id="noPreviewMessage" class="no-preview">
+                        <i class="bi bi-image"></i>
+                        <p>Chưa có ảnh để xem trước. Chọn ảnh để xem preview.</p>
+                    </div>
                 </div>
             </div>
 
@@ -590,6 +753,67 @@
 
     <script>
         $(document).ready(function() {
+            // Function to load chuyên ngành
+            function loadChuyenNganh(maNganhNghe, selectedValue) {
+                var $chuyenNganhSelect = $('#chuyenNganhSelect');
+                
+                if (maNganhNghe) {
+                    // Show loading
+                    $chuyenNganhSelect.prop('disabled', true);
+                    $chuyenNganhSelect.html('<option value="">Đang tải...</option>');
+                    
+                    // Load chuyên ngành từ server
+                    $.ajax({
+                        url: '@Url.Action("LayChuyenNganhTheoNganhNghe", "Recruiter", new { area = "Recruiter" })',
+                        type: 'GET',
+                        data: { maNganhNghe: maNganhNghe },
+                        success: function(response) {
+                            $chuyenNganhSelect.html('<option value="">Chọn chuyên ngành</option>');
+                            
+                            if (response.success && response.data && response.data.length > 0) {
+                                response.data.forEach(function(chuyenNganh) {
+                                    var isSelected = selectedValue && selectedValue === chuyenNganh.tenChuyenNganh;
+                                    var option = $('<option></option>')
+                                        .attr('value', chuyenNganh.tenChuyenNganh)
+                                        .text(chuyenNganh.tenChuyenNganh);
+                                    if (isSelected) {
+                                        option.prop('selected', true);
+                                    }
+                                    $chuyenNganhSelect.append(option);
+                                });
+                            } else {
+                                $chuyenNganhSelect.html('<option value="">Không có chuyên ngành</option>');
+                            }
+                            
+                            $chuyenNganhSelect.prop('disabled', false);
+                        },
+                        error: function() {
+                            $chuyenNganhSelect.html('<option value="">Lỗi tải dữ liệu</option>');
+                            $chuyenNganhSelect.prop('disabled', false);
+                        }
+                    });
+                } else {
+                    $chuyenNganhSelect.html('<option value="">Chọn chuyên ngành</option>');
+                    $chuyenNganhSelect.prop('disabled', false);
+                }
+            }
+
+            // Load chuyên ngành khi chọn ngành nghề
+            $('#nganhNgheSelect').change(function() {
+                var maNganhNghe = $(this).find('option:selected').data('ma');
+                loadChuyenNganh(maNganhNghe, null);
+            });
+
+            // Load chuyên ngành khi trang load (nếu đã có giá trị)
+            var selectedNganhNghe = $('#nganhNgheSelect option:selected');
+            if (selectedNganhNghe.length > 0 && selectedNganhNghe.val()) {
+                var maNganhNghe = selectedNganhNghe.data('ma');
+                var selectedChuyenNganh = $('#chuyenNganhSelect option:selected').val();
+                if (maNganhNghe) {
+                    loadChuyenNganh(maNganhNghe, selectedChuyenNganh);
+                }
+            }
+
             // Initialize CKEditor 5 for all textareas with class ckeditor
             let editors = {};
             
@@ -634,9 +858,181 @@
                 console.error('CKEditor ClassicEditor is not loaded. Please check CDN link.');
             }
             
+            // Image Preview Variables
+            var selectedImageFiles = [];
+            var imagePreviews = [];
+
+            // Update file input with remaining files
+            function updateFileInput() {
+                var $input = $('#anhVanPhongInput');
+                if ($input.length > 0 && typeof DataTransfer !== 'undefined') {
+                    try {
+                        var dt = new DataTransfer();
+                        selectedImageFiles.forEach(function(file) {
+                            dt.items.add(file);
+                        });
+                        $input[0].files = dt.files;
+                    } catch (e) {
+                        // Fallback: if DataTransfer is not supported, we'll rely on form submission
+                        console.log('DataTransfer not supported, files will be submitted as selected');
+                    }
+                }
+            }
+
+            // Handle file input change for image preview
+            $('#anhVanPhongInput').on('change', function(e) {
+                var files = e.target.files;
+                if (!files || files.length === 0) {
+                    return;
+                }
+                
+                // Filter only image files
+                var imageFiles = Array.from(files).filter(function(file) {
+                    return file.type && file.type.startsWith('image/');
+                });
+                
+                if (imageFiles.length === 0) {
+                    alert('Vui lòng chọn file ảnh hợp lệ (JPG, PNG, GIF)');
+                    // Reset input
+                    $(this).val('');
+                    return;
+                }
+                
+                // Add new files to array (merge with existing, avoid duplicates)
+                var filesToAdd = [];
+                imageFiles.forEach(function(file) {
+                    // Check if file already exists by name and size
+                    var exists = selectedImageFiles.some(function(existingFile) {
+                        return existingFile.name === file.name && existingFile.size === file.size;
+                    });
+                    if (!exists) {
+                        filesToAdd.push(file);
+                    }
+                });
+                
+                // Add new files to selectedImageFiles array
+                selectedImageFiles = selectedImageFiles.concat(filesToAdd);
+                
+                // Read each new file and create preview
+                if (filesToAdd.length > 0) {
+                    var readCount = 0;
+                    var totalToRead = filesToAdd.length;
+                    
+                    filesToAdd.forEach(function(file) {
+                        var reader = new FileReader();
+                        reader.onload = function(e) {
+                            imagePreviews.push({
+                                file: file,
+                                url: e.target.result,
+                                index: imagePreviews.length
+                            });
+                            readCount++;
+                            
+                            // Update indices for all previews
+                            imagePreviews.forEach(function(p, i) {
+                                p.index = i;
+                            });
+                            
+                            // Render when all files are read
+                            if (readCount === totalToRead) {
+                                renderImagePreviews();
+                                // Update file input after rendering
+                                updateFileInput();
+                            }
+                        };
+                        reader.onerror = function() {
+                            readCount++;
+                            console.error('Error reading file:', file.name);
+                            // Remove file from array if error
+                            var fileIndex = selectedImageFiles.indexOf(file);
+                            if (fileIndex > -1) {
+                                selectedImageFiles.splice(fileIndex, 1);
+                            }
+                            if (readCount === totalToRead) {
+                                renderImagePreviews();
+                                updateFileInput();
+                            }
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                } else {
+                    // All files already exist, just render
+                    renderImagePreviews();
+                    updateFileInput();
+                }
+                
+                // Reset input value to allow selecting same files again
+                $(this).val('');
+            });
+
+            // Render image previews
+            function renderImagePreviews() {
+                var $grid = $('#previewImagesGrid');
+                var $container = $('#imagePreviewContainer');
+                $grid.empty();
+                
+                if (imagePreviews.length > 0) {
+                    $('#previewImagesSection').show();
+                    $('#noPreviewMessage').hide();
+                    $container.addClass('has-images');
+                    
+                    imagePreviews.forEach(function(preview, index) {
+                        var $item = $('<div class="preview-image-item" data-index="' + index + '">' +
+                            '<img src="' + preview.url + '" alt="Ảnh đã chọn">' +
+                            '<button type="button" class="remove-btn" data-index="' + index + '" title="Xóa ảnh">×</button>' +
+                            '<div class="image-label">Ảnh ' + (index + 1) + '</div>' +
+                            '</div>');
+                        $grid.append($item);
+                    });
+                    
+                    // Attach remove handlers
+                    $('.preview-image-item .remove-btn').off('click').on('click', function(e) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        var index = parseInt($(this).data('index'));
+                        removeImage(index);
+                    });
+                } else {
+                    $('#previewImagesSection').hide();
+                    $('#noPreviewMessage').show();
+                    $container.removeClass('has-images');
+                }
+            }
+
+            // Remove image
+            function removeImage(index) {
+                if (index < 0 || index >= imagePreviews.length) {
+                    return;
+                }
+                
+                // Get the file to remove
+                var fileToRemove = imagePreviews[index].file;
+                
+                // Remove from imagePreviews array
+                imagePreviews.splice(index, 1);
+                
+                // Remove from selectedImageFiles array
+                var fileIndex = selectedImageFiles.indexOf(fileToRemove);
+                if (fileIndex > -1) {
+                    selectedImageFiles.splice(fileIndex, 1);
+                }
+                
+                // Update indices for all previews
+                imagePreviews.forEach(function(p, i) {
+                    p.index = i;
+                });
+                
+                // Update file input
+                updateFileInput();
+                renderImagePreviews();
+            }
+            
             // Update form submission to sync editor data and validate
             $('#formDangTin').on('submit', function(e) {
                 var valid = true;
+                
+                // Update file input before submit to ensure all selected files are included
+                updateFileInput();
                 
                 // Sync all editors before submit
                 Object.keys(editors).forEach(function(fieldName) {
@@ -664,7 +1060,8 @@
                     // Show success message
                     console.log('Form data:', {
                         latitude: $('#latitude').val(),
-                        longitude: $('#longitude').val()
+                        longitude: $('#longitude').val(),
+                        imageCount: selectedImageFiles.length
                     });
                 }
             });

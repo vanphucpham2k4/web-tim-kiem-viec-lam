@@ -265,6 +265,8 @@
     }
 </style>
 
+@Html.AntiForgeryToken()
+
 <div class="page-header">
     <h1><i class="bi bi-list-check"></i> Quản lý tin tuyển dụng</h1>
     <p>Xem và quản lý tất cả các tin tuyển dụng đã đăng</p>
@@ -335,10 +337,7 @@
                                         <a href="@Url.Action("ChiTietTinDaDang", "Recruiter", new { id = tin.MaTinTuyenDung })" class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
                                             <i class="bi bi-eye"></i>
                                         </a>
-                                        <button class="btn btn-sm btn-outline-warning" title="Chỉnh sửa">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-danger" title="Xóa">
+                                        <button class="btn btn-sm btn-outline-danger btn-xoa-tin" data-id="@tin.MaTinTuyenDung" data-title="@tin.TenViecLam" title="Xóa">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </td>
@@ -429,20 +428,79 @@
             $('#locTrangThai').on('change', filterTable);
             
             // Add confirmation for delete buttons
-            $('.btn-outline-danger').on('click', function(e) {
+            $('.btn-xoa-tin').on('click', function(e) {
                 e.preventDefault();
-                var row = $(this).closest('tr');
-                var jobTitle = row.find('td:eq(1) strong').text();
+                var button = $(this);
+                var row = button.closest('tr');
+                var tinId = button.data('id');
+                var jobTitle = button.data('title');
                 
-                if (confirm('Bạn có chắc chắn muốn xóa tin tuyển dụng "' + jobTitle + '" không?')) {
-                    // Add delete logic here
-                    row.fadeOut(400, function() {
-                        $(this).remove();
-                        // Show success notification
-                        showNotification('Đã xóa tin tuyển dụng thành công!', 'success');
+                if (confirm('Bạn có chắc chắn muốn xóa tin tuyển dụng "' + jobTitle + '" không?\n\nLưu ý: Tất cả đơn ứng tuyển liên quan cũng sẽ bị xóa.')) {
+                    // Disable button to prevent double click
+                    button.prop('disabled', true);
+                    
+                    // Get anti-forgery token
+                    var token = $('input[name="__RequestVerificationToken"]').val();
+                    
+                    // Call API to delete
+                    $.ajax({
+                        url: '@Url.Action("XoaTinTuyenDung", "Recruiter")',
+                        type: 'POST',
+                        headers: {
+                            'RequestVerificationToken': token
+                        },
+                        data: {
+                            id: tinId,
+                            __RequestVerificationToken: token
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                // Remove row with animation
+                                row.fadeOut(400, function() {
+                                    $(this).remove();
+                                    // Update stats
+                                    updateStats();
+                                    // Show success notification
+                                    showNotification(response.message || 'Đã xóa tin tuyển dụng thành công!', 'success');
+                                });
+                            } else {
+                                // Show error notification
+                                showNotification(response.message || 'Có lỗi xảy ra khi xóa tin!', 'error');
+                                button.prop('disabled', false);
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            // Show error notification
+                            showNotification('Có lỗi xảy ra khi xóa tin: ' + error, 'error');
+                            button.prop('disabled', false);
+                        }
                     });
                 }
             });
+            
+            // Function to update stats after deletion
+            function updateStats() {
+                var totalRows = $('table tbody tr').length;
+                var activeRows = $('table tbody tr').filter(function() {
+                    var status = $(this).find('td:eq(6) .badge').text().trim();
+                    return status === 'Đang tuyển';
+                }).length;
+                var expiredRows = $('table tbody tr').filter(function() {
+                    var status = $(this).find('td:eq(6) .badge').text().trim();
+                    return status === 'Hết hạn';
+                }).length;
+                var totalApplications = 0;
+                $('table tbody tr').each(function() {
+                    var count = parseInt($(this).find('td:eq(5) .badge').text()) || 0;
+                    totalApplications += count;
+                });
+                
+                // Update stats cards
+                $('.stats-card.primary h2').text(totalRows);
+                $('.stats-card.success h2').text(activeRows);
+                $('.stats-card.secondary h2').text(expiredRows);
+                $('.stats-card.info h2').text(totalApplications);
+            }
             
             // Show notification function
             function showNotification(message, type) {

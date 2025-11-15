@@ -1,4 +1,5 @@
 @model List<Unicareer.Models.TinUngTuyen>
+@using Unicareer.Models.Enums
 
 @{
     ViewData["Title"] = "Quản lý tin ứng tuyển";
@@ -270,11 +271,12 @@
         </div>
         <select class="form-select" id="locTrangThai" style="max-width: 200px;">
             <option value="">Tất cả trạng thái</option>
-            <option value="Dang xem xet">Đang xem xét</option>
-            <option value="Cho phong van">Chờ phỏng vấn</option>
-            <option value="Da phong van">Đã phỏng vấn</option>
-            <option value="Tuyen dung">Tuyển dụng</option>
-            <option value="Tu choi">Từ chối</option>
+            <option value="Đang xem xét">Đang xem xét</option>
+            <option value="Chờ phỏng vấn">Chờ phỏng vấn</option>
+            <option value="Đã phỏng vấn">Đã phỏng vấn</option>
+            <option value="Tuyển dụng">Tuyển dụng</option>
+            <option value="Từ chối">Từ chối</option>
+            <option value="Không phù hợp">Không phù hợp</option>
         </select>
     </div>
     <div>
@@ -303,15 +305,13 @@
                         <tbody>
                             @foreach (var tin in Model)
                             {
-                                var badgeClass = tin.TrangThaiXuLy switch
-                                {
-                                    "Dang xem xet" => "bg-warning",
-                                    "Cho phong van" => "bg-info",
-                                    "Da phong van" => "bg-primary",
-                                    "Tuyen dung" => "bg-success",
-                                    "Tu choi" => "bg-danger",
-                                    _ => "bg-secondary"
-                                };
+                                var trangThaiEnum = TrangThaiXuLyHelper.FromString(tin.TrangThaiXuLy);
+                                var trangThaiDisplay = trangThaiEnum.HasValue 
+                                    ? TrangThaiXuLyHelper.ToString(trangThaiEnum.Value) 
+                                    : tin.TrangThaiXuLy;
+                                var badgeClass = trangThaiEnum.HasValue 
+                                    ? TrangThaiXuLyHelper.GetBadgeClass(trangThaiEnum.Value) 
+                                    : "bg-secondary";
                                 
                                 <tr>
                                     <td><span class="text-muted">#@tin.MaTinUngTuyen</span></td>
@@ -321,7 +321,7 @@
                                     <td>@tin.CongTy</td>
                                     <td>@tin.NgayUngTuyen.ToString("dd/MM/yyyy")</td>
                                     <td>
-                                        <span class="badge @badgeClass">@tin.TrangThaiXuLy</span>
+                                        <span class="badge @badgeClass">@trangThaiDisplay</span>
                                     </td>
                                     <td>
                                         <a href="@Url.Action("ChiTietTinUngTuyen", "Candidate", new { id = tin.MaTinUngTuyen })" class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
@@ -352,7 +352,7 @@
             <h6 class="card-title">
                 <i class="bi bi-check-circle"></i> Đang xem xét
             </h6>
-            <h2 class="text-success">@Model.Count(t => t.TrangThaiXuLy == "Dang xem xet")</h2>
+            <h2 class="text-success">@Model.Count(t => TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy) == TrangThaiXuLy.DangXemXet)</h2>
         </div>
     </div>
     <div class="col-md-3 mb-3">
@@ -360,7 +360,7 @@
             <h6 class="card-title">
                 <i class="bi bi-calendar-event"></i> Chờ phỏng vấn
             </h6>
-            <h2 class="text-info">@Model.Count(t => t.TrangThaiXuLy == "Cho phong van")</h2>
+            <h2 class="text-info">@Model.Count(t => TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy) == TrangThaiXuLy.ChoPhongVan)</h2>
         </div>
     </div>
     <div class="col-md-3 mb-3">
@@ -368,7 +368,7 @@
             <h6 class="card-title">
                 <i class="bi bi-x-circle"></i> Từ chối
             </h6>
-            <h2 class="text-secondary">@Model.Count(t => t.TrangThaiXuLy == "Tu choi")</h2>
+            <h2 class="text-secondary">@Model.Count(t => TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy) == TrangThaiXuLy.TuChoi)</h2>
         </div>
     </div>
 </div>

@@ -15,37 +15,114 @@ namespace Unicareer.Areas.Recruiter.Controllers
     {
         private readonly ITinTuyenDungRepository _tinTuyenDungRepository;
         private readonly ITinUngTuyenRepository _tinUngTuyenRepository;
+        private readonly INganhNgheRepository _nganhNgheRepository;
+        private readonly IChuyenNganhRepository _chuyenNganhRepository;
+        private readonly ILoaiCongViecRepository _loaiCongViecRepository;
+        private readonly INhaTuyenDungRepository _nhaTuyenDungRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
 
         public RecruiterController(
             ITinTuyenDungRepository tinTuyenDungRepository, 
             ITinUngTuyenRepository tinUngTuyenRepository,
+            INganhNgheRepository nganhNgheRepository,
+            IChuyenNganhRepository chuyenNganhRepository,
+            ILoaiCongViecRepository loaiCongViecRepository,
+            INhaTuyenDungRepository nhaTuyenDungRepository,
             UserManager<ApplicationUser> userManager,
             ApplicationDbContext context)
         {
             _tinTuyenDungRepository = tinTuyenDungRepository;
             _tinUngTuyenRepository = tinUngTuyenRepository;
+            _nganhNgheRepository = nganhNgheRepository;
+            _chuyenNganhRepository = chuyenNganhRepository;
+            _loaiCongViecRepository = loaiCongViecRepository;
+            _nhaTuyenDungRepository = nhaTuyenDungRepository;
             _userManager = userManager;
             _context = context;
         }
         // GET: Trang chu nha tuyen dung
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            // TODO: Lay tin theo nha tuyen dung dang nhap
-            var danhSachTinTuyenDung = _tinTuyenDungRepository.LayDanhSachTinTuyenDung();
-            var danhSachTinUngTuyen = _tinUngTuyenRepository.LayDanhSachTinUngTuyen();
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            // Lấy thông tin công ty của user đăng nhập
+            var nhaTuyenDung = _nhaTuyenDungRepository.LayNhaTuyenDungTheoUserId(user.Id);
+            if (nhaTuyenDung == null)
+            {
+                // Nếu chưa có thông tin công ty, trả về dữ liệu rỗng
+                ViewBag.TongTinDaDang = 0;
+                ViewBag.TongDonUngTuyen = 0;
+                ViewBag.TongLuotXem = 0;
+                ViewBag.TongUngVienPhuHop = 0;
+                ViewBag.ChartData = new { labels = new string[0], views = new int[0], applications = new int[0] };
+                return View();
+            }
+
+            // Lấy tin tuyển dụng theo mã nhà tuyển dụng (foreign key)
+            var danhSachTinTuyenDung = _tinTuyenDungRepository.LayDanhSachTheoMaNhaTuyenDung(nhaTuyenDung.MaNhaTuyenDung);
+            
+            // Lấy danh sách mã tin tuyển dụng của công ty
+            var danhSachMaTin = danhSachTinTuyenDung.Select(t => t.MaTinTuyenDung.ToString()).ToList();
+            
+            // Lấy đơn ứng tuyển theo các tin tuyển dụng của công ty
+            var danhSachTinUngTuyen = _tinUngTuyenRepository.LayDanhSachTinUngTuyen()
+                .Where(t => danhSachMaTin.Contains(t.MaTinTuyenDung))
+                .ToList();
             
             // Thống kê
             var tongTinDaDang = danhSachTinTuyenDung.Count;
             var tongDonUngTuyen = danhSachTinUngTuyen.Count;
-            var tongLuotXem = danhSachTinTuyenDung.Sum(t => t.SoLuongUngTuyen * 10); // Ước tính lượt xem
+            var tongLuotXem = danhSachTinTuyenDung.Sum(t => (t.SoLuongUngTuyen ?? 0) * 10); // Ước tính lượt xem
             var tongUngVienPhuHop = danhSachTinUngTuyen.Count(t => t.TrangThaiXuLy == "Tuyen dung" || t.TrangThaiXuLy == "Cho phong van");
+            
+            // Dữ liệu chart cho 7 ngày gần nhất
+            var ngayHienTai = DateTime.Now.Date;
+            var chartLabels = new List<string>();
+            var chartViews = new List<int>();
+            var chartApplications = new List<int>();
+            
+            for (int i = 6; i >= 0; i--)
+            {
+                var ngay = ngayHienTai.AddDays(-i);
+                var ngayStr = ngay.DayOfWeek switch
+                {
+                    DayOfWeek.Monday => "T2",
+                    DayOfWeek.Tuesday => "T3",
+                    DayOfWeek.Wednesday => "T4",
+                    DayOfWeek.Thursday => "T5",
+                    DayOfWeek.Friday => "T6",
+                    DayOfWeek.Saturday => "T7",
+                    DayOfWeek.Sunday => "CN",
+                    _ => ""
+                };
+                chartLabels.Add(ngayStr);
+                
+                // Đếm lượt xem (ước tính từ số lượng ứng tuyển)
+                var views = danhSachTinTuyenDung
+                    .Where(t => t.NgayDang.Date <= ngay)
+                    .Sum(t => (t.SoLuongUngTuyen ?? 0) * 10);
+                chartViews.Add(views);
+                
+                // Đếm đơn ứng tuyển
+                var applications = danhSachTinUngTuyen
+                    .Count(t => t.NgayUngTuyen.Date == ngay);
+                chartApplications.Add(applications);
+            }
             
             ViewBag.TongTinDaDang = tongTinDaDang;
             ViewBag.TongDonUngTuyen = tongDonUngTuyen;
             ViewBag.TongLuotXem = tongLuotXem;
             ViewBag.TongUngVienPhuHop = tongUngVienPhuHop;
+            ViewBag.ChartData = new { 
+                labels = chartLabels.ToArray(), 
+                views = chartViews.ToArray(), 
+                applications = chartApplications.ToArray() 
+            };
             
             return View();
         }
@@ -60,22 +137,82 @@ namespace Unicareer.Areas.Recruiter.Controllers
                 .OrderBy(p => p.FullName)
                 .ToList();
             
+            // Lấy danh sách ngành nghề
+            var danhSachNganhNghe = _nganhNgheRepository.LayDanhSachNganhNghe();
+            
+            // Lấy danh sách loại công việc
+            var danhSachLoaiCongViec = _loaiCongViecRepository.LayDanhSachLoaiCongViec();
+            
+            // Lấy danh sách chuyên ngành (để hiển thị khi có giá trị sẵn)
+            var danhSachChuyenNganh = _chuyenNganhRepository.LayDanhSachChuyenNganh();
+            
             ViewBag.DanhSachTinhThanh = danhSachTinhThanh;
+            ViewBag.DanhSachNganhNghe = danhSachNganhNghe;
+            ViewBag.DanhSachLoaiCongViec = danhSachLoaiCongViec;
+            ViewBag.DanhSachChuyenNganh = danhSachChuyenNganh;
             return View();
         }
 
         // POST: Xu ly dang tin tuyen dung
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult DangTinTuyenDung(TinTuyenDung model)
+        public async Task<IActionResult> DangTinTuyenDung(TinTuyenDung model)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
-                    // Lấy thông tin công ty từ user đăng nhập (tạm thời dùng mock)
-                    // TODO: Lấy từ User.Identity hoặc từ NhaTuyenDung table
-                    model.CongTy = "Công ty của bạn"; // Sẽ thay bằng thông tin thực tế sau
+                    // Lấy thông tin công ty từ user đăng nhập
+                    var user = await _userManager.GetUserAsync(User);
+                    if (user == null)
+                    {
+                        ModelState.AddModelError("", "Không tìm thấy thông tin người dùng!");
+                        return View(model);
+                    }
+
+                    var nhaTuyenDung = _nhaTuyenDungRepository.LayNhaTuyenDungTheoUserId(user.Id);
+                    if (nhaTuyenDung == null || string.IsNullOrEmpty(nhaTuyenDung.TenCongTy))
+                    {
+                        ModelState.AddModelError("", "Vui lòng cập nhật thông tin công ty trước khi đăng tin!");
+                        TempData["Loi"] = "Vui lòng cập nhật thông tin công ty trong phần Cài đặt trước khi đăng tin tuyển dụng!";
+                        return RedirectToAction("CaiDat");
+                    }
+
+                    // Set foreign key và tên công ty
+                    model.MaNhaTuyenDung = nhaTuyenDung.MaNhaTuyenDung;
+                    model.CongTy = nhaTuyenDung.TenCongTy;
+                    
+                    // Xử lý upload ảnh văn phòng/cửa hàng
+                    var anhVanPhongFiles = Request.Form.Files.GetFiles("AnhVanPhong");
+                    if (anhVanPhongFiles != null && anhVanPhongFiles.Count > 0)
+                    {
+                        var danhSachAnh = new List<string>();
+                        foreach (var file in anhVanPhongFiles)
+                        {
+                            if (file != null && file.Length > 0)
+                            {
+                                try
+                                {
+                                    var imagePath = await UploadFileAsync(file, "vanphong", user.Id);
+                                    if (!string.IsNullOrEmpty(imagePath))
+                                    {
+                                        danhSachAnh.Add(imagePath);
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    // Log lỗi nhưng không dừng quá trình upload
+                                    ModelState.AddModelError("", $"Lỗi khi upload ảnh {file.FileName}: {ex.Message}");
+                                }
+                            }
+                        }
+                        
+                        // Lưu danh sách ảnh dưới dạng JSON array
+                        if (danhSachAnh.Count > 0)
+                        {
+                            model.AnhVanPhong = System.Text.Json.JsonSerializer.Serialize(danhSachAnh);
+                        }
+                    }
                     
                     // Lưu tin vào repository
                     var tinDaTao = _tinTuyenDungRepository.ThemTinTuyenDung(model);
@@ -97,7 +234,19 @@ namespace Unicareer.Areas.Recruiter.Controllers
                 .OrderBy(p => p.FullName)
                 .ToList();
             
+            // Lấy danh sách ngành nghề
+            var danhSachNganhNghe = _nganhNgheRepository.LayDanhSachNganhNghe();
+            
+            // Lấy danh sách loại công việc
+            var danhSachLoaiCongViec = _loaiCongViecRepository.LayDanhSachLoaiCongViec();
+            
+            // Lấy danh sách chuyên ngành (để hiển thị khi có giá trị sẵn)
+            var danhSachChuyenNganh = _chuyenNganhRepository.LayDanhSachChuyenNganh();
+            
             ViewBag.DanhSachTinhThanh = danhSachTinhThanh;
+            ViewBag.DanhSachNganhNghe = danhSachNganhNghe;
+            ViewBag.DanhSachLoaiCongViec = danhSachLoaiCongViec;
+            ViewBag.DanhSachChuyenNganh = danhSachChuyenNganh;
             return View(model);
         }
 
@@ -122,24 +271,80 @@ namespace Unicareer.Areas.Recruiter.Controllers
             return Json(wards);
         }
 
+        [HttpGet]
+        public IActionResult LayChuyenNganhTheoNganhNghe(int maNganhNghe)
+        {
+            try
+            {
+                var danhSachChuyenNganh = _chuyenNganhRepository.LayChuyenNganhTheoNganhNghe(maNganhNghe);
+                var ketQua = danhSachChuyenNganh.Select(c => new
+                {
+                    maChuyenNganh = c.MaChuyenNganh,
+                    tenChuyenNganh = c.TenChuyenNganh
+                }).ToList();
+
+                return Json(new { success = true, data = ketQua });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
         // GET: Danh sach tin da dang
-        public IActionResult TinDaDang()
+        public async Task<IActionResult> TinDaDang()
         {
             ViewData["Title"] = "Tin da dang";
-            // TODO: Lay tin theo nha tuyen dung dang nhap
-            var danhSach = _tinTuyenDungRepository.LayDanhSachTinTuyenDung();
+            
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            // Lấy thông tin công ty của user đăng nhập
+            var nhaTuyenDung = _nhaTuyenDungRepository.LayNhaTuyenDungTheoUserId(user.Id);
+            if (nhaTuyenDung == null || string.IsNullOrEmpty(nhaTuyenDung.TenCongTy))
+            {
+                // Nếu chưa có thông tin công ty, trả về danh sách rỗng
+                return View(new List<TinTuyenDung>());
+            }
+
+            // Lấy tin tuyển dụng theo mã nhà tuyển dụng (foreign key)
+            var danhSach = _tinTuyenDungRepository.LayDanhSachTheoMaNhaTuyenDung(nhaTuyenDung.MaNhaTuyenDung);
             return View(danhSach);
         }
 
         // GET: Chi tiet tin da dang
-        public IActionResult ChiTietTinDaDang(int id)
+        public async Task<IActionResult> ChiTietTinDaDang(int id)
         {
             ViewData["Title"] = "Chi tiết tin đã đăng";
+            
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            // Lấy thông tin công ty của user đăng nhập
+            var nhaTuyenDung = _nhaTuyenDungRepository.LayNhaTuyenDungTheoUserId(user.Id);
+            if (nhaTuyenDung == null || string.IsNullOrEmpty(nhaTuyenDung.TenCongTy))
+            {
+                TempData["Loi"] = "Vui lòng cập nhật thông tin công ty trước!";
+                return RedirectToAction("CaiDat");
+            }
             
             var tinTuyenDung = _tinTuyenDungRepository.LayTinTuyenDungTheoId(id);
             if (tinTuyenDung == null)
             {
                 TempData["Loi"] = "Không tìm thấy tin tuyển dụng!";
+                return RedirectToAction("TinDaDang");
+            }
+
+            // Kiểm tra xem tin tuyển dụng có thuộc về công ty của user không (sử dụng foreign key)
+            if (tinTuyenDung.MaNhaTuyenDung != nhaTuyenDung.MaNhaTuyenDung)
+            {
+                TempData["Loi"] = "Bạn không có quyền xem tin tuyển dụng này!";
                 return RedirectToAction("TinDaDang");
             }
             
@@ -153,8 +358,20 @@ namespace Unicareer.Areas.Recruiter.Controllers
                 .OrderBy(p => p.FullName)
                 .ToList();
             
+            // Lấy danh sách ngành nghề
+            var danhSachNganhNghe = _nganhNgheRepository.LayDanhSachNganhNghe();
+            
+            // Lấy danh sách loại công việc
+            var danhSachLoaiCongViec = _loaiCongViecRepository.LayDanhSachLoaiCongViec();
+            
+            // Lấy danh sách chuyên ngành
+            var danhSachChuyenNganh = _chuyenNganhRepository.LayDanhSachChuyenNganh();
+            
             ViewBag.DanhSachUngTuyen = danhSachUngTuyen;
             ViewBag.DanhSachTinhThanh = danhSachTinhThanh;
+            ViewBag.DanhSachNganhNghe = danhSachNganhNghe;
+            ViewBag.DanhSachLoaiCongViec = danhSachLoaiCongViec;
+            ViewBag.DanhSachChuyenNganh = danhSachChuyenNganh;
             
             return View(tinTuyenDung);
         }
@@ -162,8 +379,22 @@ namespace Unicareer.Areas.Recruiter.Controllers
         // POST: Cap nhat tin tuyen dung
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult CapNhatTinTuyenDung(int id, TinTuyenDung model)
+        public async Task<IActionResult> CapNhatTinTuyenDung(int id, TinTuyenDung model)
         {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            // Lấy thông tin công ty của user đăng nhập
+            var nhaTuyenDung = _nhaTuyenDungRepository.LayNhaTuyenDungTheoUserId(user.Id);
+            if (nhaTuyenDung == null || string.IsNullOrEmpty(nhaTuyenDung.TenCongTy))
+            {
+                TempData["Loi"] = "Vui lòng cập nhật thông tin công ty trước!";
+                return RedirectToAction("CaiDat");
+            }
+
             // Lấy tin hiện tại để đảm bảo có đầy đủ thông tin
             var tinHienTai = _tinTuyenDungRepository.LayTinTuyenDungTheoId(id);
             if (tinHienTai == null)
@@ -172,10 +403,126 @@ namespace Unicareer.Areas.Recruiter.Controllers
                 return RedirectToAction("TinDaDang");
             }
 
+            // Kiểm tra xem tin tuyển dụng có thuộc về công ty của user không (sử dụng foreign key)
+            if (tinHienTai.MaNhaTuyenDung != nhaTuyenDung.MaNhaTuyenDung)
+            {
+                TempData["Loi"] = "Bạn không có quyền cập nhật tin tuyển dụng này!";
+                return RedirectToAction("TinDaDang");
+            }
+
             if (ModelState.IsValid)
             {
                 try
                 {
+                    // Xử lý danh sách ảnh còn lại sau khi xóa (từ hidden input)
+                    var danhSachAnhConLai = new List<string>();
+                    
+                    // Kiểm tra xem có hidden input RemainingExistingImages không
+                    if (Request.Form.ContainsKey("RemainingExistingImages"))
+                    {
+                        // Có hidden input, lấy giá trị (có thể là empty string nếu đã xóa hết)
+                        var remainingExistingImages = Request.Form["RemainingExistingImages"].ToString();
+                        
+                        if (!string.IsNullOrEmpty(remainingExistingImages))
+                        {
+                            try
+                            {
+                                // Parse JSON array từ hidden input
+                                var jsonArray = System.Text.Json.JsonSerializer.Deserialize<string[]>(remainingExistingImages);
+                                if (jsonArray != null)
+                                {
+                                    danhSachAnhConLai = jsonArray.ToList();
+                                }
+                            }
+                            catch
+                            {
+                                // Nếu parse lỗi, thử split bằng dấu phẩy
+                                danhSachAnhConLai = remainingExistingImages
+                                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                    .Select(s => s.Trim())
+                                    .Where(s => !string.IsNullOrEmpty(s))
+                                    .ToList();
+                            }
+                        }
+                        // Nếu remainingExistingImages là empty, danhSachAnhConLai sẽ là empty list (đã xóa hết)
+                    }
+                    else
+                    {
+                        // Không có hidden input trong form, có nghĩa là người dùng không thay đổi ảnh cũ
+                        // Giữ nguyên ảnh cũ từ database
+                        if (!string.IsNullOrEmpty(tinHienTai.AnhVanPhong))
+                        {
+                            try
+                            {
+                                if (tinHienTai.AnhVanPhong.Trim().StartsWith("["))
+                                {
+                                    var jsonArray = System.Text.Json.JsonSerializer.Deserialize<string[]>(tinHienTai.AnhVanPhong);
+                                    if (jsonArray != null)
+                                    {
+                                        danhSachAnhConLai = jsonArray.ToList();
+                                    }
+                                }
+                                else
+                                {
+                                    danhSachAnhConLai = tinHienTai.AnhVanPhong
+                                        .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                        .Select(s => s.Trim())
+                                        .Where(s => !string.IsNullOrEmpty(s))
+                                        .ToList();
+                                }
+                            }
+                            catch
+                            {
+                                danhSachAnhConLai = tinHienTai.AnhVanPhong
+                                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                    .Select(s => s.Trim())
+                                    .Where(s => !string.IsNullOrEmpty(s))
+                                    .ToList();
+                            }
+                        }
+                    }
+                    
+                    // Xử lý upload ảnh văn phòng/cửa hàng mới (nếu có)
+                    var anhVanPhongFiles = Request.Form.Files.GetFiles("AnhVanPhong");
+                    if (anhVanPhongFiles != null && anhVanPhongFiles.Count > 0)
+                    {
+                        var danhSachAnhMoi = new List<string>();
+                        
+                        // Upload các ảnh mới
+                        foreach (var file in anhVanPhongFiles)
+                        {
+                            if (file != null && file.Length > 0)
+                            {
+                                try
+                                {
+                                    var imagePath = await UploadFileAsync(file, "vanphong", user.Id);
+                                    if (!string.IsNullOrEmpty(imagePath))
+                                    {
+                                        danhSachAnhMoi.Add(imagePath);
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    // Log lỗi nhưng không dừng quá trình upload
+                                    ModelState.AddModelError("", $"Lỗi khi upload ảnh {file.FileName}: {ex.Message}");
+                                }
+                            }
+                        }
+                        
+                        // Gộp danh sách ảnh còn lại và ảnh mới
+                        danhSachAnhConLai.AddRange(danhSachAnhMoi);
+                    }
+                    
+                    // Lưu danh sách ảnh dưới dạng JSON array
+                    if (danhSachAnhConLai.Count > 0)
+                    {
+                        model.AnhVanPhong = System.Text.Json.JsonSerializer.Serialize(danhSachAnhConLai);
+                    }
+                    else
+                    {
+                        model.AnhVanPhong = null;
+                    }
+                    
                     var tinDaCapNhat = _tinTuyenDungRepository.CapNhatTinTuyenDung(id, model);
                     if (tinDaCapNhat == null)
                     {
@@ -216,6 +563,7 @@ namespace Unicareer.Areas.Recruiter.Controllers
             tinHienTai.HanNop = model.HanNop;
             tinHienTai.Latitude = model.Latitude;
             tinHienTai.Longitude = model.Longitude;
+            tinHienTai.AnhVanPhong = model.AnhVanPhong ?? tinHienTai.AnhVanPhong;
             
             ViewData["Title"] = "Chi tiết tin tuyển dụng";
             var danhSachUngTuyen = _tinUngTuyenRepository.LayDanhSachTinUngTuyen()
@@ -227,20 +575,103 @@ namespace Unicareer.Areas.Recruiter.Controllers
                 .OrderBy(p => p.FullName)
                 .ToList();
             
+            // Lấy danh sách ngành nghề
+            var danhSachNganhNghe = _nganhNgheRepository.LayDanhSachNganhNghe();
+            
+            // Lấy danh sách loại công việc
+            var danhSachLoaiCongViec = _loaiCongViecRepository.LayDanhSachLoaiCongViec();
+            
+            // Lấy danh sách chuyên ngành
+            var danhSachChuyenNganh = _chuyenNganhRepository.LayDanhSachChuyenNganh();
+            
             ViewBag.DanhSachUngTuyen = danhSachUngTuyen;
             ViewBag.DanhSachTinhThanh = danhSachTinhThanh;
+            ViewBag.DanhSachNganhNghe = danhSachNganhNghe;
+            ViewBag.DanhSachLoaiCongViec = danhSachLoaiCongViec;
+            ViewBag.DanhSachChuyenNganh = danhSachChuyenNganh;
             return View("ChiTietTinDaDang", tinHienTai);
         }
 
+        // POST: Xoa tin tuyen dung
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> XoaTinTuyenDung(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy người dùng!" });
+            }
+
+            // Lấy thông tin công ty của user đăng nhập
+            var nhaTuyenDung = _nhaTuyenDungRepository.LayNhaTuyenDungTheoUserId(user.Id);
+            if (nhaTuyenDung == null || string.IsNullOrEmpty(nhaTuyenDung.TenCongTy))
+            {
+                return Json(new { success = false, message = "Vui lòng cập nhật thông tin công ty trước!" });
+            }
+
+            // Lấy tin hiện tại để kiểm tra quyền
+            var tinTuyenDung = _tinTuyenDungRepository.LayTinTuyenDungTheoId(id);
+            if (tinTuyenDung == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy tin tuyển dụng!" });
+            }
+
+            // Kiểm tra xem tin tuyển dụng có thuộc về công ty của user không
+            if (tinTuyenDung.MaNhaTuyenDung != nhaTuyenDung.MaNhaTuyenDung)
+            {
+                return Json(new { success = false, message = "Bạn không có quyền xóa tin tuyển dụng này!" });
+            }
+
+            try
+            {
+                var ketQua = _tinTuyenDungRepository.XoaTinTuyenDung(id);
+                if (ketQua)
+                {
+                    return Json(new { success = true, message = "Xóa tin tuyển dụng thành công!" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Không thể xóa tin tuyển dụng!" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra khi xóa tin: " + ex.Message });
+            }
+        }
+
         // GET: Danh sach don ung tuyen
-        public IActionResult DonUngTuyen()
+        public async Task<IActionResult> DonUngTuyen()
         {
             ViewData["Title"] = "Đơn ứng tuyển";
-            // TODO: Lay don ung tuyen theo nha tuyen dung dang nhap
-            var danhSachDonUngTuyen = _tinUngTuyenRepository.LayDanhSachTinUngTuyen();
             
-            // Lấy thông tin tin tuyển dụng cho mỗi đơn ứng tuyển
-            var danhSachTinTuyenDung = _tinTuyenDungRepository.LayDanhSachTinTuyenDung();
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            // Lấy thông tin công ty của user đăng nhập
+            var nhaTuyenDung = _nhaTuyenDungRepository.LayNhaTuyenDungTheoUserId(user.Id);
+            if (nhaTuyenDung == null || string.IsNullOrEmpty(nhaTuyenDung.TenCongTy))
+            {
+                // Nếu chưa có thông tin công ty, trả về danh sách rỗng
+                ViewBag.DanhSachTinTuyenDung = new List<TinTuyenDung>();
+                return View(new List<TinUngTuyen>());
+            }
+
+            // Lấy tin tuyển dụng theo mã nhà tuyển dụng (foreign key)
+            var danhSachTinTuyenDung = _tinTuyenDungRepository.LayDanhSachTheoMaNhaTuyenDung(nhaTuyenDung.MaNhaTuyenDung);
+            
+            // Lấy danh sách mã tin tuyển dụng của công ty
+            var danhSachMaTin = danhSachTinTuyenDung.Select(t => t.MaTinTuyenDung.ToString()).ToList();
+            
+            // Lấy đơn ứng tuyển theo các tin tuyển dụng của công ty
+            var danhSachDonUngTuyen = _tinUngTuyenRepository.LayDanhSachTinUngTuyen()
+                .Where(t => danhSachMaTin.Contains(t.MaTinTuyenDung))
+                .ToList();
+            
             ViewBag.DanhSachTinTuyenDung = danhSachTinTuyenDung;
             
             return View(danhSachDonUngTuyen);
@@ -253,12 +684,41 @@ namespace Unicareer.Areas.Recruiter.Controllers
         }
 
         // GET: Thong ke
-        public IActionResult ThongKe()
+        public async Task<IActionResult> ThongKe()
         {
             ViewData["Title"] = "Thống kê";
-            // TODO: Lay tin theo nha tuyen dung dang nhap
-            var danhSachTinTuyenDung = _tinTuyenDungRepository.LayDanhSachTinTuyenDung();
-            var danhSachTinUngTuyen = _tinUngTuyenRepository.LayDanhSachTinUngTuyen();
+            
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            // Lấy thông tin công ty của user đăng nhập
+            var nhaTuyenDung = _nhaTuyenDungRepository.LayNhaTuyenDungTheoUserId(user.Id);
+            if (nhaTuyenDung == null || string.IsNullOrEmpty(nhaTuyenDung.TenCongTy))
+            {
+                // Nếu chưa có thông tin công ty, trả về dữ liệu rỗng
+                ViewBag.TongTinDaDang = 0;
+                ViewBag.TongDonUngTuyen = 0;
+                ViewBag.TongLuotXem = 0;
+                ViewBag.TyLePhuHop = 0;
+                ViewBag.ThongKeNganhNghe = new List<object>();
+                ViewBag.ThongKeTrangThai = new List<object>();
+                ViewBag.TopTinHieuQua = new List<object>();
+                return View();
+            }
+
+            // Lấy tin tuyển dụng theo mã nhà tuyển dụng (foreign key)
+            var danhSachTinTuyenDung = _tinTuyenDungRepository.LayDanhSachTheoMaNhaTuyenDung(nhaTuyenDung.MaNhaTuyenDung);
+            
+            // Lấy danh sách mã tin tuyển dụng của công ty
+            var danhSachMaTin = danhSachTinTuyenDung.Select(t => t.MaTinTuyenDung.ToString()).ToList();
+            
+            // Lấy đơn ứng tuyển theo các tin tuyển dụng của công ty
+            var danhSachTinUngTuyen = _tinUngTuyenRepository.LayDanhSachTinUngTuyen()
+                .Where(t => danhSachMaTin.Contains(t.MaTinTuyenDung))
+                .ToList();
             
             // Thống kê tổng quan
             var tongTinDaDang = danhSachTinTuyenDung.Count;
@@ -372,14 +832,107 @@ namespace Unicareer.Areas.Recruiter.Controllers
             return View("CaiDat", user);
         }
 
+        // Helper method để xử lý upload file
+        private async Task<string?> UploadFileAsync(IFormFile? file, string folder, string userId)
+        {
+            Console.WriteLine("\n==========================================================");
+            Console.WriteLine("🔥 BACKEND: UploadFileAsync CALLED");
+            Console.WriteLine($"Folder: {folder}");
+            Console.WriteLine($"User ID: {userId}");
+            
+            if (file == null || file.Length == 0)
+            {
+                Console.WriteLine("❌ BACKEND: File is NULL or EMPTY!");
+                Console.WriteLine("==========================================================\n");
+                return null;
+            }
+
+            Console.WriteLine($"✅ BACKEND: File received!");
+            Console.WriteLine($"  File name: {file.FileName}");
+            Console.WriteLine($"  File size: {file.Length} bytes");
+            Console.WriteLine($"  Content type: {file.ContentType}");
+
+            // Kiểm tra định dạng file (cho phép JPG, PNG, GIF)
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+            var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            
+            Console.WriteLine($"  File extension: {fileExtension}");
+            Console.WriteLine($"  Is GIF? {fileExtension == ".gif"}");
+            Console.WriteLine($"  Content-Type is GIF? {file.ContentType == "image/gif"}");
+            
+            if (!allowedExtensions.Contains(fileExtension))
+            {
+                Console.WriteLine($"Invalid file extension!");
+                throw new Exception("Định dạng file không hợp lệ. Chỉ chấp nhận JPG, PNG, GIF.");
+            }
+
+            // Kiểm tra kích thước file (tối đa 5MB)
+            var maxSize = 5 * 1024 * 1024; // 5MB
+            if (file.Length > maxSize)
+            {
+                Console.WriteLine($"File too large!");
+                throw new Exception("Kích thước file quá lớn. Tối đa 5MB.");
+            }
+
+            // Tạo tên file unique
+            var fileName = $"{userId}_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid():N}{fileExtension}";
+            var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", folder);
+            
+            Console.WriteLine($"Generated file name: {fileName}");
+            Console.WriteLine($"Upload path: {uploadsPath}");
+            
+            // Đảm bảo thư mục tồn tại
+            if (!Directory.Exists(uploadsPath))
+            {
+                Console.WriteLine($"Creating directory: {uploadsPath}");
+                Directory.CreateDirectory(uploadsPath);
+            }
+
+            var filePath = Path.Combine(uploadsPath, fileName);
+            Console.WriteLine($"Full file path: {filePath}");
+            
+            // Lưu file
+            try
+            {
+                Console.WriteLine($"💾 BACKEND: Saving file to disk...");
+                Console.WriteLine($"  Path: {filePath}");
+                
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+                
+                Console.WriteLine($"✅ BACKEND: File saved successfully!");
+                
+                // Kiểm tra file đã lưu
+                var savedFileInfo = new FileInfo(filePath);
+                Console.WriteLine($"📊 BACKEND: Saved file info:");
+                Console.WriteLine($"  Exists: {savedFileInfo.Exists}");
+                Console.WriteLine($"  Size: {savedFileInfo.Length} bytes");
+                Console.WriteLine($"  Extension: {savedFileInfo.Extension}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ BACKEND: Error saving file: {ex.Message}");
+                Console.WriteLine("==========================================================\n");
+                throw;
+            }
+
+            // Trả về đường dẫn URL
+            var urlPath = $"/uploads/{folder}/{fileName}";
+            Console.WriteLine($"🔗 BACKEND: Returning URL: {urlPath}");
+            Console.WriteLine("==========================================================\n");
+            return urlPath;
+        }
+
         // POST: Cap nhat thong tin nha tuyen dung
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CapNhatThongTin(
             string tenCongTy, string email, string soDienThoai, string? website,
             string? tinhThanhPho, string? quanHuyen, string? diaChi,
-            string? nguoiDaiDien, string? chucVu, string? soDienThoaiNguoiDaiDien,
-            string? logo, string? moTa, string? latitude, string? longitude)
+            string? nguoiDaiDien, string? chucVu, string? soDienThoaiNguoiDaiDien, string? emailNguoiDaiDien,
+            IFormFile? logoFile, string? moTa, string? latitude, string? longitude, string? xoaLogo)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
@@ -389,6 +942,30 @@ namespace Unicareer.Areas.Recruiter.Controllers
 
             try
             {
+                // Debug logging
+                Console.WriteLine($"=== CapNhatThongTin Debug ===");
+                Console.WriteLine($"User ID: {user.Id}");
+                Console.WriteLine($"LogoFile received: {logoFile != null}");
+                if (logoFile != null)
+                {
+                    Console.WriteLine($"LogoFile name: {logoFile.FileName}");
+                    Console.WriteLine($"LogoFile size: {logoFile.Length} bytes");
+                    Console.WriteLine($"LogoFile content type: {logoFile.ContentType}");
+                }
+                
+                // Xử lý upload logo nếu có
+                string? logoPath = null;
+                if (logoFile != null && logoFile.Length > 0)
+                {
+                    Console.WriteLine($"Attempting to upload logo...");
+                    logoPath = await UploadFileAsync(logoFile, "logos", user.Id);
+                    Console.WriteLine($"Logo uploaded to: {logoPath}");
+                }
+                else
+                {
+                    Console.WriteLine($"No logo file to upload");
+                }
+
                 // Tìm hoặc tạo bản ghi NhaTuyenDung
                 var nhaTuyenDung = await _context.NhaTuyenDungs
                     .FirstOrDefaultAsync(n => n.UserId == user.Id);
@@ -408,8 +985,12 @@ namespace Unicareer.Areas.Recruiter.Controllers
                         DiaChi = diaChi,
                         NguoiDaiDien = nguoiDaiDien,
                         ChucVu = chucVu,
-                        Logo = logo,
+                        SoDienThoaiNguoiDaiDien = soDienThoaiNguoiDaiDien,
+                        EmailNguoiDaiDien = emailNguoiDaiDien,
+                        Logo = logoPath,
                         MoTa = moTa,
+                        Latitude = !string.IsNullOrEmpty(latitude) ? double.Parse(latitude) : null,
+                        Longitude = !string.IsNullOrEmpty(longitude) ? double.Parse(longitude) : null,
                         NgayDangKy = DateTime.Now,
                         SoTinDaDang = 0,
                         SoUngVienNhan = 0
@@ -428,21 +1009,126 @@ namespace Unicareer.Areas.Recruiter.Controllers
                     nhaTuyenDung.DiaChi = diaChi;
                     nhaTuyenDung.NguoiDaiDien = nguoiDaiDien;
                     nhaTuyenDung.ChucVu = chucVu;
-                    nhaTuyenDung.Logo = logo;
+                    nhaTuyenDung.SoDienThoaiNguoiDaiDien = soDienThoaiNguoiDaiDien;
+                    nhaTuyenDung.EmailNguoiDaiDien = emailNguoiDaiDien;
+                    
+                    // Xử lý logo: xóa hoặc cập nhật
+                    if (xoaLogo == "true")
+                    {
+                        // Xóa logo cũ nếu có
+                        if (!string.IsNullOrEmpty(nhaTuyenDung.Logo) && nhaTuyenDung.Logo.StartsWith("/uploads/"))
+                        {
+                            var oldLogoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", nhaTuyenDung.Logo.TrimStart('/'));
+                            if (System.IO.File.Exists(oldLogoPath))
+                            {
+                                System.IO.File.Delete(oldLogoPath);
+                            }
+                        }
+                        nhaTuyenDung.Logo = null;
+                    }
+                    else if (logoPath != null)
+                    {
+                        // Cập nhật logo mới
+                        // Xóa logo cũ nếu có
+                        if (!string.IsNullOrEmpty(nhaTuyenDung.Logo) && nhaTuyenDung.Logo.StartsWith("/uploads/"))
+                        {
+                            var oldLogoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", nhaTuyenDung.Logo.TrimStart('/'));
+                            if (System.IO.File.Exists(oldLogoPath))
+                            {
+                                System.IO.File.Delete(oldLogoPath);
+                            }
+                        }
+                        nhaTuyenDung.Logo = logoPath;
+                    }
+                    // Nếu không có logoFile mới và không xóa logo, giữ nguyên logo cũ
+                    
                     nhaTuyenDung.MoTa = moTa;
+                    nhaTuyenDung.Latitude = !string.IsNullOrEmpty(latitude) ? double.Parse(latitude) : null;
+                    nhaTuyenDung.Longitude = !string.IsNullOrEmpty(longitude) ? double.Parse(longitude) : null;
                     _context.NhaTuyenDungs.Update(nhaTuyenDung);
                 }
 
                 // Cập nhật thông tin user
+                // Với nhà tuyển dụng, HoTen là tên công ty, không phải tên người đại diện
                 user.Email = email;
                 user.PhoneNumber = soDienThoai;
-                user.HoTen = nguoiDaiDien;
+                // Cập nhật HoTen thành tên công ty (không phải tên người đại diện)
+                user.HoTen = tenCongTy;
                 await _userManager.UpdateAsync(user);
 
                 // Lưu vào database
                 await _context.SaveChangesAsync();
 
                 return Json(new { success = true, message = "Cập nhật thông tin thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
+        // POST: Upload avatar
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UploadAvatar(IFormFile? avatarFile)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy người dùng" });
+            }
+
+            try
+            {
+                if (avatarFile != null && avatarFile.Length > 0)
+                {
+                    // Upload file mới
+                    var avatarPath = await UploadFileAsync(avatarFile, "avatars", user.Id);
+                    
+                    if (string.IsNullOrEmpty(avatarPath))
+                    {
+                        return Json(new { success = false, message = "Không thể upload file" });
+                    }
+                    
+                    // Xóa avatar cũ nếu có
+                    if (!string.IsNullOrEmpty(user.Avatar) && user.Avatar.StartsWith("/uploads/"))
+                    {
+                        var oldAvatarPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", user.Avatar.TrimStart('/'));
+                        if (System.IO.File.Exists(oldAvatarPath))
+                        {
+                            try
+                            {
+                                System.IO.File.Delete(oldAvatarPath);
+                            }
+                            catch
+                            {
+                                // Bỏ qua lỗi xóa file cũ
+                            }
+                        }
+                    }
+                    
+                    // Reload user từ database để đảm bảo tracking đúng
+                    var dbUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == user.Id);
+                    if (dbUser == null)
+                    {
+                        return Json(new { success = false, message = "Không tìm thấy người dùng trong database" });
+                    }
+                    
+                    // Cập nhật avatar
+                    dbUser.Avatar = avatarPath;
+                    
+                    // Lưu vào database
+                    await _context.SaveChangesAsync();
+                    
+                    // Cập nhật lại user trong UserManager để đồng bộ
+                    await _userManager.UpdateAsync(dbUser);
+                    
+                    return Json(new { success = true, message = "Cập nhật avatar thành công!", avatarUrl = avatarPath });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Vui lòng chọn file ảnh" });
+                }
             }
             catch (Exception ex)
             {

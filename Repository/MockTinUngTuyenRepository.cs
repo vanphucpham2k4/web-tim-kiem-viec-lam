@@ -1,4 +1,6 @@
 using Unicareer.Models;
+using Unicareer.Models.Enums;
+using System.Linq;
 
 namespace Unicareer.Repository
 {
@@ -19,7 +21,7 @@ namespace Unicareer.Repository
                     ViTriUngTuyen = "Senior Full-stack Developer",
                     CongTy = "FPT Software",
                     MaTinTuyenDung = "1",
-                    TrangThaiXuLy = "Cho phong van",
+                    TrangThaiXuLy = TrangThaiXuLyHelper.ToString(TrangThaiXuLy.ChoPhongVan),
                     LinkCV = "/uploads/cv_nguyenvana.pdf",
                     GhiChu = "Ung vien co 5 nam kinh nghiem",
                     NgayUngTuyen = DateTime.Now.AddDays(-2)
@@ -33,7 +35,7 @@ namespace Unicareer.Repository
                     ViTriUngTuyen = "Marketing Manager",
                     CongTy = "Vinamilk",
                     MaTinTuyenDung = "2",
-                    TrangThaiXuLy = "Dang xem xet",
+                    TrangThaiXuLy = TrangThaiXuLyHelper.ToString(TrangThaiXuLy.DangXemXet),
                     LinkCV = "/uploads/cv_tranthib.pdf",
                     GhiChu = "Co kinh nghiem quan ly doi nhom 10 nguoi",
                     NgayUngTuyen = DateTime.Now.AddDays(-1)
@@ -47,7 +49,7 @@ namespace Unicareer.Repository
                     ViTriUngTuyen = "Frontend Developer (ReactJS)",
                     CongTy = "Tiki",
                     MaTinTuyenDung = "4",
-                    TrangThaiXuLy = "Da phong van",
+                    TrangThaiXuLy = TrangThaiXuLyHelper.ToString(TrangThaiXuLy.DaPhongVan),
                     LinkCV = "/uploads/cv_levanc.pdf",
                     GhiChu = "Ket qua phong van tot",
                     NgayUngTuyen = DateTime.Now.AddDays(-5)
@@ -61,7 +63,7 @@ namespace Unicareer.Repository
                     ViTriUngTuyen = "UI/UX Designer",
                     CongTy = "VNG Corporation",
                     MaTinTuyenDung = "5",
-                    TrangThaiXuLy = "Dang xem xet",
+                    TrangThaiXuLy = TrangThaiXuLyHelper.ToString(TrangThaiXuLy.DangXemXet),
                     LinkCV = "/uploads/cv_phamthid.pdf",
                     GhiChu = "Portfolio rat an tuong",
                     NgayUngTuyen = DateTime.Now.AddDays(-1)
@@ -75,7 +77,7 @@ namespace Unicareer.Repository
                     ViTriUngTuyen = "Data Analyst",
                     CongTy = "Lazada Vietnam",
                     MaTinTuyenDung = "6",
-                    TrangThaiXuLy = "Cho phong van",
+                    TrangThaiXuLy = TrangThaiXuLyHelper.ToString(TrangThaiXuLy.ChoPhongVan),
                     LinkCV = "/uploads/cv_hoangvane.pdf",
                     GhiChu = "Tot nghiep loai gioi dai hoc Kinh te",
                     NgayUngTuyen = DateTime.Now.AddDays(-3)
@@ -91,6 +93,30 @@ namespace Unicareer.Repository
         public TinUngTuyen? LayTinUngTuyenTheoId(int id)
         {
             return _danhSachTinUngTuyen.FirstOrDefault(t => t.MaTinUngTuyen == id);
+        }
+
+        public TinUngTuyen ThemTinUngTuyen(TinUngTuyen tinUngTuyen)
+        {
+            // Tự động tạo ID mới
+            var maxId = _danhSachTinUngTuyen.Any() 
+                ? _danhSachTinUngTuyen.Max(t => t.MaTinUngTuyen) 
+                : 0;
+            tinUngTuyen.MaTinUngTuyen = maxId + 1;
+            
+            // Set ngày ứng tuyển nếu chưa có
+            if (tinUngTuyen.NgayUngTuyen == default(DateTime))
+            {
+                tinUngTuyen.NgayUngTuyen = DateTime.Now;
+            }
+            
+            // Set trạng thái mặc định nếu chưa có
+            if (string.IsNullOrEmpty(tinUngTuyen.TrangThaiXuLy))
+            {
+                tinUngTuyen.TrangThaiXuLy = TrangThaiXuLyHelper.ToString(TrangThaiXuLy.DangXemXet);
+            }
+            
+            _danhSachTinUngTuyen.Add(tinUngTuyen);
+            return tinUngTuyen;
         }
     }
 }

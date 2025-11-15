@@ -6,6 +6,9 @@ namespace Unicareer.Repository
     {
         List<LoaiCongViec> LayDanhSachLoaiCongViec();
         LoaiCongViec? LayLoaiCongViecTheoId(int id);
+        LoaiCongViec? ThemLoaiCongViec(LoaiCongViec loaiCongViec);
+        LoaiCongViec? CapNhatLoaiCongViec(LoaiCongViec loaiCongViec);
+        bool XoaLoaiCongViec(int id);
     }
 }
 

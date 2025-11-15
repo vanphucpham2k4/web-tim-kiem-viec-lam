@@ -1,3 +1,5 @@
+@using Unicareer.Models.Enums
+
 @{
     ViewData["Title"] = "Trang chủ";
 }
@@ -143,20 +145,18 @@
                                 {
                                     @foreach (var tin in danhSachTinUngTuyenGanDay)
                                     {
-                                        var badgeClass = tin.TrangThaiXuLy switch
-                                        {
-                                            "Dang xem xet" => "bg-warning",
-                                            "Cho phong van" => "bg-info",
-                                            "Da phong van" => "bg-primary",
-                                            "Tuyen dung" => "bg-success",
-                                            "Tu choi" => "bg-danger",
-                                            _ => "bg-secondary"
-                                        };
+                                        var trangThaiEnum = TrangThaiXuLyHelper.FromString(tin.TrangThaiXuLy);
+                                        var trangThaiDisplay = trangThaiEnum.HasValue 
+                                            ? TrangThaiXuLyHelper.ToString(trangThaiEnum.Value) 
+                                            : tin.TrangThaiXuLy;
+                                        var badgeClass = trangThaiEnum.HasValue 
+                                            ? TrangThaiXuLyHelper.GetBadgeClass(trangThaiEnum.Value) 
+                                            : "bg-secondary";
                                         <tr>
                                             <td><strong>@tin.ViTriUngTuyen</strong></td>
                                             <td>@tin.CongTy</td>
                                             <td>@tin.NgayUngTuyen.ToString("dd/MM/yyyy")</td>
-                                            <td><span class="badge @badgeClass">@tin.TrangThaiXuLy</span></td>
+                                            <td><span class="badge @badgeClass">@trangThaiDisplay</span></td>
                                             <td><a href="@Url.Action("ChiTietTinUngTuyen", "Candidate", new { id = tin.MaTinUngTuyen })" class="btn btn-sm btn-outline-primary">Xem chi tiết</a></td>
                                         </tr>
                                     }

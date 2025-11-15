@@ -2,8 +2,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Unicareer.Models;
+using Unicareer.Models.Enums;
 using Unicareer.Models.ViewModels;
 using Unicareer.Repository;
+using Unicareer.Data;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 namespace Unicareer.Areas.Candidate.Controllers
 {
@@ -13,16 +17,31 @@ namespace Unicareer.Areas.Candidate.Controllers
     {
         private readonly ITinTuyenDungRepository _tinTuyenDungRepository;
         private readonly ITinUngTuyenRepository _tinUngTuyenRepository;
+        private readonly IUngVienRepository _ungVienRepository;
+        private readonly IChuyenNganhRepository _chuyenNganhRepository;
+        private readonly INganhNgheRepository _nganhNgheRepository;
+        private readonly IViecLamDaLuuRepository _viecLamDaLuuRepository;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ApplicationDbContext _context;
 
         public CandidateController(
             ITinTuyenDungRepository tinTuyenDungRepository, 
             ITinUngTuyenRepository tinUngTuyenRepository,
-            UserManager<ApplicationUser> userManager)
+            IUngVienRepository ungVienRepository,
+            IChuyenNganhRepository chuyenNganhRepository,
+            INganhNgheRepository nganhNgheRepository,
+            IViecLamDaLuuRepository viecLamDaLuuRepository,
+            UserManager<ApplicationUser> userManager,
+            ApplicationDbContext context)
         {
             _tinTuyenDungRepository = tinTuyenDungRepository;
             _tinUngTuyenRepository = tinUngTuyenRepository;
+            _ungVienRepository = ungVienRepository;
+            _chuyenNganhRepository = chuyenNganhRepository;
+            _nganhNgheRepository = nganhNgheRepository;
+            _viecLamDaLuuRepository = viecLamDaLuuRepository;
             _userManager = userManager;
+            _context = context;
         }
         // GET: Trang chu ung vien
         public IActionResult Index()
@@ -34,9 +53,9 @@ namespace Unicareer.Areas.Candidate.Controllers
             
             // Thống kê
             var tongTinUngTuyen = danhSachTinUngTuyen.Count;
-            var dangXemXet = danhSachTinUngTuyen.Count(t => t.TrangThaiXuLy == "Dang xem xet");
-            var choPhongVan = danhSachTinUngTuyen.Count(t => t.TrangThaiXuLy == "Cho phong van");
-            var daPhongVan = danhSachTinUngTuyen.Count(t => t.TrangThaiXuLy == "Da phong van");
+            var dangXemXet = danhSachTinUngTuyen.Count(t => TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy) == TrangThaiXuLy.DangXemXet);
+            var choPhongVan = danhSachTinUngTuyen.Count(t => TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy) == TrangThaiXuLy.ChoPhongVan);
+            var daPhongVan = danhSachTinUngTuyen.Count(t => TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy) == TrangThaiXuLy.DaPhongVan);
             var tongViecDaLuu = danhSachViecLamDaLuu.Count; // TODO: Lay theo ung vien dang nhap
             
             ViewBag.DanhSachTinUngTuyenGanDay = danhSachTinUngTuyen.OrderByDescending(t => t.NgayUngTuyen).Take(3).ToList();
@@ -72,43 +91,290 @@ namespace Unicareer.Areas.Candidate.Controllers
             return View(tin);
         }
 
-        // GET: Thong tin tai khoan
-        public IActionResult ThongTinTaiKhoan()
+        // GET: Ho so ung vien
+        public async Task<IActionResult> HoSoUngVien()
         {
-            ViewData["Title"] = "Thông tin tài khoản";
-            return View();
+            ViewData["Title"] = "Hồ sơ ứng viên";
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            var ungVien = _ungVienRepository.LayUngVienTheoUserId(user.Id);
+            
+            // Load dữ liệu cho dropdowns
+            var danhSachChuyenNganh = _chuyenNganhRepository.LayDanhSachChuyenNganh();
+            var danhSachNganhNghe = _nganhNgheRepository.LayDanhSachNganhNghe();
+            var danhSachTinhThanh = _context.Provinces.OrderBy(p => p.FullName).ToList();
+            
+            ViewBag.DanhSachChuyenNganh = danhSachChuyenNganh;
+            ViewBag.DanhSachNganhNghe = danhSachNganhNghe;
+            ViewBag.DanhSachTinhThanh = danhSachTinhThanh;
+            ViewBag.TrangThaiTimViecOptions = new List<string> { "Đang tìm việc", "Đang thực tập", "Đã có việc" };
+
+            return View(ungVien);
         }
 
-        // GET: CV cua toi
-        public IActionResult CVCuaToi()
+        // POST: Luu ho so ung vien
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LuuHoSoUngVien(
+            string hoTen, string gioiTinh, DateTime? ngaySinh,
+            string? viTriMongMuon, int? maChuyenNganh, string? chuyenNganhKhac,
+            decimal? mucLuongKyVong, string? noiLamViecMongMuon,
+            string? mucTieuNgheNghiep, string? hocVanChiTiet,
+            string? kinhNghiemChiTiet, string? kyNangChiTiet, string? chungChi,
+            string? linkGitHub, string? linkBehance, string? linkPortfolio,
+            string? moTaBanThan, string? trangThaiTimViec, IFormFile? cvFile)
         {
-            ViewData["Title"] = "CV của tôi";
-            return View();
+            // Xử lý checkbox từ FormData
+            var hienThiCongKhaiValue = Request.Form["hienThiCongKhai"].ToString();
+            bool hienThiCongKhai = !string.IsNullOrEmpty(hienThiCongKhaiValue) && 
+                                   (hienThiCongKhaiValue.ToLower() == "true" || hienThiCongKhaiValue == "on");
+            
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy người dùng" });
+            }
+
+            try
+            {
+                var ungVien = _ungVienRepository.LayUngVienTheoUserId(user.Id);
+                
+                if (ungVien == null)
+                {
+                    // Tạo mới hồ sơ ứng viên
+                    ungVien = new UngVien
+                    {
+                        UserId = user.Id,
+                        HoTen = hoTen ?? string.Empty,
+                        Email = user.Email ?? string.Empty,
+                        NgayDangKy = DateTime.Now
+                    };
+                }
+
+                // Cập nhật thông tin cơ bản
+                ungVien.HoTen = hoTen ?? ungVien.HoTen;
+                ungVien.GioiTinh = gioiTinh;
+                if (ngaySinh.HasValue)
+                {
+                    ungVien.NgaySinh = ngaySinh.Value;
+                }
+
+                // Thông tin nghề nghiệp
+                ungVien.ViTriMongMuon = viTriMongMuon;
+                ungVien.MaChuyenNganh = maChuyenNganh;
+                ungVien.ChuyenNganhKhac = chuyenNganhKhac;
+                ungVien.MucLuongKyVong = mucLuongKyVong;
+                ungVien.NoiLamViecMongMuon = noiLamViecMongMuon;
+
+                // CV và hồ sơ
+                ungVien.MucTieuNgheNghiep = mucTieuNgheNghiep;
+                ungVien.HocVanChiTiet = hocVanChiTiet;
+                ungVien.KinhNghiemChiTiet = kinhNghiemChiTiet;
+                ungVien.KyNangChiTiet = kyNangChiTiet;
+                ungVien.ChungChi = chungChi;
+
+                // Portfolio
+                ungVien.LinkGitHub = linkGitHub;
+                ungVien.LinkBehance = linkBehance;
+                ungVien.LinkPortfolio = linkPortfolio;
+
+                // Mô tả và trạng thái
+                ungVien.MoTaBanThan = moTaBanThan;
+                ungVien.TrangThaiTimViec = trangThaiTimViec;
+                ungVien.HienThiCongKhai = hienThiCongKhai;
+
+                // Upload CV file nếu có
+                if (cvFile != null && cvFile.Length > 0)
+                {
+                    var cvPath = await UploadCVFileAsync(cvFile, user.Id);
+                    if (!string.IsNullOrEmpty(cvPath))
+                    {
+                        // Xóa CV cũ nếu có
+                        if (!string.IsNullOrEmpty(ungVien.CVFile) && ungVien.CVFile.StartsWith("/uploads/"))
+                        {
+                            var oldCvPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", ungVien.CVFile.TrimStart('/'));
+                            if (System.IO.File.Exists(oldCvPath))
+                            {
+                                try
+                                {
+                                    System.IO.File.Delete(oldCvPath);
+                                }
+                                catch { }
+                            }
+                        }
+                        ungVien.CVFile = cvPath;
+                    }
+                }
+
+                // Lưu vào database
+                if (ungVien.MaUngVien == 0)
+                {
+                    _ungVienRepository.ThemUngVien(ungVien);
+                }
+                else
+                {
+                    _ungVienRepository.CapNhatUngVien(ungVien);
+                }
+
+                return Json(new { success = true, message = "Lưu hồ sơ thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
+        // Helper method để upload CV file
+        private async Task<string?> UploadCVFileAsync(IFormFile? file, string userId)
+        {
+            if (file == null || file.Length == 0)
+                return null;
+
+            // Kiểm tra định dạng file (cho phép PDF, DOC, DOCX)
+            var allowedExtensions = new[] { ".pdf", ".doc", ".docx" };
+            var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            
+            if (!allowedExtensions.Contains(fileExtension))
+            {
+                throw new Exception("Định dạng file không hợp lệ. Chỉ chấp nhận PDF, DOC, DOCX.");
+            }
+
+            // Kiểm tra kích thước file (tối đa 10MB)
+            var maxSize = 10 * 1024 * 1024; // 10MB
+            if (file.Length > maxSize)
+            {
+                throw new Exception("Kích thước file quá lớn. Tối đa 10MB.");
+            }
+
+            // Tạo tên file unique
+            var fileName = $"CV_{userId}_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid():N}{fileExtension}";
+            var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "cvs");
+            
+            // Đảm bảo thư mục tồn tại
+            if (!Directory.Exists(uploadsPath))
+            {
+                Directory.CreateDirectory(uploadsPath);
+            }
+
+            var filePath = Path.Combine(uploadsPath, fileName);
+            
+            // Lưu file
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            // Trả về đường dẫn URL
+            return $"/uploads/cvs/{fileName}";
         }
 
         // GET: Viec lam da luu
-        public IActionResult ViecLamDaLuu()
+        public async Task<IActionResult> ViecLamDaLuu()
         {
             ViewData["Title"] = "Việc làm đã lưu";
-            // TODO: Lay danh sach viec lam da luu theo ung vien dang nhap
-            var danhSach = _tinTuyenDungRepository.LayDanhSachTinTuyenDung();
-            return View(danhSach);
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            var danhSachViecLamDaLuu = _viecLamDaLuuRepository.LayDanhSachViecLamDaLuuTheoUserId(user.Id);
+            var danhSachTinTuyenDung = danhSachViecLamDaLuu
+                .Where(v => v.TinTuyenDung != null)
+                .Select(v => v.TinTuyenDung!)
+                .ToList();
+            
+            return View(danhSachTinTuyenDung);
+        }
+
+        // POST: Luu viec lam
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LuuViecLam(int id)
+        {
+            try
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null)
+                {
+                    return Json(new { success = false, message = "Vui lòng đăng nhập để lưu tin" });
+                }
+
+                // Kiểm tra tin tuyển dụng có tồn tại không
+                var tinTuyenDung = _tinTuyenDungRepository.LayTinTuyenDungTheoId(id);
+                if (tinTuyenDung == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy tin tuyển dụng" });
+                }
+
+                // Kiểm tra đã lưu chưa
+                if (_viecLamDaLuuRepository.KiemTraDaLuu(user.Id, id))
+                {
+                    return Json(new { success = false, message = "Bạn đã lưu tin này rồi" });
+                }
+
+                // Lưu tin
+                _viecLamDaLuuRepository.LuuViecLam(user.Id, id);
+                
+                return Json(new { success = true, message = "Đã lưu tin tuyển dụng thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
         }
 
         // POST: Bo luu viec lam
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult BoLuuViecLam(int id)
+        public async Task<IActionResult> BoLuuViecLam(int id)
         {
             try
             {
-                // TODO: Implement remove saved job from database
-                // Hiện tại chỉ trả về success, sau này sẽ xóa khỏi database
-                return Json(new { success = true, message = "Đã bỏ lưu công việc thành công!" });
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null)
+                {
+                    return Json(new { success = false, message = "Vui lòng đăng nhập" });
+                }
+
+                var result = _viecLamDaLuuRepository.BoLuuViecLam(user.Id, id);
+                if (result)
+                {
+                    return Json(new { success = true, message = "Đã bỏ lưu công việc thành công!" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Không tìm thấy tin đã lưu" });
+                }
             }
             catch (Exception ex)
             {
                 return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
+        // GET: Kiem tra da luu chua
+        [HttpGet]
+        public async Task<IActionResult> KiemTraDaLuu(int id)
+        {
+            try
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null)
+                {
+                    return Json(new { isSaved = false });
+                }
+
+                var isSaved = _viecLamDaLuuRepository.KiemTraDaLuu(user.Id, id);
+                return Json(new { isSaved = isSaved });
+            }
+            catch
+            {
+                return Json(new { isSaved = false });
             }
         }
 
@@ -121,7 +387,105 @@ namespace Unicareer.Areas.Candidate.Controllers
             {
                 return NotFound();
             }
+
+            // Load thông tin UngVien nếu có để hiển thị trong form
+            var ungVien = _ungVienRepository.LayUngVienTheoUserId(user.Id);
+            if (ungVien != null)
+            {
+                // Cập nhật thông tin từ UngVien vào user để hiển thị trong form
+                user.PhoneNumber = ungVien.SoDienThoai ?? user.PhoneNumber;
+            }
+
+            ViewBag.UngVien = ungVien;
             return View(user);
+        }
+
+        // POST: Cap nhat thong tin tai khoan
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CapNhatThongTin(
+            string hoTen, string email, string soDienThoai, 
+            DateTime? ngaySinh, string gioiTinh, string? diaChi)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy người dùng" });
+            }
+
+            try
+            {
+                // Validate required fields
+                if (string.IsNullOrWhiteSpace(hoTen) || 
+                    string.IsNullOrWhiteSpace(email) || 
+                    string.IsNullOrWhiteSpace(soDienThoai) || 
+                    !ngaySinh.HasValue || 
+                    string.IsNullOrWhiteSpace(gioiTinh))
+                {
+                    return Json(new { success = false, message = "Vui lòng điền đầy đủ các trường bắt buộc" });
+                }
+
+                // Validate email format
+                if (!email.Contains("@") || !email.Contains("."))
+                {
+                    return Json(new { success = false, message = "Email không hợp lệ" });
+                }
+
+                // Reload user từ database để đảm bảo tracking đúng
+                var dbUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == user.Id);
+                if (dbUser == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy người dùng trong database" });
+                }
+
+                // Cập nhật thông tin ApplicationUser
+                dbUser.HoTen = hoTen;
+                dbUser.Email = email;
+                dbUser.NormalizedEmail = email.ToUpper();
+                dbUser.PhoneNumber = soDienThoai;
+
+                // Lưu ApplicationUser vào database
+                await _context.SaveChangesAsync();
+
+                // Cập nhật lại user trong UserManager để đồng bộ
+                await _userManager.UpdateAsync(dbUser);
+
+                // Cập nhật hoặc tạo UngVien
+                var ungVien = _ungVienRepository.LayUngVienTheoUserId(user.Id);
+                if (ungVien == null)
+                {
+                    // Tạo mới UngVien nếu chưa có
+                    ungVien = new UngVien
+                    {
+                        UserId = user.Id,
+                        HoTen = hoTen,
+                        Email = email,
+                        SoDienThoai = soDienThoai,
+                        NgaySinh = ngaySinh.Value,
+                        GioiTinh = gioiTinh,
+                        DiaChi = diaChi,
+                        NgayDangKy = DateTime.Now
+                    };
+                    _ungVienRepository.ThemUngVien(ungVien);
+                }
+                else
+                {
+                    // Cập nhật UngVien
+                    ungVien.HoTen = hoTen;
+                    ungVien.Email = email;
+                    ungVien.SoDienThoai = soDienThoai;
+                    ungVien.NgaySinh = ngaySinh.Value;
+                    ungVien.GioiTinh = gioiTinh;
+                    ungVien.DiaChi = diaChi;
+                    _ungVienRepository.CapNhatUngVien(ungVien);
+                }
+
+                return Json(new { success = true, message = "Cập nhật thông tin thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
         }
 
         // POST: Doi mat khau
@@ -161,6 +525,119 @@ namespace Unicareer.Areas.Candidate.Controllers
             ViewBag.ActiveTab = "baomat";
             ViewBag.PasswordModel = model;
             return View("CaiDat", user);
+        }
+
+        // Helper method để xử lý upload file
+        private async Task<string?> UploadFileAsync(IFormFile? file, string folder, string userId)
+        {
+            if (file == null || file.Length == 0)
+                return null;
+
+            // Kiểm tra định dạng file (cho phép JPG, PNG, GIF)
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+            var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            
+            if (!allowedExtensions.Contains(fileExtension))
+            {
+                throw new Exception("Định dạng file không hợp lệ. Chỉ chấp nhận JPG, PNG, GIF.");
+            }
+
+            // Kiểm tra kích thước file (tối đa 5MB)
+            var maxSize = 5 * 1024 * 1024; // 5MB
+            if (file.Length > maxSize)
+            {
+                throw new Exception("Kích thước file quá lớn. Tối đa 5MB.");
+            }
+
+            // Tạo tên file unique
+            var fileName = $"{userId}_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid():N}{fileExtension}";
+            var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", folder);
+            
+            // Đảm bảo thư mục tồn tại
+            if (!Directory.Exists(uploadsPath))
+            {
+                Directory.CreateDirectory(uploadsPath);
+            }
+
+            var filePath = Path.Combine(uploadsPath, fileName);
+            
+            // Lưu file
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            // Trả về đường dẫn URL
+            return $"/uploads/{folder}/{fileName}";
+        }
+
+        // POST: Upload avatar
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UploadAvatar(IFormFile? avatarFile)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy người dùng" });
+            }
+
+            try
+            {
+                if (avatarFile != null && avatarFile.Length > 0)
+                {
+                    // Upload file mới
+                    var avatarPath = await UploadFileAsync(avatarFile, "avatars", user.Id);
+                    
+                    if (string.IsNullOrEmpty(avatarPath))
+                    {
+                        return Json(new { success = false, message = "Không thể upload file" });
+                    }
+                    
+                    // Xóa avatar cũ nếu có
+                    if (!string.IsNullOrEmpty(user.Avatar) && user.Avatar.StartsWith("/uploads/"))
+                    {
+                        var oldAvatarPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", user.Avatar.TrimStart('/'));
+                        if (System.IO.File.Exists(oldAvatarPath))
+                        {
+                            try
+                            {
+                                System.IO.File.Delete(oldAvatarPath);
+                            }
+                            catch
+                            {
+                                // Bỏ qua lỗi xóa file cũ
+                            }
+                        }
+                    }
+                    
+                    // Reload user từ database để đảm bảo tracking đúng
+                    var dbUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == user.Id);
+                    if (dbUser == null)
+                    {
+                        return Json(new { success = false, message = "Không tìm thấy người dùng trong database" });
+                    }
+                    
+                    // Cập nhật avatar
+                    dbUser.Avatar = avatarPath;
+                    
+                    // Lưu vào database
+                    await _context.SaveChangesAsync();
+                    
+                    // Cập nhật lại user trong UserManager để đồng bộ
+                    await _userManager.UpdateAsync(dbUser);
+                    
+                    return Json(new { success = true, message = "Cập nhật avatar thành công!", avatarUrl = avatarPath });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Vui lòng chọn file ảnh" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
         }
     }
 }

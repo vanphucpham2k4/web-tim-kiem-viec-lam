@@ -237,6 +237,9 @@ namespace Unicareer.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
+                    b.Property<string>("Avatar")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
@@ -303,6 +306,38 @@ namespace Unicareer.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("Unicareer.Models.ChuyenNganh", b =>
+                {
+                    b.Property<int>("MaChuyenNganh")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaChuyenNganh"));
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("MaNganhNghe")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MoTa")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("NgayTao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TenChuyenNganh")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("MaChuyenNganh");
+
+                    b.HasIndex("MaNganhNghe")
+                        .HasDatabaseName("idx_chuyennganh_nganhnghe");
+
+                    b.ToTable("ChuyenNganhs");
+                });
+
             modelBuilder.Entity("Unicareer.Models.LoaiCongViec", b =>
                 {
                     b.Property<int>("MaLoaiCongViec")
@@ -339,7 +374,6 @@ namespace Unicareer.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaNganhNghe"));
 
                     b.Property<string>("MoTa")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("NgayTao")
@@ -375,11 +409,20 @@ namespace Unicareer.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("EmailNguoiDaiDien")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("float");
+
                     b.Property<string>("LinhVuc")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Logo")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("float");
 
                     b.Property<string>("MoTa")
                         .HasColumnType("nvarchar(max)");
@@ -395,6 +438,9 @@ namespace Unicareer.Migrations
 
                     b.Property<string>("SoDienThoai")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SoDienThoaiNguoiDaiDien")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("SoTinDaDang")
@@ -510,13 +556,18 @@ namespace Unicareer.Migrations
                     b.Property<double?>("Longitude")
                         .HasColumnType("float");
 
+                    b.Property<int?>("MaNhaTuyenDung")
+                        .HasColumnType("int");
+
                     b.Property<string>("MoTa")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal?>("MucLuongCaoNhat")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("MucLuongThapNhat")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("NganhNghe")
@@ -562,6 +613,9 @@ namespace Unicareer.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("MaTinTuyenDung");
+
+                    b.HasIndex("MaNhaTuyenDung")
+                        .HasDatabaseName("idx_tintuyendung_nhatuyendung");
 
                     b.ToTable("TinTuyenDungs");
                 });
@@ -627,7 +681,6 @@ namespace Unicareer.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaTruong"));
 
                     b.Property<string>("MoTa")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("NgayTao")
@@ -650,6 +703,15 @@ namespace Unicareer.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaUngVien"));
 
+                    b.Property<string>("CVFile")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ChungChi")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ChuyenNganhKhac")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("DiaChi")
                         .HasColumnType("nvarchar(max)");
 
@@ -660,6 +722,9 @@ namespace Unicareer.Migrations
                     b.Property<string>("GioiTinh")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("HienThiCongKhai")
+                        .HasColumnType("bit");
+
                     b.Property<string>("HoTen")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -667,13 +732,44 @@ namespace Unicareer.Migrations
                     b.Property<string>("HocVan")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("HocVanChiTiet")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("KinhNghiem")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("KinhNghiemChiTiet")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("KyNang")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("KyNangChiTiet")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LinkBehance")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("LinkCV")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LinkGitHub")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LinkPortfolio")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("MaChuyenNganh")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MoTaBanThan")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("MucLuongKyVong")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("MucTieuNgheNghiep")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("NganhNghe")
@@ -685,6 +781,9 @@ namespace Unicareer.Migrations
                     b.Property<DateTime>("NgaySinh")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("NoiLamViecMongMuon")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("SoDienThoai")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -692,17 +791,59 @@ namespace Unicareer.Migrations
                     b.Property<int>("SoLanUngTuyen")
                         .HasColumnType("int");
 
+                    b.Property<string>("TrangThaiTimViec")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("ViTriMongMuon")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("MaUngVien");
+
+                    b.HasIndex("MaChuyenNganh")
+                        .HasDatabaseName("idx_ungvien_chuyennganh");
 
                     b.HasIndex("UserId")
                         .IsUnique()
                         .HasDatabaseName("idx_ungvien_userid");
 
                     b.ToTable("UngViens");
+                });
+
+            modelBuilder.Entity("Unicareer.Models.ViecLamDaLuu", b =>
+                {
+                    b.Property<int>("MaViecLamDaLuu")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaViecLamDaLuu"));
+
+                    b.Property<int>("MaTinTuyenDung")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("NgayLuu")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("MaViecLamDaLuu");
+
+                    b.HasIndex("MaTinTuyenDung")
+                        .HasDatabaseName("idx_vieclamdaluu_matintuyendung");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("idx_vieclamdaluu_userid");
+
+                    b.HasIndex("UserId", "MaTinTuyenDung")
+                        .IsUnique()
+                        .HasDatabaseName("idx_vieclamdaluu_userid_matintuyendung");
+
+                    b.ToTable("ViecLamDaLuus");
                 });
 
             modelBuilder.Entity("Unicareer.Models.Ward", b =>
@@ -809,6 +950,16 @@ namespace Unicareer.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Unicareer.Models.ChuyenNganh", b =>
+                {
+                    b.HasOne("Unicareer.Models.NganhNghe", "NganhNghe")
+                        .WithMany()
+                        .HasForeignKey("MaNganhNghe")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("NganhNghe");
+                });
+
             modelBuilder.Entity("Unicareer.Models.NhaTuyenDung", b =>
                 {
                     b.HasOne("Unicareer.Models.ApplicationUser", "User")
@@ -830,13 +981,49 @@ namespace Unicareer.Migrations
                     b.Navigation("AdministrativeUnit");
                 });
 
+            modelBuilder.Entity("Unicareer.Models.TinTuyenDung", b =>
+                {
+                    b.HasOne("Unicareer.Models.NhaTuyenDung", "NhaTuyenDung")
+                        .WithMany()
+                        .HasForeignKey("MaNhaTuyenDung")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("NhaTuyenDung");
+                });
+
             modelBuilder.Entity("Unicareer.Models.UngVien", b =>
                 {
+                    b.HasOne("Unicareer.Models.ChuyenNganh", "ChuyenNganh")
+                        .WithMany()
+                        .HasForeignKey("MaChuyenNganh")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Unicareer.Models.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("ChuyenNganh");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Unicareer.Models.ViecLamDaLuu", b =>
+                {
+                    b.HasOne("Unicareer.Models.TinTuyenDung", "TinTuyenDung")
+                        .WithMany()
+                        .HasForeignKey("MaTinTuyenDung")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Unicareer.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TinTuyenDung");
 
                     b.Navigation("User");
                 });

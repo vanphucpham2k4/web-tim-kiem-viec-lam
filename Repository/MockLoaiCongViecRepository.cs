@@ -118,6 +118,63 @@ namespace Unicareer.Repository
         {
             return _danhSachLoaiCongViec.FirstOrDefault(l => l.MaLoaiCongViec == id);
         }
+
+        public LoaiCongViec? ThemLoaiCongViec(LoaiCongViec loaiCongViec)
+        {
+            try
+            {
+                loaiCongViec.MaLoaiCongViec = _danhSachLoaiCongViec.Count > 0 
+                    ? _danhSachLoaiCongViec.Max(l => l.MaLoaiCongViec) + 1 
+                    : 1;
+                loaiCongViec.NgayTao = DateTime.Now;
+                loaiCongViec.SoLuongViTri = 0;
+                _danhSachLoaiCongViec.Add(loaiCongViec);
+                return loaiCongViec;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public LoaiCongViec? CapNhatLoaiCongViec(LoaiCongViec loaiCongViec)
+        {
+            try
+            {
+                var loaiCongViecHienTai = _danhSachLoaiCongViec
+                    .FirstOrDefault(l => l.MaLoaiCongViec == loaiCongViec.MaLoaiCongViec);
+                
+                if (loaiCongViecHienTai == null)
+                    return null;
+
+                loaiCongViecHienTai.TenLoaiCongViec = loaiCongViec.TenLoaiCongViec;
+                loaiCongViecHienTai.MoTa = loaiCongViec.MoTa;
+                return loaiCongViecHienTai;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public bool XoaLoaiCongViec(int id)
+        {
+            try
+            {
+                var loaiCongViec = _danhSachLoaiCongViec
+                    .FirstOrDefault(l => l.MaLoaiCongViec == id);
+                
+                if (loaiCongViec == null)
+                    return false;
+
+                _danhSachLoaiCongViec.Remove(loaiCongViec);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }
 

@@ -13,6 +13,7 @@ namespace Unicareer.Repository
                 new NhaTuyenDung
                 {
                     MaNhaTuyenDung = 1,
+                    UserId = "mock-user-1", // Mock UserId
                     TenCongTy = "FPT Software",
                     Email = "recruit@fpt.com.vn",
                     SoDienThoai = "024-37912345",
@@ -41,6 +42,7 @@ namespace Unicareer.Repository
                 new NhaTuyenDung
                 {
                     MaNhaTuyenDung = 2,
+                    UserId = "mock-user-2", // Mock UserId
                     TenCongTy = "Vinamilk",
                     Email = "hr@vinamilk.com.vn",
                     SoDienThoai = "028-54155555",
@@ -69,6 +71,7 @@ namespace Unicareer.Repository
                 new NhaTuyenDung
                 {
                     MaNhaTuyenDung = 3,
+                    UserId = "mock-user-3", // Mock UserId
                     TenCongTy = "Tiki",
                     Email = "career@tiki.vn",
                     SoDienThoai = "028-62728728",
@@ -97,6 +100,7 @@ namespace Unicareer.Repository
                 new NhaTuyenDung
                 {
                     MaNhaTuyenDung = 4,
+                    UserId = "mock-user-4", // Mock UserId
                     TenCongTy = "VNG Corporation",
                     Email = "jobs@vng.com.vn",
                     SoDienThoai = "028-54587262",
@@ -125,6 +129,7 @@ namespace Unicareer.Repository
                 new NhaTuyenDung
                 {
                     MaNhaTuyenDung = 5,
+                    UserId = "mock-user-5", // Mock UserId
                     TenCongTy = "Lazada Vietnam",
                     Email = "recruitment.vn@lazada.com",
                     SoDienThoai = "028-39107788",
@@ -166,6 +171,11 @@ namespace Unicareer.Repository
         public NhaTuyenDung? LayNhaTuyenDungTheoTen(string tenCongTy)
         {
             return _danhSachNhaTuyenDung.FirstOrDefault(n => n.TenCongTy.Equals(tenCongTy, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public NhaTuyenDung? LayNhaTuyenDungTheoUserId(string userId)
+        {
+            return _danhSachNhaTuyenDung.FirstOrDefault(n => n.UserId == userId);
         }
     }
 }
