@@ -297,7 +297,7 @@ namespace Unicareer.Areas.Recruiter.Controllers
         }
 
         // GET: Danh sach tin da dang
-        public async Task<IActionResult> TinDaDang()
+        public async Task<IActionResult> TinDaDang(int pageNumber = 1, int pageSize = 10, string? searchTerm = null, string? trangThaiFilter = null)
         {
             ViewData["Title"] = "Tin da dang";
             
@@ -312,12 +312,70 @@ namespace Unicareer.Areas.Recruiter.Controllers
             if (nhaTuyenDung == null || string.IsNullOrEmpty(nhaTuyenDung.TenCongTy))
             {
                 // Nếu chưa có thông tin công ty, trả về danh sách rỗng
-                return View(new List<TinTuyenDung>());
+                var emptyModel = new TinDaDangViewModel
+                {
+                    TinTuyenDungs = new List<TinTuyenDung>(),
+                    PageNumber = 1,
+                    PageSize = pageSize,
+                    TotalCount = 0,
+                    SearchTerm = searchTerm,
+                    TrangThaiFilter = trangThaiFilter
+                };
+                return View(emptyModel);
             }
 
             // Lấy tin tuyển dụng theo mã nhà tuyển dụng (foreign key)
             var danhSach = _tinTuyenDungRepository.LayDanhSachTheoMaNhaTuyenDung(nhaTuyenDung.MaNhaTuyenDung);
-            return View(danhSach);
+            
+            // Tính stats từ toàn bộ dữ liệu (trước khi lọc)
+            var totalDangTuyen = danhSach.Count(t => 
+                t.TrangThai == "Dang tuyen" || (string.IsNullOrEmpty(t.TrangThai) && t.HanNop >= DateTime.Now));
+            var totalHetHan = danhSach.Count(t => 
+                t.TrangThai == "Het han" || (string.IsNullOrEmpty(t.TrangThai) && t.HanNop < DateTime.Now) || t.TrangThai == "Da dong");
+            var totalUngTuyen = danhSach.Sum(t => t.SoLuongUngTuyen) ?? 0;
+            
+            // Lọc theo tìm kiếm
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                danhSach = danhSach.Where(t => 
+                    (t.TenViecLam != null && t.TenViecLam.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                    (t.ViTri != null && t.ViTri.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                ).ToList();
+            }
+            
+            // Lọc theo trạng thái
+            if (!string.IsNullOrEmpty(trangThaiFilter))
+            {
+                danhSach = danhSach.Where(t =>
+                {
+                    var trangThai = !string.IsNullOrEmpty(t.TrangThai)
+                        ? t.TrangThai
+                        : (t.HanNop >= DateTime.Now ? "Dang tuyen" : "Het han");
+                    return trangThai == trangThaiFilter;
+                }).ToList();
+            }
+            
+            // Sắp xếp theo ngày đăng (mới nhất trước)
+            danhSach = danhSach.OrderByDescending(t => t.NgayDang).ToList();
+            
+            // Tính toán phân trang
+            var totalCount = danhSach.Count;
+            var pagedList = danhSach.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+            
+            var model = new TinDaDangViewModel
+            {
+                TinTuyenDungs = pagedList,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                SearchTerm = searchTerm,
+                TrangThaiFilter = trangThaiFilter,
+                TotalDangTuyen = totalDangTuyen,
+                TotalHetHan = totalHetHan,
+                TotalUngTuyen = totalUngTuyen
+            };
+            
+            return View(model);
         }
 
         // GET: Chi tiet tin da dang
@@ -716,7 +774,7 @@ namespace Unicareer.Areas.Recruiter.Controllers
         }
 
         // GET: Danh sach don ung tuyen
-        public async Task<IActionResult> DonUngTuyen()
+        public async Task<IActionResult> DonUngTuyen(int pageNumber = 1, int pageSize = 10, string? searchTerm = null, string? trangThaiFilter = null, string? tinTuyenDungFilter = null)
         {
             ViewData["Title"] = "Đơn ứng tuyển";
             
@@ -731,8 +789,18 @@ namespace Unicareer.Areas.Recruiter.Controllers
             if (nhaTuyenDung == null || string.IsNullOrEmpty(nhaTuyenDung.TenCongTy))
             {
                 // Nếu chưa có thông tin công ty, trả về danh sách rỗng
-                ViewBag.DanhSachTinTuyenDung = new List<TinTuyenDung>();
-                return View(new List<TinUngTuyen>());
+                var emptyModel = new DonUngTuyenViewModel
+                {
+                    DonUngTuyens = new List<TinUngTuyen>(),
+                    DanhSachTinTuyenDung = new List<TinTuyenDung>(),
+                    PageNumber = 1,
+                    PageSize = pageSize,
+                    TotalCount = 0,
+                    SearchTerm = searchTerm,
+                    TrangThaiFilter = trangThaiFilter,
+                    TinTuyenDungFilter = tinTuyenDungFilter
+                };
+                return View(emptyModel);
             }
 
             // Lấy tin tuyển dụng theo mã nhà tuyển dụng (foreign key)
@@ -746,9 +814,67 @@ namespace Unicareer.Areas.Recruiter.Controllers
                 .Where(t => danhSachMaTin.Contains(t.MaTinTuyenDung))
                 .ToList();
             
-            ViewBag.DanhSachTinTuyenDung = danhSachTinTuyenDung;
+            // Tính stats từ toàn bộ dữ liệu (trước khi lọc)
+            var totalDangXemXet = danhSachDonUngTuyen.Count(t => 
+                Models.Enums.TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy) == Models.Enums.TrangThaiXuLy.DangXemXet);
+            var totalChoPhongVan = danhSachDonUngTuyen.Count(t => 
+                Models.Enums.TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy) == Models.Enums.TrangThaiXuLy.ChoPhongVan);
+            var totalTuyenDung = danhSachDonUngTuyen.Count(t => 
+                Models.Enums.TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy) == Models.Enums.TrangThaiXuLy.TuyenDung);
             
-            return View(danhSachDonUngTuyen);
+            // Lọc theo tìm kiếm
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                danhSachDonUngTuyen = danhSachDonUngTuyen.Where(t => 
+                    (t.HoTen != null && t.HoTen.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                    (t.Email != null && t.Email.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                    (t.SoDienThoai != null && t.SoDienThoai.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                    (t.ViTriUngTuyen != null && t.ViTriUngTuyen.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                ).ToList();
+            }
+            
+            // Lọc theo trạng thái
+            if (!string.IsNullOrEmpty(trangThaiFilter))
+            {
+                danhSachDonUngTuyen = danhSachDonUngTuyen.Where(t =>
+                {
+                    var trangThaiEnum = Models.Enums.TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy);
+                    var trangThaiDisplay = trangThaiEnum.HasValue 
+                        ? Models.Enums.TrangThaiXuLyHelper.ToString(trangThaiEnum.Value) 
+                        : t.TrangThaiXuLy;
+                    return trangThaiDisplay == trangThaiFilter;
+                }).ToList();
+            }
+            
+            // Lọc theo tin tuyển dụng
+            if (!string.IsNullOrEmpty(tinTuyenDungFilter))
+            {
+                danhSachDonUngTuyen = danhSachDonUngTuyen.Where(t => t.MaTinTuyenDung == tinTuyenDungFilter).ToList();
+            }
+            
+            // Sắp xếp theo ngày ứng tuyển (mới nhất trước)
+            danhSachDonUngTuyen = danhSachDonUngTuyen.OrderByDescending(t => t.NgayUngTuyen).ToList();
+            
+            // Tính toán phân trang
+            var totalCount = danhSachDonUngTuyen.Count;
+            var pagedList = danhSachDonUngTuyen.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+            
+            var model = new DonUngTuyenViewModel
+            {
+                DonUngTuyens = pagedList,
+                DanhSachTinTuyenDung = danhSachTinTuyenDung,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                SearchTerm = searchTerm,
+                TrangThaiFilter = trangThaiFilter,
+                TinTuyenDungFilter = tinTuyenDungFilter,
+                TotalDangXemXet = totalDangXemXet,
+                TotalChoPhongVan = totalChoPhongVan,
+                TotalTuyenDung = totalTuyenDung
+            };
+            
+            return View(model);
         }
 
         // GET: Chi tiet don ung tuyen

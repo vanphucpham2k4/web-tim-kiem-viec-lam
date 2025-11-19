@@ -1,11 +1,7 @@
-@model List<Unicareer.Models.NhaTuyenDung>
+@model Unicareer.Models.ViewModels.NhaTuyenDungManagementViewModel
 
 @{
     ViewData["Title"] = "Quản lý Nhà tuyển dụng";
-    
-    // Lay du lieu mockdata
-    var danhSachTinTuyenDung = ViewBag.DanhSachTinTuyenDung as List<Unicareer.Models.TinTuyenDung> ?? new List<Unicareer.Models.TinTuyenDung>();
-    var danhSachTinUngTuyen = ViewBag.DanhSachTinUngTuyen as List<Unicareer.Models.TinUngTuyen> ?? new List<Unicareer.Models.TinUngTuyen>();
 }
 
 <div class="page-header-section mb-4">
@@ -25,56 +21,49 @@
 </div>
 
 <div class="filter-section mb-4">
-    <div class="row g-3">
-        <div class="col-lg-3 col-md-6">
-            <div class="search-wrapper">
-                <i class="bi bi-search search-icon"></i>
-                <input type="text" class="form-control search-input" id="timKiemInput" placeholder="Tìm kiếm theo tên công ty, email...">
+    <form id="searchForm" method="get" action="@Url.Action("NhaTuyenDung", "Admin", new { area = "Admin" })">
+        <input type="hidden" id="pageNumberInput" name="pageNumber" value="@Model.PageNumber" />
+        <div class="row g-3">
+            <div class="col-lg-3 col-md-6">
+                <div class="search-wrapper">
+                    <i class="bi bi-search search-icon"></i>
+                    <input type="text" class="form-control search-input" id="timKiemInput" name="search" value="@Model.SearchTerm" placeholder="Tìm kiếm theo tên công ty, email...">
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-6">
+                <div class="filter-select-wrapper">
+                    <i class="bi bi-geo-alt filter-icon"></i>
+                    <select class="form-select filter-select" id="locTinhThanhPho" name="tinhThanhPho">
+                        <option value="">Tất cả tỉnh/TP</option>
+                        @foreach (var tinh in Model.DanhSachTinhThanh)
+                        {
+                            @if (Model.TinhThanhPhoFilter == tinh.FullName)
+                            {
+                                <option value="@tinh.FullName" data-code="@tinh.Code" data-fullname="@tinh.FullName" selected>@tinh.FullName</option>
+                            }
+                            else
+                            {
+                                <option value="@tinh.FullName" data-code="@tinh.Code" data-fullname="@tinh.FullName">@tinh.FullName</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-6">
+                <div class="filter-select-wrapper">
+                    <i class="bi bi-map filter-icon"></i>
+                    <select class="form-select filter-select" id="locQuanHuyen" name="quanHuyen">
+                        <option value="">Tất cả quận/huyện</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-lg-1 col-md-6">
+                <button class="btn btn-primary w-100 filter-btn" type="submit" id="btnTimKiem">
+                    <i class="bi bi-funnel-fill"></i>
+                </button>
             </div>
         </div>
-        <div class="col-lg-2 col-md-6">
-            <div class="filter-select-wrapper">
-                <i class="bi bi-geo-alt filter-icon"></i>
-                <select class="form-select filter-select" id="locTinhThanhPho">
-                    <option value="">Tất cả tỉnh/TP</option>
-                    @{
-                        var danhSachTinhThanh = ViewBag.DanhSachTinhThanh as List<Unicareer.Models.Province> ?? new List<Unicareer.Models.Province>();
-                    }
-                    @foreach (var tinh in danhSachTinhThanh)
-                    {
-                        <option value="@tinh.FullName" data-code="@tinh.Code" data-fullname="@tinh.FullName">@tinh.FullName</option>
-                    }
-                </select>
-            </div>
-        </div>
-        <div class="col-lg-2 col-md-6">
-            <div class="filter-select-wrapper">
-                <i class="bi bi-map filter-icon"></i>
-                <select class="form-select filter-select" id="locQuanHuyen">
-                    <option value="">Tất cả quận/huyện</option>
-                </select>
-            </div>
-        </div>
-        <div class="col-lg-2 col-md-6">
-            <div class="filter-select-wrapper">
-                <i class="bi bi-briefcase filter-icon"></i>
-                <select class="form-select filter-select" id="locLinhVuc">
-                    <option value="">Tất cả lĩnh vực</option>
-                    <option value="Cong nghe thong tin">Công nghệ thông tin</option>
-                    <option value="Thuong mai dien tu">Thương mại điện tử</option>
-                    <option value="Vien thong">Viễn thông</option>
-                    <option value="Tu van">Tư vấn</option>
-                    <option value="San xuat">Sản xuất</option>
-                    <option value="F&B">F&B</option>
-                </select>
-            </div>
-        </div>
-        <div class="col-lg-1 col-md-6">
-            <button class="btn btn-primary w-100 filter-btn" type="button" id="btnTimKiem">
-                <i class="bi bi-funnel-fill"></i>
-            </button>
-        </div>
-    </div>
+    </form>
 </div>
 
 <div class="row">
@@ -90,16 +79,15 @@
                             <th>Email / SĐT</th>
                             <th>Tỉnh/TP</th>
                             <th>Quận/Huyện</th>
-                            <th>Lĩnh vực</th>
                             <th>Tin đăng</th>
                             <th>UV nhận</th>
                             <th>Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var ntd in Model)
+                        @foreach (var ntd in Model.NhaTuyenDungs)
                         {
-                            <tr data-ma="@ntd.MaNhaTuyenDung" data-tinhthanhpho="@ntd.TinhThanhPho" data-quanhuyen="@ntd.QuanHuyen" data-linhvuc="@ntd.LinhVuc">
+                            <tr data-ma="@ntd.MaNhaTuyenDung" data-tinhthanhpho="@ntd.TinhThanhPho" data-quanhuyen="@ntd.QuanHuyen">
                                 <td>@ntd.MaNhaTuyenDung</td>
                                 <td>
                                     <strong>@ntd.TenCongTy</strong>
@@ -117,9 +105,8 @@
                                 </td>
                                 <td><span class="badge bg-primary">@ntd.TinhThanhPho</span></td>
                                 <td><span class="badge bg-info">@ntd.QuanHuyen</span></td>
-                                <td><span class="badge bg-secondary">@ntd.LinhVuc</span></td>
-                                <td><span class="badge bg-success">@danhSachTinTuyenDung.Count(t => t.CongTy == ntd.TenCongTy)</span></td>
-                                <td><span class="badge bg-warning text-dark">@danhSachTinUngTuyen.Count(t => t.CongTy == ntd.TenCongTy)</span></td>
+                                <td><span class="badge bg-success">@Model.DanhSachTinTuyenDung.Count(t => t.CongTy == ntd.TenCongTy)</span></td>
+                                <td><span class="badge bg-warning text-dark">@Model.DanhSachTinUngTuyen.Count(t => t.CongTy == ntd.TenCongTy)</span></td>
                                 <td>
                                     <a href="@Url.Action("ChiTietNhaTuyenDung", "Admin", new { id = ntd.MaNhaTuyenDung })" 
                                        class="btn btn-sm btn-outline-info" title="Xem chi tiết">
@@ -134,6 +121,103 @@
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Pagination -->
+            @if (Model.TotalPages > 1)
+            {
+                <nav aria-label="Phân trang" style="margin-top: 30px;">
+                    <ul class="pagination justify-content-center">
+                        @if (Model.PageNumber > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">
+                                    <i class="bi bi-chevron-double-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(Model.PageNumber - 1))">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-double-left"></i></span>
+                            </li>
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                            </li>
+                        }
+
+                        @{
+                            int startPage = Math.Max(1, Model.PageNumber - 2);
+                            int endPage = Math.Min(Model.TotalPages, Model.PageNumber + 2);
+                        }
+
+                        @if (startPage > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">1</a>
+                            </li>
+                            @if (startPage > 2)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                        }
+
+                        @for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@i)">@i</a>
+                            </li>
+                        }
+
+                        @if (endPage < Model.TotalPages)
+                        {
+                            @if (endPage < Model.TotalPages - 1)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@Model.TotalPages)">@Model.TotalPages</a>
+                            </li>
+                        }
+
+                        @if (Model.PageNumber < Model.TotalPages)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(Model.PageNumber + 1))">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@Model.TotalPages)">
+                                    <i class="bi bi-chevron-double-right"></i>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                            </li>
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-double-right"></i></span>
+                            </li>
+                        }
+                    </ul>
+                    <div class="pagination-info" style="text-align: center; margin-top: 15px; color: #718096; font-size: 0.9rem;">
+                        Hiển thị <strong>@((Model.PageNumber - 1) * Model.PageSize + 1)</strong> - 
+                        <strong>@(Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount))</strong> 
+                        trong tổng số <strong>@Model.TotalCount</strong> nhà tuyển dụng
+                    </div>
+                </nav>
+            }
         </div>
     </div>
 </div>
@@ -147,7 +231,7 @@
             </div>
             <div class="stat-info">
                 <h6 class="stat-label">Tổng NTD</h6>
-                <h3 class="stat-number">@Model.Count</h3>
+                <h3 class="stat-number">@Model.TotalNhaTuyenDung</h3>
             </div>
         </div>
     </div>
@@ -158,7 +242,7 @@
             </div>
             <div class="stat-info">
                 <h6 class="stat-label">Tổng tin đăng</h6>
-                <h3 class="stat-number">@danhSachTinTuyenDung.Count</h3>
+                <h3 class="stat-number">@Model.TotalTinDang</h3>
             </div>
         </div>
     </div>
@@ -169,7 +253,7 @@
             </div>
             <div class="stat-info">
                 <h6 class="stat-label">Tổng UV nhận</h6>
-                <h3 class="stat-number">@danhSachTinUngTuyen.Count</h3>
+                <h3 class="stat-number">@Model.TotalUngVienNhan</h3>
             </div>
         </div>
     </div>
@@ -180,7 +264,7 @@
             </div>
             <div class="stat-info">
                 <h6 class="stat-label">TB tin/NTD</h6>
-                <h3 class="stat-number">@(Model.Count > 0 ? (int)(danhSachTinTuyenDung.Count / (double)Model.Count) : 0)</h3>
+                <h3 class="stat-number">@Model.TrungBinhTinPerNTD</h3>
             </div>
         </div>
     </div>
@@ -629,6 +713,49 @@
         vertical-align: middle;
         border: none;
     }
+
+    /* Pagination Styles */
+    .pagination {
+        margin: 0;
+        padding: 0;
+    }
+
+    .pagination .page-item {
+        margin: 0 2px;
+    }
+
+    .pagination .page-link {
+        color: #667eea;
+        border: 1px solid #e2e8f0;
+        padding: 8px 12px;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+
+    .pagination .page-link:hover {
+        background: #f3e8ff;
+        border-color: #667eea;
+        color: #667eea;
+    }
+
+    .pagination .page-item.active .page-link {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: #667eea;
+        color: white;
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: #cbd5e0;
+        cursor: not-allowed;
+        background: #f7fafc;
+    }
+
+    .pagination-info {
+        text-align: center;
+        margin-top: 15px;
+        color: #718096;
+        font-size: 0.9rem;
+    }
 </style>
 
 @section Scripts {
@@ -647,7 +774,7 @@
                     $locQuanHuyen.html('<option value="">Đang tải...</option>');
                     
                     // Fetch wards from API
-                    fetch(`/Admin/Admin/GetWardsByProvince?provinceCode=${encodeURIComponent(provinceCode)}`)
+                    return fetch(`/Admin/Admin/GetWardsByProvince?provinceCode=${encodeURIComponent(provinceCode)}`)
                         .then(response => response.json())
                         .then(data => {
                             $locQuanHuyen.html('<option value="">Tất cả quận/huyện</option>');
@@ -664,14 +791,17 @@
                             }
                             
                             $locQuanHuyen.prop('disabled', false);
+                            return data;
                         })
                         .catch(error => {
                             console.error('Error loading wards:', error);
                             $locQuanHuyen.html('<option value="">Lỗi tải dữ liệu</option>');
                             $locQuanHuyen.prop('disabled', false);
+                            return [];
                         });
                 } else {
                     $locQuanHuyen.prop('disabled', false);
+                    return Promise.resolve([]);
                 }
             }
 
@@ -684,51 +814,51 @@
                 } else {
                     $('#locQuanHuyen').html('<option value="">Tất cả quận/huyện</option>');
                 }
-                locDuLieu();
+                // Reset về trang 1 và submit form
+                $('#pageNumberInput').val(1);
+                $('#pageNumberInput').removeData('pagination-click');
+                $('#searchForm').submit();
             });
 
             // Kiểm tra và load quận/huyện nếu tỉnh đã được chọn (khi quay lại bằng back button)
             const selectedProvinceCode = $('#locTinhThanhPho option:selected').data('code');
             if (selectedProvinceCode) {
-                loadWardsByProvince(selectedProvinceCode);
-            }
-
-            // Tim kiem va loc
-            $('#btnTimKiem, #timKiemInput').on('click keyup', function(e) {
-                if (e.type === 'keyup' && e.keyCode !== 13) return;
-                locDuLieu();
-            });
-
-            $('#locQuanHuyen, #locLinhVuc').on('change', function() {
-                locDuLieu();
-            });
-
-            function locDuLieu() {
-                var tuKhoa = $('#timKiemInput').val().toLowerCase();
-                var tinhThanhPho = $('#locTinhThanhPho').val();
-                var quanHuyen = $('#locQuanHuyen').val();
-                var linhVuc = $('#locLinhVuc').val();
-
-                $('#bangNhaTuyenDung tbody tr').each(function() {
-                    var row = $(this);
-                    var tenCongTy = row.find('td:eq(1)').text().toLowerCase();
-                    var email = row.find('td:eq(3)').text().toLowerCase();
-                    var tinhThanhPhoRow = row.data('tinhthanhpho');
-                    var quanHuyenRow = row.data('quanhuyen');
-                    var linhVucRow = row.data('linhvuc');
-                    
-                    var khopTuKhoa = tuKhoa === '' || tenCongTy.includes(tuKhoa) || email.includes(tuKhoa);
-                    var khopTinhThanhPho = tinhThanhPho === '' || tinhThanhPhoRow === tinhThanhPho;
-                    var khopQuanHuyen = quanHuyen === '' || quanHuyenRow === quanHuyen;
-                    var khopLinhVuc = linhVuc === '' || linhVucRow.includes(linhVuc);
-                    
-                    if (khopTuKhoa && khopTinhThanhPho && khopQuanHuyen && khopLinhVuc) {
-                        row.show();
-                    } else {
-                        row.hide();
+                loadWardsByProvince(selectedProvinceCode).then(function() {
+                    // Set lại giá trị quận/huyện đã chọn nếu có
+                    var quanHuyenFilter = '@Model.QuanHuyenFilter';
+                    if (quanHuyenFilter) {
+                        $('#locQuanHuyen').val(quanHuyenFilter);
                     }
                 });
             }
+
+            // Hàm chuyển trang
+            window.goToPage = function(pageNumber) {
+                $('#pageNumberInput').val(pageNumber);
+                $('#pageNumberInput').data('pagination-click', true);
+                $('#searchForm').submit();
+            };
+
+            // Khi submit form tìm kiếm, reset về trang 1
+            $('#searchForm').on('submit', function() {
+                // Nếu không phải là click phân trang, reset về trang 1
+                if (!$('#pageNumberInput').data('pagination-click')) {
+                    $('#pageNumberInput').val(1);
+                }
+                $('#pageNumberInput').removeData('pagination-click');
+            });
+
+            // Đánh dấu khi click phân trang
+            $(document).on('click', '.page-link', function() {
+                $('#pageNumberInput').data('pagination-click', true);
+            });
+
+            // Khi thay đổi filter, reset về trang 1 và submit
+            $('#locQuanHuyen').on('change', function() {
+                $('#pageNumberInput').val(1);
+                $('#pageNumberInput').removeData('pagination-click');
+                $('#searchForm').submit();
+            });
 
             var currentTenCongTy = '';
 

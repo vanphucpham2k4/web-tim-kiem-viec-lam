@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Unicareer.Models;
+using Unicareer.Models.ViewModels;
 using Unicareer.Repository;
 using Unicareer.Data;
 using Microsoft.AspNetCore.Http;
@@ -66,22 +67,83 @@ namespace Unicareer.Areas.Admin.Controllers
             return View(danhSachUngVien);
         }
 
-        public IActionResult NhaTuyenDung()
+        public IActionResult NhaTuyenDung(string? search = null, string? tinhThanhPho = null, string? quanHuyen = null, int pageNumber = 1, int pageSize = 20)
         {
+            // Lấy toàn bộ dữ liệu
             var danhSachNhaTuyenDung = _nhaTuyenDungRepository.LayDanhSachNhaTuyenDung();
             var danhSachTinTuyenDung = _tinTuyenDungRepository.LayDanhSachTinTuyenDung();
             var danhSachTinUngTuyen = _tinUngTuyenRepository.LayDanhSachTinUngTuyen();
             var danhSachTinhThanh = _context.Provinces
                 .OrderBy(p => p.FullName)
                 .ToList();
-            ViewBag.DanhSachTinTuyenDung = danhSachTinTuyenDung;
-            ViewBag.DanhSachTinUngTuyen = danhSachTinUngTuyen;
-            ViewBag.DanhSachTinhThanh = danhSachTinhThanh;
-            return View(danhSachNhaTuyenDung);
+            
+            // Tính stats từ toàn bộ dữ liệu (trước khi lọc)
+            var totalNhaTuyenDung = danhSachNhaTuyenDung.Count;
+            var totalTinDang = danhSachTinTuyenDung.Count;
+            var totalUngVienNhan = danhSachTinUngTuyen.Count;
+            var trungBinhTinPerNTD = totalNhaTuyenDung > 0 
+                ? (int)(totalTinDang / (double)totalNhaTuyenDung) 
+                : 0;
+            
+            // Lọc theo tìm kiếm
+            if (!string.IsNullOrEmpty(search))
+            {
+                danhSachNhaTuyenDung = danhSachNhaTuyenDung.Where(n => 
+                    (n.TenCongTy != null && n.TenCongTy.Contains(search, StringComparison.OrdinalIgnoreCase)) ||
+                    (n.Email != null && n.Email.Contains(search, StringComparison.OrdinalIgnoreCase)) ||
+                    (n.NguoiDaiDien != null && n.NguoiDaiDien.Contains(search, StringComparison.OrdinalIgnoreCase))
+                ).ToList();
+            }
+            
+            // Lọc theo tỉnh/thành phố
+            if (!string.IsNullOrEmpty(tinhThanhPho))
+            {
+                danhSachNhaTuyenDung = danhSachNhaTuyenDung.Where(n => 
+                    n.TinhThanhPho != null && n.TinhThanhPho.Equals(tinhThanhPho, StringComparison.OrdinalIgnoreCase)
+                ).ToList();
+            }
+            
+            // Lọc theo quận/huyện
+            if (!string.IsNullOrEmpty(quanHuyen))
+            {
+                danhSachNhaTuyenDung = danhSachNhaTuyenDung.Where(n => 
+                    n.QuanHuyen != null && n.QuanHuyen.Equals(quanHuyen, StringComparison.OrdinalIgnoreCase)
+                ).ToList();
+            }
+            
+            // Tính toán phân trang
+            var totalCount = danhSachNhaTuyenDung.Count;
+            var pagedList = danhSachNhaTuyenDung
+                .OrderBy(n => n.TenCongTy)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+            
+            var viewModel = new NhaTuyenDungManagementViewModel
+            {
+                NhaTuyenDungs = pagedList,
+                DanhSachTinTuyenDung = danhSachTinTuyenDung,
+                DanhSachTinUngTuyen = danhSachTinUngTuyen,
+                DanhSachTinhThanh = danhSachTinhThanh,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                SearchTerm = search,
+                TinhThanhPhoFilter = tinhThanhPho,
+                QuanHuyenFilter = quanHuyen,
+                TotalNhaTuyenDung = totalNhaTuyenDung,
+                TotalTinDang = totalTinDang,
+                TotalUngVienNhan = totalUngVienNhan,
+                TrungBinhTinPerNTD = trungBinhTinPerNTD
+            };
+            
+            return View(viewModel);
         }
 
         // GET: Chi tiết nhà tuyển dụng
-        public IActionResult ChiTietNhaTuyenDung(int id)
+        public IActionResult ChiTietNhaTuyenDung(int id, int pageNumber = 1, int pageSize = 10, 
+            string? searchTerm = null, string? trangThaiFilter = null, string? nganhNgheFilter = null, 
+            string? loaiCongViecFilter = null, string? activeTab = null)
         {
             ViewData["Title"] = "Chi tiết Nhà tuyển dụng";
             
@@ -92,9 +154,95 @@ namespace Unicareer.Areas.Admin.Controllers
                 return RedirectToAction("NhaTuyenDung");
             }
             
-            // Lấy danh sách tin tuyển dụng theo tên công ty
-            var danhSachTinTuyenDung = _tinTuyenDungRepository.LayDanhSachTheoCongTy(nhaTuyenDung.TenCongTy);
-            ViewBag.DanhSachTinTuyenDung = danhSachTinTuyenDung;
+            // Lấy danh sách tin tuyển dụng theo mã nhà tuyển dụng (dùng foreign key)
+            var danhSachTinTuyenDung = _tinTuyenDungRepository.LayDanhSachTheoMaNhaTuyenDung(id);
+            
+            // Tính toán số tin đã đăng từ dữ liệu thật (trước khi lọc)
+            var soTinDaDang = danhSachTinTuyenDung.Count;
+            
+            // Lấy danh sách mã tin tuyển dụng của công ty
+            var danhSachMaTin = danhSachTinTuyenDung.Select(t => t.MaTinTuyenDung.ToString()).ToList();
+            
+            // Tính tổng số đơn ứng tuyển mà công ty nhận được (tất cả trạng thái)
+            var danhSachTinUngTuyen = _tinUngTuyenRepository.LayDanhSachTinUngTuyen();
+            var soUngVienNhan = danhSachTinUngTuyen
+                .Where(t => danhSachMaTin.Contains(t.MaTinTuyenDung))
+                .Count();
+            
+            // Lấy danh sách ngành nghề và loại công việc từ toàn bộ danh sách (trước khi lọc) để hiển thị trong filter
+            var danhSachNganhNghe = danhSachTinTuyenDung
+                .Where(t => !string.IsNullOrEmpty(t.NganhNghe))
+                .Select(t => t.NganhNghe)
+                .Distinct()
+                .OrderBy(n => n)
+                .ToList();
+            
+            var danhSachLoaiCongViec = danhSachTinTuyenDung
+                .Where(t => !string.IsNullOrEmpty(t.LoaiCongViec))
+                .Select(t => t.LoaiCongViec)
+                .Distinct()
+                .OrderBy(l => l)
+                .ToList();
+            
+            // Lọc theo tìm kiếm
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                danhSachTinTuyenDung = danhSachTinTuyenDung.Where(t => 
+                    (t.TenViecLam != null && t.TenViecLam.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                    (t.CongTy != null && t.CongTy.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                ).ToList();
+            }
+            
+            // Lọc theo trạng thái
+            if (!string.IsNullOrEmpty(trangThaiFilter))
+            {
+                danhSachTinTuyenDung = danhSachTinTuyenDung.Where(t =>
+                {
+                    var trangThai = t.HanNop >= DateTime.Now ? "Dang tuyen" : "Het han";
+                    return trangThai == trangThaiFilter;
+                }).ToList();
+            }
+            
+            // Lọc theo ngành nghề
+            if (!string.IsNullOrEmpty(nganhNgheFilter))
+            {
+                danhSachTinTuyenDung = danhSachTinTuyenDung.Where(t => 
+                    !string.IsNullOrEmpty(t.NganhNghe) && 
+                    t.NganhNghe.Equals(nganhNgheFilter, StringComparison.OrdinalIgnoreCase)
+                ).ToList();
+            }
+            
+            // Lọc theo loại công việc
+            if (!string.IsNullOrEmpty(loaiCongViecFilter))
+            {
+                danhSachTinTuyenDung = danhSachTinTuyenDung.Where(t => 
+                    !string.IsNullOrEmpty(t.LoaiCongViec) && 
+                    t.LoaiCongViec.Equals(loaiCongViecFilter, StringComparison.OrdinalIgnoreCase)
+                ).ToList();
+            }
+            
+            // Sắp xếp theo ngày đăng (mới nhất trước)
+            danhSachTinTuyenDung = danhSachTinTuyenDung.OrderByDescending(t => t.NgayDang).ToList();
+            
+            // Tính toán phân trang
+            var totalCount = danhSachTinTuyenDung.Count;
+            var pagedList = danhSachTinTuyenDung.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+            
+            // Truyền dữ liệu vào ViewBag
+            ViewBag.DanhSachTinTuyenDung = pagedList;
+            ViewBag.SoTinDaDang = soTinDaDang;
+            ViewBag.SoUngVienNhan = soUngVienNhan;
+            ViewBag.PageNumber = pageNumber;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalCount = totalCount;
+            ViewBag.TotalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+            ViewBag.SearchTerm = searchTerm;
+            ViewBag.TrangThaiFilter = trangThaiFilter;
+            ViewBag.NganhNgheFilter = nganhNgheFilter;
+            ViewBag.LoaiCongViecFilter = loaiCongViecFilter;
+            ViewBag.DanhSachNganhNghe = danhSachNganhNghe;
+            ViewBag.DanhSachLoaiCongViec = danhSachLoaiCongViec;
+            ViewBag.ActiveTab = activeTab ?? "thongtin"; // Mặc định là tab thông tin
             
             return View(nhaTuyenDung);
         }
@@ -257,8 +405,9 @@ namespace Unicareer.Areas.Admin.Controllers
             }
         }
 
-        public IActionResult NganhNghe()
+        public IActionResult NganhNghe(int pageNumber = 1, int pageSize = 10, string? searchTerm = null)
         {
+            // Lấy toàn bộ danh sách ngành nghề
             var danhSachNganhNghe = _nganhNgheRepository.LayDanhSachNganhNghe();
             var danhSachTinTuyenDung = _tinTuyenDungRepository.LayDanhSachTinTuyenDung();
             
@@ -270,7 +419,42 @@ namespace Unicareer.Areas.Admin.Controllers
                                 t.NganhNghe.Equals(nganhNghe.TenNganhNghe, StringComparison.OrdinalIgnoreCase));
             }
             
-            return View(danhSachNganhNghe);
+            // Tính stats từ toàn bộ dữ liệu (trước khi lọc)
+            var totalNganhNghe = danhSachNganhNghe.Count;
+            var totalCongViec = danhSachNganhNghe.Sum(n => n.SoLuongCongViec);
+            var trungBinhCongViec = danhSachNganhNghe.Count > 0 
+                ? (int)danhSachNganhNghe.Average(n => n.SoLuongCongViec) 
+                : 0;
+            
+            // Lọc theo tìm kiếm
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                danhSachNganhNghe = danhSachNganhNghe.Where(n => 
+                    (n.TenNganhNghe != null && n.TenNganhNghe.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                    (n.MoTa != null && n.MoTa.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                ).ToList();
+            }
+            
+            // Sắp xếp theo tên
+            danhSachNganhNghe = danhSachNganhNghe.OrderBy(n => n.TenNganhNghe).ToList();
+            
+            // Tính toán phân trang
+            var totalCount = danhSachNganhNghe.Count;
+            var pagedList = danhSachNganhNghe.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+            
+            var model = new Models.ViewModels.NganhNgheAdminViewModel
+            {
+                NganhNghes = pagedList,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                SearchTerm = searchTerm,
+                TotalNganhNghe = totalNganhNghe,
+                TotalCongViec = totalCongViec,
+                TrungBinhCongViec = trungBinhCongViec
+            };
+            
+            return View(model);
         }
 
         [HttpPost]
@@ -365,8 +549,9 @@ namespace Unicareer.Areas.Admin.Controllers
             }
         }
 
-        public IActionResult LoaiCongViec()
+        public IActionResult LoaiCongViec(int pageNumber = 1, int pageSize = 10, string? searchTerm = null)
         {
+            // Lấy toàn bộ danh sách loại công việc
             var danhSachLoaiCongViec = _loaiCongViecRepository.LayDanhSachLoaiCongViec();
             var danhSachTinTuyenDung = _tinTuyenDungRepository.LayDanhSachTinTuyenDung();
             
@@ -378,7 +563,42 @@ namespace Unicareer.Areas.Admin.Controllers
                                 t.LoaiCongViec.Equals(loaiCongViec.TenLoaiCongViec, StringComparison.OrdinalIgnoreCase));
             }
             
-            return View(danhSachLoaiCongViec);
+            // Tính stats từ toàn bộ dữ liệu (trước khi lọc)
+            var totalLoaiCongViec = danhSachLoaiCongViec.Count;
+            var totalViTri = danhSachLoaiCongViec.Sum(l => l.SoLuongViTri);
+            var trungBinhViTri = danhSachLoaiCongViec.Count > 0 
+                ? (int)danhSachLoaiCongViec.Average(l => l.SoLuongViTri) 
+                : 0;
+            
+            // Lọc theo tìm kiếm
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                danhSachLoaiCongViec = danhSachLoaiCongViec.Where(l => 
+                    (l.TenLoaiCongViec != null && l.TenLoaiCongViec.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                    (l.MoTa != null && l.MoTa.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                ).ToList();
+            }
+            
+            // Sắp xếp theo tên
+            danhSachLoaiCongViec = danhSachLoaiCongViec.OrderBy(l => l.TenLoaiCongViec).ToList();
+            
+            // Tính toán phân trang
+            var totalCount = danhSachLoaiCongViec.Count;
+            var pagedList = danhSachLoaiCongViec.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+            
+            var model = new Models.ViewModels.LoaiCongViecAdminViewModel
+            {
+                LoaiCongViecs = pagedList,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                SearchTerm = searchTerm,
+                TotalLoaiCongViec = totalLoaiCongViec,
+                TotalViTri = totalViTri,
+                TrungBinhViTri = trungBinhViTri
+            };
+            
+            return View(model);
         }
 
         [HttpPost]
@@ -472,12 +692,53 @@ namespace Unicareer.Areas.Admin.Controllers
             }
         }
 
-        public IActionResult ChuyenNganh()
+        public IActionResult ChuyenNganh(int pageNumber = 1, int pageSize = 10, string? searchTerm = null, int? maNganhNgheFilter = null)
         {
+            // Lấy toàn bộ danh sách chuyên ngành
             var danhSachChuyenNganh = _chuyenNganhRepository.LayDanhSachChuyenNganh();
             var danhSachNganhNghe = _nganhNgheRepository.LayDanhSachNganhNghe();
-            ViewBag.DanhSachNganhNghe = danhSachNganhNghe;
-            return View(danhSachChuyenNganh);
+            
+            // Tính stats từ toàn bộ dữ liệu (trước khi lọc)
+            var totalChuyenNganh = danhSachChuyenNganh.Count;
+            
+            // Lọc theo tìm kiếm
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                danhSachChuyenNganh = danhSachChuyenNganh.Where(c => 
+                    (c.TenChuyenNganh != null && c.TenChuyenNganh.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                    (c.MoTa != null && c.MoTa.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                ).ToList();
+            }
+            
+            // Lọc theo ngành nghề
+            if (maNganhNgheFilter.HasValue && maNganhNgheFilter.Value > 0)
+            {
+                danhSachChuyenNganh = danhSachChuyenNganh.Where(c => c.MaNganhNghe == maNganhNgheFilter.Value).ToList();
+            }
+            
+            // Sắp xếp theo ngành nghề và tên chuyên ngành
+            danhSachChuyenNganh = danhSachChuyenNganh
+                .OrderBy(c => c.NganhNghe != null ? c.NganhNghe.TenNganhNghe : "")
+                .ThenBy(c => c.TenChuyenNganh)
+                .ToList();
+            
+            // Tính toán phân trang
+            var totalCount = danhSachChuyenNganh.Count;
+            var pagedList = danhSachChuyenNganh.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+            
+            var model = new Models.ViewModels.ChuyenNganhAdminViewModel
+            {
+                ChuyenNganhs = pagedList,
+                DanhSachNganhNghe = danhSachNganhNghe,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                SearchTerm = searchTerm,
+                MaNganhNgheFilter = maNganhNgheFilter,
+                TotalChuyenNganh = totalChuyenNganh
+            };
+            
+            return View(model);
         }
 
         [HttpPost]
@@ -663,16 +924,109 @@ namespace Unicareer.Areas.Admin.Controllers
             }
         }
 
-        public IActionResult TruongDaiHoc()
+        public IActionResult TruongDaiHoc(int pageNumber = 1, int pageSize = 10, string? searchTerm = null)
         {
+            // Lấy toàn bộ danh sách trường đại học
             var danhSachTruongDaiHoc = _truongDaiHocRepository.LayDanhSachTruongDaiHoc();
-            return View(danhSachTruongDaiHoc);
+            
+            // Tính stats từ toàn bộ dữ liệu (trước khi lọc)
+            var totalTruongDaiHoc = danhSachTruongDaiHoc.Count;
+            
+            // Lọc theo tìm kiếm
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                danhSachTruongDaiHoc = danhSachTruongDaiHoc.Where(t => 
+                    (t.TenTruong != null && t.TenTruong.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                    (t.MoTa != null && t.MoTa.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                ).ToList();
+            }
+            
+            // Sắp xếp theo tên
+            danhSachTruongDaiHoc = danhSachTruongDaiHoc.OrderBy(t => t.TenTruong).ToList();
+            
+            // Tính toán phân trang
+            var totalCount = danhSachTruongDaiHoc.Count;
+            var pagedList = danhSachTruongDaiHoc.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+            
+            var model = new Models.ViewModels.TruongDaiHocAdminViewModel
+            {
+                TruongDaiHocs = pagedList,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                SearchTerm = searchTerm,
+                TotalTruongDaiHoc = totalTruongDaiHoc
+            };
+            
+            return View(model);
         }
 
-        public IActionResult TinTuyenDung()
+        public IActionResult TinTuyenDung(int pageNumber = 1, int pageSize = 10, string? searchTerm = null, string? trangThaiFilter = null, string? nganhNgheFilter = null)
         {
+            // Lấy toàn bộ danh sách tin tuyển dụng
             var danhSachTinTuyenDung = _tinTuyenDungRepository.LayDanhSachTinTuyenDung();
-            return View(danhSachTinTuyenDung);
+            
+            // Tính stats từ toàn bộ dữ liệu (trước khi lọc)
+            var totalDangTuyen = danhSachTinTuyenDung.Count(t => t.HanNop >= DateTime.Now);
+            var totalHetHan = danhSachTinTuyenDung.Count(t => t.HanNop < DateTime.Now);
+            var totalUngTuyen = danhSachTinTuyenDung.Sum(t => t.SoLuongUngTuyen ?? 0);
+            var totalSapHetHan = danhSachTinTuyenDung.Count(t => t.HanNop >= DateTime.Now && (t.HanNop - DateTime.Now).Days <= 7);
+            var trungBinhUngTuyen = danhSachTinTuyenDung.Count > 0 
+                ? (int)danhSachTinTuyenDung.Average(t => t.SoLuongUngTuyen ?? 0) 
+                : 0;
+            
+            // Lọc theo tìm kiếm
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                danhSachTinTuyenDung = danhSachTinTuyenDung.Where(t => 
+                    (t.TenViecLam != null && t.TenViecLam.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                    (t.CongTy != null && t.CongTy.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                ).ToList();
+            }
+            
+            // Lọc theo trạng thái
+            if (!string.IsNullOrEmpty(trangThaiFilter))
+            {
+                danhSachTinTuyenDung = danhSachTinTuyenDung.Where(t =>
+                {
+                    var trangThai = t.HanNop >= DateTime.Now ? "Dang tuyen" : "Het han";
+                    return trangThai == trangThaiFilter;
+                }).ToList();
+            }
+            
+            // Lọc theo ngành nghề
+            if (!string.IsNullOrEmpty(nganhNgheFilter))
+            {
+                danhSachTinTuyenDung = danhSachTinTuyenDung.Where(t => 
+                    !string.IsNullOrEmpty(t.NganhNghe) && 
+                    t.NganhNghe.Equals(nganhNgheFilter, StringComparison.OrdinalIgnoreCase)
+                ).ToList();
+            }
+            
+            // Sắp xếp theo ngày đăng (mới nhất trước)
+            danhSachTinTuyenDung = danhSachTinTuyenDung.OrderByDescending(t => t.NgayDang).ToList();
+            
+            // Tính toán phân trang
+            var totalCount = danhSachTinTuyenDung.Count;
+            var pagedList = danhSachTinTuyenDung.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+            
+            var model = new Models.ViewModels.TinTuyenDungAdminViewModel
+            {
+                TinTuyenDungs = pagedList,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                SearchTerm = searchTerm,
+                TrangThaiFilter = trangThaiFilter,
+                NganhNgheFilter = nganhNgheFilter,
+                TotalDangTuyen = totalDangTuyen,
+                TotalHetHan = totalHetHan,
+                TotalUngTuyen = totalUngTuyen,
+                TotalSapHetHan = totalSapHetHan,
+                TrungBinhUngTuyen = trungBinhUngTuyen
+            };
+            
+            return View(model);
         }
 
         // GET: Chi tiết tin tuyển dụng

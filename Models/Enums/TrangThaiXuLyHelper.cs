@@ -79,6 +79,60 @@ namespace Unicareer.Models.Enums
             }
             return "bg-secondary";
         }
+
+        /// <summary>
+        /// Lấy class CSS cho badge custom (badge-warning, badge-success, etc.) từ string
+        /// </summary>
+        public static string GetCustomBadgeClassFromString(string? trangThai)
+        {
+            var enumValue = FromString(trangThai);
+            if (enumValue.HasValue)
+            {
+                return enumValue.Value switch
+                {
+                    TrangThaiXuLy.DangXemXet => "badge-warning",
+                    TrangThaiXuLy.ChoPhongVan => "badge-warning",
+                    TrangThaiXuLy.DaPhongVan => "badge-info",
+                    TrangThaiXuLy.TuyenDung => "badge-success",
+                    TrangThaiXuLy.TuChoi => "badge-danger",
+                    TrangThaiXuLy.KhongPhuHop => "badge-danger",
+                    _ => "badge-secondary"
+                };
+            }
+            return "badge-secondary";
+        }
+
+        /// <summary>
+        /// Lấy tất cả các trạng thái dưới dạng danh sách string (format không dấu - để tương thích)
+        /// </summary>
+        public static List<string> GetAllStatusStrings()
+        {
+            return new List<string>
+            {
+                "Dang xem xet",
+                "Cho phong van",
+                "Da phong van",
+                "Tuyen dung",
+                "Tu choi",
+                "Khong phu hop"
+            };
+        }
+
+        /// <summary>
+        /// Lấy tất cả các trạng thái dưới dạng danh sách string (format có dấu - tiếng Việt)
+        /// </summary>
+        public static List<string> GetAllStatusStringsVietnamese()
+        {
+            return new List<string>
+            {
+                "Đang xem xét",
+                "Chờ phỏng vấn",
+                "Đã phỏng vấn",
+                "Tuyển dụng",
+                "Từ chối",
+                "Không phù hợp"
+            };
+        }
     }
 }
 

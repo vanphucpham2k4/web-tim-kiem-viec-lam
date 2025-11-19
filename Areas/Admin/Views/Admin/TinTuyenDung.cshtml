@@ -1,4 +1,4 @@
-@model List<Unicareer.Models.TinTuyenDung>
+@model Unicareer.Models.ViewModels.TinTuyenDungAdminViewModel
 
 @{
     ViewData["Title"] = "Quản lý Tin tuyển dụng";
@@ -343,6 +343,58 @@
         font-weight: 600;
     }
 
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 30px;
+        flex-wrap: wrap;
+    }
+
+    .pagination .page-link {
+        border: 2px solid #e2e8f0;
+        color: #667eea;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .pagination .page-link:hover {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+        transform: translateY(-2px);
+    }
+
+    .pagination .page-item.active .page-link {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: #667eea;
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: #a0aec0;
+        border-color: #e2e8f0;
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    .pagination .page-item.disabled .page-link:hover {
+        background: transparent;
+        transform: none;
+    }
+
+    .pagination-info {
+        text-align: center;
+        margin-top: 15px;
+        color: #718096;
+        font-size: 0.9rem;
+    }
+
     @@media (max-width: 768px) {
         .action-bar {
             flex-direction: column;
@@ -364,34 +416,38 @@
     <p>Quản lý, duyệt và theo dõi tất cả các tin tuyển dụng trên hệ thống</p>
 </div>
 
-<div class="action-bar">
-    <div class="search-filter-group">
-        <div class="input-group" style="max-width: 350px;">
-            <input type="text" class="form-control" id="timKiemInput" placeholder="Tìm kiếm theo tiêu đề, công ty...">
-            <button class="btn btn-outline-secondary" type="button">
-                <i class="bi bi-search"></i>
-            </button>
+<form method="get" action="@Url.Action("TinTuyenDung", "Admin")" id="searchForm">
+    <div class="action-bar">
+        <div class="search-filter-group">
+            <div class="input-group" style="max-width: 350px;">
+                <input type="text" class="form-control" id="timKiemInput" name="searchTerm" 
+                       placeholder="Tìm kiếm theo tiêu đề, công ty..." value="@Model.SearchTerm">
+                <button class="btn btn-outline-secondary" type="submit">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+            <select class="form-select" id="locTrangThai" name="trangThaiFilter" style="max-width: 200px;">
+                <option value="">Tất cả trạng thái</option>
+                <option value="Dang tuyen" selected="@(Model.TrangThaiFilter == "Dang tuyen")">Đang tuyển</option>
+                <option value="Het han" selected="@(Model.TrangThaiFilter == "Het han")">Hết hạn</option>
+                <option value="Da dong" selected="@(Model.TrangThaiFilter == "Da dong")">Đã đóng</option>
+                <option value="Cho duyet" selected="@(Model.TrangThaiFilter == "Cho duyet")">Chờ duyệt</option>
+                <option value="Da duyet" selected="@(Model.TrangThaiFilter == "Da duyet")">Đã duyệt</option>
+                <option value="Tu choi" selected="@(Model.TrangThaiFilter == "Tu choi")">Từ chối</option>
+                <option value="Bi khoa" selected="@(Model.TrangThaiFilter == "Bi khoa")">Bị khóa</option>
+            </select>
+            <select class="form-select" id="locNganhNghe" name="nganhNgheFilter" style="max-width: 200px;">
+                <option value="">Tất cả ngành nghề</option>
+                <option value="Cong nghe thong tin" selected="@(Model.NganhNgheFilter == "Cong nghe thong tin")">Công nghệ thông tin</option>
+                <option value="Kinh doanh" selected="@(Model.NganhNgheFilter == "Kinh doanh")">Kinh doanh</option>
+                <option value="Ke toan - Tai chinh" selected="@(Model.NganhNgheFilter == "Ke toan - Tai chinh")">Kế toán - Tài chính</option>
+                <option value="Nhan su" selected="@(Model.NganhNgheFilter == "Nhan su")">Nhân sự</option>
+                <option value="Thiet ke do hoa" selected="@(Model.NganhNgheFilter == "Thiet ke do hoa")">Thiết kế đồ họa</option>
+            </select>
+            <input type="hidden" name="pageNumber" id="pageNumberInput" value="@Model.PageNumber" />
         </div>
-        <select class="form-select" id="locTrangThai" style="max-width: 200px;">
-            <option value="">Tất cả trạng thái</option>
-            <option value="Dang tuyen">Đang tuyển</option>
-            <option value="Het han">Hết hạn</option>
-            <option value="Da dong">Đã đóng</option>
-            <option value="Cho duyet">Chờ duyệt</option>
-            <option value="Da duyet">Đã duyệt</option>
-            <option value="Tu choi">Từ chối</option>
-            <option value="Bi khoa">Bị khóa</option>
-        </select>
-        <select class="form-select" id="locNganhNghe" style="max-width: 200px;">
-            <option value="">Tất cả ngành nghề</option>
-            <option value="Cong nghe thong tin">Công nghệ thông tin</option>
-            <option value="Kinh doanh">Kinh doanh</option>
-            <option value="Ke toan - Tai chinh">Kế toán - Tài chính</option>
-            <option value="Nhan su">Nhân sự</option>
-            <option value="Thiet ke do hoa">Thiết kế đồ họa</option>
-        </select>
     </div>
-</div>
+</form>
 
 <div class="row">
     <div class="col-12">
@@ -416,57 +472,165 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var tin in Model)
+                            @if (Model.TinTuyenDungs != null && Model.TinTuyenDungs.Any())
                             {
-                                var trangThai = tin.HanNop >= DateTime.Now ? "Đang tuyển" : "Hết hạn";
-                                var badgeClass = trangThai == "Đang tuyển" ? "bg-success" : "bg-secondary";
-                                var soNgayConLai = (tin.HanNop - DateTime.Now).Days;
-                                
-                                <tr data-ma="@tin.MaTinTuyenDung" data-nganh="@(tin.NganhNghe ?? "")" data-trangthai="@trangThai">
-                                    <td>
-                                        <input type="checkbox" class="chonTin" value="@tin.MaTinTuyenDung">
-                                    </td>
-                                    <td><span class="text-muted">#@tin.MaTinTuyenDung</span></td>
-                                    <td>
-                                        <strong style="color: #2d3748; font-size: 1rem;">@tin.TenViecLam</strong><br/>
-                                        <small class="text-muted"><i class="bi bi-clock"></i> @tin.LoaiCongViec</small>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-light text-dark">@tin.CongTy</span>
-                                    </td>
-                                    <td><span class="badge bg-light text-dark">@tin.ViTri</span></td>
-                                    <td>@tin.NgayDang.ToString("dd/MM/yyyy")</td>
-                                    <td>
-                                        @tin.HanNop.ToString("dd/MM/yyyy")
-                                        @if (soNgayConLai >= 0 && soNgayConLai <= 7)
-                                        {
-                                            <br/><small class="text-danger">(@soNgayConLai ngày)</small>
-                                        }
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-primary">@tin.SoLuongUngTuyen</span>
-                                    </td>
-                                    <td>
-                                        <span class="badge @badgeClass">@trangThai</span>
-                                    </td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            <a href="@Url.Action("ChiTietTinTuyenDung", "Admin", new { id = tin.MaTinTuyenDung })" class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
-                                            <button class="btn btn-sm btn-outline-danger btn-khoa" data-ma="@tin.MaTinTuyenDung" title="Khóa tin">
-                                                <i class="bi bi-lock"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-danger btn-xoa" data-ma="@tin.MaTinTuyenDung" title="Xóa">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </div>
+                                @foreach (var tin in Model.TinTuyenDungs)
+                                {
+                                    var trangThai = tin.HanNop >= DateTime.Now ? "Đang tuyển" : "Hết hạn";
+                                    var badgeClass = trangThai == "Đang tuyển" ? "bg-success" : "bg-secondary";
+                                    var soNgayConLai = (tin.HanNop - DateTime.Now).Days;
+                                    
+                                    <tr data-ma="@tin.MaTinTuyenDung" data-nganh="@(tin.NganhNghe ?? "")" data-trangthai="@trangThai">
+                                        <td>
+                                            <input type="checkbox" class="chonTin" value="@tin.MaTinTuyenDung">
+                                        </td>
+                                        <td><span class="text-muted">#@tin.MaTinTuyenDung</span></td>
+                                        <td>
+                                            <strong style="color: #2d3748; font-size: 1rem;">@tin.TenViecLam</strong><br/>
+                                            <small class="text-muted"><i class="bi bi-clock"></i> @tin.LoaiCongViec</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-dark">@tin.CongTy</span>
+                                        </td>
+                                        <td><span class="badge bg-light text-dark">@tin.ViTri</span></td>
+                                        <td>@tin.NgayDang.ToString("dd/MM/yyyy")</td>
+                                        <td>
+                                            @tin.HanNop.ToString("dd/MM/yyyy")
+                                            @if (soNgayConLai >= 0 && soNgayConLai <= 7)
+                                            {
+                                                <br/><small class="text-danger">(@soNgayConLai ngày)</small>
+                                            }
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary">@tin.SoLuongUngTuyen</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge @badgeClass">@trangThai</span>
+                                        </td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <a href="@Url.Action("ChiTietTinTuyenDung", "Admin", new { id = tin.MaTinTuyenDung })" class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <button class="btn btn-sm btn-outline-danger btn-khoa" data-ma="@tin.MaTinTuyenDung" title="Khóa tin">
+                                                    <i class="bi bi-lock"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger btn-xoa" data-ma="@tin.MaTinTuyenDung" title="Xóa">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="10" class="text-center py-5">
+                                        <i class="bi bi-inbox" style="font-size: 3rem; color: #cbd5e0;"></i>
+                                        <p class="mt-3 text-muted">Không có tin tuyển dụng nào</p>
                                     </td>
                                 </tr>
                             }
                         </tbody>
                     </table>
                 </div>
+                
+                @if (Model.TotalPages > 1)
+                {
+                    <nav aria-label="Phân trang">
+                        <ul class="pagination">
+                            @if (Model.PageNumber > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">
+                                        <i class="bi bi-chevron-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(Model.PageNumber - 1))">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="bi bi-chevron-double-left"></i></span>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                                </li>
+                            }
+
+                            @{
+                                int startPage = Math.Max(1, Model.PageNumber - 2);
+                                int endPage = Math.Min(Model.TotalPages, Model.PageNumber + 2);
+                            }
+
+                            @if (startPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">1</a>
+                                </li>
+                                @if (startPage > 2)
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                }
+                            }
+
+                            @for (int i = startPage; i <= endPage; i++)
+                            {
+                                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(@i)">@i</a>
+                                </li>
+                            }
+
+                            @if (endPage < Model.TotalPages)
+                            {
+                                @if (endPage < Model.TotalPages - 1)
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                }
+                                <li class="page-item">
+                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(@Model.TotalPages)">@Model.TotalPages</a>
+                                </li>
+                            }
+
+                            @if (Model.PageNumber < Model.TotalPages)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(Model.PageNumber + 1))">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(@Model.TotalPages)">
+                                        <i class="bi bi-chevron-double-right"></i>
+                                    </a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="bi bi-chevron-double-right"></i></span>
+                                </li>
+                            }
+                        </ul>
+                        <div class="pagination-info">
+                            Hiển thị <strong>@((Model.PageNumber - 1) * Model.PageSize + 1)</strong> - 
+                            <strong>@(Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount))</strong> 
+                            trong tổng số <strong>@Model.TotalCount</strong> tin tuyển dụng
+                        </div>
+                    </nav>
+                }
             </div>
         </div>
     </div>
@@ -478,7 +642,7 @@
             <h6 class="card-title">
                 <i class="bi bi-file-earmark-text"></i> Tổng tin đăng
             </h6>
-            <h2 class="text-primary">@Model.Count</h2>
+            <h2 class="text-primary">@Model.TotalCount</h2>
         </div>
     </div>
     <div class="col-md-3 mb-3">
@@ -486,7 +650,7 @@
             <h6 class="card-title">
                 <i class="bi bi-check-circle"></i> Đang tuyển
             </h6>
-            <h2 class="text-success">@Model.Count(t => t.HanNop >= DateTime.Now)</h2>
+            <h2 class="text-success">@Model.TotalDangTuyen</h2>
         </div>
     </div>
     <div class="col-md-3 mb-3">
@@ -494,7 +658,7 @@
             <h6 class="card-title">
                 <i class="bi bi-x-circle"></i> Hết hạn
             </h6>
-            <h2 class="text-secondary">@Model.Count(t => t.HanNop < DateTime.Now)</h2>
+            <h2 class="text-secondary">@Model.TotalHetHan</h2>
         </div>
     </div>
     <div class="col-md-3 mb-3">
@@ -502,7 +666,7 @@
             <h6 class="card-title">
                 <i class="bi bi-person-check"></i> Tổng ứng tuyển
             </h6>
-            <h2 class="text-info">@Model.Sum(t => t.SoLuongUngTuyen ?? 0)</h2>
+            <h2 class="text-info">@Model.TotalUngTuyen</h2>
         </div>
     </div>
     <div class="col-md-3 mb-3">
@@ -510,7 +674,7 @@
             <h6 class="card-title">
                 <i class="bi bi-exclamation-triangle"></i> Sắp hết hạn
             </h6>
-            <h2 class="text-warning">@Model.Count(t => t.HanNop >= DateTime.Now && (t.HanNop - DateTime.Now).Days <= 7)</h2>
+            <h2 class="text-warning">@Model.TotalSapHetHan</h2>
         </div>
     </div>
     <div class="col-md-3 mb-3">
@@ -518,7 +682,7 @@
             <h6 class="card-title">
                 <i class="bi bi-graph-up"></i> TB ứng tuyển/tin
             </h6>
-            <h2 class="text-danger">@(Model.Count > 0 ? (int)Model.Average(t => t.SoLuongUngTuyen ?? 0) : 0)</h2>
+            <h2 class="text-danger">@Model.TrungBinhUngTuyen</h2>
         </div>
     </div>
 </div>
@@ -552,51 +716,33 @@
 @section Scripts {
     <script>
         $(document).ready(function() {
-            // Search and filter functionality
-            function filterTable() {
-                var searchText = $('#timKiemInput').val().toLowerCase();
-                var filterStatus = $('#locTrangThai').val();
-                var filterNganh = $('#locNganhNghe').val();
-                
-                $('table tbody tr').each(function() {
-                    var row = $(this);
-                    var title = row.find('td:eq(2) strong').text().toLowerCase();
-                    var congTy = row.find('td:eq(3)').text().toLowerCase();
-                    var status = row.find('td:eq(8) .badge').text().trim();
-                    var nganh = row.data('nganh') || '';
-                    
-                    var showRow = true;
-                    
-                    // Filter by search text
-                    if (searchText && !title.includes(searchText) && !congTy.includes(searchText)) {
-                        showRow = false;
-                    }
-                    
-                    // Filter by status
-                    if (filterStatus && status !== filterStatus) {
-                        showRow = false;
-                    }
-                    
-                    // Filter by nganh nghe
-                    if (filterNganh && nganh !== filterNganh) {
-                        showRow = false;
-                    }
-                    
-                    if (showRow) {
-                        row.show();
-                        row.css('opacity', '0');
-                        setTimeout(function() {
-                            row.animate({ opacity: 1 }, 300);
-                        }, 50);
-                    } else {
-                        row.hide();
-                    }
-                });
-            }
+            var isPaginationClick = false;
             
-            // Bind events
-            $('#timKiemInput').on('keyup', filterTable);
-            $('#locTrangThai, #locNganhNghe').on('change', filterTable);
+            // Hàm điều hướng đến trang
+            window.goToPage = function(pageNumber) {
+                isPaginationClick = true;
+                $('#pageNumberInput').val(pageNumber);
+                $('#searchForm').submit();
+            };
+            
+            // Khi thay đổi filter, reset về trang 1
+            $('#locTrangThai, #locNganhNghe').on('change', function() {
+                $('#pageNumberInput').val(1);
+                $('#searchForm').submit();
+            });
+            
+            // Khi submit form tìm kiếm, reset về trang 1 (chỉ khi không phải là click phân trang)
+            $('#searchForm').on('submit', function(e) {
+                if (!isPaginationClick) {
+                    $('#pageNumberInput').val(1);
+                }
+                isPaginationClick = false; // Reset flag
+            });
+            
+            // Khi nhấn nút tìm kiếm, reset về trang 1
+            $('#searchForm button[type="submit"]').on('click', function() {
+                isPaginationClick = false;
+            });
             
             // Chọn tất cả
             $('#chonTatCa').on('change', function() {

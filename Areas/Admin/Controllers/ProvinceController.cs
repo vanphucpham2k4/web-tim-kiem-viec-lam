@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Unicareer.Data;
 using Unicareer.Models;
+using Unicareer.Models.ViewModels;
 using Microsoft.AspNetCore.Http;
 
 namespace Unicareer.Areas.Admin.Controllers
@@ -19,14 +20,42 @@ namespace Unicareer.Areas.Admin.Controllers
         }
 
         // GET: Province
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? search = null, int pageNumber = 1, int pageSize = 20)
         {
-            var provinces = await _context.Provinces
+            var query = _context.Provinces
                 .Include(p => p.AdministrativeUnit)
+                .AsQueryable();
+
+            // Tìm kiếm theo tên
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(p => 
+                    (p.Name != null && p.Name.Contains(search)) ||
+                    (p.FullName != null && p.FullName.Contains(search)) ||
+                    (p.NameEn != null && p.NameEn.Contains(search))
+                );
+            }
+
+            // Đếm tổng số bản ghi
+            var totalCount = await query.CountAsync();
+
+            // Phân trang
+            var provinces = await query
                 .OrderBy(p => p.FullName)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
-            
-            return View(provinces);
+
+            var viewModel = new ProvinceManagementViewModel
+            {
+                Provinces = provinces,
+                SearchTerm = search,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalCount = totalCount
+            };
+
+            return View(viewModel);
         }
 
         // GET: Province/Details/5

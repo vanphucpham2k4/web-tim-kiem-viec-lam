@@ -1,4 +1,4 @@
-@model List<Unicareer.Models.Province>
+@model Unicareer.Models.ViewModels.ProvinceManagementViewModel
 
 @{
     ViewData["Title"] = "Quản lý Tỉnh thành";
@@ -250,6 +250,48 @@
         margin-bottom: 20px;
         opacity: 0.5;
     }
+
+    .pagination {
+        margin: 0;
+        padding: 0;
+    }
+
+    .pagination .page-item {
+        margin: 0 2px;
+    }
+
+    .pagination .page-link {
+        color: #2545B8;
+        border: 1px solid #e2e8f0;
+        padding: 8px 12px;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+
+    .pagination .page-link:hover {
+        background: #f3e8ff;
+        border-color: #2545B8;
+        color: #2545B8;
+    }
+
+    .pagination .page-item.active .page-link {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        border-color: #2545B8;
+        color: white;
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: #cbd5e0;
+        cursor: not-allowed;
+        background: #f7fafc;
+    }
+
+    .pagination-info {
+        text-align: center;
+        margin-top: 15px;
+        color: #718096;
+        font-size: 0.9rem;
+    }
 </style>
 
 @Html.AntiForgeryToken()
@@ -270,20 +312,21 @@
     <!-- Stats Section -->
     <div class="stats-section">
         <div class="stat-card">
-            <h3>@Model.Count</h3>
+            <h3>@Model.TotalCount</h3>
             <p>Tổng tỉnh thành</p>
         </div>
     </div>
 
     <!-- Filter Section -->
     <div class="filter-section">
-        <form class="filter-form" onsubmit="return false;">
+        <form class="filter-form" id="searchForm" method="get" action="@Url.Action("Index", "Province", new { area = "Admin" })">
+            <input type="hidden" id="pageNumberInput" name="pageNumber" value="@Model.PageNumber" />
             <div>
                 <label for="timKiemInput" style="margin-bottom: 8px; display: block; font-weight: 600; color: #2d3748;">Tìm kiếm</label>
-                <input type="text" id="timKiemInput" placeholder="Tìm kiếm theo tên tỉnh thành..." />
+                <input type="text" id="timKiemInput" name="search" value="@Model.SearchTerm" placeholder="Tìm kiếm theo tên tỉnh thành..." />
             </div>
             <div>
-                <button type="button" class="btn-filter" id="btnTimKiem">
+                <button type="submit" class="btn-filter" id="btnTimKiem">
                     <i class="bi bi-search"></i> Tìm kiếm
                 </button>
             </div>
@@ -292,7 +335,7 @@
 
     <!-- Table Section -->
     <div class="table-container">
-        @if (Model.Any())
+        @if (Model.Provinces.Any())
         {
             <table class="province-table" id="bangProvince">
                 <thead>
@@ -307,7 +350,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var province in Model)
+                    @foreach (var province in Model.Provinces)
                     {
                         <tr data-code="@province.Code">
                             <td><strong>@province.Code</strong></td>
@@ -352,6 +395,103 @@
                     }
                 </tbody>
             </table>
+
+            <!-- Pagination -->
+            @if (Model.TotalPages > 1)
+            {
+                <nav aria-label="Phân trang" style="margin-top: 30px;">
+                    <ul class="pagination justify-content-center">
+                        @if (Model.PageNumber > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">
+                                    <i class="bi bi-chevron-double-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(Model.PageNumber - 1))">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-double-left"></i></span>
+                            </li>
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                            </li>
+                        }
+
+                        @{
+                            int startPage = Math.Max(1, Model.PageNumber - 2);
+                            int endPage = Math.Min(Model.TotalPages, Model.PageNumber + 2);
+                        }
+
+                        @if (startPage > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">1</a>
+                            </li>
+                            @if (startPage > 2)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                        }
+
+                        @for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@i)">@i</a>
+                            </li>
+                        }
+
+                        @if (endPage < Model.TotalPages)
+                        {
+                            @if (endPage < Model.TotalPages - 1)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@Model.TotalPages)">@Model.TotalPages</a>
+                            </li>
+                        }
+
+                        @if (Model.PageNumber < Model.TotalPages)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(Model.PageNumber + 1))">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@Model.TotalPages)">
+                                    <i class="bi bi-chevron-double-right"></i>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                            </li>
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-double-right"></i></span>
+                            </li>
+                        }
+                    </ul>
+                    <div class="pagination-info" style="text-align: center; margin-top: 15px; color: #718096; font-size: 0.9rem;">
+                        Hiển thị <strong>@((Model.PageNumber - 1) * Model.PageSize + 1)</strong> - 
+                        <strong>@(Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount))</strong> 
+                        trong tổng số <strong>@Model.TotalCount</strong> tỉnh thành
+                    </div>
+                </nav>
+            }
         }
         else
         {
@@ -513,27 +653,25 @@
                 loadAdministrativeUnits('administrativeUnitIdSua');
             });
 
-            // Tim kiem
-            $('#btnTimKiem, #timKiemInput').on('click keyup', function(e) {
-                if (e.type === 'keyup' && e.keyCode !== 13) return;
-                
-                var tuKhoa = $('#timKiemInput').val().toLowerCase();
-                locDuLieu(tuKhoa);
+            // Hàm chuyển trang
+            window.goToPage = function(pageNumber) {
+                $('#pageNumberInput').val(pageNumber);
+                $('#searchForm').submit();
+            };
+
+            // Khi submit form tìm kiếm, reset về trang 1
+            $('#searchForm').on('submit', function() {
+                // Nếu không phải là click phân trang, reset về trang 1
+                if (!$('#pageNumberInput').data('pagination-click')) {
+                    $('#pageNumberInput').val(1);
+                }
+                $('#pageNumberInput').removeData('pagination-click');
             });
 
-            function locDuLieu(tuKhoa) {
-                $('#bangProvince tbody tr').each(function() {
-                    var row = $(this);
-                    var ten = row.find('td:eq(2)').text().toLowerCase();
-                    var fullName = row.find('td:eq(3)').text().toLowerCase();
-                    
-                    if (tuKhoa === '' || ten.includes(tuKhoa) || fullName.includes(tuKhoa)) {
-                        row.show();
-                    } else {
-                        row.hide();
-                    }
-                });
-            }
+            // Đánh dấu khi click phân trang
+            $('.page-link').on('click', function() {
+                $('#pageNumberInput').data('pagination-click', true);
+            });
 
             // Preview ảnh khi chọn file (Thêm mới)
             $('#imageFileMoi').on('change', function(e) {
@@ -640,7 +778,13 @@
                             $('#themProvinceModal').modal('hide');
                             $('#formThemProvince')[0].reset();
                             $('#imagePreviewMoi').hide();
-                            location.reload();
+                            // Reload với tham số hiện tại
+                            var search = $('#timKiemInput').val() || '';
+                            var pageNumber = $('#pageNumberInput').val() || '1';
+                            var url = '@Url.Action("Index", "Province", new { area = "Admin" })' + 
+                                     '?pageNumber=' + pageNumber + 
+                                     (search ? '&search=' + encodeURIComponent(search) : '');
+                            window.location.href = url;
                         } else {
                             alert(response.message);
                         }
@@ -728,7 +872,13 @@
                         if (response.success) {
                             alert(response.message);
                             $('#suaProvinceModal').modal('hide');
-                            location.reload();
+                            // Reload với tham số hiện tại
+                            var search = $('#timKiemInput').val() || '';
+                            var pageNumber = $('#pageNumberInput').val() || '1';
+                            var url = '@Url.Action("Index", "Province", new { area = "Admin" })' + 
+                                     '?pageNumber=' + pageNumber + 
+                                     (search ? '&search=' + encodeURIComponent(search) : '');
+                            window.location.href = url;
                         } else {
                             alert(response.message);
                         }
@@ -755,10 +905,13 @@
                         success: function(response) {
                             if (response.success) {
                                 alert(response.message);
-                                row.fadeOut(300, function() {
-                                    $(this).remove();
-                                    location.reload();
-                                });
+                                // Reload với tham số hiện tại
+                                var search = $('#timKiemInput').val() || '';
+                                var pageNumber = $('#pageNumberInput').val() || '1';
+                                var url = '@Url.Action("Index", "Province", new { area = "Admin" })' + 
+                                         '?pageNumber=' + pageNumber + 
+                                         (search ? '&search=' + encodeURIComponent(search) : '');
+                                window.location.href = url;
                             } else {
                                 alert(response.message);
                             }

@@ -1,4 +1,4 @@
-@model List<Unicareer.Models.NganhNghe>
+@model Unicareer.Models.ViewModels.NganhNgheAdminViewModel
 
 @{
     ViewData["Title"] = "Quản lý Ngành nghề";
@@ -264,6 +264,58 @@
         opacity: 0.5;
     }
 
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 30px;
+        flex-wrap: wrap;
+    }
+
+    .pagination .page-link {
+        border: 2px solid #e2e8f0;
+        color: #2545B8;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .pagination .page-link:hover {
+        background: #2545B8;
+        color: white;
+        border-color: #2545B8;
+        transform: translateY(-2px);
+    }
+
+    .pagination .page-item.active .page-link {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        border-color: #2545B8;
+        color: white;
+        box-shadow: 0 4px 15px rgba(37, 69, 184, 0.4);
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: #a0aec0;
+        border-color: #e2e8f0;
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    .pagination .page-item.disabled .page-link:hover {
+        background: transparent;
+        transform: none;
+    }
+
+    .pagination-info {
+        text-align: center;
+        margin-top: 15px;
+        color: #718096;
+        font-size: 0.9rem;
+    }
+
     @@media (max-width: 768px) {
         .filter-form {
             grid-template-columns: 1fr;
@@ -307,28 +359,30 @@
     <!-- Stats Section -->
     <div class="stats-section">
         <div class="stat-card">
-            <h3>@Model.Count</h3>
+            <h3>@Model.TotalNganhNghe</h3>
             <p>Tổng ngành nghề</p>
         </div>
         <div class="stat-card">
-            <h3>@Model.Sum(n => n.SoLuongCongViec)</h3>
+            <h3>@Model.TotalCongViec</h3>
             <p>Tổng công việc</p>
         </div>
         <div class="stat-card">
-            <h3>@(Model.Count > 0 ? ((int)Model.Average(n => n.SoLuongCongViec)) : 0)</h3>
+            <h3>@Model.TrungBinhCongViec</h3>
             <p>TB công việc/ngành</p>
         </div>
     </div>
 
     <!-- Filter Section -->
     <div class="filter-section">
-        <form class="filter-form" onsubmit="return false;">
+        <form class="filter-form" method="get" action="@Url.Action("NganhNghe", "Admin", new { area = "Admin" })" id="searchForm">
+            <input type="hidden" name="pageNumber" id="pageNumberInput" value="@Model.PageNumber" />
+            <input type="hidden" name="pageSize" value="@Model.PageSize" />
             <div>
                 <label for="timKiemInput" style="margin-bottom: 8px; display: block; font-weight: 600; color: #2d3748;">Tìm kiếm</label>
-                <input type="text" id="timKiemInput" placeholder="Tìm kiếm theo tên ngành nghề..." />
+                <input type="text" id="timKiemInput" name="searchTerm" value="@Model.SearchTerm" placeholder="Tìm kiếm theo tên ngành nghề..." />
             </div>
             <div>
-                <button type="button" class="btn-filter" id="btnTimKiem">
+                <button type="submit" class="btn-filter">
                     <i class="bi bi-search"></i> Tìm kiếm
                 </button>
             </div>
@@ -337,7 +391,7 @@
 
     <!-- Table Section -->
     <div class="table-container">
-        @if (Model.Any())
+        @if (Model.NganhNghes != null && Model.NganhNghes.Any())
         {
             <table class="nganhnghe-table" id="bangNganhNghe">
                 <thead>
@@ -351,7 +405,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var nganhNghe in Model)
+                    @foreach (var nganhNghe in Model.NganhNghes)
                     {
                         <tr data-ma="@nganhNghe.MaNganhNghe">
                             <td><strong>#@nganhNghe.MaNganhNghe</strong></td>
@@ -386,6 +440,103 @@
                     }
                 </tbody>
             </table>
+            
+            <!-- Pagination -->
+            @if (Model.TotalPages > 1)
+            {
+                <nav aria-label="Phân trang">
+                    <ul class="pagination">
+                        @if (Model.PageNumber > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">
+                                    <i class="bi bi-chevron-double-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(Model.PageNumber - 1))">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-double-left"></i></span>
+                            </li>
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                            </li>
+                        }
+
+                        @{
+                            int startPage = Math.Max(1, Model.PageNumber - 2);
+                            int endPage = Math.Min(Model.TotalPages, Model.PageNumber + 2);
+                        }
+
+                        @if (startPage > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">1</a>
+                            </li>
+                            @if (startPage > 2)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                        }
+
+                        @for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@i)">@i</a>
+                            </li>
+                        }
+
+                        @if (endPage < Model.TotalPages)
+                        {
+                            @if (endPage < Model.TotalPages - 1)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@Model.TotalPages)">@Model.TotalPages</a>
+                            </li>
+                        }
+
+                        @if (Model.PageNumber < Model.TotalPages)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(Model.PageNumber + 1))">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@Model.TotalPages)">
+                                    <i class="bi bi-chevron-double-right"></i>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                            </li>
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-double-right"></i></span>
+                            </li>
+                        }
+                    </ul>
+                    <div class="pagination-info">
+                        Hiển thị <strong>@((Model.PageNumber - 1) * Model.PageSize + 1)</strong> - 
+                        <strong>@(Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount))</strong> 
+                        trong tổng số <strong>@Model.TotalCount</strong> ngành nghề
+                    </div>
+                </nav>
+            }
         }
         else
         {
@@ -462,26 +613,27 @@
 @section Scripts {
     <script>
         $(document).ready(function() {
-            // Tim kiem
-            $('#btnTimKiem, #timKiemInput').on('click keyup', function(e) {
-                if (e.type === 'keyup' && e.keyCode !== 13) return;
-                
-                var tuKhoa = $('#timKiemInput').val().toLowerCase();
-                locDuLieu(tuKhoa);
+            var isPaginationClick = false;
+            
+            // Hàm điều hướng đến trang
+            window.goToPage = function(pageNumber) {
+                isPaginationClick = true;
+                $('#pageNumberInput').val(pageNumber);
+                $('#searchForm').submit();
+            };
+            
+            // Khi submit form tìm kiếm, reset về trang 1 (chỉ khi không phải là click phân trang)
+            $('#searchForm').on('submit', function(e) {
+                if (!isPaginationClick) {
+                    $('#pageNumberInput').val(1);
+                }
+                isPaginationClick = false; // Reset flag
             });
-
-            function locDuLieu(tuKhoa) {
-                $('#bangNganhNghe tbody tr').each(function() {
-                    var row = $(this);
-                    var ten = row.find('td:eq(1)').text().toLowerCase();
-                    
-                    if (tuKhoa === '' || ten.includes(tuKhoa)) {
-                        row.show();
-                    } else {
-                        row.hide();
-                    }
-                });
-            }
+            
+            // Khi nhấn nút tìm kiếm, reset về trang 1
+            $('#searchForm button[type="submit"]').on('click', function() {
+                isPaginationClick = false;
+            });
 
             // Them nganh nghe
             $('#btnLuuNganhNghe').click(function() {
