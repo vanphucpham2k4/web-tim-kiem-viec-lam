@@ -1190,9 +1190,38 @@
                         <div class="content-section">
                             <h3 class="section-title">
                                 <i class="bi bi-list-ul"></i>
-                                Các vị trí tuyển dụng khác
+                                Các vị trí tuyển dụng khác từ @Model.CongTy
                             </h3>
-                            <p class="text-muted">Hiện tại chưa có vị trí tuyển dụng khác từ công ty này.</p>
+                            @if (ViewBag.DanhSachViecLamKhac != null && ((List<TinTuyenDung>)ViewBag.DanhSachViecLamKhac).Count > 0)
+                            {
+                                <div class="related-jobs">
+                                    @foreach (var job in (List<TinTuyenDung>)ViewBag.DanhSachViecLamKhac)
+                                    {
+                                        var jobMucLuongDisplay = job.MucLuongThapNhat == 0 && job.MucLuongCaoNhat == 0 
+                                            ? "Thỏa thuận" 
+                                            : $"{job.MucLuongThapNhat}-{job.MucLuongCaoNhat} triệu";
+                                        var jobIsHetHan = (!string.IsNullOrEmpty(job.TrangThai) && job.TrangThai == "Het han") || job.HanNop < DateTime.Now.Date;
+                                        <a href="/Home/ChiTietViecLam/@job.MaTinTuyenDung" class="text-decoration-none" style="color: inherit;">
+                                            <div class="related-job-item">
+                                                <div class="related-job-title">@job.TenViecLam</div>
+                                                <div class="related-job-company">
+                                                    <i class="bi bi-geo-alt-fill"></i> @job.TinhThanhPho
+                                                    <span class="ms-3"><i class="bi bi-cash-stack"></i> @jobMucLuongDisplay</span>
+                                                    <span class="ms-3"><i class="bi bi-clock"></i> @job.LoaiCongViec</span>
+                                                    @if (jobIsHetHan)
+                                                    {
+                                                        <span class="ms-3 text-danger"><i class="bi bi-clock-history"></i> Đã hết hạn</span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </a>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="text-muted">Hiện tại chưa có vị trí tuyển dụng khác từ công ty này.</p>
+                            }
                         </div>
                     </div>
                 </div>

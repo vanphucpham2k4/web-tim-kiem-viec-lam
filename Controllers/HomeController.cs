@@ -927,6 +927,17 @@ namespace Unicareer.Controllers
             var danhSachNganhNghe = _nganhNgheRepository.LayDanhSachNganhNghe();
             ViewBag.DanhSachNganhNghe = danhSachNganhNghe;
             
+            // Lấy danh sách việc làm khác từ cùng công ty (loại trừ tin hiện tại)
+            var danhSachViecLamKhac = _tinTuyenDungRepository.LayDanhSachTheoCongTy(tinTuyenDung.CongTy ?? "")
+                .Where(t => t.MaTinTuyenDung != id && 
+                           t.TrangThai != "Da dong" && 
+                           t.TrangThai != "Het han" &&
+                           t.HanNop >= DateTime.Now.Date)
+                .OrderByDescending(t => t.NgayDang)
+                .Take(10)
+                .ToList();
+            ViewBag.DanhSachViecLamKhac = danhSachViecLamKhac;
+            
             return View(tinTuyenDung);
         }
 
@@ -1045,6 +1056,30 @@ namespace Unicareer.Controllers
                 tinTuyenDung.SoLuongUngTuyen++;
 
                 _context.SaveChanges();
+
+                // Gửi email xác nhận cho ứng viên
+                try
+                {
+                    // Ưu tiên sử dụng email từ tin ứng tuyển, nếu không có thì dùng email từ tài khoản
+                    string candidateEmail = !string.IsNullOrWhiteSpace(email) ? email.Trim() : (user.Email ?? "");
+                    
+                    if (!string.IsNullOrWhiteSpace(candidateEmail))
+                    {
+                        _ = Task.Run(async () =>
+                        {
+                            await _emailService.SendApplicationConfirmationAsync(
+                                candidateEmail,
+                                fullName.Trim(),
+                                tinTuyenDung.TenViecLam ?? "",
+                                tinTuyenDung.CongTy ?? ""
+                            );
+                        });
+                    }
+                }
+                catch (Exception emailEx)
+                {
+                    _logger.LogError(emailEx, "Lỗi khi gửi email xác nhận đơn ứng tuyển cho ứng viên");
+                }
 
                 // Gửi email thông báo cho nhà tuyển dụng
                 try

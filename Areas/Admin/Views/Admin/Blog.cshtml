@@ -310,17 +310,13 @@
                                 {
                                     <span class="badge badge-warning">Bản nháp</span>
                                 }
-                                else if (blog.DaDang && !blog.DaDuyet)
+                                else if (blog.DaDang && !blog.HienThi)
                                 {
-                                    <span class="badge" style="background: #fef3c7; color: #92400e;">Đã đăng - Chờ duyệt</span>
+                                    <span class="badge" style="background: #dbeafe; color: #1e40af;">Đã đăng - Ẩn</span>
                                 }
-                                else if (blog.DaDang && blog.DaDuyet && !blog.HienThi)
+                                else if (blog.DaDang && blog.HienThi)
                                 {
-                                    <span class="badge" style="background: #dbeafe; color: #1e40af;">Đã duyệt - Ẩn</span>
-                                }
-                                else if (blog.DaDang && blog.DaDuyet && blog.HienThi)
-                                {
-                                    <span class="badge badge-success">Đã duyệt - Hiển thị</span>
+                                    <span class="badge badge-success">Đã đăng - Hiển thị</span>
                                 }
                                 else
                                 {
@@ -345,30 +341,17 @@
                                             <i class="bi bi-arrow-counterclockwise"></i> Hủy đăng
                                         </button>
                                         
-                                        @if (!blog.DaDuyet)
+                                        @if (!blog.HienThi)
                                         {
-                                            <button class="btn-action" style="background: #dbeafe; color: #1e40af;" onclick="toggleDuyet(@blog.MaBlog, true)">
-                                                <i class="bi bi-check-circle"></i> Duyệt
+                                            <button class="btn-action btn-toggle" onclick="toggleHienThi(@blog.MaBlog, true)">
+                                                <i class="bi bi-eye"></i> Hiện
                                             </button>
                                         }
                                         else
                                         {
-                                            <button class="btn-action" style="background: #fef3c7; color: #92400e;" onclick="toggleDuyet(@blog.MaBlog, false)">
-                                                <i class="bi bi-x-circle"></i> Hủy duyệt
+                                            <button class="btn-action btn-toggle" onclick="toggleHienThi(@blog.MaBlog, false)">
+                                                <i class="bi bi-eye-slash"></i> Ẩn
                                             </button>
-                                            
-                                            @if (!blog.HienThi)
-                                            {
-                                                <button class="btn-action btn-toggle" onclick="toggleHienThi(@blog.MaBlog, true)">
-                                                    <i class="bi bi-eye"></i> Hiện
-                                                </button>
-                                            }
-                                            else
-                                            {
-                                                <button class="btn-action btn-toggle" onclick="toggleHienThi(@blog.MaBlog, false)">
-                                                    <i class="bi bi-eye-slash"></i> Ẩn
-                                                </button>
-                                            }
                                         }
                                     }
                                     
@@ -417,29 +400,9 @@
 
 <script>
     function toggleDang(id, daDang) {
-        const message = daDang ? 'Bạn có chắc muốn đăng blog này?' : 'Bạn có chắc muốn chuyển blog về bản nháp? (Sẽ hủy trạng thái duyệt và hiển thị)';
+        const message = daDang ? 'Bạn có chắc muốn đăng blog này?' : 'Bạn có chắc muốn chuyển blog về bản nháp? (Sẽ hủy trạng thái hiển thị)';
         if (confirm(message)) {
             fetch('@Url.Action("DangBlog", "Admin", new { area = "Admin" })?id=' + id + '&daDang=' + daDang, {
-                method: 'POST',
-                headers: {
-                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
-                } else {
-                    alert(data.message || 'Có lỗi xảy ra!');
-                }
-            });
-        }
-    }
-
-    function toggleDuyet(id, daDuyet) {
-        const message = daDuyet ? 'Bạn có chắc muốn duyệt blog này?' : 'Bạn có chắc muốn hủy duyệt blog này? (Sẽ hủy trạng thái hiển thị)';
-        if (confirm(message)) {
-            fetch('@Url.Action("DuyetBlog", "Admin", new { area = "Admin" })?id=' + id + '&daDuyet=' + daDuyet, {
                 method: 'POST',
                 headers: {
                     'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''

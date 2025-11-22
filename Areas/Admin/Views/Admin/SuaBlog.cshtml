@@ -515,7 +515,6 @@
                 <input type="hidden" asp-for="HinhAnh" id="hiddenHinhAnh" value="@Model.HinhAnh" />
                 <input type="hidden" asp-for="IsPermalinkAuto" name="IsPermalinkAuto" id="hiddenIsPermalinkAuto" value="@(Model.IsPermalinkAuto ? "true" : "false")" />
                 <input type="hidden" id="hiddenDaDang" value="@(Model.DaDang ? "true" : "false")" />
-                <input type="hidden" id="hiddenDaDuyet" value="@(Model.DaDuyet ? "true" : "false")" />
                 <input type="hidden" id="hiddenHienThi" value="@(Model.HienThi ? "true" : "false")" />
                 <input type="hidden" name="action" id="hiddenAction" value="" />
 
@@ -591,7 +590,7 @@
                             <div id="permalinkContent" class="sidebar-section-content">
                                 @{
                                     var baseUrl = $"{Context.Request.Scheme}://{Context.Request.Host}";
-                                    var isDraft = !Model.DaDang || !Model.DaDuyet || !Model.HienThi;
+                                    var isDraft = !Model.DaDang || !Model.HienThi;
                                     var canEditPermalink = isCreateNew || isDraft; // Cho phép chỉnh sửa nếu tạo mới hoặc là bản nháp
                                 }
                                 @if (canEditPermalink)
@@ -652,10 +651,6 @@
                         <div class="form-group-sidebar">
                             <label class="sidebar-section-title" style="margin-bottom: 10px;">Tùy chọn</label>
                             <div class="checkbox-group">
-                                <input type="checkbox" asp-for="DaDuyet" id="daDuyet" />
-                                <label for="daDuyet">Đã duyệt @(Model.DaDuyet ? "(✓)" : "(✗)")</label>
-                            </div>
-                            <div class="checkbox-group" style="margin-top: 10px;">
                                 <input type="checkbox" asp-for="HienThi" id="hienThi" />
                                 <label for="hienThi">Hiển thị trên trang chủ @(Model.HienThi ? "(✓)" : "(✗)")</label>
                             </div>
@@ -723,7 +718,7 @@
         // Load existing title và permalink
         const blogTitleInput = document.getElementById('blogTitle');
         const isCreateNew = @(isCreateNew ? "true" : "false");
-        const isDraft = @((!Model.DaDang || !Model.DaDuyet || !Model.HienThi) ? "true" : "false");
+        const isDraft = @((!Model.DaDang || !Model.HienThi) ? "true" : "false");
         const canEditPermalink = isCreateNew || isDraft; // Cho phép chỉnh sửa nếu tạo mới hoặc là bản nháp
         
         if (canEditPermalink) {
@@ -1556,7 +1551,7 @@
         
         updatePermalinkValue();
         
-        if (!confirm('Bạn có chắc muốn chuyển blog này về bản nháp?\n(Sẽ hủy trạng thái đăng, duyệt và hiển thị)')) {
+        if (!confirm('Bạn có chắc muốn chuyển blog này về bản nháp?\n(Sẽ hủy trạng thái đăng và hiển thị)')) {
             console.log('❌ Người dùng hủy thao tác');
             return;
         }
@@ -1626,7 +1621,6 @@
             if (data.success) {
                 // Cập nhật UI - chuyển về bản nháp
                 document.getElementById('hiddenDaDang').value = 'false';
-                document.getElementById('hiddenDaDuyet').value = 'false';
                 document.getElementById('hiddenHienThi').value = 'false';
                 checkBlogStatus();
                 

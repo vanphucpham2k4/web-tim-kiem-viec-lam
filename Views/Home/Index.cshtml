@@ -871,7 +871,7 @@
             {
                 @foreach (var ungVien in danhSachUngVienCongKhai)
                 {
-                    <div class="candidate-card" style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.3s; cursor: pointer; border: 2px solid transparent; position: relative; overflow: hidden;">
+                    <div class="candidate-card" data-url="/Home/ChiTietUngVien/@ungVien.MaUngVien" style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.3s; cursor: pointer; border: 2px solid transparent; position: relative; overflow: hidden;">
                         <div class="candidate-header" style="display: flex; align-items: flex-start; gap: 15px; margin-bottom: 15px;">
                             <div class="candidate-avatar" style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #2ecc71, #27ae60); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 24px; flex-shrink: 0;">
                                 @if (!string.IsNullOrEmpty(ungVien.User?.Avatar))
@@ -897,8 +897,12 @@
                         </div>
                         @if (!string.IsNullOrEmpty(ungVien.MoTaBanThan))
                         {
+                            // Strip HTML tags from candidate description
+                            var candidateDescription = System.Text.RegularExpressions.Regex.Replace(ungVien.MoTaBanThan, "<.*?>", string.Empty);
+                            // Decode HTML entities
+                            candidateDescription = System.Net.WebUtility.HtmlDecode(candidateDescription);
                             <div class="candidate-description" style="font-size: 14px; color: #666; line-height: 1.6; margin-bottom: 15px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                                @ungVien.MoTaBanThan
+                                @candidateDescription
                             </div>
                         }
                         <div class="candidate-badges" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;">
@@ -1025,7 +1029,26 @@
                                 <span class="blog-category">BLOG</span>
                             }
                             <h3 class="blog-title">@blog.TieuDe</h3>
-                            <p class="blog-excerpt">@(blog.MoTaNgan ?? (blog.NoiDung != null && blog.NoiDung.Length > 100 ? blog.NoiDung.Substring(0, 100) + "..." : blog.NoiDung ?? ""))</p>
+                            @{
+                                string excerptText = "";
+                                if (!string.IsNullOrEmpty(blog.MoTaNgan))
+                                {
+                                    excerptText = blog.MoTaNgan;
+                                }
+                                else if (!string.IsNullOrEmpty(blog.NoiDung))
+                                {
+                                    // Strip HTML tags from blog content
+                                    var plainText = System.Text.RegularExpressions.Regex.Replace(blog.NoiDung, "<.*?>", string.Empty);
+                                    // Decode HTML entities
+                                    excerptText = System.Net.WebUtility.HtmlDecode(plainText);
+                                    // Trim and limit length
+                                    if (excerptText.Length > 150)
+                                    {
+                                        excerptText = excerptText.Substring(0, 150).Trim() + "...";
+                                    }
+                                }
+                            }
+                            <p class="blog-excerpt">@excerptText</p>
                             <div class="blog-meta">
                                 <span class="blog-date">📅 @thoiGianDangText</span>
                                 <span class="blog-views">👁 @blog.LuotXem.ToString("N0") lượt xem</span>
@@ -1316,6 +1339,37 @@
                 return;
             }
             const url = this.getAttribute('data-url');
+            if (url) {
+                window.location.href = url;
+            }
+        });
+    });
+    
+    // Candidate card click handlers - Navigate to candidate detail page
+    document.querySelectorAll('.candidate-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            // Don't navigate if clicking the view button
+            if (e.target.classList.contains('candidate-view-btn')) {
+                e.stopPropagation();
+                const url = this.getAttribute('data-url');
+                if (url) {
+                    window.location.href = url;
+                }
+                return;
+            }
+            const url = this.getAttribute('data-url');
+            if (url) {
+                window.location.href = url;
+            }
+        });
+    });
+    
+    // Candidate view button handlers
+    document.querySelectorAll('.candidate-view-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const card = this.closest('.candidate-card');
+            const url = card.getAttribute('data-url');
             if (url) {
                 window.location.href = url;
             }

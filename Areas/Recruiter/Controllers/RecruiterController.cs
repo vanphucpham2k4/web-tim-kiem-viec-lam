@@ -1057,10 +1057,16 @@ namespace Unicareer.Areas.Recruiter.Controllers
                             candidateUser = donDaCapNhat.User;
                         }
 
-                        if (candidateUser != null && !string.IsNullOrEmpty(candidateUser.Email))
+                        // Ưu tiên sử dụng email từ tin ứng tuyển, nếu không có thì dùng email từ tài khoản
+                        string? candidateEmail = !string.IsNullOrWhiteSpace(donDaCapNhat.Email) 
+                            ? donDaCapNhat.Email.Trim() 
+                            : (candidateUser != null && !string.IsNullOrWhiteSpace(candidateUser.Email) 
+                                ? candidateUser.Email.Trim() 
+                                : null);
+
+                        if (!string.IsNullOrWhiteSpace(candidateEmail))
                         {
-                            var candidateEmail = candidateUser.Email;
-                            var candidateName = donDaCapNhat.HoTen ?? candidateUser.HoTen ?? "Ứng viên";
+                            var candidateName = donDaCapNhat.HoTen ?? (candidateUser?.HoTen ?? "Ứng viên");
                             var jobTitle = tinTuyenDung.TenViecLam ?? donDaCapNhat.ViTriUngTuyen ?? "";
                             var companyName = tinTuyenDung.CongTy ?? donDaCapNhat.CongTy ?? "";
 
@@ -1807,6 +1813,39 @@ namespace Unicareer.Areas.Recruiter.Controllers
             {
                 return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
             }
+        }
+
+        // GET: Tìm ứng viên
+        public IActionResult TimUngVien(string keyword)
+        {
+            // Query trực tiếp từ database - chỉ lấy ứng viên có HienThiCongKhai = true
+            var danhSachUngVien = _context.UngViens
+                .Include(u => u.User)
+                .Include(u => u.ChuyenNganh)
+                    .ThenInclude(c => c!.NganhNghe)
+                .Where(u => u.HienThiCongKhai && !string.IsNullOrEmpty(u.HoTen))
+                .AsQueryable();
+
+            // Tìm kiếm theo từ khóa
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                var keywordTrimmed = keyword.Trim();
+                danhSachUngVien = danhSachUngVien.Where(u =>
+                    (!string.IsNullOrEmpty(u.HoTen) && u.HoTen.Contains(keywordTrimmed)) ||
+                    (!string.IsNullOrEmpty(u.ViTriMongMuon) && u.ViTriMongMuon.Contains(keywordTrimmed)) ||
+                    (!string.IsNullOrEmpty(u.Email) && u.Email.Contains(keywordTrimmed)) ||
+                    (u.ChuyenNganh != null && !string.IsNullOrEmpty(u.ChuyenNganh.TenChuyenNganh) && u.ChuyenNganh.TenChuyenNganh.Contains(keywordTrimmed))
+                );
+            }
+
+            // Sắp xếp theo ngày đăng ký mới nhất
+            danhSachUngVien = danhSachUngVien.OrderByDescending(u => u.NgayDangKy);
+
+            var ketQuaTimKiem = danhSachUngVien.ToList();
+
+            ViewBag.Keyword = keyword;
+
+            return View(ketQuaTimKiem);
         }
     }
 }

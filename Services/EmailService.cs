@@ -15,6 +15,7 @@ namespace Unicareer.Services
         Task<bool> SendPendingReviewNotificationAsync(string recruiterEmail, string candidateName, string jobTitle, int daysWaiting);
         
         // Thông báo cho ứng viên
+        Task<bool> SendApplicationConfirmationAsync(string candidateEmail, string candidateName, string jobTitle, string companyName);
         Task<bool> SendApplicationStatusChangedNotificationAsync(string candidateEmail, string candidateName, string jobTitle, string companyName, string status, string? note = null, string? contactPerson = null, string? contactEmail = null, string? contactPhone = null, string? contactAddress = null);
         Task<bool> SendInterviewScheduledNotificationAsync(string candidateEmail, string candidateName, string jobTitle, string companyName, string? contactPerson = null, string? contactEmail = null, string? contactPhone = null, string? contactAddress = null);
         Task<bool> SendApplicationAcceptedNotificationAsync(string candidateEmail, string candidateName, string jobTitle, string companyName, string? contactPerson = null, string? contactEmail = null, string? contactPhone = null, string? contactAddress = null);
@@ -347,6 +348,54 @@ namespace Unicareer.Services
         }
 
         // ========== THÔNG BÁO CHO ỨNG VIÊN ==========
+
+        public async Task<bool> SendApplicationConfirmationAsync(string candidateEmail, string candidateName, string jobTitle, string companyName)
+        {
+            var subject = $"Xác nhận đơn ứng tuyển - {jobTitle}";
+            var body = $@"
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset='utf-8'>
+                    <style>
+                        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                        .header {{ background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; }}
+                        .content {{ background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }}
+                        .success-box {{ background: #d1fae5; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0; }}
+                        .footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 12px; }}
+                    </style>
+                </head>
+                <body>
+                    <div class='container'>
+                        <div class='header'>
+                            <h1>Unicareer</h1>
+                            <p>Xác nhận đơn ứng tuyển</p>
+                        </div>
+                        <div class='content'>
+                            <p>Xin chào {candidateName},</p>
+                            <p>Cảm ơn bạn đã ứng tuyển vào vị trí:</p>
+                            
+                            <div class='success-box'>
+                                <p><strong>Vị trí:</strong> {jobTitle}</p>
+                                <p><strong>Công ty:</strong> {companyName}</p>
+                            </div>
+                            
+                            <p>Đơn ứng tuyển của bạn đã được gửi thành công và đang được xem xét. Chúng tôi sẽ liên hệ với bạn sớm nhất có thể qua email hoặc số điện thoại bạn đã cung cấp.</p>
+                            
+                            <p>Bạn có thể đăng nhập vào hệ thống để theo dõi trạng thái đơn ứng tuyển của mình.</p>
+                            
+                            <p>Chúc bạn may mắn!<br>Đội ngũ Unicareer</p>
+                        </div>
+                        <div class='footer'>
+                            <p>Email này được gửi tự động, vui lòng không trả lời.</p>
+                        </div>
+                    </div>
+                </body>
+                </html>";
+
+            return await SendEmailAsync(candidateEmail, subject, body);
+        }
 
         public async Task<bool> SendApplicationStatusChangedNotificationAsync(string candidateEmail, string candidateName, string jobTitle, string companyName, string status, string? note = null, string? contactPerson = null, string? contactEmail = null, string? contactPhone = null, string? contactAddress = null)
         {

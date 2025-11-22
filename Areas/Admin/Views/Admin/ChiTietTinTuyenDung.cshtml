@@ -1757,9 +1757,6 @@
         <div class="info-card">
             <h5><i class="bi bi-gear"></i> Thao tác quản lý</h5>
             <div class="action-buttons">
-                <button class="btn btn-danger w-100 mb-2 btn-khoa" data-ma="@Model.MaTinTuyenDung">
-                    <i class="bi bi-lock"></i> Khóa tin
-                </button>
                 <button class="btn btn-danger w-100 mb-2 btn-xoa" data-ma="@Model.MaTinTuyenDung">
                     <i class="bi bi-trash"></i> Xóa tin
                 </button>
@@ -1776,30 +1773,6 @@
     
     <script>
         $(document).ready(function() {
-            // Khóa tin
-            $('.btn-khoa').on('click', function() {
-                var ma = $(this).data('ma');
-                var lyDo = prompt('Nhập lý do khóa tin:');
-                if (lyDo) {
-                    $.ajax({
-                        url: '@Url.Action("KhoaTinTuyenDung", "Admin")',
-                        type: 'POST',
-                        data: { id: ma, lyDo: lyDo },
-                        success: function(response) {
-                            if (response.success) {
-                                showNotification('Đã khóa tin thành công!', 'success');
-                                location.reload();
-                            } else {
-                                showNotification(response.message || 'Có lỗi xảy ra!', 'error');
-                            }
-                        },
-                        error: function() {
-                            showNotification('Có lỗi xảy ra khi khóa tin!', 'error');
-                        }
-                    });
-                }
-            });
-
             // Xóa tin
             $('.btn-xoa').on('click', function() {
                 var ma = $(this).data('ma');

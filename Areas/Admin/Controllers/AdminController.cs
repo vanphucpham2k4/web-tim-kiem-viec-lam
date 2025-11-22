@@ -1220,37 +1220,6 @@ namespace Unicareer.Areas.Admin.Controllers
             }
         }
 
-        // POST: Khóa tin tuyển dụng
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult KhoaTinTuyenDung(int id, string lyDo)
-        {
-            try
-            {
-                var tin = _tinTuyenDungRepository.LayTinTuyenDungTheoId(id);
-                if (tin == null)
-                {
-                    return Json(new { success = false, message = "Không tìm thấy tin tuyển dụng!" });
-                }
-
-                if (string.IsNullOrWhiteSpace(lyDo))
-                {
-                    return Json(new { success = false, message = "Vui lòng nhập lý do khóa!" });
-                }
-
-                // TODO: Cập nhật trạng thái khóa trong database
-                // Ví dụ: tin.TrangThaiDuyet = "Bi khoa";
-                // tin.LyDoKhoa = lyDo;
-                // _tinTuyenDungRepository.CapNhatTinTuyenDung(id, tin);
-
-                return Json(new { success = true, message = "Đã khóa tin tuyển dụng thành công!" });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
-            }
-        }
-
         // GET: Lấy danh sách ứng viên theo mã tin
         [HttpGet]
         public IActionResult LayDanhSachUngVien(int maTin)
@@ -1825,8 +1794,7 @@ namespace Unicareer.Areas.Admin.Controllers
                 }
             }
 
-            // Mặc định: đã duyệt và hiển thị (admin tự đăng)
-            blog.DaDuyet = true;
+            // Mặc định: hiển thị (admin tự đăng)
             blog.HienThi = true;
 
             // Xử lý IsPermalinkAuto từ form (ưu tiên hidden input, sau đó mới đến radio button)
@@ -1885,7 +1853,6 @@ namespace Unicareer.Areas.Admin.Controllers
                     blogHienTai.Permalink = blog.Permalink;
                     blogHienTai.IsPermalinkAuto = blog.IsPermalinkAuto;
                     blogHienTai.NgayCapNhat = DateTime.Now;
-                    blogHienTai.DaDuyet = true;
                     blogHienTai.HienThi = true;
                     
                     if (!string.IsNullOrEmpty(blog.HinhAnh))
@@ -2012,8 +1979,7 @@ namespace Unicareer.Areas.Admin.Controllers
             }
             // Nếu IsPermalinkAuto = false, Permalink đã được lấy từ form ở trên
 
-            // Lưu bản nháp: DaDuyet = false, HienThi = false
-            blog.DaDuyet = false;
+            // Lưu bản nháp: HienThi = false
             blog.HienThi = false;
 
             // Kiểm tra xem blog đã tồn tại chưa (nếu có MaBlog)
@@ -2033,7 +1999,6 @@ namespace Unicareer.Areas.Admin.Controllers
                     blogHienTai.Permalink = blog.Permalink;
                     blogHienTai.IsPermalinkAuto = blog.IsPermalinkAuto;
                     blogHienTai.NgayCapNhat = DateTime.Now;
-                    blogHienTai.DaDuyet = false;
                     blogHienTai.HienThi = false;
                     
                     if (!string.IsNullOrEmpty(blog.HinhAnh))
@@ -2165,9 +2130,8 @@ namespace Unicareer.Areas.Admin.Controllers
                 blogHienTai.IsPermalinkAuto = blog.IsPermalinkAuto;
                 blogHienTai.NgayCapNhat = DateTime.Now;
                 
-                // Chuyển về bản nháp: DaDang = false (và tự động reset các trạng thái khác)
+                // Chuyển về bản nháp: DaDang = false (và tự động reset trạng thái hiển thị)
                 blogHienTai.DaDang = false;
-                blogHienTai.DaDuyet = false;
                 blogHienTai.HienThi = false;
 
                 var result = _blogRepository.CapNhatBlog(blogHienTai);
@@ -2253,7 +2217,6 @@ namespace Unicareer.Areas.Admin.Controllers
                 {
                     NgayDang = DateTime.Now,
                     DaDang = false,   // Mặc định là bản nháp (chưa đăng)
-                    DaDuyet = false,  // Mặc định chưa duyệt
                     HienThi = false,  // Mặc định không hiển thị
                     IsPermalinkAuto = true // Mặc định là tự động
                 };
@@ -2434,21 +2397,19 @@ namespace Unicareer.Areas.Admin.Controllers
             }
 
             // ✅ Kiểm tra xem người dùng nhấn nút "Đăng" hay "Cập nhật"
-            // Nếu nhấn nút "Đăng" (có action=dang trong form) -> set DaDang = true, DaDuyet = true, HienThi = true
+            // Nếu nhấn nút "Đăng" (có action=dang trong form) -> set DaDang = true, HienThi = true
             var actionValue = Request.Form["action"].ToString();
             System.Diagnostics.Debug.WriteLine($"========== DEBUG ACTION ==========");
             System.Diagnostics.Debug.WriteLine($"actionValue từ form: '{actionValue}'");
             System.Diagnostics.Debug.WriteLine($"Trạng thái TRƯỚC khi xử lý action:");
             System.Diagnostics.Debug.WriteLine($"  - DaDang: {blog.DaDang}");
-            System.Diagnostics.Debug.WriteLine($"  - DaDuyet: {blog.DaDuyet}");
             System.Diagnostics.Debug.WriteLine($"  - HienThi: {blog.HienThi}");
             
             if (actionValue == "dang")
             {
                 blog.DaDang = true;
-                blog.DaDuyet = true;
                 blog.HienThi = true;
-                System.Diagnostics.Debug.WriteLine("✅ Người dùng nhấn nút ĐĂNG -> set DaDang = true, DaDuyet = true, HienThi = true");
+                System.Diagnostics.Debug.WriteLine("✅ Người dùng nhấn nút ĐĂNG -> set DaDang = true, HienThi = true");
             }
             else
             {
@@ -2459,7 +2420,6 @@ namespace Unicareer.Areas.Admin.Controllers
             
             System.Diagnostics.Debug.WriteLine($"Trạng thái SAU khi xử lý action:");
             System.Diagnostics.Debug.WriteLine($"  - DaDang: {blog.DaDang}");
-            System.Diagnostics.Debug.WriteLine($"  - DaDuyet: {blog.DaDuyet}");
             System.Diagnostics.Debug.WriteLine($"  - HienThi: {blog.HienThi}");
             System.Diagnostics.Debug.WriteLine($"==================================");
             
@@ -2507,7 +2467,6 @@ namespace Unicareer.Areas.Admin.Controllers
                     System.Diagnostics.Debug.WriteLine($"TacGia sau khi cập nhật: {result.TacGia}");
                     System.Diagnostics.Debug.WriteLine($"========== VERIFY SAU KHI LƯU DATABASE ==========");
                     System.Diagnostics.Debug.WriteLine($"  - DaDang: {result.DaDang}");
-                    System.Diagnostics.Debug.WriteLine($"  - DaDuyet: {result.DaDuyet}");
                     System.Diagnostics.Debug.WriteLine($"  - HienThi: {result.HienThi}");
                     System.Diagnostics.Debug.WriteLine($"=================================================");
                 }
@@ -2571,10 +2530,9 @@ namespace Unicareer.Areas.Admin.Controllers
             }
 
             blog.DaDang = daDang;
-            // Khi hủy đăng (chuyển về bản nháp), reset các trạng thái khác
+            // Khi hủy đăng (chuyển về bản nháp), reset trạng thái hiển thị
             if (!daDang)
             {
-                blog.DaDuyet = false;
                 blog.HienThi = false;
             }
             var result = _blogRepository.CapNhatBlog(blog);
@@ -2589,39 +2547,6 @@ namespace Unicareer.Areas.Admin.Controllers
             }
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult DuyetBlog(int id, bool daDuyet)
-        {
-            var blog = _blogRepository.LayBlogTheoId(id);
-            if (blog == null)
-            {
-                return Json(new { success = false, message = "Không tìm thấy blog!" });
-            }
-
-            // Chỉ cho phép duyệt nếu blog đã đăng
-            if (!blog.DaDang)
-            {
-                return Json(new { success = false, message = "Blog phải được đăng trước khi duyệt!" });
-            }
-
-            blog.DaDuyet = daDuyet;
-            // Khi hủy duyệt, cũng hủy hiển thị
-            if (!daDuyet)
-            {
-                blog.HienThi = false;
-            }
-            var result = _blogRepository.CapNhatBlog(blog);
-            
-            if (result != null)
-            {
-                return Json(new { success = true, message = daDuyet ? "Đã duyệt blog!" : "Đã hủy duyệt blog!" });
-            }
-            else
-            {
-                return Json(new { success = false, message = "Có lỗi xảy ra!" });
-            }
-        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -2633,10 +2558,10 @@ namespace Unicareer.Areas.Admin.Controllers
                 return Json(new { success = false, message = "Không tìm thấy blog!" });
             }
 
-            // Chỉ cho phép hiển thị nếu blog đã đăng và đã duyệt
-            if (hienThi && (!blog.DaDang || !blog.DaDuyet))
+            // Chỉ cho phép hiển thị nếu blog đã đăng
+            if (hienThi && !blog.DaDang)
             {
-                return Json(new { success = false, message = "Blog phải được đăng và duyệt trước khi hiển thị!" });
+                return Json(new { success = false, message = "Blog phải được đăng trước khi hiển thị!" });
             }
 
             blog.HienThi = hienThi;

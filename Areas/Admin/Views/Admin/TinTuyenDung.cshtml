@@ -512,9 +512,6 @@
                                                 <a href="@Url.Action("ChiTietTinTuyenDung", "Admin", new { id = tin.MaTinTuyenDung })" class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
                                                     <i class="bi bi-eye"></i>
                                                 </a>
-                                                <button class="btn btn-sm btn-outline-danger btn-khoa" data-ma="@tin.MaTinTuyenDung" title="Khóa tin">
-                                                    <i class="bi bi-lock"></i>
-                                                </button>
                                                 <button class="btn btn-sm btn-outline-danger btn-xoa" data-ma="@tin.MaTinTuyenDung" title="Xóa">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
@@ -687,31 +684,6 @@
     </div>
 </div>
 
-<!-- Modal Khóa tin -->
-<div class="modal fade" id="khoaTinModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title"><i class="bi bi-lock me-2"></i>Khóa tin tuyển dụng</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Bạn có chắc chắn muốn khóa tin tuyển dụng này không?</p>
-                <div class="mb-3">
-                    <label class="form-label">Lý do khóa:</label>
-                    <textarea class="form-control" id="lyDoKhoa" rows="3" placeholder="Nhập lý do khóa tin..."></textarea>
-                </div>
-                <input type="hidden" id="maTinKhoa">
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-danger" id="btnXacNhanKhoa">
-                    <i class="bi bi-lock me-2"></i>Xác nhận khóa
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 
 @section Scripts {
     <script>
@@ -747,42 +719,6 @@
             // Chọn tất cả
             $('#chonTatCa').on('change', function() {
                 $('.chonTin').prop('checked', $(this).prop('checked'));
-            });
-            
-            // Khóa tin
-            $('.btn-khoa').on('click', function(e) {
-                e.preventDefault();
-                var ma = $(this).data('ma');
-                $('#maTinKhoa').val(ma);
-                $('#lyDoKhoa').val('');
-                $('#khoaTinModal').modal('show');
-            });
-            
-            $('#btnXacNhanKhoa').on('click', function() {
-                var ma = $('#maTinKhoa').val();
-                var lyDo = $('#lyDoKhoa').val();
-                if (!lyDo.trim()) {
-                    alert('Vui lòng nhập lý do khóa!');
-                    return;
-                }
-                // Gọi API khóa tin
-                $.ajax({
-                    url: '@Url.Action("KhoaTinTuyenDung", "Admin")',
-                    type: 'POST',
-                    data: { id: ma, lyDo: lyDo },
-                    success: function(response) {
-                        if (response.success) {
-                            showNotification('Đã khóa tin tuyển dụng thành công!', 'success');
-                            $('#khoaTinModal').modal('hide');
-                            location.reload();
-                        } else {
-                            showNotification(response.message || 'Có lỗi xảy ra!', 'error');
-                        }
-                    },
-                    error: function() {
-                        showNotification('Có lỗi xảy ra khi khóa tin!', 'error');
-                    }
-                });
             });
             
             // Xóa tin

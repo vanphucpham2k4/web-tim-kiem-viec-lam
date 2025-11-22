@@ -496,16 +496,8 @@
                 @if (!string.IsNullOrEmpty(Model.Email))
                 {
                     <div class="mb-3">
-                        <a href="mailto:@Model.Email" class="btn btn-primary w-100" style="background: var(--primary-gradient); border: none;">
+                        <a href="https://mail.google.com/mail/u/0/?view=cm&fs=1&to=@Model.Email" target="_blank" class="btn btn-primary w-100" style="background: var(--primary-gradient); border: none;">
                             <i class="bi bi-envelope"></i> Gửi email
-                        </a>
-                    </div>
-                }
-                @if (!string.IsNullOrEmpty(Model.SoDienThoai))
-                {
-                    <div class="mb-3">
-                        <a href="tel:@Model.SoDienThoai" class="btn btn-success w-100">
-                            <i class="bi bi-telephone"></i> Gọi điện
                         </a>
                     </div>
                 }
