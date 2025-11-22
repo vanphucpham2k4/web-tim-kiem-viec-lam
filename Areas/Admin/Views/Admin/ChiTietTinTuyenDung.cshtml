@@ -617,6 +617,332 @@
         content: " *";
         color: #f56565;
     }
+
+    /* Image Gallery Styles */
+    .image-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .gallery-item {
+        position: relative;
+        overflow: hidden;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        aspect-ratio: 4/3;
+        background: #f7fafc;
+    }
+
+    .gallery-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    }
+
+    .gallery-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .gallery-item:hover img {
+        transform: scale(1.1);
+    }
+
+    .gallery-item::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.3) 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .gallery-item:hover::after {
+        opacity: 1;
+    }
+
+    .gallery-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 2rem;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 10;
+    }
+
+    .gallery-item:hover .gallery-overlay {
+        opacity: 1;
+    }
+
+    /* Lightbox Styles */
+    .lightbox {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 10000;
+        justify-content: center;
+        align-items: center;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .lightbox.active {
+        display: flex;
+    }
+
+    .lightbox-content {
+        position: relative;
+        max-width: 90%;
+        max-height: 90%;
+        animation: zoomIn 0.3s ease;
+    }
+
+    .lightbox-content img {
+        max-width: 100%;
+        max-height: 90vh;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+
+    .lightbox-close {
+        position: absolute;
+        top: -40px;
+        right: 0;
+        color: white;
+        font-size: 2rem;
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.2);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .lightbox-close:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: rotate(90deg);
+    }
+
+    .lightbox-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        color: white;
+        font-size: 2rem;
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.2);
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .lightbox-nav:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .lightbox-prev {
+        left: 20px;
+    }
+
+    .lightbox-next {
+        right: 20px;
+    }
+
+    .lightbox-counter {
+        position: absolute;
+        bottom: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: white;
+        font-size: 1rem;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 8px 16px;
+        border-radius: 20px;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @@keyframes zoomIn {
+        from {
+            transform: scale(0.8);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .empty-gallery {
+        text-align: center;
+        padding: 40px 20px;
+        color: #a0aec0;
+    }
+
+    .empty-gallery i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        opacity: 0.5;
+    }
+
+    .empty-gallery p {
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    /* Image Preview Styles for Edit Mode */
+    .image-preview-container {
+        margin-top: 20px;
+        padding: 20px;
+        background: #f7fafc;
+        border-radius: 12px;
+        border: 2px dashed #cbd5e0;
+    }
+
+    .image-preview-container.has-images {
+        border: 2px solid #667eea;
+        background: #ffffff;
+    }
+
+    .preview-section {
+        margin-bottom: 25px;
+    }
+
+    .preview-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .preview-section-title {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 15px;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .preview-section-title i {
+        color: #667eea;
+    }
+
+    .preview-images-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+    }
+
+    .preview-image-item {
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        aspect-ratio: 4/3;
+        background: #ffffff;
+        border: 2px solid #e2e8f0;
+        transition: all 0.3s ease;
+    }
+
+    .preview-image-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .preview-image-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .preview-image-item .remove-btn {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: rgba(245, 101, 101, 0.9);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 1.2rem;
+        transition: all 0.3s ease;
+        z-index: 10;
+    }
+
+    .preview-image-item .remove-btn:hover {
+        background: rgba(229, 62, 62, 1);
+        transform: scale(1.1);
+    }
+
+    .preview-image-item .image-label {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.7) 100%);
+        color: white;
+        padding: 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .preview-image-item.existing .image-label {
+        background: linear-gradient(180deg, transparent 0%, rgba(102, 126, 234, 0.8) 100%);
+    }
+
+    .preview-image-item.new .image-label {
+        background: linear-gradient(180deg, transparent 0%, rgba(72, 187, 120, 0.8) 100%);
+    }
+
+    .no-preview {
+        text-align: center;
+        padding: 30px;
+        color: #a0aec0;
+    }
+
+    .no-preview i {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        opacity: 0.5;
+    }
+
+    .no-preview p {
+        margin: 0;
+        font-size: 0.9rem;
+    }
 </style>
 
 <!-- Hidden element for success message -->
@@ -888,6 +1214,99 @@
                         }
                     </div>
 
+                    <!-- Anh van phong/cua hang -->
+                    @if (!string.IsNullOrEmpty(Model.AnhVanPhong))
+                    {
+                        <div class="content-section">
+                            <h4><i class="bi bi-images"></i> Ảnh văn phòng/cửa hàng</h4>
+                            @{
+                                // Parse ảnh từ string (JSON array hoặc comma-separated)
+                                var anhVanPhongList = new List<string>();
+                                try
+                                {
+                                    var anhVanPhongValue = Model.AnhVanPhong?.Trim();
+                                    if (string.IsNullOrEmpty(anhVanPhongValue))
+                                    {
+                                        anhVanPhongList = new List<string>();
+                                    }
+                                    else
+                                    {
+                                        // Thử parse JSON array trước (format mới)
+                                        if (anhVanPhongValue.StartsWith("["))
+                                        {
+                                            try
+                                            {
+                                                var jsonArray = System.Text.Json.JsonSerializer.Deserialize<string[]>(anhVanPhongValue);
+                                                if (jsonArray != null && jsonArray.Length > 0)
+                                                {
+                                                    anhVanPhongList = jsonArray.ToList();
+                                                }
+                                            }
+                                            catch
+                                            {
+                                                // Nếu parse JSON thất bại, xử lý như chuỗi thông thường
+                                                anhVanPhongList = anhVanPhongValue
+                                                    .Trim('[', ']')
+                                                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                                    .Select(s => s.Trim().Trim('"', '\'', ' '))
+                                                    .Where(s => !string.IsNullOrEmpty(s))
+                                                    .ToList();
+                                            }
+                                        }
+                                        else
+                                        {
+                                            // Split bằng dấu phẩy cho chuỗi thông thường (format cũ)
+                                            anhVanPhongList = anhVanPhongValue
+                                                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                                .Select(s => s.Trim())
+                                                .Where(s => !string.IsNullOrEmpty(s))
+                                                .ToList();
+                                        }
+                                    }
+                                }
+                                catch
+                                {
+                                    // Nếu có lỗi, thử split đơn giản nhất
+                                    try
+                                    {
+                                        anhVanPhongList = Model.AnhVanPhong?
+                                            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                            .Select(s => s.Trim())
+                                            .Where(s => !string.IsNullOrEmpty(s))
+                                            .ToList() ?? new List<string>();
+                                    }
+                                    catch
+                                    {
+                                        anhVanPhongList = new List<string>();
+                                    }
+                                }
+                            }
+
+                            @if (anhVanPhongList != null && anhVanPhongList.Count > 0)
+                            {
+                                <div class="image-gallery" id="officeImagesGallery">
+                                    @foreach (var imagePath in anhVanPhongList)
+                                    {
+                                        <div class="gallery-item" data-image="@imagePath">
+                                            <img src="@imagePath" alt="Ảnh văn phòng/cửa hàng" loading="lazy" 
+                                                 onerror="this.src='/images/placeholder.png'; this.onerror=null;">
+                                            <div class="gallery-overlay">
+                                                <i class="bi bi-zoom-in"></i>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="empty-gallery">
+                                    <i class="bi bi-image"></i>
+                                    <p>Chưa có ảnh văn phòng/cửa hàng</p>
+                                </div>
+                            }
+                        </div>
+                    }
+
                     @if (!string.IsNullOrEmpty(Model.TuKhoa))
                     {
                         <div class="content-section">
@@ -936,13 +1355,20 @@
                                         <label class="form-label required-label">Ngành nghề</label>
                                         <select class="form-select" name="NganhNghe" id="editNganhNghe" required>
                                             <option value="">Chọn ngành nghề</option>
-                                            @if (Model.NganhNghe == "Cong nghe thong tin") { <option value="Cong nghe thong tin" selected>Công nghệ thông tin</option> } else { <option value="Cong nghe thong tin">Công nghệ thông tin</option> }
-                                            @if (Model.NganhNghe == "Kinh doanh") { <option value="Kinh doanh" selected>Kinh doanh</option> } else { <option value="Kinh doanh">Kinh doanh</option> }
-                                            @if (Model.NganhNghe == "Ke toan - Tai chinh") { <option value="Ke toan - Tai chinh" selected>Kế toán - Tài chính</option> } else { <option value="Ke toan - Tai chinh">Kế toán - Tài chính</option> }
-                                            @if (Model.NganhNghe == "Nhan su") { <option value="Nhan su" selected>Nhân sự</option> } else { <option value="Nhan su">Nhân sự</option> }
-                                            @if (Model.NganhNghe == "Marketing") { <option value="Marketing" selected>Marketing</option> } else { <option value="Marketing">Marketing</option> }
-                                            @if (Model.NganhNghe == "Thiet ke do hoa") { <option value="Thiet ke do hoa" selected>Thiết kế đồ họa</option> } else { <option value="Thiet ke do hoa">Thiết kế đồ họa</option> }
-                                            @if (Model.NganhNghe == "Truyen thong - Media") { <option value="Truyen thong - Media" selected>Truyền thông - Media</option> } else { <option value="Truyen thong - Media">Truyền thông - Media</option> }
+                                            @{
+                                                var danhSachNganhNghe = ViewBag.DanhSachNganhNghe as List<Unicareer.Models.NganhNghe> ?? new List<Unicareer.Models.NganhNghe>();
+                                            }
+                                            @foreach (var nganhNghe in danhSachNganhNghe)
+                                            {
+                                                @if (Model.NganhNghe == nganhNghe.TenNganhNghe)
+                                                {
+                                                    <option value="@nganhNghe.TenNganhNghe" selected data-ma-nganh-nghe="@nganhNghe.MaNganhNghe">@nganhNghe.TenNganhNghe</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@nganhNghe.TenNganhNghe" data-ma-nganh-nghe="@nganhNghe.MaNganhNghe">@nganhNghe.TenNganhNghe</option>
+                                                }
+                                            }
                                         </select>
                                         <span class="text-danger field-validation-valid" data-valmsg-for="NganhNghe" data-valmsg-replace="true"></span>
                                     </div>
@@ -950,10 +1376,25 @@
                                         <label class="form-label">Ngành nghề chi tiết</label>
                                         <select class="form-select" name="NganhNgheChiTiet" id="editNganhNgheChiTiet">
                                             <option value="">Chọn ngành nghề chi tiết</option>
-                                            @if (Model.NganhNgheChiTiet == "Web Developer") { <option value="Web Developer" selected>Web Developer</option> } else { <option value="Web Developer">Web Developer</option> }
-                                            @if (Model.NganhNgheChiTiet == "Mobile Developer") { <option value="Mobile Developer" selected>Mobile Developer</option> } else { <option value="Mobile Developer">Mobile Developer</option> }
-                                            @if (Model.NganhNgheChiTiet == "Data Analyst") { <option value="Data Analyst" selected>Data Analyst</option> } else { <option value="Data Analyst">Data Analyst</option> }
-                                            @if (Model.NganhNgheChiTiet == "UI/UX Designer") { <option value="UI/UX Designer" selected>UI/UX Designer</option> } else { <option value="UI/UX Designer">UI/UX Designer</option> }
+                                            @{
+                                                var danhSachChuyenNganh = ViewBag.DanhSachChuyenNganh as List<Unicareer.Models.ChuyenNganh> ?? new List<Unicareer.Models.ChuyenNganh>();
+                                                var danhSachNganhNgheForChuyenNganh = ViewBag.DanhSachNganhNghe as List<Unicareer.Models.NganhNghe> ?? new List<Unicareer.Models.NganhNghe>();
+                                                var selectedNganhNghe = danhSachNganhNgheForChuyenNganh.FirstOrDefault(n => n.TenNganhNghe == Model.NganhNghe);
+                                                var chuyenNganhTheoNganhNghe = selectedNganhNghe != null 
+                                                    ? danhSachChuyenNganh.Where(c => c.MaNganhNghe == selectedNganhNghe.MaNganhNghe).ToList()
+                                                    : new List<Unicareer.Models.ChuyenNganh>();
+                                            }
+                                            @foreach (var chuyenNganh in chuyenNganhTheoNganhNghe)
+                                            {
+                                                @if (Model.NganhNgheChiTiet == chuyenNganh.TenChuyenNganh)
+                                                {
+                                                    <option value="@chuyenNganh.TenChuyenNganh" selected data-ma-nganh-nghe="@chuyenNganh.MaNganhNghe">@chuyenNganh.TenChuyenNganh</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@chuyenNganh.TenChuyenNganh" data-ma-nganh-nghe="@chuyenNganh.MaNganhNghe">@chuyenNganh.TenChuyenNganh</option>
+                                                }
+                                            }
                                         </select>
                                     </div>
                                 </div>
@@ -963,11 +1404,20 @@
                                         <label class="form-label required-label">Hình thức làm việc</label>
                                         <select class="form-select" name="LoaiCongViec" id="editLoaiCongViec" required>
                                             <option value="">Chọn hình thức</option>
-                                            @if (Model.LoaiCongViec == "Full-time") { <option value="Full-time" selected>Full-time</option> } else { <option value="Full-time">Full-time</option> }
-                                            @if (Model.LoaiCongViec == "Part-time") { <option value="Part-time" selected>Part-time</option> } else { <option value="Part-time">Part-time</option> }
-                                            @if (Model.LoaiCongViec == "Internship") { <option value="Internship" selected>Internship</option> } else { <option value="Internship">Internship</option> }
-                                            @if (Model.LoaiCongViec == "Remote") { <option value="Remote" selected>Remote</option> } else { <option value="Remote">Remote</option> }
-                                            @if (Model.LoaiCongViec == "Hybrid") { <option value="Hybrid" selected>Hybrid</option> } else { <option value="Hybrid">Hybrid</option> }
+                                            @{
+                                                var danhSachLoaiCongViec = ViewBag.DanhSachLoaiCongViec as List<Unicareer.Models.LoaiCongViec> ?? new List<Unicareer.Models.LoaiCongViec>();
+                                            }
+                                            @foreach (var loaiCongViec in danhSachLoaiCongViec)
+                                            {
+                                                @if (Model.LoaiCongViec == loaiCongViec.TenLoaiCongViec)
+                                                {
+                                                    <option value="@loaiCongViec.TenLoaiCongViec" selected>@loaiCongViec.TenLoaiCongViec</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@loaiCongViec.TenLoaiCongViec">@loaiCongViec.TenLoaiCongViec</option>
+                                                }
+                                            }
                                         </select>
                                         <span class="text-danger field-validation-valid" data-valmsg-for="LoaiCongViec" data-valmsg-replace="true"></span>
                                     </div>
@@ -975,11 +1425,17 @@
                                         <label class="form-label">Kinh nghiệm làm việc</label>
                                         <select class="form-select" name="KinhNghiem" id="editKinhNghiem">
                                             <option value="">Chọn kinh nghiệm</option>
-                                            @if (Model.KinhNghiem == "Khong yeu cau") { <option value="Khong yeu cau" selected>Không yêu cầu</option> } else { <option value="Khong yeu cau">Không yêu cầu</option> }
-                                            @if (Model.KinhNghiem == "Duoi 1 nam") { <option value="Duoi 1 nam" selected>Dưới 1 năm</option> } else { <option value="Duoi 1 nam">Dưới 1 năm</option> }
-                                            @if (Model.KinhNghiem == "1-2 nam") { <option value="1-2 nam" selected>1-2 năm</option> } else { <option value="1-2 nam">1-2 năm</option> }
-                                            @if (Model.KinhNghiem == "2-5 nam") { <option value="2-5 nam" selected>2-5 năm</option> } else { <option value="2-5 nam">2-5 năm</option> }
-                                            @if (Model.KinhNghiem == "Tren 5 nam") { <option value="Tren 5 nam" selected>Trên 5 năm</option> } else { <option value="Tren 5 nam">Trên 5 năm</option> }
+                                            @foreach (var kn in Unicareer.Models.DropdownOptions.KinhNghiem)
+                                            {
+                                                @if (Model.KinhNghiem == kn)
+                                                {
+                                                    <option value="@kn" selected>@kn</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@kn">@kn</option>
+                                                }
+                                            }
                                         </select>
                                     </div>
                                 </div>
@@ -989,10 +1445,17 @@
                                         <label class="form-label required-label">Vị trí</label>
                                         <select class="form-select" name="ViTri" id="editViTri" required>
                                             <option value="">Chọn vị trí</option>
-                                            @if (Model.ViTri == "Nhan vien") { <option value="Nhan vien" selected>Nhân viên</option> } else { <option value="Nhan vien">Nhân viên</option> }
-                                            @if (Model.ViTri == "Truong nhom") { <option value="Truong nhom" selected>Trưởng nhóm</option> } else { <option value="Truong nhom">Trưởng nhóm</option> }
-                                            @if (Model.ViTri == "Quan ly") { <option value="Quan ly" selected>Quản lý</option> } else { <option value="Quan ly">Quản lý</option> }
-                                            @if (Model.ViTri == "Giam doc") { <option value="Giam doc" selected>Giám đốc</option> } else { <option value="Giam doc">Giám đốc</option> }
+                                            @foreach (var vt in Unicareer.Models.DropdownOptions.ViTri)
+                                            {
+                                                @if (Model.ViTri == vt)
+                                                {
+                                                    <option value="@vt" selected>@vt</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@vt">@vt</option>
+                                                }
+                                            }
                                         </select>
                                         <span class="text-danger field-validation-valid" data-valmsg-for="ViTri" data-valmsg-replace="true"></span>
                                     </div>
@@ -1000,11 +1463,17 @@
                                         <label class="form-label">Ngoại ngữ</label>
                                         <select class="form-select" name="NgoaiNgu" id="editNgoaiNgu">
                                             <option value="">Chọn ngoại ngữ</option>
-                                            @if (Model.NgoaiNgu == "Khong yeu cau") { <option value="Khong yeu cau" selected>Không yêu cầu</option> } else { <option value="Khong yeu cau">Không yêu cầu</option> }
-                                            @if (Model.NgoaiNgu == "Tieng Anh") { <option value="Tieng Anh" selected>Tiếng Anh</option> } else { <option value="Tieng Anh">Tiếng Anh</option> }
-                                            @if (Model.NgoaiNgu == "Tieng Nhat") { <option value="Tieng Nhat" selected>Tiếng Nhật</option> } else { <option value="Tieng Nhat">Tiếng Nhật</option> }
-                                            @if (Model.NgoaiNgu == "Tieng Han") { <option value="Tieng Han" selected>Tiếng Hàn</option> } else { <option value="Tieng Han">Tiếng Hàn</option> }
-                                            @if (Model.NgoaiNgu == "Tieng Trung") { <option value="Tieng Trung" selected>Tiếng Trung</option> } else { <option value="Tieng Trung">Tiếng Trung</option> }
+                                            @foreach (var nn in Unicareer.Models.DropdownOptions.NgoaiNgu)
+                                            {
+                                                @if (Model.NgoaiNgu == nn)
+                                                {
+                                                    <option value="@nn" selected>@nn</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@nn">@nn</option>
+                                                }
+                                            }
                                         </select>
                                     </div>
                                 </div>
@@ -1154,6 +1623,45 @@
                                     <div class="map-info">
                                         <i class="bi bi-geo-alt-fill text-danger"></i>
                                         <span id="currentCoordsEdit">@(Model.Latitude?.ToString("F6") ?? "21.028511"), @(Model.Longitude?.ToString("F6") ?? "105.804817")</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Anh van phong/cua hang -->
+                            <div class="form-section">
+                                <h4><i class="bi bi-images"></i> Ảnh văn phòng/cửa hàng</h4>
+                                <div class="mb-3">
+                                    <label class="form-label">Tải lên hình ảnh</label>
+                                    <input type="file" class="form-control" name="AnhVanPhong" 
+                                           id="editAnhVanPhong" accept="image/*" multiple>
+                                    <small class="text-muted"><i class="bi bi-info-circle"></i> Có thể chọn nhiều ảnh. Định dạng: JPG, PNG, GIF</small>
+                                </div>
+                                
+                                <!-- Preview Area -->
+                                <div id="imagePreviewContainer" class="image-preview-container" style="display: none;">
+                                    <!-- Hidden input to store remaining existing images after deletion -->
+                                    <input type="hidden" id="remainingExistingImages" name="RemainingExistingImages" value="">
+                                    
+                                    <!-- Existing Images -->
+                                    <div id="existingImagesSection" class="preview-section" style="display: none;">
+                                        <div class="preview-section-title">
+                                            <i class="bi bi-image"></i> Ảnh hiện có
+                                        </div>
+                                        <div id="existingImagesGrid" class="preview-images-grid"></div>
+                                    </div>
+                                    
+                                    <!-- New Images Preview -->
+                                    <div id="newImagesSection" class="preview-section" style="display: none;">
+                                        <div class="preview-section-title">
+                                            <i class="bi bi-plus-circle"></i> Ảnh mới đã chọn
+                                        </div>
+                                        <div id="newImagesGrid" class="preview-images-grid"></div>
+                                    </div>
+                                    
+                                    <!-- No Preview Message -->
+                                    <div id="noPreviewMessage" class="no-preview">
+                                        <i class="bi bi-image"></i>
+                                        <p>Chưa có ảnh để xem trước</p>
                                     </div>
                                 </div>
                             </div>
@@ -1770,12 +2278,361 @@
                 }
             }
 
+            // Image Preview Variables
+            var existingImages = [];
+            var newImageFiles = [];
+            var newImagePreviews = [];
+
+            // Load existing images from model
+            function loadExistingImages() {
+                existingImages = [];
+                try {
+                    @{
+                        // Parse ảnh từ model trong Razor
+                        var anhVanPhongListForJS = new List<string>();
+                        if (!string.IsNullOrEmpty(Model.AnhVanPhong))
+                        {
+                            try
+                            {
+                                var anhVanPhongValue = Model.AnhVanPhong.Trim();
+                                if (anhVanPhongValue.StartsWith("["))
+                                {
+                                    var jsonArray = System.Text.Json.JsonSerializer.Deserialize<string[]>(anhVanPhongValue);
+                                    if (jsonArray != null)
+                                    {
+                                        anhVanPhongListForJS = jsonArray.ToList();
+                                    }
+                                }
+                                else
+                                {
+                                    anhVanPhongListForJS = anhVanPhongValue
+                                        .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                        .Select(s => s.Trim())
+                                        .Where(s => !string.IsNullOrEmpty(s))
+                                        .ToList();
+                                }
+                            }
+                            catch
+                            {
+                                anhVanPhongListForJS = Model.AnhVanPhong
+                                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                    .Select(s => s.Trim())
+                                    .Where(s => !string.IsNullOrEmpty(s))
+                                    .ToList();
+                            }
+                        }
+                    }
+                    
+                    @if (anhVanPhongListForJS != null && anhVanPhongListForJS.Count > 0)
+                    {
+                        <text>
+                        existingImages = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(anhVanPhongListForJS));
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                        existingImages = [];
+                        </text>
+                    }
+                } catch (e) {
+                    console.error('Error loading existing images:', e);
+                    existingImages = [];
+                }
+                renderExistingImages();
+                updateRemainingImagesInput();
+            }
+
+            // Render existing images
+            function renderExistingImages() {
+                var $grid = $('#existingImagesGrid');
+                $grid.empty();
+                
+                if (existingImages.length > 0) {
+                    $('#existingImagesSection').show();
+                    existingImages.forEach(function(imagePath, index) {
+                        var $item = $('<div class="preview-image-item existing" data-index="' + index + '">' +
+                            '<img src="' + imagePath + '" alt="Ảnh hiện có" onerror="this.src=\'/images/placeholder.png\'; this.onerror=null;">' +
+                            '<button type="button" class="remove-btn" data-index="' + index + '" title="Xóa ảnh">×</button>' +
+                            '<div class="image-label">Ảnh hiện có</div>' +
+                            '</div>');
+                        $grid.append($item);
+                    });
+                    
+                    $('.preview-image-item.existing .remove-btn').off('click').on('click', function(e) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        var index = parseInt($(this).data('index'));
+                        removeExistingImage(index);
+                    });
+                } else {
+                    $('#existingImagesSection').hide();
+                }
+                updatePreviewContainer();
+                updateRemainingImagesInput();
+            }
+
+            // Remove existing image
+            function removeExistingImage(index) {
+                if (confirm('Bạn có chắc chắn muốn xóa ảnh này không?')) {
+                    existingImages.splice(index, 1);
+                    renderExistingImages();
+                }
+            }
+
+            // Update hidden input with remaining existing images
+            function updateRemainingImagesInput() {
+                var $input = $('#remainingExistingImages');
+                if (!$input || $input.length === 0) {
+                    return;
+                }
+                
+                if (existingImages.length > 0) {
+                    try {
+                        $input.val(JSON.stringify(existingImages));
+                    } catch (e) {
+                        console.error('Error serializing existing images:', e);
+                        $input.val('');
+                    }
+                } else {
+                    $input.val('');
+                }
+            }
+
+            // Handle file input change
+            $('#editAnhVanPhong').on('change', function(e) {
+                var files = e.target.files;
+                if (!files || files.length === 0) {
+                    return;
+                }
+                
+                var imageFiles = Array.from(files).filter(function(file) {
+                    return file.type && file.type.startsWith('image/');
+                });
+                
+                if (imageFiles.length === 0) {
+                    alert('Vui lòng chọn file ảnh hợp lệ (JPG, PNG, GIF)');
+                    return;
+                }
+                
+                var filesToAdd = [];
+                imageFiles.forEach(function(file) {
+                    var exists = newImageFiles.some(function(existingFile) {
+                        return existingFile.name === file.name && existingFile.size === file.size;
+                    });
+                    if (!exists) {
+                        filesToAdd.push(file);
+                        newImageFiles.push(file);
+                    }
+                });
+                
+                if (filesToAdd.length > 0) {
+                    var readCount = 0;
+                    var totalToRead = filesToAdd.length;
+                    
+                    filesToAdd.forEach(function(file) {
+                        var reader = new FileReader();
+                        reader.onload = function(e) {
+                            newImagePreviews.push({
+                                file: file,
+                                url: e.target.result,
+                                index: newImagePreviews.length
+                            });
+                            readCount++;
+                            
+                            newImagePreviews.forEach(function(p, i) {
+                                p.index = i;
+                            });
+                            
+                            if (readCount === totalToRead) {
+                                renderNewImages();
+                            }
+                        };
+                        reader.onerror = function() {
+                            readCount++;
+                            console.error('Error reading file:', file.name);
+                            if (readCount === totalToRead) {
+                                renderNewImages();
+                            }
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                } else {
+                    renderNewImages();
+                }
+            });
+
+            // Render new images preview
+            function renderNewImages() {
+                var $grid = $('#newImagesGrid');
+                $grid.empty();
+                
+                if (newImagePreviews.length > 0) {
+                    $('#newImagesSection').show();
+                    newImagePreviews.forEach(function(preview, index) {
+                        var $item = $('<div class="preview-image-item new" data-index="' + index + '">' +
+                            '<img src="' + preview.url + '" alt="Ảnh mới">' +
+                            '<button type="button" class="remove-btn" data-index="' + index + '" title="Xóa ảnh">×</button>' +
+                            '<div class="image-label">Ảnh mới</div>' +
+                            '</div>');
+                        $grid.append($item);
+                    });
+                    
+                    $('.preview-image-item.new .remove-btn').off('click').on('click', function(e) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        var index = parseInt($(this).data('index'));
+                        removeNewImage(index);
+                    });
+                } else {
+                    $('#newImagesSection').hide();
+                }
+                updatePreviewContainer();
+            }
+
+            // Remove new image
+            function removeNewImage(index) {
+                newImageFiles.splice(index, 1);
+                newImagePreviews.splice(index, 1);
+                newImagePreviews.forEach(function(p, i) {
+                    p.index = i;
+                });
+                
+                updateFileInput();
+                renderNewImages();
+            }
+
+            // Update file input with remaining files
+            function updateFileInput() {
+                var $input = $('#editAnhVanPhong');
+                if ($input.length > 0 && typeof DataTransfer !== 'undefined') {
+                    try {
+                        var dt = new DataTransfer();
+                        newImageFiles.forEach(function(file) {
+                            dt.items.add(file);
+                        });
+                        $input[0].files = dt.files;
+                    } catch (e) {
+                        console.log('DataTransfer not supported, using fallback');
+                    }
+                }
+            }
+
+            // Update preview container visibility
+            function updatePreviewContainer() {
+                var hasExisting = existingImages.length > 0;
+                var hasNew = newImagePreviews.length > 0;
+                var hasAny = hasExisting || hasNew;
+                
+                if (hasAny) {
+                    $('#imagePreviewContainer').show().addClass('has-images');
+                    $('#noPreviewMessage').hide();
+                } else {
+                    $('#imagePreviewContainer').show().removeClass('has-images');
+                    $('#noPreviewMessage').show();
+                }
+                
+                updateRemainingImagesInput();
+            }
+
+            // Xử lý khi ngành nghề thay đổi - load chuyên ngành tương ứng
+            $('#editNganhNghe').change(function() {
+                var selectedNganhNghe = $(this).val();
+                var $editNganhNgheChiTiet = $('#editNganhNgheChiTiet');
+                var currentSelectedValue = $editNganhNgheChiTiet.val(); // Lưu giá trị hiện tại
+                
+                $editNganhNgheChiTiet.html('<option value="">Chọn ngành nghề chi tiết</option>');
+                
+                if (!selectedNganhNghe) {
+                    return;
+                }
+                
+                var selectedOption = $(this).find('option:selected');
+                var maNganhNghe = selectedOption.data('ma-nganh-nghe');
+                
+                if (!maNganhNghe) {
+                    return;
+                }
+                
+                $.ajax({
+                    url: '/Admin/Admin/LayChuyenNganhTheoNganhNghe',
+                    type: 'GET',
+                    data: { maNganhNghe: maNganhNghe },
+                    success: function(response) {
+                        if (response.success && response.data) {
+                            response.data.forEach(function(chuyenNganh) {
+                                var option = $('<option></option>')
+                                    .attr('value', chuyenNganh.tenChuyenNganh)
+                                    .text(chuyenNganh.tenChuyenNganh);
+                                // Giữ giá trị đã chọn nếu khớp
+                                if (currentSelectedValue === chuyenNganh.tenChuyenNganh) {
+                                    option.attr('selected', 'selected');
+                                }
+                                $editNganhNgheChiTiet.append(option);
+                            });
+                        }
+                    },
+                    error: function() {
+                        console.error('Lỗi khi load chuyên ngành');
+                    }
+                });
+            });
+
+            // Load chuyên ngành khi vào edit mode nếu đã có ngành nghề được chọn
+            function loadChuyenNganhOnEdit() {
+                var selectedNganhNghe = $('#editNganhNghe').val();
+                var selectedNganhNgheChiTiet = '@Model.NganhNgheChiTiet';
+                
+                if (selectedNganhNghe) {
+                    var selectedOption = $('#editNganhNghe option:selected');
+                    var maNganhNghe = selectedOption.data('ma-nganh-nghe');
+                    
+                    if (maNganhNghe) {
+                        $.ajax({
+                            url: '/Admin/Admin/LayChuyenNganhTheoNganhNghe',
+                            type: 'GET',
+                            data: { maNganhNghe: maNganhNghe },
+                            success: function(response) {
+                                if (response.success && response.data) {
+                                    var $editNganhNgheChiTiet = $('#editNganhNgheChiTiet');
+                                    $editNganhNgheChiTiet.html('<option value="">Chọn ngành nghề chi tiết</option>');
+                                    
+                                    response.data.forEach(function(chuyenNganh) {
+                                        var option = $('<option></option>')
+                                            .attr('value', chuyenNganh.tenChuyenNganh)
+                                            .text(chuyenNganh.tenChuyenNganh);
+                                        // Set selected nếu khớp với giá trị hiện tại
+                                        if (selectedNganhNgheChiTiet === chuyenNganh.tenChuyenNganh) {
+                                            option.attr('selected', 'selected');
+                                        }
+                                        $editNganhNgheChiTiet.append(option);
+                                    });
+                                }
+                            },
+                            error: function() {
+                                console.error('Lỗi khi load chuyên ngành');
+                            }
+                        });
+                    }
+                }
+            }
+
             // Nút Sửa
             $('#btnEdit').on('click', function() {
                 $('#content').removeClass('view-mode').addClass('edit-mode');
                 $('#btnEdit').hide();
                 $('#btnCancel').show();
                 $('#btnSave').show();
+                
+                // Load existing images when entering edit mode
+                setTimeout(function() {
+                    loadExistingImages();
+                }, 100);
+                
+                // Load chuyên ngành khi vào edit mode
+                setTimeout(function() {
+                    loadChuyenNganhOnEdit();
+                }, 200);
                 
                 if (!editorsInitialized) {
                     initEditors();
@@ -1834,6 +2691,15 @@
                     $('#currentCoordsEdit').text(lat.toFixed(6) + ', ' + lng.toFixed(6));
                 }
 
+                // Reset image preview when canceling
+                newImageFiles = [];
+                newImagePreviews = [];
+                $('#editAnhVanPhong').val('');
+                $('#remainingExistingImages').val('');
+                $('#imagePreviewContainer').hide();
+                // Reload existing images to restore original state
+                loadExistingImages();
+
                 $('#content').removeClass('edit-mode').addClass('view-mode');
                 $('#btnEdit').show();
                 $('#btnCancel').hide();
@@ -1842,6 +2708,9 @@
 
             // Nút Lưu
             $('#btnSave').on('click', function() {
+                // Cập nhật hidden input với danh sách ảnh còn lại trước khi submit
+                updateRemainingImagesInput();
+                
                 if (editorsInitialized) {
                     Object.keys(editors).forEach(function(fieldName) {
                         if (editors[fieldName]) {
@@ -1913,6 +2782,168 @@
                     showNotification(successMessage, 'success');
                 }
                 </text>
+            }
+        });
+
+        // Lightbox functionality for image gallery
+        $(document).ready(function() {
+            // Create lightbox HTML if it doesn't exist
+            if ($('#imageLightbox').length === 0) {
+                $('body').append(`
+                    <div id="imageLightbox" class="lightbox">
+                        <div class="lightbox-content">
+                            <span class="lightbox-close">&times;</span>
+                            <div class="lightbox-nav lightbox-prev">
+                                <i class="bi bi-chevron-left"></i>
+                            </div>
+                            <div class="lightbox-nav lightbox-next">
+                                <i class="bi bi-chevron-right"></i>
+                            </div>
+                            <img id="lightboxImage" src="" alt="Ảnh văn phòng/cửa hàng">
+                            <div class="lightbox-counter">
+                                <span id="lightboxCurrent">1</span> / <span id="lightboxTotal">1</span>
+                            </div>
+                        </div>
+                    </div>
+                `);
+            }
+
+            var currentImageIndex = 0;
+            var images = [];
+
+            // Initialize images array from gallery
+            function initImages() {
+                images = [];
+                $('.gallery-item').each(function() {
+                    var imageSrc = $(this).data('image') || $(this).find('img').attr('src');
+                    if (imageSrc) {
+                        images.push(imageSrc);
+                    }
+                });
+                $('#lightboxTotal').text(images.length);
+            }
+
+            // Open lightbox
+            function openLightbox(index) {
+                if (images.length === 0) return;
+                currentImageIndex = index;
+                updateLightboxImage();
+                $('#imageLightbox').addClass('active');
+                $('body').css('overflow', 'hidden');
+            }
+
+            // Close lightbox
+            function closeLightbox() {
+                $('#imageLightbox').removeClass('active');
+                $('body').css('overflow', '');
+            }
+
+            // Update lightbox image
+            function updateLightboxImage() {
+                if (images.length === 0) return;
+                var imageSrc = images[currentImageIndex];
+                $('#lightboxImage').attr('src', imageSrc);
+                $('#lightboxCurrent').text(currentImageIndex + 1);
+            }
+
+            // Next image
+            function nextImage() {
+                if (images.length === 0) return;
+                currentImageIndex = (currentImageIndex + 1) % images.length;
+                updateLightboxImage();
+            }
+
+            // Previous image
+            function prevImage() {
+                if (images.length === 0) return;
+                currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
+                updateLightboxImage();
+            }
+
+            // Initialize images on page load
+            initImages();
+
+            // Click on gallery item to open lightbox
+            $(document).on('click', '.gallery-item', function() {
+                var imageSrc = $(this).data('image') || $(this).find('img').attr('src');
+                if (imageSrc) {
+                    initImages(); // Re-initialize in case images changed
+                    var index = images.indexOf(imageSrc);
+                    if (index !== -1) {
+                        openLightbox(index);
+                    } else {
+                        // If image not found in array, add it and open
+                        images = [imageSrc];
+                        openLightbox(0);
+                    }
+                }
+            });
+
+            // Close lightbox on close button click
+            $(document).on('click', '.lightbox-close', function(e) {
+                e.stopPropagation();
+                closeLightbox();
+            });
+
+            // Close lightbox on background click
+            $(document).on('click', '#imageLightbox', function(e) {
+                if ($(e.target).is('#imageLightbox')) {
+                    closeLightbox();
+                }
+            });
+
+            // Next image on next button click
+            $(document).on('click', '.lightbox-next', function(e) {
+                e.stopPropagation();
+                nextImage();
+            });
+
+            // Previous image on prev button click
+            $(document).on('click', '.lightbox-prev', function(e) {
+                e.stopPropagation();
+                prevImage();
+            });
+
+            // Keyboard navigation
+            $(document).on('keydown', function(e) {
+                if ($('#imageLightbox').hasClass('active')) {
+                    if (e.key === 'Escape') {
+                        closeLightbox();
+                    } else if (e.key === 'ArrowRight') {
+                        nextImage();
+                    } else if (e.key === 'ArrowLeft') {
+                        prevImage();
+                    }
+                }
+            });
+
+            // Prevent lightbox content click from closing
+            $(document).on('click', '.lightbox-content', function(e) {
+                e.stopPropagation();
+            });
+
+            // Touch/swipe support for mobile
+            var touchStartX = 0;
+            var touchEndX = 0;
+
+            $(document).on('touchstart', '#lightboxImage', function(e) {
+                touchStartX = e.originalEvent.touches[0].clientX;
+            });
+
+            $(document).on('touchend', '#lightboxImage', function(e) {
+                touchEndX = e.originalEvent.changedTouches[0].clientX;
+                handleSwipe();
+            });
+
+            function handleSwipe() {
+                if (touchEndX < touchStartX - 50) {
+                    // Swipe left - next image
+                    nextImage();
+                }
+                if (touchEndX > touchStartX + 50) {
+                    // Swipe right - previous image
+                    prevImage();
+                }
             }
         });
     </script>

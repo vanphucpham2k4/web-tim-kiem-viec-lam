@@ -249,6 +249,18 @@
         transform: translateY(-2px);
     }
 
+    .btn-success {
+        border-color: #48bb78;
+        color: #48bb78;
+        background: transparent;
+    }
+
+    .btn-success:hover {
+        background: #48bb78;
+        color: white;
+        transform: translateY(-2px);
+    }
+
     .empty-state {
         text-align: center;
         padding: 60px 20px;
@@ -963,6 +975,71 @@
     .no-preview p {
         margin: 0;
         font-size: 0.9rem;
+    }
+
+    /* Filter and Pagination Styles */
+    #filterForm .input-group {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    #filterForm .form-control,
+    #filterForm .form-select {
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 10px 15px;
+        transition: all 0.3s ease;
+    }
+
+    #filterForm .form-control:focus,
+    #filterForm .form-select:focus {
+        border-color: #10b981;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        outline: none;
+    }
+
+    #filterForm .btn-outline-primary {
+        border-color: #10b981;
+        color: #10b981;
+        transition: all 0.3s ease;
+    }
+
+    #filterForm .btn-outline-primary:hover {
+        background: #10b981;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .pagination {
+        margin-top: 20px;
+    }
+
+    .pagination .page-link {
+        color: #10b981;
+        border-color: #e2e8f0;
+        padding: 10px 15px;
+        transition: all 0.3s ease;
+    }
+
+    .pagination .page-link:hover {
+        background: #10b981;
+        color: white;
+        border-color: #10b981;
+        transform: translateY(-2px);
+    }
+
+    .pagination .page-item.active .page-link {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border-color: #10b981;
+        color: white;
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: #a0aec0;
+        background: #f7fafc;
+        border-color: #e2e8f0;
+        cursor: not-allowed;
     }
 </style>
 
@@ -1709,7 +1786,104 @@
 
                 <!-- Tab 2: Danh sách ứng tuyển -->
                 <div class="tab-pane fade" id="applications" role="tabpanel">
-                    @if (danhSachUngTuyen.Any())
+                    @{
+                        var danhSachUngTuyenPaged = ViewBag.DanhSachUngTuyen as List<Unicareer.Models.TinUngTuyen> ?? new List<Unicareer.Models.TinUngTuyen>();
+                        var pageNumber = ViewBag.PageNumber ?? 1;
+                        var pageSize = ViewBag.PageSize ?? 10;
+                        var totalCount = ViewBag.TotalCount ?? 0;
+                        var totalPages = ViewBag.TotalPages ?? 1;
+                        var searchTerm = ViewBag.SearchTerm as string ?? "";
+                        var trangThaiFilter = ViewBag.TrangThaiFilter as string ?? "";
+                    }
+                    
+                    <!-- Bộ lọc -->
+                    <form method="get" action="@Url.Action("ChiTietTinDaDang", "Recruiter", new { id = Model.MaTinTuyenDung })" id="filterForm">
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="searchInput" name="searchTerm" 
+                                           placeholder="Tìm kiếm theo tên, email, SĐT..." value="@searchTerm">
+                                    <button class="btn btn-outline-primary" type="submit">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select" id="trangThaiFilter" name="trangThaiFilter">
+                                    <option value="">Tất cả trạng thái</option>
+                                    @if (trangThaiFilter == "Đang xem xét")
+                                    {
+                                        <option value="Đang xem xét" selected>Đang xem xét</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="Đang xem xét">Đang xem xét</option>
+                                    }
+                                    @if (trangThaiFilter == "Chờ phỏng vấn")
+                                    {
+                                        <option value="Chờ phỏng vấn" selected>Chờ phỏng vấn</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="Chờ phỏng vấn">Chờ phỏng vấn</option>
+                                    }
+                                    @if (trangThaiFilter == "Đã phỏng vấn")
+                                    {
+                                        <option value="Đã phỏng vấn" selected>Đã phỏng vấn</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="Đã phỏng vấn">Đã phỏng vấn</option>
+                                    }
+                                    @if (trangThaiFilter == "Tuyển dụng")
+                                    {
+                                        <option value="Tuyển dụng" selected>Tuyển dụng</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="Tuyển dụng">Tuyển dụng</option>
+                                    }
+                                    @if (trangThaiFilter == "Từ chối")
+                                    {
+                                        <option value="Từ chối" selected>Từ chối</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="Từ chối">Từ chối</option>
+                                    }
+                                    @if (trangThaiFilter == "Không phù hợp")
+                                    {
+                                        <option value="Không phù hợp" selected>Không phù hợp</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="Không phù hợp">Không phù hợp</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="d-flex gap-2 align-items-center">
+                                    <span class="text-muted">Tổng: <strong>@totalCount</strong> đơn ứng tuyển</span>
+                                    @if (ViewBag.TotalDangXemXet != null && (int)ViewBag.TotalDangXemXet > 0)
+                                    {
+                                        <span class="badge bg-info">Đang xem xét: @ViewBag.TotalDangXemXet</span>
+                                    }
+                                    @if (ViewBag.TotalChoPhongVan != null && (int)ViewBag.TotalChoPhongVan > 0)
+                                    {
+                                        <span class="badge bg-warning">Chờ phỏng vấn: @ViewBag.TotalChoPhongVan</span>
+                                    }
+                                    @if (ViewBag.TotalTuyenDung != null && (int)ViewBag.TotalTuyenDung > 0)
+                                    {
+                                        <span class="badge bg-success">Tuyển dụng: @ViewBag.TotalTuyenDung</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="pageNumber" id="pageNumberInput" value="@pageNumber" />
+                        <input type="hidden" name="tab" value="applications" />
+                    </form>
+
+                    @if (danhSachUngTuyenPaged.Any())
                     {
                         <div class="table-responsive">
                             <table class="table table-hover">
@@ -1725,14 +1899,21 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var ungTuyen in danhSachUngTuyen)
+                                    @foreach (var ungTuyen in danhSachUngTuyenPaged)
                                     {
-                                        var trangThaiClass = ungTuyen.TrangThaiXuLy switch
+                                        var trangThaiEnum = Unicareer.Models.Enums.TrangThaiXuLyHelper.FromString(ungTuyen.TrangThaiXuLy);
+                                        var trangThaiDisplay = trangThaiEnum.HasValue 
+                                            ? Unicareer.Models.Enums.TrangThaiXuLyHelper.ToString(trangThaiEnum.Value) 
+                                            : ungTuyen.TrangThaiXuLy ?? "Chưa xử lý";
+                                        
+                                        var trangThaiClass = trangThaiEnum.HasValue switch
                                         {
-                                            "Cho phong van" => "badge-warning",
-                                            "Tuyen dung" => "badge-success",
-                                            "Da phong van" => "badge-info",
-                                            "Khong phu hop" => "badge-danger",
+                                            true when trangThaiEnum.Value == Unicareer.Models.Enums.TrangThaiXuLy.DangXemXet => "badge-secondary",
+                                            true when trangThaiEnum.Value == Unicareer.Models.Enums.TrangThaiXuLy.ChoPhongVan => "badge-warning",
+                                            true when trangThaiEnum.Value == Unicareer.Models.Enums.TrangThaiXuLy.DaPhongVan => "badge-info",
+                                            true when trangThaiEnum.Value == Unicareer.Models.Enums.TrangThaiXuLy.TuyenDung => "badge-success",
+                                            true when trangThaiEnum.Value == Unicareer.Models.Enums.TrangThaiXuLy.TuChoi || 
+                                                      trangThaiEnum.Value == Unicareer.Models.Enums.TrangThaiXuLy.KhongPhuHop => "badge-danger",
                                             _ => "badge-secondary"
                                         };
 
@@ -1743,11 +1924,14 @@
                                             <td>@ungTuyen.SoDienThoai</td>
                                             <td>@ungTuyen.NgayUngTuyen.ToString("dd/MM/yyyy")</td>
                                             <td>
-                                                <span class="badge-custom @trangThaiClass">@ungTuyen.TrangThaiXuLy</span>
+                                                <span class="badge-custom @trangThaiClass">@trangThaiDisplay</span>
                                             </td>
                                             <td>
-                                                <button class="btn btn-action btn-view" title="Xem chi tiết">
+                                                <button class="btn btn-action btn-view" title="Xem chi tiết" onclick="xemChiTietDonUngTuyen(@ungTuyen.MaTinUngTuyen)">
                                                     <i class="bi bi-eye"></i> Xem
+                                                </button>
+                                                <button class="btn btn-action btn-success" title="Cập nhật trạng thái" onclick="capNhatTrangThaiDonUngTuyen(@ungTuyen.MaTinUngTuyen)" style="border-color: #48bb78; color: #48bb78;">
+                                                    <i class="bi bi-check-circle"></i> Cập nhật
                                                 </button>
                                                 @if (!string.IsNullOrEmpty(ungTuyen.LinkCV))
                                                 {
@@ -1761,6 +1945,103 @@
                                 </tbody>
                             </table>
                         </div>
+
+                        <!-- Phân trang -->
+                        @if (totalPages > 1)
+                        {
+                            <nav aria-label="Phân trang" class="mt-4">
+                                <ul class="pagination justify-content-center">
+                                    @if (pageNumber > 1)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">
+                                                <i class="bi bi-chevron-double-left"></i>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(pageNumber - 1))">
+                                                <i class="bi bi-chevron-left"></i>
+                                            </a>
+                                        </li>
+                                    }
+                                    else
+                                    {
+                                        <li class="page-item disabled">
+                                            <span class="page-link"><i class="bi bi-chevron-double-left"></i></span>
+                                        </li>
+                                        <li class="page-item disabled">
+                                            <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                                        </li>
+                                    }
+
+                                    @{
+                                        var startPage = Math.Max(1, pageNumber - 2);
+                                        var endPage = Math.Min(totalPages, pageNumber + 2);
+                                    }
+
+                                    @if (startPage > 1)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">1</a>
+                                        </li>
+                                        @if (startPage > 2)
+                                        {
+                                            <li class="page-item disabled">
+                                                <span class="page-link">...</span>
+                                            </li>
+                                        }
+                                    }
+
+                                    @for (int i = startPage; i <= endPage; i++)
+                                    {
+                                        <li class="page-item @(i == pageNumber ? "active" : "")">
+                                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(@i)">@i</a>
+                                        </li>
+                                    }
+
+                                    @if (endPage < totalPages)
+                                    {
+                                        @if (endPage < totalPages - 1)
+                                        {
+                                            <li class="page-item disabled">
+                                                <span class="page-link">...</span>
+                                            </li>
+                                        }
+                                        <li class="page-item">
+                                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(@totalPages)">@totalPages</a>
+                                        </li>
+                                    }
+
+                                    @if (pageNumber < totalPages)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(pageNumber + 1))">
+                                                <i class="bi bi-chevron-right"></i>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(@totalPages)">
+                                                <i class="bi bi-chevron-double-right"></i>
+                                            </a>
+                                        </li>
+                                    }
+                                    else
+                                    {
+                                        <li class="page-item disabled">
+                                            <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                                        </li>
+                                        <li class="page-item disabled">
+                                            <span class="page-link"><i class="bi bi-chevron-double-right"></i></span>
+                                        </li>
+                                    }
+                                </ul>
+                                <div class="text-center text-muted mt-2">
+                                    Hiển thị <strong>@((pageNumber - 1) * pageSize + 1)</strong> - 
+                                    <strong>@(Math.Min(pageNumber * pageSize, totalCount))</strong> 
+                                    trong tổng số <strong>@totalCount</strong> đơn ứng tuyển
+                                </div>
+                            </nav>
+                        }
                     }
                     else
                     {
@@ -1776,6 +2057,47 @@
     </div>
 </div>
 
+<!-- Modal cập nhật trạng thái -->
+<div class="modal fade" id="trangThaiModal" tabindex="-1" aria-labelledby="trangThaiModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="trangThaiModalLabel">Cập nhật trạng thái</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formCapNhatTrangThai">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="maDonUngTuyen" name="maDonUngTuyen" />
+                    <div class="mb-3">
+                        <label for="trangThaiMoi" class="form-label">Trạng thái mới</label>
+                        <select class="form-select" id="trangThaiMoi" name="trangThaiMoi" required>
+                            <option value="">-- Chọn trạng thái --</option>
+                            <option value="@Unicareer.Models.Enums.TrangThaiXuLyHelper.ToString(Unicareer.Models.Enums.TrangThaiXuLy.DangXemXet)">Đang xem xét</option>
+                            <option value="@Unicareer.Models.Enums.TrangThaiXuLyHelper.ToString(Unicareer.Models.Enums.TrangThaiXuLy.ChoPhongVan)">Chờ phỏng vấn</option>
+                            <option value="@Unicareer.Models.Enums.TrangThaiXuLyHelper.ToString(Unicareer.Models.Enums.TrangThaiXuLy.DaPhongVan)">Đã phỏng vấn</option>
+                            <option value="@Unicareer.Models.Enums.TrangThaiXuLyHelper.ToString(Unicareer.Models.Enums.TrangThaiXuLy.TuyenDung)">Tuyển dụng</option>
+                            <option value="@Unicareer.Models.Enums.TrangThaiXuLyHelper.ToString(Unicareer.Models.Enums.TrangThaiXuLy.TuChoi)">Từ chối</option>
+                            <option value="@Unicareer.Models.Enums.TrangThaiXuLyHelper.ToString(Unicareer.Models.Enums.TrangThaiXuLy.KhongPhuHop)">Không phù hợp</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="ghiChu" class="form-label">Nội dung tin bạn muốn gửi</label>
+                        <textarea class="form-control" id="ghiChu" name="ghiChu" rows="4" placeholder="Nhập nội dung tin bạn muốn gửi cho ứng viên (nếu có). Nội dung này sẽ được gửi kèm trong email thông báo."></textarea>
+                        <small class="form-text text-muted">
+                            <i class="bi bi-info-circle"></i> Nội dung này sẽ được gửi kèm trong email thông báo cho ứng viên. Để trống nếu không cần gửi thêm thông tin.
+                        </small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="luuTrangThaiDonUngTuyen()">Lưu thay đổi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <!-- Quill Editor CSS -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
@@ -1783,6 +2105,17 @@
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script>
         $(document).ready(function() {
+            // Tự động chuyển sang tab "Danh sách ứng tuyển" nếu có filter parameters hoặc parameter tab=applications
+            var urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('searchTerm') || urlParams.has('trangThaiFilter') || urlParams.has('pageNumber') || urlParams.get('tab') === 'applications') {
+                // Chuyển sang tab "Danh sách ứng tuyển"
+                var applicationsTab = document.getElementById('applications-tab');
+                if (applicationsTab) {
+                    var tab = new bootstrap.Tab(applicationsTab);
+                    tab.show();
+                }
+            }
+
             // Khởi tạo Quill Editor cho các textarea
             let editors = {};
             var editorsInitialized = false;
@@ -2822,8 +3155,8 @@
             }
 
             // Hàm hiển thị thông báo
-            function showNotification(message, type) {
-                var bgColor = type === 'success' ? '#48bb78' : '#f56565';
+            window.showNotification = function(message, type) {
+                var bgColor = (type === 'success') ? '#48bb78' : '#f56565';
                 var notification = $('<div>')
                     .css({
                         position: 'fixed',
@@ -2846,7 +3179,7 @@
                         $(this).remove();
                     });
                 }, 3000);
-            }
+            };
 
             // Initialize Leaflet Map nếu có tọa độ
             @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
@@ -3071,6 +3404,170 @@
                 }
             }
         });
+
+        // Xử lý phân trang và bộ lọc cho tab Danh sách ứng tuyển
+        var isPaginationClick = false;
+        
+        // Hàm điều hướng đến trang
+        window.goToPage = function(pageNumber) {
+            isPaginationClick = true;
+            $('#pageNumberInput').val(pageNumber);
+            $('#filterForm').submit();
+        };
+        
+        // Khi thay đổi filter, reset về trang 1
+        $('#trangThaiFilter').on('change', function() {
+            $('#pageNumberInput').val(1);
+            $('#filterForm').submit();
+        });
+        
+        // Khi submit form tìm kiếm, reset về trang 1 (chỉ khi không phải là click phân trang)
+        $('#filterForm').on('submit', function(e) {
+            if (!isPaginationClick) {
+                $('#pageNumberInput').val(1);
+            }
+            isPaginationClick = false; // Reset flag
+        });
+        
+        // Khi nhấn nút tìm kiếm, reset về trang 1
+        $('#filterForm button[type="submit"]').on('click', function() {
+            isPaginationClick = false;
+        });
+
+        // Hàm xem chi tiết đơn ứng tuyển
+        window.xemChiTietDonUngTuyen = function(maDon) {
+            $.ajax({
+                url: '@Url.Action("ChiTietDonUngTuyen", "Recruiter")',
+                type: 'GET',
+                data: { id: maDon },
+                success: function(response) {
+                    if (response.success && response.data) {
+                        var data = response.data;
+                        var modalContent = `
+                            <div class="modal fade" id="chiTietDonModal" tabindex="-1">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title"><i class="bi bi-file-earmark-person"></i> Chi tiết đơn ứng tuyển</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <p><strong>Mã đơn:</strong> #${data.maTinUngTuyen}</p>
+                                                    <p><strong>Họ tên:</strong> ${data.hoTen}</p>
+                                                    <p><strong>Email:</strong> <a href="mailto:${data.email}">${data.email}</a></p>
+                                                    <p><strong>SĐT:</strong> <a href="tel:${data.soDienThoai}">${data.soDienThoai}</a></p>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <p><strong>Vị trí ứng tuyển:</strong> ${data.viTriUngTuyen || data.tenViecLam}</p>
+                                                    <p><strong>Công ty:</strong> ${data.congTy}</p>
+                                                    <p><strong>Ngày ứng tuyển:</strong> ${data.ngayUngTuyen}</p>
+                                                    <p><strong>Trạng thái:</strong> <span class="badge bg-primary">${data.trangThaiXuLy}</span></p>
+                                                </div>
+                                            </div>
+                                            ${data.linkCV ? `<p><strong>CV:</strong> <a href="${data.linkCV}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-download"></i> Tải CV</a></p>` : ''}
+                                            ${data.ghiChu ? `<div class="mt-3"><strong>Ghi chú:</strong><p class="text-muted">${data.ghiChu}</p></div>` : ''}
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        // Xóa modal cũ nếu có
+                        $('#chiTietDonModal').remove();
+                        
+                        // Thêm modal mới vào body
+                        $('body').append(modalContent);
+                        
+                        // Hiển thị modal
+                        var modal = new bootstrap.Modal(document.getElementById('chiTietDonModal'));
+                        modal.show();
+                        
+                        // Xóa modal khi đóng
+                        $('#chiTietDonModal').on('hidden.bs.modal', function() {
+                            $(this).remove();
+                        });
+                    } else {
+                        alert('Không thể tải thông tin đơn ứng tuyển: ' + (response.message || 'Có lỗi xảy ra'));
+                    }
+                },
+                error: function() {
+                    alert('Có lỗi xảy ra khi tải thông tin đơn ứng tuyển!');
+                }
+            });
+        };
+
+        // Hàm mở modal cập nhật trạng thái
+        window.capNhatTrangThaiDonUngTuyen = function(maDon) {
+            $('#maDonUngTuyen').val(maDon);
+            $('#trangThaiMoi').val('');
+            $('#ghiChu').val('');
+            var modal = new bootstrap.Modal(document.getElementById('trangThaiModal'));
+            modal.show();
+        };
+
+        // Hàm lưu trạng thái
+        window.luuTrangThaiDonUngTuyen = function() {
+            var maDon = $('#maDonUngTuyen').val();
+            var trangThaiMoi = $('#trangThaiMoi').val();
+            var ghiChu = $('#ghiChu').val();
+            
+            if (!trangThaiMoi) {
+                showNotification('Vui lòng chọn trạng thái mới!', 'error');
+                return;
+            }
+            
+            // Disable nút để tránh double submit
+            var btnLuu = $('button[onclick="luuTrangThaiDonUngTuyen()"]');
+            btnLuu.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Đang lưu...');
+            
+            // Gửi request cập nhật trạng thái lên server
+            $.ajax({
+                url: '@Url.Action("CapNhatTrangThaiDonUngTuyen", "Recruiter", new { area = "Recruiter" })',
+                type: 'POST',
+                data: {
+                    maDonUngTuyen: maDon,
+                    trangThaiMoi: trangThaiMoi,
+                    ghiChu: ghiChu || null,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Hiển thị thông báo thành công
+                        showNotification(response.message || 'Cập nhật trạng thái thành công!', 'success');
+                        
+                        // Đóng modal
+                        var modal = bootstrap.Modal.getInstance(document.getElementById('trangThaiModal'));
+                        modal.hide();
+                        
+                        // Lấy URL hiện tại và giữ nguyên các query parameters
+                        var currentUrl = new URL(window.location.href);
+                        // Đảm bảo có tab parameter để tự động chuyển sang tab "Danh sách ứng tuyển"
+                        currentUrl.searchParams.set('tab', 'applications');
+                        
+                        // Reload trang với URL mới sau 1 giây để người dùng thấy thông báo
+                        setTimeout(function() {
+                            window.location.href = currentUrl.toString();
+                        }, 1000);
+                    } else {
+                        showNotification(response.message || 'Có lỗi xảy ra khi cập nhật trạng thái!', 'error');
+                        btnLuu.prop('disabled', false).html('Lưu thay đổi');
+                    }
+                },
+                error: function(xhr) {
+                    var errorMessage = 'Có lỗi xảy ra khi cập nhật trạng thái';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                    showNotification(errorMessage, 'error');
+                    btnLuu.prop('disabled', false).html('Lưu thay đổi');
+                }
+            });
+        };
     </script>
 }
 

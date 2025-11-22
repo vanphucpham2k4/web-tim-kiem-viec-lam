@@ -27,6 +27,8 @@ namespace Unicareer.Data
         public DbSet<NganhNghe> NganhNghes { get; set; }
         public DbSet<ChuyenNganh> ChuyenNganhs { get; set; }
         public DbSet<TruongDaiHoc> TruongDaiHocs { get; set; }
+        public DbSet<Blog> Blogs { get; set; }
+        public DbSet<TheLoaiBlog> TheLoaiBlogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -251,6 +253,44 @@ namespace Unicareer.Data
             builder.Entity<ViecLamDaLuu>()
                 .HasIndex(v => v.MaTinTuyenDung)
                 .HasDatabaseName("idx_vieclamdaluu_matintuyendung");
+
+            // Cấu hình primary key và quan hệ cho Blog
+            builder.Entity<Blog>()
+                .HasKey(b => b.MaBlog);
+
+            builder.Entity<Blog>()
+                .Property(b => b.MaBlog)
+                .ValueGeneratedOnAdd();
+
+            // Blog -> ApplicationUser
+            builder.Entity<Blog>()
+                .HasOne(b => b.User)
+                .WithMany()
+                .HasForeignKey(b => b.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<Blog>()
+                .HasIndex(b => b.UserId)
+                .HasDatabaseName("idx_blog_userid");
+
+            // Blog -> TheLoaiBlog
+            builder.Entity<Blog>()
+                .HasOne(b => b.TheLoaiBlog)
+                .WithMany()
+                .HasForeignKey(b => b.MaTheLoai)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<Blog>()
+                .HasIndex(b => b.MaTheLoai)
+                .HasDatabaseName("idx_blog_matheloai");
+
+            // Cấu hình primary key cho TheLoaiBlog
+            builder.Entity<TheLoaiBlog>()
+                .HasKey(t => t.MaTheLoai);
+
+            builder.Entity<TheLoaiBlog>()
+                .Property(t => t.MaTheLoai)
+                .ValueGeneratedOnAdd();
         }
     }
 }

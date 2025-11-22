@@ -7,6 +7,7 @@ using Unicareer.Models.Enums;
 using Unicareer.Repository;
 using Unicareer.Data;
 using Microsoft.EntityFrameworkCore;
+using Unicareer.Services;
 
 namespace Unicareer.Areas.Recruiter.Controllers
 {
@@ -22,6 +23,7 @@ namespace Unicareer.Areas.Recruiter.Controllers
         private readonly INhaTuyenDungRepository _nhaTuyenDungRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
+        private readonly IEmailService _emailService;
 
         public RecruiterController(
             ITinTuyenDungRepository tinTuyenDungRepository, 
@@ -31,7 +33,8 @@ namespace Unicareer.Areas.Recruiter.Controllers
             ILoaiCongViecRepository loaiCongViecRepository,
             INhaTuyenDungRepository nhaTuyenDungRepository,
             UserManager<ApplicationUser> userManager,
-            ApplicationDbContext context)
+            ApplicationDbContext context,
+            IEmailService emailService)
         {
             _tinTuyenDungRepository = tinTuyenDungRepository;
             _tinUngTuyenRepository = tinUngTuyenRepository;
@@ -41,6 +44,7 @@ namespace Unicareer.Areas.Recruiter.Controllers
             _nhaTuyenDungRepository = nhaTuyenDungRepository;
             _userManager = userManager;
             _context = context;
+            _emailService = emailService;
         }
         // GET: Trang chu nha tuyen dung
         public async Task<IActionResult> Index()
@@ -379,7 +383,8 @@ namespace Unicareer.Areas.Recruiter.Controllers
         }
 
         // GET: Chi tiet tin da dang
-        public async Task<IActionResult> ChiTietTinDaDang(int id)
+        public async Task<IActionResult> ChiTietTinDaDang(int id, int pageNumber = 1, int pageSize = 10, 
+            string? searchTerm = null, string? trangThaiFilter = null)
         {
             ViewData["Title"] = "Chi tiết tin đã đăng";
             
@@ -416,6 +421,44 @@ namespace Unicareer.Areas.Recruiter.Controllers
                 .Where(t => t.MaTinTuyenDung == id.ToString())
                 .ToList();
             
+            // Tính stats từ toàn bộ dữ liệu (trước khi lọc)
+            var totalDangXemXet = danhSachUngTuyen.Count(t => 
+                Models.Enums.TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy) == Models.Enums.TrangThaiXuLy.DangXemXet);
+            var totalChoPhongVan = danhSachUngTuyen.Count(t => 
+                Models.Enums.TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy) == Models.Enums.TrangThaiXuLy.ChoPhongVan);
+            var totalTuyenDung = danhSachUngTuyen.Count(t => 
+                Models.Enums.TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy) == Models.Enums.TrangThaiXuLy.TuyenDung);
+            
+            // Lọc theo tìm kiếm
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                danhSachUngTuyen = danhSachUngTuyen.Where(t => 
+                    (t.HoTen != null && t.HoTen.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                    (t.Email != null && t.Email.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                    (t.SoDienThoai != null && t.SoDienThoai.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                ).ToList();
+            }
+            
+            // Lọc theo trạng thái
+            if (!string.IsNullOrEmpty(trangThaiFilter))
+            {
+                danhSachUngTuyen = danhSachUngTuyen.Where(t =>
+                {
+                    var trangThaiEnum = Models.Enums.TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy);
+                    var trangThaiDisplay = trangThaiEnum.HasValue 
+                        ? Models.Enums.TrangThaiXuLyHelper.ToString(trangThaiEnum.Value) 
+                        : t.TrangThaiXuLy;
+                    return trangThaiDisplay == trangThaiFilter;
+                }).ToList();
+            }
+            
+            // Sắp xếp theo ngày ứng tuyển (mới nhất trước)
+            danhSachUngTuyen = danhSachUngTuyen.OrderByDescending(t => t.NgayUngTuyen).ToList();
+            
+            // Tính toán phân trang
+            var totalCount = danhSachUngTuyen.Count;
+            var pagedList = danhSachUngTuyen.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+            
             // Lấy danh sách tỉnh/thành phố
             var danhSachTinhThanh = _context.Provinces
                 .OrderBy(p => p.FullName)
@@ -430,11 +473,20 @@ namespace Unicareer.Areas.Recruiter.Controllers
             // Lấy danh sách chuyên ngành
             var danhSachChuyenNganh = _chuyenNganhRepository.LayDanhSachChuyenNganh();
             
-            ViewBag.DanhSachUngTuyen = danhSachUngTuyen;
+            ViewBag.DanhSachUngTuyen = pagedList;
             ViewBag.DanhSachTinhThanh = danhSachTinhThanh;
             ViewBag.DanhSachNganhNghe = danhSachNganhNghe;
             ViewBag.DanhSachLoaiCongViec = danhSachLoaiCongViec;
             ViewBag.DanhSachChuyenNganh = danhSachChuyenNganh;
+            ViewBag.PageNumber = pageNumber;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalCount = totalCount;
+            ViewBag.TotalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+            ViewBag.SearchTerm = searchTerm;
+            ViewBag.TrangThaiFilter = trangThaiFilter;
+            ViewBag.TotalDangXemXet = totalDangXemXet;
+            ViewBag.TotalChoPhongVan = totalChoPhongVan;
+            ViewBag.TotalTuyenDung = totalTuyenDung;
             
             return View(tinTuyenDung);
         }
@@ -988,6 +1040,82 @@ namespace Unicareer.Areas.Recruiter.Controllers
                     return Json(new { success = false, message = "Không thể cập nhật trạng thái" });
                 }
 
+                // Gửi email thông báo cho ứng viên
+                try
+                {
+                    var trangThaiEnum = TrangThaiXuLyHelper.FromString(trangThaiMoi);
+                    if (trangThaiEnum.HasValue && !string.IsNullOrEmpty(donDaCapNhat.UserId))
+                    {
+                        // Load User nếu chưa được load
+                        ApplicationUser? candidateUser = null;
+                        if (donDaCapNhat.User == null)
+                        {
+                            candidateUser = await _userManager.FindByIdAsync(donDaCapNhat.UserId);
+                        }
+                        else
+                        {
+                            candidateUser = donDaCapNhat.User;
+                        }
+
+                        if (candidateUser != null && !string.IsNullOrEmpty(candidateUser.Email))
+                        {
+                            var candidateEmail = candidateUser.Email;
+                            var candidateName = donDaCapNhat.HoTen ?? candidateUser.HoTen ?? "Ứng viên";
+                            var jobTitle = tinTuyenDung.TenViecLam ?? donDaCapNhat.ViTriUngTuyen ?? "";
+                            var companyName = tinTuyenDung.CongTy ?? donDaCapNhat.CongTy ?? "";
+
+                            // Lấy thông tin liên hệ từ tin tuyển dụng
+                            var contactPerson = tinTuyenDung.NguoiLienHe;
+                            var contactEmail = tinTuyenDung.EmailLienHe;
+                            var contactPhone = tinTuyenDung.SDTLienHe;
+                            
+                            // Tạo địa chỉ đầy đủ
+                            var contactAddressParts = new List<string>();
+                            if (!string.IsNullOrEmpty(tinTuyenDung.DiaChiLamViec))
+                                contactAddressParts.Add(tinTuyenDung.DiaChiLamViec);
+                            if (!string.IsNullOrEmpty(tinTuyenDung.PhuongXa))
+                                contactAddressParts.Add(tinTuyenDung.PhuongXa);
+                            if (!string.IsNullOrEmpty(tinTuyenDung.TinhThanhPho))
+                                contactAddressParts.Add(tinTuyenDung.TinhThanhPho);
+                            var contactAddress = string.Join(", ", contactAddressParts);
+
+                            _ = Task.Run(async () =>
+                            {
+                                switch (trangThaiEnum.Value)
+                                {
+                                    case TrangThaiXuLy.ChoPhongVan:
+                                        await _emailService.SendInterviewScheduledNotificationAsync(
+                                            candidateEmail, candidateName, jobTitle, companyName,
+                                            contactPerson, contactEmail, contactPhone, contactAddress);
+                                        break;
+                                    case TrangThaiXuLy.TuyenDung:
+                                        await _emailService.SendApplicationAcceptedNotificationAsync(
+                                            candidateEmail, candidateName, jobTitle, companyName,
+                                            contactPerson, contactEmail, contactPhone, contactAddress);
+                                        break;
+                                    case TrangThaiXuLy.TuChoi:
+                                    case TrangThaiXuLy.KhongPhuHop:
+                                        await _emailService.SendApplicationRejectedNotificationAsync(
+                                            candidateEmail, candidateName, jobTitle, companyName, ghiChu,
+                                            contactPerson, contactEmail, contactPhone, contactAddress);
+                                        break;
+                                    default:
+                                        await _emailService.SendApplicationStatusChangedNotificationAsync(
+                                            candidateEmail, candidateName, jobTitle, companyName, trangThaiMoi, ghiChu,
+                                            contactPerson, contactEmail, contactPhone, contactAddress);
+                                        break;
+                                }
+                            });
+                        }
+                    }
+                }
+                catch (Exception emailEx)
+                {
+                    // Log lỗi nhưng không ảnh hưởng đến kết quả cập nhật
+                    var logger = HttpContext.RequestServices.GetRequiredService<ILogger<RecruiterController>>();
+                    logger.LogError(emailEx, "Lỗi khi gửi email thông báo cập nhật trạng thái cho ứng viên");
+                }
+
                 return Json(new { success = true, message = "Cập nhật trạng thái thành công!" });
             }
             catch (Exception ex)
@@ -1053,9 +1181,6 @@ namespace Unicareer.Areas.Recruiter.Controllers
                             ngaySinh = ungVien.NgaySinh.ToString("dd/MM/yyyy"),
                             gioiTinh = ungVien.GioiTinh,
                             diaChi = ungVien.DiaChi,
-                            hocVan = ungVien.HocVan,
-                            kinhNghiem = ungVien.KinhNghiem,
-                            kyNang = ungVien.KyNang,
                             nganhNghe = ungVien.NganhNghe,
                             chuyenNganh = ungVien.ChuyenNganh?.TenChuyenNganh,
                             linkCV = ungVien.LinkCV,
@@ -1526,6 +1651,157 @@ namespace Unicareer.Areas.Recruiter.Controllers
                 {
                     return Json(new { success = false, message = "Vui lòng chọn file ảnh" });
                 }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
+        // GET: Lấy thông báo cho nhà tuyển dụng
+        [HttpGet]
+        public async Task<IActionResult> GetNotifications()
+        {
+            try
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy người dùng" });
+                }
+
+                // Lấy thông tin công ty của user đăng nhập
+                var nhaTuyenDung = _nhaTuyenDungRepository.LayNhaTuyenDungTheoUserId(user.Id);
+                if (nhaTuyenDung == null)
+                {
+                    return Json(new { success = true, data = new NotificationViewModel { TotalCount = 0, Notifications = new List<NotificationItem>() } });
+                }
+
+                var notifications = new List<NotificationItem>();
+
+                // Lấy tin tuyển dụng theo mã nhà tuyển dụng
+                var danhSachTinTuyenDung = _tinTuyenDungRepository.LayDanhSachTheoMaNhaTuyenDung(nhaTuyenDung.MaNhaTuyenDung);
+                var danhSachMaTin = danhSachTinTuyenDung.Select(t => t.MaTinTuyenDung.ToString()).ToList();
+
+                // Lấy đơn ứng tuyển theo các tin tuyển dụng của công ty
+                var danhSachTinUngTuyen = _tinUngTuyenRepository.LayDanhSachTinUngTuyen()
+                    .Where(t => danhSachMaTin.Contains(t.MaTinTuyenDung))
+                    .ToList();
+
+                var now = DateTime.Now;
+                var threeDaysFromNow = now.AddDays(3);
+
+                // 1. Đơn ứng tuyển mới (trong 7 ngày gần đây, chưa xử lý)
+                var donUngTuyenMoi = danhSachTinUngTuyen
+                    .Where(t => t.NgayUngTuyen >= now.AddDays(-7) && 
+                                (string.IsNullOrEmpty(t.TrangThaiXuLy) || 
+                                 TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy) == TrangThaiXuLy.DangXemXet))
+                    .OrderByDescending(t => t.NgayUngTuyen)
+                    .Take(10)
+                    .ToList();
+
+                foreach (var don in donUngTuyenMoi)
+                {
+                    var tinTuyenDung = danhSachTinTuyenDung.FirstOrDefault(t => t.MaTinTuyenDung.ToString() == don.MaTinTuyenDung);
+                    notifications.Add(new NotificationItem
+                    {
+                        Type = "NewApplication",
+                        Title = "Đơn ứng tuyển mới",
+                        Message = $"{don.HoTen} đã ứng tuyển vào vị trí \"{tinTuyenDung?.TenViecLam ?? don.ViTriUngTuyen}\"",
+                        Icon = "bi-person-plus-fill",
+                        Color = "text-primary",
+                        Url = Url.Action("DonUngTuyen", "Recruiter", new { area = "Recruiter" }),
+                        CreatedAt = don.NgayUngTuyen,
+                        RelatedId = don.MaTinUngTuyen,
+                        NotificationKey = $"NewApplication_{don.MaTinUngTuyen}_{don.NgayUngTuyen:yyyyMMddHHmmss}"
+                    });
+                }
+
+                // 2. Tin tuyển dụng sắp hết hạn (trong 3 ngày tới)
+                var tinSapHetHan = danhSachTinTuyenDung
+                    .Where(t => t.HanNop >= now && t.HanNop <= threeDaysFromNow && 
+                                (t.TrangThai == "Dang tuyen" || string.IsNullOrEmpty(t.TrangThai)))
+                    .OrderBy(t => t.HanNop)
+                    .ToList();
+
+                foreach (var tin in tinSapHetHan)
+                {
+                    var daysLeft = (tin.HanNop.Date - now.Date).Days;
+                    notifications.Add(new NotificationItem
+                    {
+                        Type = "ExpiringSoon",
+                        Title = "Tin tuyển dụng sắp hết hạn",
+                        Message = $"Tin \"{tin.TenViecLam}\" sẽ hết hạn sau {daysLeft} ngày ({tin.HanNop:dd/MM/yyyy})",
+                        Icon = "bi-clock-history",
+                        Color = "text-warning",
+                        Url = Url.Action("ChiTietTinDaDang", "Recruiter", new { area = "Recruiter", id = tin.MaTinTuyenDung }),
+                        CreatedAt = tin.HanNop,
+                        RelatedId = tin.MaTinTuyenDung,
+                        NotificationKey = $"ExpiringSoon_{tin.MaTinTuyenDung}_{tin.HanNop:yyyyMMdd}"
+                    });
+                }
+
+                // 3. Tin tuyển dụng đã hết hạn (chưa đóng)
+                var tinHetHan = danhSachTinTuyenDung
+                    .Where(t => t.HanNop < now && 
+                                (t.TrangThai == "Dang tuyen" || string.IsNullOrEmpty(t.TrangThai) || t.TrangThai == "Het han"))
+                    .OrderByDescending(t => t.HanNop)
+                    .Take(5)
+                    .ToList();
+
+                foreach (var tin in tinHetHan)
+                {
+                    notifications.Add(new NotificationItem
+                    {
+                        Type = "Expired",
+                        Title = "Tin tuyển dụng đã hết hạn",
+                        Message = $"Tin \"{tin.TenViecLam}\" đã hết hạn từ ngày {tin.HanNop:dd/MM/yyyy}. Vui lòng cập nhật trạng thái.",
+                        Icon = "bi-exclamation-triangle-fill",
+                        Color = "text-danger",
+                        Url = Url.Action("ChiTietTinDaDang", "Recruiter", new { area = "Recruiter", id = tin.MaTinTuyenDung }),
+                        CreatedAt = tin.HanNop,
+                        RelatedId = tin.MaTinTuyenDung,
+                        NotificationKey = $"Expired_{tin.MaTinTuyenDung}_{tin.HanNop:yyyyMMdd}"
+                    });
+                }
+
+                // 4. Đơn ứng tuyển chờ xem xét (chưa xử lý trong 3 ngày)
+                var donChoXemXet = danhSachTinUngTuyen
+                    .Where(t => (string.IsNullOrEmpty(t.TrangThaiXuLy) || 
+                                 TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy) == TrangThaiXuLy.DangXemXet) &&
+                                t.NgayUngTuyen < now.AddDays(-3))
+                    .OrderBy(t => t.NgayUngTuyen)
+                    .Take(5)
+                    .ToList();
+
+                foreach (var don in donChoXemXet)
+                {
+                    var tinTuyenDung = danhSachTinTuyenDung.FirstOrDefault(t => t.MaTinTuyenDung.ToString() == don.MaTinTuyenDung);
+                    var daysWaiting = (now.Date - don.NgayUngTuyen.Date).Days;
+                    notifications.Add(new NotificationItem
+                    {
+                        Type = "PendingReview",
+                        Title = "Đơn ứng tuyển chờ xem xét",
+                        Message = $"Đơn ứng tuyển của {don.HoTen} cho vị trí \"{tinTuyenDung?.TenViecLam ?? don.ViTriUngTuyen}\" đã chờ {daysWaiting} ngày",
+                        Icon = "bi-hourglass-split",
+                        Color = "text-info",
+                        Url = Url.Action("DonUngTuyen", "Recruiter", new { area = "Recruiter" }),
+                        CreatedAt = don.NgayUngTuyen,
+                        RelatedId = don.MaTinUngTuyen,
+                        NotificationKey = $"PendingReview_{don.MaTinUngTuyen}_{don.NgayUngTuyen:yyyyMMddHHmmss}"
+                    });
+                }
+
+                // Sắp xếp theo thời gian (mới nhất trước)
+                notifications = notifications.OrderByDescending(n => n.CreatedAt).ToList();
+
+                var viewModel = new NotificationViewModel
+                {
+                    TotalCount = notifications.Count,
+                    Notifications = notifications
+                };
+
+                return Json(new { success = true, data = viewModel });
             }
             catch (Exception ex)
             {

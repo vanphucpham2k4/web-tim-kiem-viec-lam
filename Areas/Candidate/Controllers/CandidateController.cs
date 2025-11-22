@@ -668,5 +668,166 @@ namespace Unicareer.Areas.Candidate.Controllers
                 return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
             }
         }
+
+        // GET: Lấy thông báo cho ứng viên
+        [HttpGet]
+        public async Task<IActionResult> GetNotifications()
+        {
+            try
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy người dùng" });
+                }
+
+                var notifications = new List<NotificationItem>();
+
+                // Lấy danh sách tin ứng tuyển của user
+                var danhSachTinUngTuyen = _tinUngTuyenRepository.LayDanhSachTinUngTuyenTheoUserId(user.Id);
+                var now = DateTime.Now;
+                var threeDaysFromNow = now.AddDays(3);
+
+                // 1. Thông báo trạng thái thay đổi (trong 7 ngày gần đây)
+                var tinCoThayDoiTrangThai = danhSachTinUngTuyen
+                    .Where(t => !string.IsNullOrEmpty(t.TrangThaiXuLy))
+                    .OrderByDescending(t => t.NgayUngTuyen)
+                    .Take(10)
+                    .ToList();
+
+                foreach (var tin in tinCoThayDoiTrangThai)
+                {
+                    var trangThaiEnum = TrangThaiXuLyHelper.FromString(tin.TrangThaiXuLy);
+                    if (!trangThaiEnum.HasValue) continue;
+
+                    var tinTuyenDung = _tinTuyenDungRepository.LayTinTuyenDungTheoId(
+                        int.TryParse(tin.MaTinTuyenDung, out int maTin) ? maTin : 0);
+
+                    string title, message, icon, color, type;
+                    
+                    switch (trangThaiEnum.Value)
+                    {
+                        case TrangThaiXuLy.ChoPhongVan:
+                            type = "InterviewScheduled";
+                            title = "Lịch phỏng vấn";
+                            message = $"Bạn đã được mời phỏng vấn cho vị trí \"{tinTuyenDung?.TenViecLam ?? tin.ViTriUngTuyen}\" tại {tin.CongTy}";
+                            icon = "bi-calendar-check-fill";
+                            color = "text-info";
+                            break;
+                        case TrangThaiXuLy.DaPhongVan:
+                            type = "StatusChanged";
+                            title = "Đã phỏng vấn";
+                            message = $"Đơn ứng tuyển cho vị trí \"{tinTuyenDung?.TenViecLam ?? tin.ViTriUngTuyen}\" đã được phỏng vấn. Đang chờ kết quả.";
+                            icon = "bi-check-circle-fill";
+                            color = "text-primary";
+                            break;
+                        case TrangThaiXuLy.TuyenDung:
+                            type = "Accepted";
+                            title = "Chúc mừng! Bạn đã được tuyển dụng";
+                            message = $"Bạn đã được chấp nhận cho vị trí \"{tinTuyenDung?.TenViecLam ?? tin.ViTriUngTuyen}\" tại {tin.CongTy}";
+                            icon = "bi-trophy-fill";
+                            color = "text-success";
+                            break;
+                        case TrangThaiXuLy.TuChoi:
+                        case TrangThaiXuLy.KhongPhuHop:
+                            type = "Rejected";
+                            title = "Thông báo kết quả";
+                            message = $"Đơn ứng tuyển cho vị trí \"{tinTuyenDung?.TenViecLam ?? tin.ViTriUngTuyen}\" tại {tin.CongTy} đã bị từ chối";
+                            icon = "bi-x-circle-fill";
+                            color = "text-danger";
+                            break;
+                        default:
+                            type = "StatusChanged";
+                            title = "Cập nhật trạng thái";
+                            message = $"Đơn ứng tuyển cho vị trí \"{tinTuyenDung?.TenViecLam ?? tin.ViTriUngTuyen}\" đã được cập nhật trạng thái";
+                            icon = "bi-info-circle-fill";
+                            color = "text-primary";
+                            break;
+                    }
+
+                    notifications.Add(new NotificationItem
+                    {
+                        Type = type,
+                        Title = title,
+                        Message = message,
+                        Icon = icon,
+                        Color = color,
+                        Url = Url.Action("ChiTietTinUngTuyen", "Candidate", new { area = "Candidate", id = tin.MaTinUngTuyen }),
+                        CreatedAt = tin.NgayUngTuyen,
+                        RelatedId = tin.MaTinUngTuyen,
+                        NotificationKey = $"StatusChanged_{tin.MaTinUngTuyen}_{tin.TrangThaiXuLy}_{tin.NgayUngTuyen:yyyyMMddHHmmss}"
+                    });
+                }
+
+                // 2. Tin tuyển dụng đã lưu sắp hết hạn (trong 3 ngày tới)
+                var danhSachViecLamDaLuu = _viecLamDaLuuRepository.LayDanhSachViecLamDaLuuTheoUserId(user.Id);
+                var tinSapHetHan = danhSachViecLamDaLuu
+                    .Where(v => v.TinTuyenDung != null && 
+                                v.TinTuyenDung.HanNop >= now && 
+                                v.TinTuyenDung.HanNop <= threeDaysFromNow &&
+                                (v.TinTuyenDung.TrangThai == "Dang tuyen" || string.IsNullOrEmpty(v.TinTuyenDung.TrangThai)))
+                    .Select(v => v.TinTuyenDung!)
+                    .OrderBy(t => t.HanNop)
+                    .ToList();
+
+                foreach (var tin in tinSapHetHan)
+                {
+                    var daysLeft = (tin.HanNop.Date - now.Date).Days;
+                    notifications.Add(new NotificationItem
+                    {
+                        Type = "JobExpiring",
+                        Title = "Tin tuyển dụng sắp hết hạn",
+                        Message = $"Tin tuyển dụng \"{tin.TenViecLam}\" bạn đã lưu sẽ hết hạn sau {daysLeft} ngày ({tin.HanNop:dd/MM/yyyy})",
+                        Icon = "bi-clock-history",
+                        Color = "text-warning",
+                        Url = Url.Action("ViecLamDaLuu", "Candidate", new { area = "Candidate" }),
+                        CreatedAt = tin.HanNop,
+                        RelatedId = tin.MaTinTuyenDung,
+                        NotificationKey = $"JobExpiring_{tin.MaTinTuyenDung}_{tin.HanNop:yyyyMMdd}"
+                    });
+                }
+
+                // 3. Tin tuyển dụng đã lưu đã hết hạn
+                var tinHetHan = danhSachViecLamDaLuu
+                    .Where(v => v.TinTuyenDung != null && 
+                                v.TinTuyenDung.HanNop < now &&
+                                (v.TinTuyenDung.TrangThai == "Dang tuyen" || string.IsNullOrEmpty(v.TinTuyenDung.TrangThai) || v.TinTuyenDung.TrangThai == "Het han"))
+                    .Select(v => v.TinTuyenDung!)
+                    .OrderByDescending(t => t.HanNop)
+                    .Take(5)
+                    .ToList();
+
+                foreach (var tin in tinHetHan)
+                {
+                    notifications.Add(new NotificationItem
+                    {
+                        Type = "JobExpired",
+                        Title = "Tin tuyển dụng đã hết hạn",
+                        Message = $"Tin tuyển dụng \"{tin.TenViecLam}\" bạn đã lưu đã hết hạn từ ngày {tin.HanNop:dd/MM/yyyy}",
+                        Icon = "bi-exclamation-triangle-fill",
+                        Color = "text-danger",
+                        Url = Url.Action("ViecLamDaLuu", "Candidate", new { area = "Candidate" }),
+                        CreatedAt = tin.HanNop,
+                        RelatedId = tin.MaTinTuyenDung,
+                        NotificationKey = $"JobExpired_{tin.MaTinTuyenDung}_{tin.HanNop:yyyyMMdd}"
+                    });
+                }
+
+                // Sắp xếp theo thời gian (mới nhất trước)
+                notifications = notifications.OrderByDescending(n => n.CreatedAt).ToList();
+
+                var viewModel = new NotificationViewModel
+                {
+                    TotalCount = notifications.Count,
+                    Notifications = notifications
+                };
+
+                return Json(new { success = true, data = viewModel });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
     }
 }

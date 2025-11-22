@@ -143,9 +143,12 @@
                             <span asp-validation-for="MatKhau" class="text-danger"></span>
                         </div>
 
-                        <div class="mb-3 form-check">
-                            <input asp-for="GhiNho" class="form-check-input" />
-                            <label asp-for="GhiNho" class="form-check-label"></label>
+                        <div class="mb-3 d-flex justify-content-between align-items-center">
+                            <div class="form-check">
+                                <input asp-for="GhiNho" class="form-check-input" />
+                                <label asp-for="GhiNho" class="form-check-label"></label>
+                            </div>
+                            <a asp-action="ForgotPassword" class="auth-link" style="font-size: 14px;">Quên mật khẩu?</a>
                         </div>
 
                         <div class="mb-3">

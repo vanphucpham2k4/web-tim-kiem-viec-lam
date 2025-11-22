@@ -11,9 +11,6 @@ namespace Unicareer.Models
         public DateTime NgaySinh { get; set; } = new DateTime(2000, 1, 1);
         public string? GioiTinh { get; set; }
         public string? DiaChi { get; set; }
-        public string? HocVan { get; set; }
-        public string? KinhNghiem { get; set; }
-        public string? KyNang { get; set; }
         public string? NganhNghe { get; set; } // Giữ lại để tương thích ngược
         public int? MaChuyenNganh { get; set; } // Foreign key đến ChuyenNganh (nullable)
         public ChuyenNganh? ChuyenNganh { get; set; } // Navigation property

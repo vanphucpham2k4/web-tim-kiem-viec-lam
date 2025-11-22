@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
+using Unicareer.Services;
 
 namespace Unicareer.Controllers
 {
@@ -19,10 +20,12 @@ namespace Unicareer.Controllers
         private readonly IUngVienRepository _ungVienRepository;
         private readonly ITruongDaiHocRepository _truongDaiHocRepository;
         private readonly INganhNgheRepository _nganhNgheRepository;
+        private readonly IBlogRepository _blogRepository;
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IEmailService _emailService;
 
-        public HomeController(ILogger<HomeController> logger, INhaTuyenDungRepository nhaTuyenDungRepository, ITinTuyenDungRepository tinTuyenDungRepository, IUngVienRepository ungVienRepository, ITruongDaiHocRepository truongDaiHocRepository, INganhNgheRepository nganhNgheRepository, ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public HomeController(ILogger<HomeController> logger, INhaTuyenDungRepository nhaTuyenDungRepository, ITinTuyenDungRepository tinTuyenDungRepository, IUngVienRepository ungVienRepository, ITruongDaiHocRepository truongDaiHocRepository, INganhNgheRepository nganhNgheRepository, IBlogRepository blogRepository, ApplicationDbContext context, UserManager<ApplicationUser> userManager, IEmailService emailService)
         {
             _logger = logger;
             _nhaTuyenDungRepository = nhaTuyenDungRepository;
@@ -30,8 +33,10 @@ namespace Unicareer.Controllers
             _ungVienRepository = ungVienRepository;
             _truongDaiHocRepository = truongDaiHocRepository;
             _nganhNgheRepository = nganhNgheRepository;
+            _blogRepository = blogRepository;
             _context = context;
             _userManager = userManager;
+            _emailService = emailService;
         }
 
         // Helper method để lấy logo theo tên công ty
@@ -245,6 +250,13 @@ namespace Unicareer.Controllers
                 .ToList();
             
             ViewBag.DanhSachUngVienCongKhai = danhSachUngVienCongKhai;
+            
+            // Lấy danh sách blog đã duyệt và hiển thị (tối đa 6 bài)
+            var danhSachBlog = _blogRepository.LayDanhSachBlogHienThi()
+                .Take(6)
+                .ToList();
+            
+            ViewBag.DanhSachBlog = danhSachBlog;
             
             return View();
         }
@@ -1034,6 +1046,31 @@ namespace Unicareer.Controllers
 
                 _context.SaveChanges();
 
+                // Gửi email thông báo cho nhà tuyển dụng
+                try
+                {
+                    if (tinTuyenDung.MaNhaTuyenDung.HasValue)
+                    {
+                        var nhaTuyenDung = _nhaTuyenDungRepository.LayNhaTuyenDungTheoId(tinTuyenDung.MaNhaTuyenDung.Value);
+                        if (nhaTuyenDung != null && nhaTuyenDung.User != null && !string.IsNullOrEmpty(nhaTuyenDung.User.Email))
+                        {
+                            _ = Task.Run(async () =>
+                            {
+                                await _emailService.SendNewApplicationNotificationAsync(
+                                    nhaTuyenDung.User.Email,
+                                    fullName.Trim(),
+                                    tinTuyenDung.TenViecLam ?? "",
+                                    tinTuyenDung.CongTy ?? ""
+                                );
+                            });
+                        }
+                    }
+                }
+                catch (Exception emailEx)
+                {
+                    _logger.LogError(emailEx, "Lỗi khi gửi email thông báo đơn ứng tuyển mới cho nhà tuyển dụng");
+                }
+
                 return Json(new { success = true, message = "Đã gửi đơn ứng tuyển thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất." });
             }
             catch (Exception ex)
@@ -1113,6 +1150,71 @@ namespace Unicareer.Controllers
             }
 
             return View(ungVien);
+        }
+
+        public IActionResult BlogDetail(int? id, string? permalink)
+        {
+            Blog? blog = null;
+
+            // Tìm blog theo ID hoặc permalink
+            if (id.HasValue && id.Value > 0)
+            {
+                blog = _blogRepository.LayBlogTheoId(id.Value);
+            }
+            else if (!string.IsNullOrEmpty(permalink))
+            {
+                // Loại bỏ phần .html nếu có
+                var cleanPermalink = permalink.Replace(".html", "").Trim();
+                
+                // Tìm blog trong danh sách blog đã hiển thị (đã đăng, đã duyệt, đã hiển thị)
+                // Điều này đảm bảo chỉ tìm trong các blog công khai, tránh trường hợp có nhiều blog cùng permalink
+                var allBlogs = _blogRepository.LayDanhSachBlogHienThi();
+                
+                // Thử tìm blog theo permalink chính xác (không phân biệt hoa thường)
+                blog = allBlogs.FirstOrDefault(b => 
+                    !string.IsNullOrEmpty(b.Permalink) && 
+                    b.Permalink.Equals(cleanPermalink, StringComparison.OrdinalIgnoreCase));
+                
+                // Nếu không tìm thấy, thử tìm với .html ở cuối
+                if (blog == null)
+                {
+                    blog = allBlogs.FirstOrDefault(b => 
+                        !string.IsNullOrEmpty(b.Permalink) && 
+                        b.Permalink.Equals(cleanPermalink + ".html", StringComparison.OrdinalIgnoreCase));
+                }
+                
+                // Nếu vẫn không tìm thấy, thử loại bỏ .html từ permalink trong database
+                if (blog == null)
+                {
+                    blog = allBlogs.FirstOrDefault(b => 
+                        !string.IsNullOrEmpty(b.Permalink) && 
+                        b.Permalink.Replace(".html", "").Equals(cleanPermalink, StringComparison.OrdinalIgnoreCase));
+                }
+            }
+
+            if (blog == null)
+            {
+                return NotFound();
+            }
+
+            // Kiểm tra lại trạng thái blog (đã được filter ở trên, nhưng kiểm tra lại để đảm bảo)
+            if (!blog.DaDang || !blog.DaDuyet || !blog.HienThi)
+            {
+                return NotFound();
+            }
+
+            // Tăng lượt xem
+            _blogRepository.TangLuotXem(blog.MaBlog);
+
+            // Lấy blog mới nhất để hiển thị ở sidebar (tối đa 5 bài)
+            var danhSachBlogLienQuan = _blogRepository.LayDanhSachBlogHienThi()
+                .Where(b => b.MaBlog != blog.MaBlog)
+                .Take(5)
+                .ToList();
+
+            ViewBag.DanhSachBlogLienQuan = danhSachBlogLienQuan;
+
+            return View(blog);
         }
 
         public IActionResult Privacy()

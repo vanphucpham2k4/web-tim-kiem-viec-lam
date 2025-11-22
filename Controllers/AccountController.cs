@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Unicareer.Models;
 using Unicareer.Models.ViewModels;
+using Unicareer.Services;
 
 namespace Unicareer.Controllers
 {
@@ -14,17 +15,20 @@ namespace Unicareer.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ILogger<AccountController> _logger;
+        private readonly IEmailService _emailService;
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             RoleManager<IdentityRole> roleManager,
-            ILogger<AccountController> logger)
+            ILogger<AccountController> logger,
+            IEmailService emailService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
             _logger = logger;
+            _emailService = emailService;
         }
 
         // GET: Account/Register
@@ -501,6 +505,263 @@ namespace Unicareer.Controllers
             {
                 return RedirectToAction("Index", "Home");
             }
+        }
+
+        // GET: Account/ForgotPassword
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        // POST: Account/ForgotPassword
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    _logger.LogInformation("ForgotPassword request for email: {Email}", model.Email);
+                    
+                    var user = await _userManager.FindByEmailAsync(model.Email);
+                    
+                    if (user != null)
+                    {
+                        _logger.LogInformation("User found for email: {Email}", model.Email);
+                        
+                        // Tạo mã xác thực 6 chữ số
+                        var random = new Random();
+                        var verificationCode = random.Next(100000, 999999).ToString();
+                        
+                        _logger.LogInformation("Generated verification code for {Email}: {Code}", model.Email, verificationCode);
+                        
+                        // Lưu mã xác thực vào session với thời gian hết hạn 10 phút
+                        HttpContext.Session.SetString($"VerificationCode_{model.Email}", verificationCode);
+                        HttpContext.Session.SetString($"VerificationCodeTime_{model.Email}", DateTime.UtcNow.ToString("O"));
+                        
+                        _logger.LogInformation("Verification code saved to session for {Email}", model.Email);
+                        
+                        // Gửi email
+                        _logger.LogInformation("Attempting to send verification email to {Email}", model.Email);
+                        var emailSent = await _emailService.SendVerificationCodeAsync(model.Email, verificationCode);
+                        
+                        if (emailSent)
+                        {
+                            _logger.LogInformation("Verification code sent successfully to {Email}", model.Email);
+                            TempData["SuccessMessage"] = "Mã xác thực đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư (bao gồm cả thư mục Spam).";
+                            TempData["Email"] = model.Email;
+                            return RedirectToAction("VerifyCode");
+                        }
+                        else
+                        {
+                            _logger.LogError("Failed to send verification email to {Email}. Check email configuration and logs.", model.Email);
+                            ModelState.AddModelError(string.Empty, 
+                                "Không thể gửi email xác thực. Vui lòng kiểm tra:\n" +
+                                "- Cấu hình email trong hệ thống\n" +
+                                "- Kết nối internet\n" +
+                                "- Thư mục Spam trong hộp thư\n\n" +
+                                "Nếu vấn đề vẫn tiếp tục, vui lòng liên hệ quản trị viên.");
+                            // Xóa mã đã lưu trong session vì không gửi được email
+                            HttpContext.Session.Remove($"VerificationCode_{model.Email}");
+                            HttpContext.Session.Remove($"VerificationCodeTime_{model.Email}");
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning("User not found for email: {Email}", model.Email);
+                        // Vẫn hiển thị thông báo thành công để bảo mật
+                        TempData["SuccessMessage"] = "Nếu email tồn tại trong hệ thống, mã xác thực đã được gửi đến email của bạn.";
+                        return RedirectToAction("Login");
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("ModelState is invalid for ForgotPassword. Errors: {Errors}", 
+                        string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)));
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception occurred in ForgotPassword for email: {Email}. Exception: {Message}", 
+                    model.Email, ex.Message);
+                if (ex.InnerException != null)
+                {
+                    _logger.LogError("Inner exception: {InnerMessage}", ex.InnerException.Message);
+                }
+                ModelState.AddModelError(string.Empty, 
+                    $"Đã xảy ra lỗi khi xử lý yêu cầu: {ex.Message}. Vui lòng thử lại sau hoặc liên hệ quản trị viên.");
+            }
+
+            return View(model);
+        }
+
+        // GET: Account/VerifyCode
+        [HttpGet]
+        public IActionResult VerifyCode()
+        {
+            var email = TempData["Email"]?.ToString();
+            if (string.IsNullOrEmpty(email))
+            {
+                return RedirectToAction("ForgotPassword");
+            }
+
+            var model = new VerifyCodeViewModel
+            {
+                Email = email
+            };
+
+            // Giữ lại email trong TempData
+            TempData.Keep("Email");
+            
+            return View(model);
+        }
+
+        // POST: Account/VerifyCode
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult VerifyCode(VerifyCodeViewModel model)
+        {
+            // Đảm bảo email có trong model hoặc TempData
+            if (string.IsNullOrEmpty(model.Email))
+            {
+                model.Email = TempData["Email"]?.ToString() ?? string.Empty;
+            }
+
+            if (string.IsNullOrEmpty(model.Email))
+            {
+                return RedirectToAction("ForgotPassword");
+            }
+
+            if (ModelState.IsValid)
+            {
+                // Lấy mã xác thực từ session
+                var storedCode = HttpContext.Session.GetString($"VerificationCode_{model.Email}");
+                var codeTimeStr = HttpContext.Session.GetString($"VerificationCodeTime_{model.Email}");
+
+                if (string.IsNullOrEmpty(storedCode) || string.IsNullOrEmpty(codeTimeStr))
+                {
+                    ModelState.AddModelError(string.Empty, "Mã xác thực đã hết hạn. Vui lòng yêu cầu mã mới.");
+                    TempData.Keep("Email");
+                    return View(model);
+                }
+
+                // Kiểm tra thời gian hết hạn (10 phút)
+                if (DateTime.TryParse(codeTimeStr, out var codeTime))
+                {
+                    var timeElapsed = DateTime.UtcNow - codeTime;
+                    if (timeElapsed.TotalMinutes > 10)
+                    {
+                        // Xóa mã đã hết hạn
+                        HttpContext.Session.Remove($"VerificationCode_{model.Email}");
+                        HttpContext.Session.Remove($"VerificationCodeTime_{model.Email}");
+                        
+                        ModelState.AddModelError(string.Empty, "Mã xác thực đã hết hạn. Vui lòng yêu cầu mã mới.");
+                        TempData.Keep("Email");
+                        return View(model);
+                    }
+                }
+
+                // Kiểm tra mã xác thực
+                if (storedCode == model.VerificationCode)
+                {
+                    // Xóa mã xác thực sau khi xác nhận thành công
+                    HttpContext.Session.Remove($"VerificationCode_{model.Email}");
+                    HttpContext.Session.Remove($"VerificationCodeTime_{model.Email}");
+                    
+                    // Lưu email vào TempData để reset password
+                    TempData["VerifiedEmail"] = model.Email;
+                    return RedirectToAction("ResetPassword");
+                }
+                else
+                {
+                    ModelState.AddModelError("VerificationCode", "Mã xác thực không đúng. Vui lòng thử lại.");
+                }
+            }
+
+            TempData.Keep("Email");
+            return View(model);
+        }
+
+        // GET: Account/ResetPassword
+        [HttpGet]
+        public IActionResult ResetPassword()
+        {
+            var email = TempData["VerifiedEmail"]?.ToString();
+            if (string.IsNullOrEmpty(email))
+            {
+                return RedirectToAction("ForgotPassword");
+            }
+
+            var model = new ResetPasswordViewModel
+            {
+                Email = email
+            };
+
+            // Giữ lại email trong TempData
+            TempData.Keep("VerifiedEmail");
+            
+            return View(model);
+        }
+
+        // POST: Account/ResetPassword
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            // Đảm bảo email có trong model hoặc TempData
+            if (string.IsNullOrEmpty(model.Email))
+            {
+                model.Email = TempData["VerifiedEmail"]?.ToString() ?? string.Empty;
+            }
+
+            if (string.IsNullOrEmpty(model.Email))
+            {
+                return RedirectToAction("ForgotPassword");
+            }
+
+            if (ModelState.IsValid)
+            {
+                var email = model.Email;
+                var user = await _userManager.FindByEmailAsync(email);
+
+                if (user != null)
+                {
+                    // Xóa mật khẩu cũ và đặt mật khẩu mới
+                    var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                    var result = await _userManager.ResetPasswordAsync(user, token, model.NewPassword);
+
+                    if (result.Succeeded)
+                    {
+                        _logger.LogInformation("Password reset successful for {Email}", email);
+                        TempData["SuccessMessage"] = "Đặt lại mật khẩu thành công. Vui lòng đăng nhập với mật khẩu mới.";
+                        return RedirectToAction("Login");
+                    }
+                    else
+                    {
+                        foreach (var error in result.Errors)
+                        {
+                            ModelState.AddModelError(string.Empty, error.Description);
+                        }
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "Không tìm thấy tài khoản.");
+                }
+            }
+
+            // Giữ lại email trong TempData nếu có
+            if (!string.IsNullOrEmpty(model.Email))
+            {
+                TempData["VerifiedEmail"] = model.Email;
+            }
+            else
+            {
+                TempData.Keep("VerifiedEmail");
+            }
+            return View(model);
         }
     }
 }

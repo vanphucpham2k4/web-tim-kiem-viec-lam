@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Unicareer.Data;
 
@@ -11,9 +12,11 @@ using Unicareer.Data;
 namespace Unicareer.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251121100754_AddBlogTable")]
+    partial class AddBlogTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -314,9 +317,6 @@ namespace Unicareer.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaBlog"));
 
-                    b.Property<bool>("DaDang")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("DaDuyet")
                         .HasColumnType("bit");
 
@@ -326,13 +326,7 @@ namespace Unicareer.Migrations
                     b.Property<string>("HinhAnh")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsPermalinkAuto")
-                        .HasColumnType("bit");
-
                     b.Property<int>("LuotXem")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("MaTheLoai")
                         .HasColumnType("int");
 
                     b.Property<string>("MoTaNgan")
@@ -348,13 +342,7 @@ namespace Unicareer.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Permalink")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("TacGia")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Tags")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TheLoai")
@@ -368,9 +356,6 @@ namespace Unicareer.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("MaBlog");
-
-                    b.HasIndex("MaTheLoai")
-                        .HasDatabaseName("idx_blog_matheloai");
 
                     b.HasIndex("UserId")
                         .HasDatabaseName("idx_blog_userid");
@@ -593,44 +578,6 @@ namespace Unicareer.Migrations
                         .HasDatabaseName("idx_provinces_unit");
 
                     b.ToTable("provinces");
-                });
-
-            modelBuilder.Entity("Unicareer.Models.TheLoaiBlog", b =>
-                {
-                    b.Property<int>("MaTheLoai")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaTheLoai"));
-
-                    b.Property<bool>("HienThi")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Icon")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MauSac")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MoTa")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("NgayTao")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("SoLuongBlog")
-                        .HasColumnType("int");
-
-                    b.Property<string>("TenTheLoai")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ThuTu")
-                        .HasColumnType("int");
-
-                    b.HasKey("MaTheLoai");
-
-                    b.ToTable("TheLoaiBlogs");
                 });
 
             modelBuilder.Entity("Unicareer.Models.TinTuyenDung", b =>
@@ -1066,17 +1013,10 @@ namespace Unicareer.Migrations
 
             modelBuilder.Entity("Unicareer.Models.Blog", b =>
                 {
-                    b.HasOne("Unicareer.Models.TheLoaiBlog", "TheLoaiBlog")
-                        .WithMany()
-                        .HasForeignKey("MaTheLoai")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("Unicareer.Models.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("TheLoaiBlog");
 
                     b.Navigation("User");
                 });

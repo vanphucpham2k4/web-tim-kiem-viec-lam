@@ -22,10 +22,12 @@ namespace Unicareer.Areas.Admin.Controllers
         private readonly INganhNgheRepository _nganhNgheRepository;
         private readonly IChuyenNganhRepository _chuyenNganhRepository;
         private readonly ITruongDaiHocRepository _truongDaiHocRepository;
+        private readonly IBlogRepository _blogRepository;
+        private readonly ITheLoaiBlogRepository _theLoaiBlogRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
 
-        public AdminController(INhaTuyenDungRepository nhaTuyenDungRepository, IUngVienRepository ungVienRepository, ITinTuyenDungRepository tinTuyenDungRepository, ITinUngTuyenRepository tinUngTuyenRepository, ILoaiCongViecRepository loaiCongViecRepository, INganhNgheRepository nganhNgheRepository, IChuyenNganhRepository chuyenNganhRepository, ITruongDaiHocRepository truongDaiHocRepository, UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        public AdminController(INhaTuyenDungRepository nhaTuyenDungRepository, IUngVienRepository ungVienRepository, ITinTuyenDungRepository tinTuyenDungRepository, ITinUngTuyenRepository tinUngTuyenRepository, ILoaiCongViecRepository loaiCongViecRepository, INganhNgheRepository nganhNgheRepository, IChuyenNganhRepository chuyenNganhRepository, ITruongDaiHocRepository truongDaiHocRepository, IBlogRepository blogRepository, ITheLoaiBlogRepository theLoaiBlogRepository, UserManager<ApplicationUser> userManager, ApplicationDbContext context)
         {
             _nhaTuyenDungRepository = nhaTuyenDungRepository;
             _ungVienRepository = ungVienRepository;
@@ -35,6 +37,8 @@ namespace Unicareer.Areas.Admin.Controllers
             _nganhNgheRepository = nganhNgheRepository;
             _chuyenNganhRepository = chuyenNganhRepository;
             _truongDaiHocRepository = truongDaiHocRepository;
+            _blogRepository = blogRepository;
+            _theLoaiBlogRepository = theLoaiBlogRepository;
             _userManager = userManager;
             _context = context;
         }
@@ -61,10 +65,99 @@ namespace Unicareer.Areas.Admin.Controllers
             return View();
         }
 
-        public IActionResult UngVien()
+        public IActionResult UngVien(string? search = null, string? nganhNghe = null, string? kinhNghiem = null, int pageNumber = 1, int pageSize = 20)
         {
+            // Lấy toàn bộ dữ liệu
             var danhSachUngVien = _ungVienRepository.LayDanhSachUngVien();
-            return View(danhSachUngVien);
+            
+            // Lấy danh sách ngành nghề từ database
+            var danhSachNganhNghe = _nganhNgheRepository.LayDanhSachNganhNghe();
+            
+            // Lấy danh sách kinh nghiệm từ dropdown options
+            var danhSachKinhNghiem = DropdownOptions.KinhNghiem;
+            
+            // Lấy danh sách tin ứng tuyển để tính số lần ứng tuyển
+            var danhSachTinUngTuyen = _tinUngTuyenRepository.LayDanhSachTinUngTuyen();
+            
+            // Tính số lần ứng tuyển cho mỗi ứng viên từ bảng TinUngTuyen
+            var soLanUngTuyenDict = danhSachTinUngTuyen
+                .Where(t => !string.IsNullOrEmpty(t.UserId))
+                .GroupBy(t => t.UserId)
+                .ToDictionary(g => g.Key, g => g.Count());
+            
+            // Gán số lần ứng tuyển thực tế vào từng ứng viên
+            foreach (var ungVien in danhSachUngVien)
+            {
+                if (soLanUngTuyenDict.TryGetValue(ungVien.UserId, out var soLan))
+                {
+                    ungVien.SoLanUngTuyen = soLan;
+                }
+                else
+                {
+                    ungVien.SoLanUngTuyen = 0;
+                }
+            }
+            
+            // Tính stats từ toàn bộ dữ liệu (trước khi lọc)
+            var totalUngVien = danhSachUngVien.Count;
+            var totalUngVienIT = danhSachUngVien.Count(u => u.NganhNghe == "Cong nghe thong tin");
+            var totalUngTuyen = danhSachUngVien.Sum(u => u.SoLanUngTuyen);
+            var trungBinhUngTuyenPerUngVien = totalUngVien > 0 
+                ? (int)(totalUngTuyen / (double)totalUngVien) 
+                : 0;
+            
+            // Lọc theo tìm kiếm
+            if (!string.IsNullOrEmpty(search))
+            {
+                danhSachUngVien = danhSachUngVien.Where(u => 
+                    (u.HoTen != null && u.HoTen.Contains(search, StringComparison.OrdinalIgnoreCase)) ||
+                    (u.Email != null && u.Email.Contains(search, StringComparison.OrdinalIgnoreCase)) ||
+                    (u.SoDienThoai != null && u.SoDienThoai.Contains(search, StringComparison.OrdinalIgnoreCase))
+                ).ToList();
+            }
+            
+            // Lọc theo ngành nghề
+            if (!string.IsNullOrEmpty(nganhNghe))
+            {
+                danhSachUngVien = danhSachUngVien.Where(u => 
+                    u.NganhNghe != null && u.NganhNghe.Equals(nganhNghe, StringComparison.OrdinalIgnoreCase)
+                ).ToList();
+            }
+            
+            // Lọc theo kinh nghiệm (sử dụng KinhNghiemChiTiet nếu có)
+            if (!string.IsNullOrEmpty(kinhNghiem))
+            {
+                danhSachUngVien = danhSachUngVien.Where(u => 
+                    u.KinhNghiemChiTiet != null && u.KinhNghiemChiTiet.Contains(kinhNghiem, StringComparison.OrdinalIgnoreCase)
+                ).ToList();
+            }
+            
+            // Tính toán phân trang
+            var totalCount = danhSachUngVien.Count;
+            var pagedList = danhSachUngVien
+                .OrderBy(u => u.HoTen)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+            
+            var viewModel = new UngVienManagementViewModel
+            {
+                UngViens = pagedList,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                SearchTerm = search,
+                NganhNgheFilter = nganhNghe,
+                KinhNghiemFilter = kinhNghiem,
+                DanhSachNganhNghe = danhSachNganhNghe,
+                DanhSachKinhNghiem = danhSachKinhNghiem,
+                TotalUngVien = totalUngVien,
+                TotalUngVienIT = totalUngVienIT,
+                TotalUngTuyen = totalUngTuyen,
+                TrungBinhUngTuyenPerUngVien = trungBinhUngTuyenPerUngVien
+            };
+            
+            return View(viewModel);
         }
 
         public IActionResult NhaTuyenDung(string? search = null, string? tinhThanhPho = null, string? quanHuyen = null, int pageNumber = 1, int pageSize = 20)
@@ -1051,8 +1144,20 @@ namespace Unicareer.Areas.Admin.Controllers
                 .OrderBy(p => p.FullName)
                 .ToList();
             
+            // Lấy danh sách ngành nghề
+            var danhSachNganhNghe = _nganhNgheRepository.LayDanhSachNganhNghe();
+            
+            // Lấy danh sách loại công việc
+            var danhSachLoaiCongViec = _loaiCongViecRepository.LayDanhSachLoaiCongViec();
+            
+            // Lấy danh sách chuyên ngành
+            var danhSachChuyenNganh = _chuyenNganhRepository.LayDanhSachChuyenNganh();
+            
             ViewBag.DanhSachUngTuyen = danhSachUngTuyen;
             ViewBag.DanhSachTinhThanh = danhSachTinhThanh;
+            ViewBag.DanhSachNganhNghe = danhSachNganhNghe;
+            ViewBag.DanhSachLoaiCongViec = danhSachLoaiCongViec;
+            ViewBag.DanhSachChuyenNganh = danhSachChuyenNganh;
             
             return View(tinTuyenDung);
         }
@@ -1167,6 +1272,212 @@ namespace Unicareer.Areas.Admin.Controllers
                     .ToList();
 
                 return Json(new { success = true, data = danhSachUngTuyen });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
+        // GET: Chi tiết ứng viên
+        public IActionResult ChiTietUngVien(int id)
+        {
+            ViewData["Title"] = "Chi tiết Ứng viên";
+            
+            var ungVien = _ungVienRepository.LayUngVienTheoId(id);
+            if (ungVien == null)
+            {
+                TempData["Loi"] = "Không tìm thấy ứng viên!";
+                return RedirectToAction("UngVien");
+            }
+
+            // Load dữ liệu cho dropdowns (nếu cần)
+            var danhSachChuyenNganh = _chuyenNganhRepository.LayDanhSachChuyenNganh();
+            var danhSachNganhNghe = _nganhNgheRepository.LayDanhSachNganhNghe();
+            var danhSachTinhThanh = _context.Provinces.OrderBy(p => p.FullName).ToList();
+            
+            ViewBag.DanhSachChuyenNganh = danhSachChuyenNganh;
+            ViewBag.DanhSachNganhNghe = danhSachNganhNghe;
+            ViewBag.DanhSachTinhThanh = danhSachTinhThanh;
+
+            // Lấy danh sách tin tuyển dụng đã ứng tuyển
+            var danhSachTinUngTuyen = _tinUngTuyenRepository.LayDanhSachTinUngTuyen()
+                .Where(t => t.UserId == ungVien.UserId)
+                .ToList();
+
+            var danhSachTinTuyenDung = new List<object>();
+            foreach (var ungTuyen in danhSachTinUngTuyen)
+            {
+                var tinTuyenDung = _tinTuyenDungRepository.LayTinTuyenDungTheoId(int.Parse(ungTuyen.MaTinTuyenDung));
+                if (tinTuyenDung != null)
+                {
+                    danhSachTinTuyenDung.Add(new
+                    {
+                        MaTin = tinTuyenDung.MaTinTuyenDung,
+                        TenViecLam = tinTuyenDung.TenViecLam,
+                        CongTy = tinTuyenDung.CongTy,
+                        NganhNghe = tinTuyenDung.NganhNghe,
+                        LoaiCongViec = tinTuyenDung.LoaiCongViec,
+                        TinhThanhPho = tinTuyenDung.TinhThanhPho,
+                        MucLuong = tinTuyenDung.MucLuongThapNhat.HasValue && tinTuyenDung.MucLuongCaoNhat.HasValue
+                            ? $"{tinTuyenDung.MucLuongThapNhat.Value:F0} - {tinTuyenDung.MucLuongCaoNhat.Value:F0} triệu"
+                            : tinTuyenDung.MucLuongThapNhat.HasValue
+                            ? $"Từ {tinTuyenDung.MucLuongThapNhat.Value:F0} triệu"
+                            : "Thỏa thuận",
+                        NgayDang = tinTuyenDung.NgayDang.ToString("dd/MM/yyyy"),
+                        HanNop = tinTuyenDung.HanNop.ToString("dd/MM/yyyy"),
+                        TrangThaiXuLy = ungTuyen.TrangThaiXuLy,
+                        NgayUngTuyen = ungTuyen.NgayUngTuyen.ToString("dd/MM/yyyy"),
+                        ViTriUngTuyen = ungTuyen.ViTriUngTuyen
+                    });
+                }
+            }
+
+            ViewBag.DanhSachTinTuyenDung = danhSachTinTuyenDung;
+            
+            return View(ungVien);
+        }
+
+        // POST: Cập nhật thông tin ứng viên
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CapNhatUngVien(
+            int id,
+            string? hoTen,
+            string? email,
+            string? soDienThoai,
+            DateTime? ngaySinh,
+            string? gioiTinh,
+            string? diaChi,
+            string? viTriMongMuon,
+            int? maChuyenNganh,
+            string? chuyenNganhKhac,
+            decimal? mucLuongKyVong,
+            string? noiLamViecMongMuon,
+            string? trangThaiTimViec,
+            string? mucTieuNgheNghiep,
+            string? hocVanChiTiet,
+            string? kinhNghiemChiTiet,
+            string? kyNangChiTiet,
+            string? chungChi,
+            string? linkGitHub,
+            string? linkBehance,
+            string? linkPortfolio,
+            string? moTaBanThan)
+        {
+            try
+            {
+                var ungVien = _ungVienRepository.LayUngVienTheoId(id);
+                if (ungVien == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy ứng viên!" });
+                }
+
+                // Xử lý checkbox
+                var hienThiCongKhaiValue = Request.Form["hienThiCongKhai"].ToString();
+                bool hienThiCongKhai = !string.IsNullOrEmpty(hienThiCongKhaiValue) && 
+                                       (hienThiCongKhaiValue.ToLower() == "true" || hienThiCongKhaiValue == "on");
+
+                // Cập nhật thông tin cá nhân
+                if (!string.IsNullOrEmpty(hoTen)) ungVien.HoTen = hoTen;
+                if (!string.IsNullOrEmpty(email)) ungVien.Email = email;
+                if (!string.IsNullOrEmpty(soDienThoai)) ungVien.SoDienThoai = soDienThoai;
+                if (ngaySinh.HasValue) ungVien.NgaySinh = ngaySinh.Value;
+                ungVien.GioiTinh = gioiTinh;
+                ungVien.DiaChi = diaChi;
+
+                // Cập nhật thông tin nghề nghiệp
+                ungVien.ViTriMongMuon = viTriMongMuon;
+                ungVien.MaChuyenNganh = maChuyenNganh;
+                ungVien.ChuyenNganhKhac = chuyenNganhKhac;
+                ungVien.MucLuongKyVong = mucLuongKyVong;
+                ungVien.NoiLamViecMongMuon = noiLamViecMongMuon;
+                ungVien.TrangThaiTimViec = trangThaiTimViec;
+                ungVien.HienThiCongKhai = hienThiCongKhai;
+
+                // Cập nhật CV và hồ sơ
+                ungVien.MucTieuNgheNghiep = mucTieuNgheNghiep;
+                ungVien.HocVanChiTiet = hocVanChiTiet;
+                ungVien.KinhNghiemChiTiet = kinhNghiemChiTiet;
+                ungVien.KyNangChiTiet = kyNangChiTiet;
+                ungVien.ChungChi = chungChi;
+
+                // Cập nhật Portfolio
+                ungVien.LinkGitHub = linkGitHub;
+                ungVien.LinkBehance = linkBehance;
+                ungVien.LinkPortfolio = linkPortfolio;
+
+                // Cập nhật mô tả bản thân
+                ungVien.MoTaBanThan = moTaBanThan;
+
+                // Lưu vào database
+                var ketQua = _ungVienRepository.CapNhatUngVien(ungVien);
+                if (ketQua != null)
+                {
+                    return Json(new { success = true, message = "Cập nhật thông tin ứng viên thành công!" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Có lỗi xảy ra khi cập nhật thông tin!" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
+        // GET: Lấy danh sách tin tuyển dụng đã ứng tuyển của ứng viên
+        [HttpGet]
+        public IActionResult LayDanhSachTinTuyenDungTheoUngVien(string userId)
+        {
+            try
+            {
+                var danhSachUngTuyen = _tinUngTuyenRepository.LayDanhSachTinUngTuyen()
+                    .Where(t => t.UserId == userId)
+                    .ToList();
+
+                var danhSachTin = new List<object>();
+                
+                foreach (var ungTuyen in danhSachUngTuyen)
+                {
+                    var tinTuyenDung = _tinTuyenDungRepository.LayTinTuyenDungTheoId(int.Parse(ungTuyen.MaTinTuyenDung));
+                    
+                    if (tinTuyenDung != null)
+                    {
+                        var mucLuong = "";
+                        if (tinTuyenDung.MucLuongThapNhat.HasValue && tinTuyenDung.MucLuongCaoNhat.HasValue)
+                        {
+                            mucLuong = $"{tinTuyenDung.MucLuongThapNhat.Value:F0} - {tinTuyenDung.MucLuongCaoNhat.Value:F0} triệu";
+                        }
+                        else if (tinTuyenDung.MucLuongThapNhat.HasValue)
+                        {
+                            mucLuong = $"Từ {tinTuyenDung.MucLuongThapNhat.Value:F0} triệu";
+                        }
+                        else
+                        {
+                            mucLuong = "Thỏa thuận";
+                        }
+
+                        danhSachTin.Add(new
+                        {
+                            maTin = tinTuyenDung.MaTinTuyenDung,
+                            tenViecLam = tinTuyenDung.TenViecLam ?? "N/A",
+                            nganhNghe = tinTuyenDung.NganhNghe ?? "N/A",
+                            loaiCongViec = tinTuyenDung.LoaiCongViec ?? "N/A",
+                            tinhThanhPho = tinTuyenDung.TinhThanhPho ?? "N/A",
+                            mucLuong = mucLuong,
+                            congTy = tinTuyenDung.CongTy ?? "N/A",
+                            ngayDang = tinTuyenDung.NgayDang.ToString("dd/MM/yyyy"),
+                            hanNop = tinTuyenDung.HanNop.ToString("dd/MM/yyyy"),
+                            trangThaiXuLy = ungTuyen.TrangThaiXuLy,
+                            ngayUngTuyen = ungTuyen.NgayUngTuyen.ToString("dd/MM/yyyy"),
+                            viTriUngTuyen = ungTuyen.ViTriUngTuyen
+                        });
+                    }
+                }
+
+                return Json(new { success = true, data = danhSachTin });
             }
             catch (Exception ex)
             {
@@ -1369,6 +1680,1140 @@ namespace Unicareer.Areas.Admin.Controllers
                 })
                 .ToList();
             return Json(wards);
+        }
+
+        // ========== BLOG MANAGEMENT ==========
+        public IActionResult Blog(string? search = null, int pageNumber = 1, int pageSize = 20)
+        {
+            var danhSachBlog = _blogRepository.LayDanhSachBlog();
+            
+            // Tìm kiếm
+            if (!string.IsNullOrEmpty(search))
+            {
+                var searchLower = search.ToLower();
+                danhSachBlog = danhSachBlog.Where(b =>
+                    (b.TieuDe != null && b.TieuDe.ToLower().Contains(searchLower)) ||
+                    (b.MoTaNgan != null && b.MoTaNgan.ToLower().Contains(searchLower)) ||
+                    (b.TheLoai != null && b.TheLoai.ToLower().Contains(searchLower)) ||
+                    (b.TacGia != null && b.TacGia.ToLower().Contains(searchLower))
+                ).ToList();
+            }
+            
+            // Phân trang
+            var totalItems = danhSachBlog.Count;
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            var pagedBlogs = danhSachBlog
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+            
+            ViewBag.Search = search;
+            ViewBag.PageNumber = pageNumber;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalItems = totalItems;
+            
+            return View(pagedBlogs);
+        }
+
+        [HttpGet]
+        public IActionResult ThemBlog()
+        {
+            // Redirect đến SuaBlog với id = 0 để tạo mới
+            return RedirectToAction("SuaBlog", new { id = 0 });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ThemBlog(Blog blog, IFormFile? hinhAnhFile)
+        {
+            // Đọc Tags trực tiếp từ form nếu model binding không hoạt động
+            // Thử nhiều cách để lấy Tags
+            string? tagsValue = null;
+            
+            if (Request.Form.ContainsKey("Tags"))
+            {
+                tagsValue = Request.Form["Tags"].ToString();
+                System.Diagnostics.Debug.WriteLine($"Tags từ Request.Form['Tags']: '{tagsValue}'");
+            }
+            else if (Request.Form.ContainsKey("tagsHidden"))
+            {
+                tagsValue = Request.Form["tagsHidden"].ToString();
+                System.Diagnostics.Debug.WriteLine($"Tags từ Request.Form['tagsHidden']: '{tagsValue}'");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("Request.Form không chứa key 'Tags' hoặc 'tagsHidden'");
+                // Kiểm tra tất cả keys trong form
+                System.Diagnostics.Debug.WriteLine("Tất cả keys trong Request.Form:");
+                foreach (var key in Request.Form.Keys)
+                {
+                    System.Diagnostics.Debug.WriteLine($"  - {key} = '{Request.Form[key]}'");
+                }
+            }
+            
+            if (!string.IsNullOrWhiteSpace(tagsValue))
+            {
+                blog.Tags = tagsValue;
+                System.Diagnostics.Debug.WriteLine($"Tags đã được set vào blog.Tags: '{blog.Tags}'");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("Tags rỗng hoặc null, không set vào blog.Tags");
+            }
+            
+            // Đọc TacGia trực tiếp từ form nếu model binding không hoạt động
+            if (Request.Form.ContainsKey("TacGia"))
+            {
+                var tacGiaValue = Request.Form["TacGia"].ToString();
+                blog.TacGia = tacGiaValue;
+                System.Diagnostics.Debug.WriteLine($"TacGia từ Request.Form: '{tacGiaValue}'");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("Request.Form không chứa key 'TacGia'");
+            }
+            
+            if (!ModelState.IsValid)
+            {
+                var user = _userManager.GetUserAsync(User).Result;
+                ViewBag.UserId = user?.Id;
+                ViewBag.TacGia = user?.UserName ?? "Admin";
+                ViewBag.DanhSachTheLoai = _theLoaiBlogRepository.LayDanhSachTheLoaiHienThi();
+                return View(blog);
+            }
+
+            // Tự động cập nhật TheLoai từ TheLoaiBlog nếu có
+            if (blog.MaTheLoai.HasValue)
+            {
+                var theLoai = _theLoaiBlogRepository.LayTheLoaiTheoId(blog.MaTheLoai.Value);
+                if (theLoai != null)
+                {
+                    blog.TheLoai = theLoai.TenTheLoai;
+                }
+            }
+
+            // Upload hình ảnh nếu có
+            if (hinhAnhFile != null && hinhAnhFile.Length > 0)
+            {
+                var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "blogs");
+                if (!Directory.Exists(uploadsPath))
+                {
+                    Directory.CreateDirectory(uploadsPath);
+                }
+
+                var fileName = $"blog_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid():N}{Path.GetExtension(hinhAnhFile.FileName)}";
+                var filePath = Path.Combine(uploadsPath, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await hinhAnhFile.CopyToAsync(stream);
+                }
+
+                blog.HinhAnh = $"/uploads/blogs/{fileName}";
+            }
+
+            // Lấy UserId từ user hiện tại
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser != null)
+            {
+                blog.UserId = currentUser.Id;
+                // Tự động set TacGia từ User nếu chưa có
+                if (string.IsNullOrWhiteSpace(blog.TacGia))
+                {
+                    blog.TacGia = currentUser.UserName ?? currentUser.Email ?? "Admin";
+                }
+            }
+
+            // Mặc định: đã duyệt và hiển thị (admin tự đăng)
+            blog.DaDuyet = true;
+            blog.HienThi = true;
+
+            // Xử lý IsPermalinkAuto từ form (ưu tiên hidden input, sau đó mới đến radio button)
+            if (Request.Form.ContainsKey("IsPermalinkAuto"))
+            {
+                var isPermalinkAutoValue = Request.Form["IsPermalinkAuto"].ToString();
+                blog.IsPermalinkAuto = isPermalinkAutoValue == "true" || isPermalinkAutoValue == "True";
+            }
+            else if (Request.Form.ContainsKey("permalinkType"))
+            {
+                blog.IsPermalinkAuto = Request.Form["permalinkType"].ToString() == "auto";
+            }
+            
+            // Xử lý Permalink từ form
+            if (Request.Form.ContainsKey("Permalink"))
+            {
+                var permalinkValue = Request.Form["Permalink"].ToString();
+                if (!string.IsNullOrWhiteSpace(permalinkValue))
+                {
+                    blog.Permalink = permalinkValue.Trim();
+                    System.Diagnostics.Debug.WriteLine($"Permalink từ form (ThemBlog): '{blog.Permalink}'");
+                }
+            }
+            
+            // Tự động tạo permalink nếu IsPermalinkAuto = true và chưa có permalink
+            if (blog.IsPermalinkAuto && string.IsNullOrWhiteSpace(blog.Permalink))
+            {
+                blog.Permalink = GeneratePermalinkFromTitle(blog.TieuDe ?? string.Empty, blog.MaBlog > 0 ? blog.MaBlog : null);
+                System.Diagnostics.Debug.WriteLine($"Permalink tự động tạo (ThemBlog): '{blog.Permalink}'");
+            }
+            // Nếu IsPermalinkAuto = false, Permalink đã được lấy từ form ở trên
+
+            // Đảm bảo Tags và TacGia được lưu
+            // Tags đã được gửi từ form qua name="Tags"
+            // TacGia đã được gửi từ form qua asp-for="TacGia"
+            
+            // Debug: Log giá trị trước khi lưu
+            System.Diagnostics.Debug.WriteLine($"Tags trước khi lưu: {blog.Tags}");
+            System.Diagnostics.Debug.WriteLine($"TacGia trước khi lưu: {blog.TacGia}");
+
+            Blog? result;
+            
+            // Kiểm tra xem blog đã tồn tại chưa (nếu có MaBlog > 0 thì là đang cập nhật từ bản nháp)
+            if (blog.MaBlog > 0)
+            {
+                var blogHienTai = _blogRepository.LayBlogTheoId(blog.MaBlog);
+                if (blogHienTai != null)
+                {
+                    // Cập nhật blog hiện có
+                    blogHienTai.TieuDe = blog.TieuDe;
+                    blogHienTai.NoiDung = blog.NoiDung;
+                    blogHienTai.MoTaNgan = blog.MoTaNgan;
+                    blogHienTai.MaTheLoai = blog.MaTheLoai;
+                    blogHienTai.TheLoai = blog.TheLoai;
+                    blogHienTai.Tags = blog.Tags;
+                    blogHienTai.Permalink = blog.Permalink;
+                    blogHienTai.IsPermalinkAuto = blog.IsPermalinkAuto;
+                    blogHienTai.NgayCapNhat = DateTime.Now;
+                    blogHienTai.DaDuyet = true;
+                    blogHienTai.HienThi = true;
+                    
+                    if (!string.IsNullOrEmpty(blog.HinhAnh))
+                    {
+                        blogHienTai.HinhAnh = blog.HinhAnh;
+                    }
+                    
+                    result = _blogRepository.CapNhatBlog(blogHienTai);
+                }
+                else
+                {
+                    // Blog không tồn tại, tạo mới
+                    result = _blogRepository.ThemBlog(blog);
+                }
+            }
+            else
+            {
+                // Tạo blog mới
+                result = _blogRepository.ThemBlog(blog);
+            }
+            
+            // Debug: Log giá trị sau khi lưu
+            if (result != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"Tags sau khi lưu: {result.Tags}");
+                System.Diagnostics.Debug.WriteLine($"TacGia sau khi lưu: {result.TacGia}");
+            }
+            if (result != null)
+            {
+                TempData["ThanhCong"] = "Đã đăng blog thành công!";
+                return RedirectToAction("Blog");
+            }
+            else
+            {
+                TempData["Loi"] = "Có lỗi xảy ra khi đăng blog!";
+                var user = _userManager.GetUserAsync(User).Result;
+                ViewBag.UserId = user?.Id;
+                ViewBag.TacGia = user?.UserName ?? "Admin";
+                ViewBag.DanhSachTheLoai = _theLoaiBlogRepository.LayDanhSachTheLoaiHienThi();
+                return View(blog);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LuuTamBlog(Blog blog, IFormFile? hinhAnhFile)
+        {
+            try
+            {
+                // Đọc Tags trực tiếp từ form nếu model binding không hoạt động
+                if (Request.Form.ContainsKey("Tags"))
+                {
+                    blog.Tags = Request.Form["Tags"].ToString();
+                }
+
+            // Lấy UserId từ user hiện tại
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser != null)
+            {
+                blog.UserId = currentUser.Id;
+                if (string.IsNullOrWhiteSpace(blog.TacGia))
+                {
+                    blog.TacGia = currentUser.UserName ?? currentUser.Email ?? "Admin";
+                }
+            }
+
+            // Upload hình ảnh nếu có
+            if (hinhAnhFile != null && hinhAnhFile.Length > 0)
+            {
+                var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "blogs");
+                if (!Directory.Exists(uploadsPath))
+                {
+                    Directory.CreateDirectory(uploadsPath);
+                }
+
+                var fileName = $"blog_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid():N}{Path.GetExtension(hinhAnhFile.FileName)}";
+                var filePath = Path.Combine(uploadsPath, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await hinhAnhFile.CopyToAsync(stream);
+                }
+
+                blog.HinhAnh = $"/uploads/blogs/{fileName}";
+            }
+
+            // Tự động cập nhật TheLoai từ TheLoaiBlog nếu có
+            if (blog.MaTheLoai.HasValue)
+            {
+                var theLoai = _theLoaiBlogRepository.LayTheLoaiTheoId(blog.MaTheLoai.Value);
+                if (theLoai != null)
+                {
+                    blog.TheLoai = theLoai.TenTheLoai;
+                }
+            }
+
+            // Xử lý IsPermalinkAuto từ form
+            if (Request.Form.ContainsKey("IsPermalinkAuto"))
+            {
+                var isPermalinkAutoValue = Request.Form["IsPermalinkAuto"].ToString();
+                blog.IsPermalinkAuto = isPermalinkAutoValue == "true" || isPermalinkAutoValue == "True";
+            }
+            else if (Request.Form.ContainsKey("permalinkType"))
+            {
+                blog.IsPermalinkAuto = Request.Form["permalinkType"].ToString() == "auto";
+            }
+
+            // Xử lý Permalink từ form
+            if (Request.Form.ContainsKey("Permalink"))
+            {
+                var permalinkValue = Request.Form["Permalink"].ToString();
+                if (!string.IsNullOrWhiteSpace(permalinkValue))
+                {
+                    blog.Permalink = permalinkValue.Trim();
+                    System.Diagnostics.Debug.WriteLine($"Permalink từ form (LuuTamBlog): '{blog.Permalink}'");
+                }
+            }
+            
+            // Tự động tạo permalink nếu IsPermalinkAuto = true và chưa có permalink
+            if (blog.IsPermalinkAuto && string.IsNullOrWhiteSpace(blog.Permalink))
+            {
+                blog.Permalink = GeneratePermalinkFromTitle(blog.TieuDe ?? string.Empty, blog.MaBlog > 0 ? blog.MaBlog : null);
+                System.Diagnostics.Debug.WriteLine($"Permalink tự động tạo (LuuTamBlog): '{blog.Permalink}'");
+            }
+            // Nếu IsPermalinkAuto = false, Permalink đã được lấy từ form ở trên
+
+            // Lưu bản nháp: DaDuyet = false, HienThi = false
+            blog.DaDuyet = false;
+            blog.HienThi = false;
+
+            // Kiểm tra xem blog đã tồn tại chưa (nếu có MaBlog)
+            Blog? result;
+            if (blog.MaBlog > 0)
+            {
+                // Cập nhật blog hiện có
+                var blogHienTai = _blogRepository.LayBlogTheoId(blog.MaBlog);
+                if (blogHienTai != null)
+                {
+                    blogHienTai.TieuDe = blog.TieuDe;
+                    blogHienTai.NoiDung = blog.NoiDung;
+                    blogHienTai.MoTaNgan = blog.MoTaNgan;
+                    blogHienTai.MaTheLoai = blog.MaTheLoai;
+                    blogHienTai.TheLoai = blog.TheLoai;
+                    blogHienTai.Tags = blog.Tags;
+                    blogHienTai.Permalink = blog.Permalink;
+                    blogHienTai.IsPermalinkAuto = blog.IsPermalinkAuto;
+                    blogHienTai.NgayCapNhat = DateTime.Now;
+                    blogHienTai.DaDuyet = false;
+                    blogHienTai.HienThi = false;
+                    
+                    if (!string.IsNullOrEmpty(blog.HinhAnh))
+                    {
+                        blogHienTai.HinhAnh = blog.HinhAnh;
+                    }
+
+                    result = _blogRepository.CapNhatBlog(blogHienTai);
+                }
+                else
+                {
+                    result = _blogRepository.ThemBlog(blog);
+                }
+            }
+            else
+            {
+                // Thêm blog mới
+                result = _blogRepository.ThemBlog(blog);
+            }
+
+                if (result != null)
+                {
+                    // Repository đã gọi SaveChanges() rồi, không cần gọi lại
+                    return Json(new { success = true, message = "Đã lưu bản nháp thành công!", maBlog = result.MaBlog });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Có lỗi xảy ra khi lưu bản nháp!" });
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log lỗi để debug
+                System.Diagnostics.Debug.WriteLine($"Lỗi khi lưu bản nháp: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                return Json(new { success = false, message = $"Có lỗi xảy ra: {ex.Message}" });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> QuayVeBanNhap(Blog blog, IFormFile? hinhAnhFile)
+        {
+            try
+            {
+                if (blog.MaBlog <= 0)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy blog!" });
+                }
+
+                // Đọc Tags trực tiếp từ form nếu model binding không hoạt động
+                if (Request.Form.ContainsKey("Tags"))
+                {
+                    blog.Tags = Request.Form["Tags"].ToString();
+                }
+
+                // Lấy blog hiện tại từ database
+                var blogHienTai = _blogRepository.LayBlogTheoId(blog.MaBlog);
+                if (blogHienTai == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy blog!" });
+                }
+
+                // Upload hình ảnh mới nếu có
+                if (hinhAnhFile != null && hinhAnhFile.Length > 0)
+                {
+                    // Xóa hình ảnh cũ nếu có
+                    if (!string.IsNullOrEmpty(blogHienTai.HinhAnh))
+                    {
+                        var oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", blogHienTai.HinhAnh.TrimStart('/'));
+                        if (System.IO.File.Exists(oldImagePath))
+                        {
+                            System.IO.File.Delete(oldImagePath);
+                        }
+                    }
+
+                    var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "blogs");
+                    if (!Directory.Exists(uploadsPath))
+                    {
+                        Directory.CreateDirectory(uploadsPath);
+                    }
+
+                    var fileName = $"blog_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid():N}{Path.GetExtension(hinhAnhFile.FileName)}";
+                    var filePath = Path.Combine(uploadsPath, fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await hinhAnhFile.CopyToAsync(stream);
+                    }
+
+                    blogHienTai.HinhAnh = $"/uploads/blogs/{fileName}";
+                }
+
+                // Tự động cập nhật TheLoai từ TheLoaiBlog nếu có
+                if (blog.MaTheLoai.HasValue)
+                {
+                    var theLoai = _theLoaiBlogRepository.LayTheLoaiTheoId(blog.MaTheLoai.Value);
+                    if (theLoai != null)
+                    {
+                        blog.TheLoai = theLoai.TenTheLoai;
+                    }
+                }
+
+                // Xử lý IsPermalinkAuto từ form
+                if (Request.Form.ContainsKey("IsPermalinkAuto"))
+                {
+                    var isPermalinkAutoValue = Request.Form["IsPermalinkAuto"].ToString();
+                    blog.IsPermalinkAuto = isPermalinkAutoValue == "true" || isPermalinkAutoValue == "True";
+                }
+                else if (Request.Form.ContainsKey("permalinkType"))
+                {
+                    blog.IsPermalinkAuto = Request.Form["permalinkType"].ToString() == "auto";
+                }
+
+                // Tự động tạo permalink nếu IsPermalinkAuto = true và chưa có permalink
+                if (blog.IsPermalinkAuto && string.IsNullOrWhiteSpace(blog.Permalink))
+                {
+                    blog.Permalink = GeneratePermalinkFromTitle(blog.TieuDe ?? string.Empty, blogHienTai.MaBlog);
+                }
+
+                // Cập nhật thông tin blog
+                blogHienTai.TieuDe = blog.TieuDe;
+                blogHienTai.NoiDung = blog.NoiDung;
+                blogHienTai.MoTaNgan = blog.MoTaNgan;
+                blogHienTai.MaTheLoai = blog.MaTheLoai;
+                blogHienTai.TheLoai = blog.TheLoai;
+                blogHienTai.Tags = blog.Tags;
+                blogHienTai.Permalink = blog.Permalink;
+                blogHienTai.IsPermalinkAuto = blog.IsPermalinkAuto;
+                blogHienTai.NgayCapNhat = DateTime.Now;
+                
+                // Chuyển về bản nháp: DaDang = false (và tự động reset các trạng thái khác)
+                blogHienTai.DaDang = false;
+                blogHienTai.DaDuyet = false;
+                blogHienTai.HienThi = false;
+
+                var result = _blogRepository.CapNhatBlog(blogHienTai);
+
+                if (result != null)
+                {
+                    return Json(new { success = true, message = "Đã chuyển về bản nháp thành công!" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Có lỗi xảy ra khi chuyển về bản nháp!" });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Lỗi khi chuyển về bản nháp: {ex.Message}");
+                return Json(new { success = false, message = $"Có lỗi xảy ra: {ex.Message}" });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult XemTruocBlog(Blog blog, IFormFile? hinhAnhFile)
+        {
+            // Xử lý hình ảnh tạm thời nếu có
+            if (hinhAnhFile != null && hinhAnhFile.Length > 0)
+            {
+                var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "blogs", "temp");
+                if (!Directory.Exists(uploadsPath))
+                {
+                    Directory.CreateDirectory(uploadsPath);
+                }
+
+                var fileName = $"temp_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid():N}{Path.GetExtension(hinhAnhFile.FileName)}";
+                var filePath = Path.Combine(uploadsPath, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    hinhAnhFile.CopyTo(stream);
+                }
+
+                blog.HinhAnh = $"/uploads/blogs/temp/{fileName}";
+            }
+
+            // Lấy thông tin thể loại nếu có
+            if (blog.MaTheLoai.HasValue)
+            {
+                var theLoai = _theLoaiBlogRepository.LayTheLoaiTheoId(blog.MaTheLoai.Value);
+                if (theLoai != null)
+                {
+                    blog.TheLoai = theLoai.TenTheLoai;
+                    blog.TheLoaiBlog = theLoai;
+                }
+            }
+
+            // Set thông tin tác giả
+            var currentUser = _userManager.GetUserAsync(User).Result;
+            if (currentUser != null && string.IsNullOrWhiteSpace(blog.TacGia))
+            {
+                blog.TacGia = currentUser.UserName ?? currentUser.Email ?? "Admin";
+            }
+
+            // Set ngày đăng
+            if (blog.NgayDang == default)
+            {
+                blog.NgayDang = DateTime.Now;
+            }
+
+            ViewBag.IsPreview = true;
+            return View(blog);
+        }
+
+        [HttpGet]
+        public IActionResult SuaBlog(int? id)
+        {
+            Blog blog;
+            
+            // Nếu id = null hoặc 0, tạo blog mới
+            if (id == null || id == 0)
+            {
+                var user = _userManager.GetUserAsync(User).Result;
+                blog = new Blog
+                {
+                    NgayDang = DateTime.Now,
+                    DaDang = false,   // Mặc định là bản nháp (chưa đăng)
+                    DaDuyet = false,  // Mặc định chưa duyệt
+                    HienThi = false,  // Mặc định không hiển thị
+                    IsPermalinkAuto = true // Mặc định là tự động
+                };
+                ViewBag.UserId = user?.Id;
+                ViewBag.TacGia = user?.HoTen ?? user?.UserName ?? "Admin";
+            }
+            else
+            {
+                // Sửa blog đã có
+                blog = _blogRepository.LayBlogTheoId(id.Value);
+                if (blog == null)
+                {
+                    TempData["Loi"] = "Không tìm thấy blog!";
+                    return RedirectToAction("Blog");
+                }
+                
+                // Debug: Log giá trị Tags khi load
+                System.Diagnostics.Debug.WriteLine($"Tags khi load blog để sửa: {blog.Tags}");
+                System.Diagnostics.Debug.WriteLine($"TacGia khi load blog để sửa: {blog.TacGia}");
+            }
+            
+            ViewBag.DanhSachTheLoai = _theLoaiBlogRepository.LayDanhSachTheLoaiHienThi();
+            return View(blog);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SuaBlog(Blog blog, IFormFile? hinhAnhFile)
+        {
+            // Kiểm tra xem là tạo mới hay cập nhật (định nghĩa sớm để tránh lỗi scope)
+            bool isCreateNew = blog.MaBlog == 0;
+            Blog? blogHienTai = null;
+            
+            // Đọc Tags trực tiếp từ form nếu model binding không hoạt động
+            if (Request.Form.ContainsKey("Tags"))
+            {
+                blog.Tags = Request.Form["Tags"].ToString();
+            }
+            
+            // Đọc TacGia trực tiếp từ form nếu model binding không hoạt động
+            if (Request.Form.ContainsKey("TacGia") && !string.IsNullOrWhiteSpace(Request.Form["TacGia"].ToString()))
+            {
+                blog.TacGia = Request.Form["TacGia"].ToString();
+            }
+            
+            if (!ModelState.IsValid)
+            {
+                ViewBag.DanhSachTheLoai = _theLoaiBlogRepository.LayDanhSachTheLoaiHienThi();
+                return View(blog);
+            }
+
+            // Tự động cập nhật TheLoai từ TheLoaiBlog nếu có
+            if (blog.MaTheLoai.HasValue)
+            {
+                var theLoai = _theLoaiBlogRepository.LayTheLoaiTheoId(blog.MaTheLoai.Value);
+                if (theLoai != null)
+                {
+                    blog.TheLoai = theLoai.TenTheLoai;
+                }
+            }
+            
+            if (!isCreateNew)
+            {
+                // Lấy blog hiện tại từ database để sử dụng sau này
+                blogHienTai = _blogRepository.LayBlogTheoId(blog.MaBlog);
+                if (blogHienTai == null)
+                {
+                    TempData["Loi"] = "Không tìm thấy blog!";
+                    return RedirectToAction("Blog");
+                }
+            }
+
+            // Xử lý IsPermalinkAuto từ form (ưu tiên hidden input, sau đó mới đến radio button)
+            if (Request.Form.ContainsKey("IsPermalinkAuto"))
+            {
+                var isPermalinkAutoValue = Request.Form["IsPermalinkAuto"].ToString();
+                blog.IsPermalinkAuto = isPermalinkAutoValue == "true" || isPermalinkAutoValue == "True";
+                System.Diagnostics.Debug.WriteLine($"IsPermalinkAuto từ hidden input: {isPermalinkAutoValue} -> {blog.IsPermalinkAuto}");
+            }
+            else if (Request.Form.ContainsKey("permalinkType"))
+            {
+                blog.IsPermalinkAuto = Request.Form["permalinkType"].ToString() == "auto";
+                System.Diagnostics.Debug.WriteLine($"IsPermalinkAuto từ radio button: {Request.Form["permalinkType"]} -> {blog.IsPermalinkAuto}");
+            }
+            else if (blogHienTai != null)
+            {
+                // Giữ nguyên giá trị hiện tại từ database (chỉ khi đang sửa)
+                blog.IsPermalinkAuto = blogHienTai.IsPermalinkAuto;
+                System.Diagnostics.Debug.WriteLine($"IsPermalinkAuto giữ nguyên từ database: {blog.IsPermalinkAuto}");
+            }
+            
+            System.Diagnostics.Debug.WriteLine($"IsPermalinkAuto cuối cùng: {blog.IsPermalinkAuto}");
+            
+            // Xử lý Permalink từ form
+            if (Request.Form.ContainsKey("Permalink"))
+            {
+                var permalinkValue = Request.Form["Permalink"].ToString();
+                if (!string.IsNullOrWhiteSpace(permalinkValue))
+                {
+                    blog.Permalink = permalinkValue.Trim();
+                    System.Diagnostics.Debug.WriteLine($"Permalink từ form: '{blog.Permalink}'");
+                }
+            }
+            
+            // Tự động tạo permalink nếu IsPermalinkAuto = true và chưa có permalink
+            if (blog.IsPermalinkAuto && string.IsNullOrWhiteSpace(blog.Permalink))
+            {
+                int? excludeMaBlog = blogHienTai != null ? blogHienTai.MaBlog : (blog.MaBlog > 0 ? blog.MaBlog : null);
+                blog.Permalink = GeneratePermalinkFromTitle(blog.TieuDe ?? string.Empty, excludeMaBlog);
+                System.Diagnostics.Debug.WriteLine($"Permalink tự động tạo: '{blog.Permalink}'");
+            }
+            // Nếu IsPermalinkAuto = false, Permalink đã được lấy từ form ở trên
+
+            // Upload hình ảnh mới nếu có
+            if (hinhAnhFile != null && hinhAnhFile.Length > 0)
+            {
+                // Xóa hình ảnh cũ nếu có (chỉ khi đang sửa)
+                if (blogHienTai != null && !string.IsNullOrEmpty(blogHienTai.HinhAnh))
+                {
+                    var oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", blogHienTai.HinhAnh.TrimStart('/'));
+                    if (System.IO.File.Exists(oldImagePath))
+                    {
+                        System.IO.File.Delete(oldImagePath);
+                    }
+                }
+
+                var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "blogs");
+                if (!Directory.Exists(uploadsPath))
+                {
+                    Directory.CreateDirectory(uploadsPath);
+                }
+
+                var fileName = $"blog_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid():N}{Path.GetExtension(hinhAnhFile.FileName)}";
+                var filePath = Path.Combine(uploadsPath, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await hinhAnhFile.CopyToAsync(stream);
+                }
+
+                blog.HinhAnh = $"/uploads/blogs/{fileName}";
+            }
+            else if (blogHienTai != null)
+            {
+                // Giữ nguyên hình ảnh cũ (chỉ khi đang sửa)
+                blog.HinhAnh = blogHienTai.HinhAnh;
+            }
+
+            // Lấy UserId từ user hiện tại
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser != null)
+            {
+                if (isCreateNew)
+                {
+                    blog.UserId = currentUser.Id;
+                    // Tự động set TacGia từ User nếu chưa có
+                    if (string.IsNullOrWhiteSpace(blog.TacGia))
+                    {
+                        blog.TacGia = currentUser.HoTen ?? currentUser.UserName ?? currentUser.Email ?? "Admin";
+                    }
+                }
+                else
+                {
+                    // Giữ nguyên UserId và các trường không được cập nhật
+                    blog.UserId = blogHienTai.UserId;
+                    blog.NgayDang = blogHienTai.NgayDang;
+                    blog.LuotXem = blogHienTai.LuotXem;
+                    
+                    // Giữ nguyên trạng thái DaDang từ database (sẽ được xử lý sau)
+                    blog.DaDang = blogHienTai.DaDang;
+                    
+                    // Đảm bảo TacGia được giữ nguyên nếu không có trong form
+                    if (string.IsNullOrWhiteSpace(blog.TacGia))
+                    {
+                        blog.TacGia = blogHienTai.TacGia;
+                    }
+                }
+            }
+
+            // ✅ Kiểm tra xem người dùng nhấn nút "Đăng" hay "Cập nhật"
+            // Nếu nhấn nút "Đăng" (có action=dang trong form) -> set DaDang = true, DaDuyet = true, HienThi = true
+            var actionValue = Request.Form["action"].ToString();
+            System.Diagnostics.Debug.WriteLine($"========== DEBUG ACTION ==========");
+            System.Diagnostics.Debug.WriteLine($"actionValue từ form: '{actionValue}'");
+            System.Diagnostics.Debug.WriteLine($"Trạng thái TRƯỚC khi xử lý action:");
+            System.Diagnostics.Debug.WriteLine($"  - DaDang: {blog.DaDang}");
+            System.Diagnostics.Debug.WriteLine($"  - DaDuyet: {blog.DaDuyet}");
+            System.Diagnostics.Debug.WriteLine($"  - HienThi: {blog.HienThi}");
+            
+            if (actionValue == "dang")
+            {
+                blog.DaDang = true;
+                blog.DaDuyet = true;
+                blog.HienThi = true;
+                System.Diagnostics.Debug.WriteLine("✅ Người dùng nhấn nút ĐĂNG -> set DaDang = true, DaDuyet = true, HienThi = true");
+            }
+            else
+            {
+                // Nếu không phải nhấn "Đăng" mà là "Cập nhật" hoặc tạo mới thông thường
+                // Giữ nguyên các giá trị từ form hoặc database (đã xử lý ở trên)
+                System.Diagnostics.Debug.WriteLine($"⚠️ Không phải nút ĐĂNG (action = '{actionValue}')");
+            }
+            
+            System.Diagnostics.Debug.WriteLine($"Trạng thái SAU khi xử lý action:");
+            System.Diagnostics.Debug.WriteLine($"  - DaDang: {blog.DaDang}");
+            System.Diagnostics.Debug.WriteLine($"  - DaDuyet: {blog.DaDuyet}");
+            System.Diagnostics.Debug.WriteLine($"  - HienThi: {blog.HienThi}");
+            System.Diagnostics.Debug.WriteLine($"==================================");
+            
+            // Debug: Log giá trị trước khi lưu
+            System.Diagnostics.Debug.WriteLine($"Tags trước khi lưu: {blog.Tags}");
+            System.Diagnostics.Debug.WriteLine($"TacGia trước khi lưu: {blog.TacGia}");
+
+            Blog? result;
+            if (isCreateNew)
+            {
+                // Tạo blog mới
+                result = _blogRepository.ThemBlog(blog);
+                
+                // Debug: Log giá trị sau khi tạo
+                if (result != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Tags sau khi tạo: {result.Tags}");
+                    System.Diagnostics.Debug.WriteLine($"TacGia sau khi tạo: {result.TacGia}");
+                }
+                
+                if (result != null)
+                {
+                    TempData["ThanhCong"] = "Đã lưu blog thành công!";
+                    return RedirectToAction("Blog");
+                }
+                else
+                {
+                    TempData["Loi"] = "Có lỗi xảy ra khi lưu blog!";
+                    var user = _userManager.GetUserAsync(User).Result;
+                    ViewBag.UserId = user?.Id;
+                    ViewBag.TacGia = user?.HoTen ?? user?.UserName ?? "Admin";
+                    ViewBag.DanhSachTheLoai = _theLoaiBlogRepository.LayDanhSachTheLoaiHienThi();
+                    return View(blog);
+                }
+            }
+            else
+            {
+                // Cập nhật blog hiện có
+                result = _blogRepository.CapNhatBlog(blog);
+                
+                // Debug: Log giá trị sau khi cập nhật
+                if (result != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Tags sau khi cập nhật: {result.Tags}");
+                    System.Diagnostics.Debug.WriteLine($"TacGia sau khi cập nhật: {result.TacGia}");
+                    System.Diagnostics.Debug.WriteLine($"========== VERIFY SAU KHI LƯU DATABASE ==========");
+                    System.Diagnostics.Debug.WriteLine($"  - DaDang: {result.DaDang}");
+                    System.Diagnostics.Debug.WriteLine($"  - DaDuyet: {result.DaDuyet}");
+                    System.Diagnostics.Debug.WriteLine($"  - HienThi: {result.HienThi}");
+                    System.Diagnostics.Debug.WriteLine($"=================================================");
+                }
+                
+                if (result != null)
+                {
+                    TempData["ThanhCong"] = "Đã cập nhật blog thành công!";
+                    return RedirectToAction("Blog");
+                }
+                else
+                {
+                    TempData["Loi"] = "Có lỗi xảy ra khi cập nhật blog!";
+                    ViewBag.DanhSachTheLoai = _theLoaiBlogRepository.LayDanhSachTheLoaiHienThi();
+                    return View(blog);
+                }
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult XoaBlog(int id)
+        {
+            var blog = _blogRepository.LayBlogTheoId(id);
+            if (blog == null)
+            {
+                TempData["Loi"] = "Không tìm thấy blog!";
+                return RedirectToAction("Blog");
+            }
+
+            // Xóa hình ảnh nếu có
+            if (!string.IsNullOrEmpty(blog.HinhAnh))
+            {
+                var imagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", blog.HinhAnh.TrimStart('/'));
+                if (System.IO.File.Exists(imagePath))
+                {
+                    System.IO.File.Delete(imagePath);
+                }
+            }
+
+            var result = _blogRepository.XoaBlog(id);
+            if (result)
+            {
+                TempData["ThanhCong"] = "Đã xóa blog thành công!";
+            }
+            else
+            {
+                TempData["Loi"] = "Có lỗi xảy ra khi xóa blog!";
+            }
+
+            return RedirectToAction("Blog");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult DangBlog(int id, bool daDang)
+        {
+            var blog = _blogRepository.LayBlogTheoId(id);
+            if (blog == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy blog!" });
+            }
+
+            blog.DaDang = daDang;
+            // Khi hủy đăng (chuyển về bản nháp), reset các trạng thái khác
+            if (!daDang)
+            {
+                blog.DaDuyet = false;
+                blog.HienThi = false;
+            }
+            var result = _blogRepository.CapNhatBlog(blog);
+            
+            if (result != null)
+            {
+                return Json(new { success = true, message = daDang ? "Đã đăng blog!" : "Đã chuyển về bản nháp!" });
+            }
+            else
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra!" });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult DuyetBlog(int id, bool daDuyet)
+        {
+            var blog = _blogRepository.LayBlogTheoId(id);
+            if (blog == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy blog!" });
+            }
+
+            // Chỉ cho phép duyệt nếu blog đã đăng
+            if (!blog.DaDang)
+            {
+                return Json(new { success = false, message = "Blog phải được đăng trước khi duyệt!" });
+            }
+
+            blog.DaDuyet = daDuyet;
+            // Khi hủy duyệt, cũng hủy hiển thị
+            if (!daDuyet)
+            {
+                blog.HienThi = false;
+            }
+            var result = _blogRepository.CapNhatBlog(blog);
+            
+            if (result != null)
+            {
+                return Json(new { success = true, message = daDuyet ? "Đã duyệt blog!" : "Đã hủy duyệt blog!" });
+            }
+            else
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra!" });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult HienThiBlog(int id, bool hienThi)
+        {
+            var blog = _blogRepository.LayBlogTheoId(id);
+            if (blog == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy blog!" });
+            }
+
+            // Chỉ cho phép hiển thị nếu blog đã đăng và đã duyệt
+            if (hienThi && (!blog.DaDang || !blog.DaDuyet))
+            {
+                return Json(new { success = false, message = "Blog phải được đăng và duyệt trước khi hiển thị!" });
+            }
+
+            blog.HienThi = hienThi;
+            var result = _blogRepository.CapNhatBlog(blog);
+            
+            if (result != null)
+            {
+                return Json(new { success = true, message = hienThi ? "Đã hiển thị blog!" : "Đã ẩn blog!" });
+            }
+            else
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra!" });
+            }
+        }
+
+        // ========== THE LOAI BLOG MANAGEMENT ==========
+        public IActionResult TheLoaiBlog(string? search = null)
+        {
+            var danhSachTheLoai = _theLoaiBlogRepository.LayDanhSachTheLoai();
+            
+            // Tìm kiếm
+            if (!string.IsNullOrEmpty(search))
+            {
+                var searchLower = search.ToLower();
+                danhSachTheLoai = danhSachTheLoai.Where(t =>
+                    t.TenTheLoai != null && t.TenTheLoai.ToLower().Contains(searchLower)
+                ).ToList();
+            }
+            
+            ViewBag.Search = search;
+            
+            return View(danhSachTheLoai);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ThemTheLoaiBlog(TheLoaiBlog theLoai)
+        {
+            if (string.IsNullOrWhiteSpace(theLoai.TenTheLoai))
+            {
+                TempData["Loi"] = "Vui lòng điền tên thể loại!";
+                return RedirectToAction("TheLoaiBlog");
+            }
+
+            // Set default values
+            theLoai.MoTa = null;
+            theLoai.Icon = null;
+            theLoai.MauSac = null;
+            theLoai.ThuTu = 0;
+            theLoai.HienThi = true;
+
+            var result = _theLoaiBlogRepository.ThemTheLoai(theLoai);
+            if (result != null)
+            {
+                TempData["ThanhCong"] = "Đã thêm thể loại blog thành công!";
+            }
+            else
+            {
+                TempData["Loi"] = "Có lỗi xảy ra khi thêm thể loại blog!";
+            }
+
+            return RedirectToAction("TheLoaiBlog");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult SuaTheLoaiBlog(TheLoaiBlog theLoai)
+        {
+            if (string.IsNullOrWhiteSpace(theLoai.TenTheLoai))
+            {
+                TempData["Loi"] = "Vui lòng điền tên thể loại!";
+                return RedirectToAction("TheLoaiBlog");
+            }
+
+            // Get existing record to preserve other fields
+            var theLoaiHienTai = _theLoaiBlogRepository.LayTheLoaiTheoId(theLoai.MaTheLoai);
+            if (theLoaiHienTai == null)
+            {
+                TempData["Loi"] = "Không tìm thấy thể loại!";
+                return RedirectToAction("TheLoaiBlog");
+            }
+
+            // Only update name
+            theLoaiHienTai.TenTheLoai = theLoai.TenTheLoai;
+
+            var result = _theLoaiBlogRepository.CapNhatTheLoai(theLoaiHienTai);
+            if (result != null)
+            {
+                TempData["ThanhCong"] = "Đã cập nhật thể loại blog thành công!";
+            }
+            else
+            {
+                TempData["Loi"] = "Có lỗi xảy ra khi cập nhật thể loại blog!";
+            }
+
+            return RedirectToAction("TheLoaiBlog");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult XoaTheLoaiBlog(int id)
+        {
+            var result = _theLoaiBlogRepository.XoaTheLoai(id);
+            if (result)
+            {
+                TempData["ThanhCong"] = "Đã xóa thể loại blog thành công!";
+            }
+            else
+            {
+                TempData["Loi"] = "Không thể xóa thể loại này vì đang có blog sử dụng hoặc có lỗi xảy ra!";
+            }
+
+            return RedirectToAction("TheLoaiBlog");
+        }
+
+        /// <summary>
+        /// Tạo permalink từ tiêu đề bài viết
+        /// </summary>
+        private string GeneratePermalinkFromTitle(string title, int? excludeMaBlog = null)
+        {
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                return GenerateUniquePermalink("blog-post", excludeMaBlog);
+            }
+
+            // Chuyển thành chữ thường
+            var permalink = title.ToLowerInvariant();
+
+            // Loại bỏ dấu tiếng Việt
+            permalink = System.Text.RegularExpressions.Regex.Replace(
+                permalink.Normalize(System.Text.NormalizationForm.FormD),
+                @"\p{Mn}",
+                string.Empty
+            );
+
+            // Thay thế ký tự đặc biệt và khoảng trắng bằng dấu gạch ngang
+            permalink = System.Text.RegularExpressions.Regex.Replace(permalink, @"[^a-z0-9]+", "-");
+
+            // Loại bỏ dấu gạch ngang ở đầu và cuối
+            permalink = permalink.Trim('-');
+
+            // Nếu rỗng sau khi xử lý, trả về giá trị mặc định
+            if (string.IsNullOrWhiteSpace(permalink))
+            {
+                permalink = "blog-post";
+            }
+
+            // Tạo permalink duy nhất (thêm số phía sau nếu trùng)
+            return GenerateUniquePermalink(permalink, excludeMaBlog);
+        }
+
+        private string GenerateUniquePermalink(string basePermalink, int? excludeMaBlog = null)
+        {
+            // Kiểm tra xem permalink cơ bản đã tồn tại chưa
+            var existingBlog = _blogRepository.LayBlogTheoPermalink(basePermalink);
+            
+            // Nếu permalink chưa tồn tại hoặc là blog hiện tại đang sửa, trả về permalink cơ bản
+            if (existingBlog == null || (excludeMaBlog.HasValue && existingBlog.MaBlog == excludeMaBlog.Value))
+            {
+                return basePermalink;
+            }
+
+            // Nếu permalink đã tồn tại, thử thêm số phía sau (từ 1 đến 999)
+            for (int i = 1; i <= 999; i++)
+            {
+                var newPermalink = $"{basePermalink}_{i}";
+                var checkBlog = _blogRepository.LayBlogTheoPermalink(newPermalink);
+                
+                // Nếu permalink chưa tồn tại hoặc là blog hiện tại đang sửa, trả về permalink mới
+                if (checkBlog == null || (excludeMaBlog.HasValue && checkBlog.MaBlog == excludeMaBlog.Value))
+                {
+                    return newPermalink;
+                }
+            }
+
+            // Nếu không tìm được permalink duy nhất trong phạm vi 1-999, thêm timestamp
+            return $"{basePermalink}_{DateTime.Now:yyyyMMddHHmmss}";
         }
     }
 }

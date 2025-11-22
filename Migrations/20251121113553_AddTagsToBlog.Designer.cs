@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Unicareer.Data;
 
@@ -11,9 +12,11 @@ using Unicareer.Data;
 namespace Unicareer.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251121113553_AddTagsToBlog")]
+    partial class AddTagsToBlog
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -314,9 +317,6 @@ namespace Unicareer.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaBlog"));
 
-                    b.Property<bool>("DaDang")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("DaDuyet")
                         .HasColumnType("bit");
 
@@ -325,9 +325,6 @@ namespace Unicareer.Migrations
 
                     b.Property<string>("HinhAnh")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsPermalinkAuto")
-                        .HasColumnType("bit");
 
                     b.Property<int>("LuotXem")
                         .HasColumnType("int");

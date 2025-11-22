@@ -1,7 +1,7 @@
-@model List<Unicareer.Models.UngVien>
+@model Unicareer.Models.ViewModels.UngVienManagementViewModel
 
 @{
-    ViewData["Title"] = "Quan ly Ung vien";
+    ViewData["Title"] = "Quản lý Ứng viên";
 }
 
 <div class="page-header-section mb-4">
@@ -21,46 +21,60 @@
 </div>
 
 <div class="filter-section mb-4">
-    <div class="row g-3">
-        <div class="col-lg-4 col-md-6">
-            <div class="search-wrapper">
-                <i class="bi bi-search search-icon"></i>
-                <input type="text" class="form-control search-input" id="timKiemInput" placeholder="Tìm kiếm theo họ tên, email...">
+    <form id="searchForm" method="get" action="@Url.Action("UngVien", "Admin", new { area = "Admin" })">
+        <input type="hidden" id="pageNumberInput" name="pageNumber" value="@Model.PageNumber" />
+        <div class="row g-3">
+            <div class="col-lg-4 col-md-6">
+                <div class="search-wrapper">
+                    <i class="bi bi-search search-icon"></i>
+                    <input type="text" class="form-control search-input" id="timKiemInput" name="search" value="@Model.SearchTerm" placeholder="Tìm kiếm theo họ tên, email...">
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="filter-select-wrapper">
+                    <i class="bi bi-briefcase filter-icon"></i>
+                    <select class="form-select filter-select" id="locNganhNghe" name="nganhNghe">
+                        <option value="">Tất cả ngành nghề</option>
+                        @foreach (var nganhNghe in Model.DanhSachNganhNghe)
+                        {
+                            @if (Model.NganhNgheFilter == nganhNghe.TenNganhNghe)
+                            {
+                                <option value="@nganhNghe.TenNganhNghe" selected>@nganhNghe.TenNganhNghe</option>
+                            }
+                            else
+                            {
+                                <option value="@nganhNghe.TenNganhNghe">@nganhNghe.TenNganhNghe</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="filter-select-wrapper">
+                    <i class="bi bi-award filter-icon"></i>
+                    <select class="form-select filter-select" id="locKinhNghiem" name="kinhNghiem">
+                        <option value="">Tất cả kinh nghiệm</option>
+                        @foreach (var kn in Model.DanhSachKinhNghiem)
+                        {
+                            @if (Model.KinhNghiemFilter == kn)
+                            {
+                                <option value="@kn" selected>@kn</option>
+                            }
+                            else
+                            {
+                                <option value="@kn">@kn</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-6">
+                <button class="btn btn-primary w-100 filter-btn" type="submit" id="btnTimKiem">
+                    <i class="bi bi-funnel-fill"></i> Lọc
+                </button>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6">
-            <div class="filter-select-wrapper">
-                <i class="bi bi-briefcase filter-icon"></i>
-                <select class="form-select filter-select" id="locNganhNghe">
-                    <option value="">Tất cả ngành nghề</option>
-                    <option value="Cong nghe thong tin">Công nghệ thông tin</option>
-                    <option value="Kinh doanh">Kinh doanh</option>
-                    <option value="Ke toan - Tai chinh">Kế toán - Tài chính</option>
-                    <option value="Nhan su">Nhân sự</option>
-                    <option value="Thiet ke do hoa">Thiết kế đồ họa</option>
-                    <option value="Truyen thong - Media">Truyền thông - Media</option>
-                </select>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6">
-            <div class="filter-select-wrapper">
-                <i class="bi bi-award filter-icon"></i>
-                <select class="form-select filter-select" id="locKinhNghiem">
-                    <option value="">Tất cả kinh nghiệm</option>
-                    <option value="Fresher">Fresher</option>
-                    <option value="1 nam">1 năm</option>
-                    <option value="2 nam">2 năm</option>
-                    <option value="3 nam">3 năm</option>
-                    <option value="4 nam">4 năm +</option>
-                </select>
-            </div>
-        </div>
-        <div class="col-lg-2 col-md-6">
-            <button class="btn btn-primary w-100 filter-btn" type="button" id="btnTimKiem">
-                <i class="bi bi-funnel-fill"></i> Lọc
-            </button>
-        </div>
-    </div>
+    </form>
 </div>
 
 <div class="row">
@@ -75,18 +89,16 @@
                             <th>Email / SĐT</th>
                             <th>Ngày sinh</th>
                             <th>Địa chỉ</th>
-                            <th>Ngành nghề</th>
-                            <th>Kinh nghiệm</th>
-                            <th>Số lần UT</th>
+                            <th>Số lần ứng tuyển</th>
                             <th>Thao tác</th>
                         </tr>
                     </thead>
                         <tbody>
-                            @foreach (var uv in Model)
+                            @foreach (var uv in Model.UngViens)
                             {
                                 var tuoi = DateTime.Now.Year - uv.NgaySinh.Year;
                                 
-                                <tr data-ma="@uv.MaUngVien" data-nganh="@uv.NganhNghe" data-kinhnghiem="@uv.KinhNghiem">
+                                <tr data-ma="@uv.MaUngVien">
                                     <td>@uv.MaUngVien</td>
                                     <td>
                                         <strong>@uv.HoTen</strong>
@@ -99,32 +111,12 @@
                                     </td>
                                     <td>@uv.NgaySinh.ToString("dd/MM/yyyy")</td>
                                     <td>@uv.DiaChi</td>
-                                    <td><span class="badge border border-dark text-dark">@uv.NganhNghe</span></td>
-                                    <td><span class="badge border border-dark text-dark">@uv.KinhNghiem</span></td>
                                     <td><span class="badge border border-dark text-dark">@uv.SoLanUngTuyen</span></td>
                                     <td>
-                                        <button class="btn btn-sm btn-outline-dark btn-xem" 
-                                                data-ma="@uv.MaUngVien"
-                                                data-hoten="@uv.HoTen"
-                                                data-email="@uv.Email"
-                                                data-sdt="@uv.SoDienThoai"
-                                                data-ngaysinh="@uv.NgaySinh.ToString("dd/MM/yyyy")"
-                                                data-gioitinh="@uv.GioiTinh"
-                                                data-diachi="@uv.DiaChi"
-                                                data-hocvan="@uv.HocVan"
-                                                data-kinhnghiem="@uv.KinhNghiem"
-                                                data-kynang="@uv.KyNang"
-                                                data-nganhnghe="@uv.NganhNghe"
-                                                data-linkcv="@uv.LinkCV"
-                                                data-soluong="@uv.SoLanUngTuyen"
-                                                data-ngaydk="@uv.NgayDangKy.ToString("dd/MM/yyyy")">
+                                        <a href="@Url.Action("ChiTietUngVien", "Admin", new { area = "Admin", id = uv.MaUngVien })" 
+                                           class="btn btn-sm btn-outline-dark" title="Xem chi tiết">
                                             <i class="bi bi-eye"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-secondary btn-cv" 
-                                                data-linkcv="@uv.LinkCV"
-                                                title="Xem CV">
-                                            <i class="bi bi-file-earmark-pdf"></i>
-                                        </button>
+                                        </a>
                                         <button class="btn btn-sm btn-outline-danger btn-xoa" data-ma="@uv.MaUngVien">
                                             <i class="bi bi-trash"></i>
                                         </button>
@@ -135,6 +127,103 @@
                     </table>
                 </div>
             </div>
+            
+            <!-- Pagination -->
+            @if (Model.TotalPages > 1)
+            {
+                <nav aria-label="Phân trang" style="margin-top: 30px;">
+                    <ul class="pagination justify-content-center">
+                        @if (Model.PageNumber > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">
+                                    <i class="bi bi-chevron-double-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(Model.PageNumber - 1))">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-double-left"></i></span>
+                            </li>
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                            </li>
+                        }
+
+                        @{
+                            int startPage = Math.Max(1, Model.PageNumber - 2);
+                            int endPage = Math.Min(Model.TotalPages, Model.PageNumber + 2);
+                        }
+
+                        @if (startPage > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">1</a>
+                            </li>
+                            @if (startPage > 2)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                        }
+
+                        @for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@i)">@i</a>
+                            </li>
+                        }
+
+                        @if (endPage < Model.TotalPages)
+                        {
+                            @if (endPage < Model.TotalPages - 1)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@Model.TotalPages)">@Model.TotalPages</a>
+                            </li>
+                        }
+
+                        @if (Model.PageNumber < Model.TotalPages)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(Model.PageNumber + 1))">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@Model.TotalPages)">
+                                    <i class="bi bi-chevron-double-right"></i>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                            </li>
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-double-right"></i></span>
+                            </li>
+                        }
+                    </ul>
+                    <div class="pagination-info" style="text-align: center; margin-top: 15px; color: #718096; font-size: 0.9rem;">
+                        Hiển thị <strong>@((Model.PageNumber - 1) * Model.PageSize + 1)</strong> - 
+                        <strong>@(Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount))</strong> 
+                        trong tổng số <strong>@Model.TotalCount</strong> ứng viên
+                    </div>
+                </nav>
+            }
         </div>
     </div>
 </div>
@@ -148,7 +237,7 @@
             </div>
             <div class="stat-info">
                 <h6 class="stat-label">Tổng ứng viên</h6>
-                <h3 class="stat-number">@Model.Count</h3>
+                <h3 class="stat-number">@Model.TotalUngVien</h3>
             </div>
         </div>
     </div>
@@ -159,7 +248,7 @@
             </div>
             <div class="stat-info">
                 <h6 class="stat-label">Ứng viên IT</h6>
-                <h3 class="stat-number">@Model.Count(u => u.NganhNghe == "Cong nghe thong tin")</h3>
+                <h3 class="stat-number">@Model.TotalUngVienIT</h3>
             </div>
         </div>
     </div>
@@ -170,7 +259,7 @@
             </div>
             <div class="stat-info">
                 <h6 class="stat-label">Tổng ứng tuyển</h6>
-                <h3 class="stat-number">@Model.Sum(u => u.SoLanUngTuyen)</h3>
+                <h3 class="stat-number">@Model.TotalUngTuyen</h3>
             </div>
         </div>
     </div>
@@ -181,55 +270,12 @@
             </div>
             <div class="stat-info">
                 <h6 class="stat-label">TB ứng tuyển/người</h6>
-                <h3 class="stat-number">@(Model.Any() ? ((int)Model.Average(u => u.SoLanUngTuyen)) : 0)</h3>
+                <h3 class="stat-number">@Model.TrungBinhUngTuyenPerUngVien</h3>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal Xem chi tiet -->
-<div class="modal fade" id="xemChiTietModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Thong tin Ung vien</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6 class="text-primary">Thong tin ca nhan</h6>
-                        <p><strong>Ho ten:</strong> <span id="chiTietHoTen"></span></p>
-                        <p><strong>Ngay sinh:</strong> <span id="chiTietNgaySinh"></span></p>
-                        <p><strong>Gioi tinh:</strong> <span id="chiTietGioiTinh"></span></p>
-                        <p><strong>Dia chi:</strong> <span id="chiTietDiaChi"></span></p>
-                    </div>
-                    <div class="col-md-6">
-                        <h6 class="text-primary">Lien he</h6>
-                        <p><strong>Email:</strong> <span id="chiTietEmail"></span></p>
-                        <p><strong>So dien thoai:</strong> <span id="chiTietSDT"></span></p>
-                        <p><strong>Link CV:</strong> <a href="#" id="chiTietLinkCV" target="_blank">Xem CV</a></p>
-                    </div>
-                </div>
-                <hr/>
-                <div class="row mt-3">
-                    <div class="col-12">
-                        <h6 class="text-primary">Thong tin nghe nghiep</h6>
-                        <p><strong>Hoc van:</strong> <span id="chiTietHocVan"></span></p>
-                        <p><strong>Nganh nghe:</strong> <span id="chiTietNganhNghe"></span></p>
-                        <p><strong>Kinh nghiem:</strong> <span id="chiTietKinhNghiem"></span></p>
-                        <p><strong>Ky nang:</strong> <span id="chiTietKyNang"></span></p>
-                        <p><strong>So lan ung tuyen:</strong> <span id="chiTietSoLuong"></span></p>
-                        <p><strong>Ngay dang ky:</strong> <span id="chiTietNgayDK"></span></p>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Dong</button>
-            </div>
-        </div>
-    </div>
-</div>
 
 <style>
     /* Page Header */
@@ -498,68 +544,138 @@
         color: #212529;
         margin: 0;
     }
+
+    /* Pagination Styles */
+    .pagination {
+        margin: 0;
+        padding: 0;
+    }
+
+    .pagination .page-item {
+        margin: 0 2px;
+    }
+
+    .pagination .page-link {
+        color: #667eea;
+        border: 1px solid #e2e8f0;
+        padding: 8px 12px;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+
+    .pagination .page-link:hover {
+        background: #f3e8ff;
+        border-color: #667eea;
+        color: #667eea;
+    }
+
+    .pagination .page-item.active .page-link {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: #667eea;
+        color: white;
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: #cbd5e0;
+        cursor: not-allowed;
+        background: #f7fafc;
+    }
+
+    .pagination-info {
+        text-align: center;
+        margin-top: 15px;
+        color: #718096;
+        font-size: 0.9rem;
+    }
+
+    /* Tab Styles */
+    .nav-tabs {
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .nav-tabs .nav-link {
+        border: none;
+        border-bottom: 3px solid transparent;
+        color: #6c757d;
+        font-weight: 600;
+        padding: 12px 24px;
+        transition: all 0.3s ease;
+    }
+
+    .nav-tabs .nav-link:hover {
+        border-bottom-color: #667eea;
+        color: #667eea;
+    }
+
+    .nav-tabs .nav-link.active {
+        color: #667eea;
+        border-bottom-color: #667eea;
+        background: transparent;
+    }
+
+    .nav-tabs .nav-link .badge {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+    }
+
+    #danhSachTinTuyenDung table {
+        margin-bottom: 0;
+    }
+
+    #danhSachTinTuyenDung thead {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+
+    #danhSachTinTuyenDung thead th {
+        border: none;
+        padding: 12px 10px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #495057;
+    }
+
+    #danhSachTinTuyenDung tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #f1f3f5;
+    }
+
+    #danhSachTinTuyenDung tbody tr:hover {
+        background: linear-gradient(90deg, rgba(102, 126, 234, 0.05) 0%, transparent 100%);
+    }
+
 </style>
 
 @section Scripts {
     <script>
         $(document).ready(function() {
-            // Tim kiem va loc
-            $('#btnTimKiem, #timKiemInput').on('click keyup', function(e) {
-                if (e.type === 'keyup' && e.keyCode !== 13) return;
-                locDuLieu();
+            // Hàm chuyển trang
+            window.goToPage = function(pageNumber) {
+                $('#pageNumberInput').val(pageNumber);
+                $('#pageNumberInput').data('pagination-click', true);
+                $('#searchForm').submit();
+            };
+
+            // Khi submit form tìm kiếm, reset về trang 1
+            $('#searchForm').on('submit', function() {
+                // Nếu không phải là click phân trang, reset về trang 1
+                if (!$('#pageNumberInput').data('pagination-click')) {
+                    $('#pageNumberInput').val(1);
+                }
+                $('#pageNumberInput').removeData('pagination-click');
             });
 
+            // Đánh dấu khi click phân trang
+            $(document).on('click', '.page-link', function() {
+                $('#pageNumberInput').data('pagination-click', true);
+            });
+
+            // Khi thay đổi filter, reset về trang 1 và submit
             $('#locNganhNghe, #locKinhNghiem').on('change', function() {
-                locDuLieu();
-            });
-
-            function locDuLieu() {
-                var tuKhoa = $('#timKiemInput').val().toLowerCase();
-                var nganhNghe = $('#locNganhNghe').val();
-                var kinhNghiem = $('#locKinhNghiem').val();
-
-                $('#bangUngVien tbody tr').each(function() {
-                    var row = $(this);
-                    var hoTen = row.find('td:eq(1)').text().toLowerCase();
-                    var email = row.find('td:eq(2)').text().toLowerCase();
-                    var nganhRow = row.data('nganh');
-                    var knRow = row.data('kinhnghiem');
-                    
-                    var khopTuKhoa = tuKhoa === '' || hoTen.includes(tuKhoa) || email.includes(tuKhoa);
-                    var khopNganh = nganhNghe === '' || nganhRow === nganhNghe;
-                    var khopKN = kinhNghiem === '' || knRow.includes(kinhNghiem.replace(' +', ''));
-                    
-                    if (khopTuKhoa && khopNganh && khopKN) {
-                        row.show();
-                    } else {
-                        row.hide();
-                    }
-                });
-            }
-
-            // Xem chi tiet
-            $('.btn-xem').click(function() {
-                $('#chiTietHoTen').text($(this).data('hoten'));
-                $('#chiTietNgaySinh').text($(this).data('ngaysinh'));
-                $('#chiTietGioiTinh').text($(this).data('gioitinh'));
-                $('#chiTietDiaChi').text($(this).data('diachi'));
-                $('#chiTietEmail').text($(this).data('email'));
-                $('#chiTietSDT').text($(this).data('sdt'));
-                $('#chiTietLinkCV').attr('href', $(this).data('linkcv'));
-                $('#chiTietHocVan').text($(this).data('hocvan'));
-                $('#chiTietNganhNghe').text($(this).data('nganhnghe'));
-                $('#chiTietKinhNghiem').text($(this).data('kinhnghiem'));
-                $('#chiTietKyNang').text($(this).data('kynang'));
-                $('#chiTietSoLuong').text($(this).data('soluong'));
-                $('#chiTietNgayDK').text($(this).data('ngaydk'));
-
-                $('#xemChiTietModal').modal('show');
-            });
-
-            // Xem CV
-            $('.btn-cv').click(function() {
-                var linkCV = $(this).data('linkcv');
-                window.open(linkCV, '_blank');
+                $('#pageNumberInput').val(1);
+                $('#pageNumberInput').removeData('pagination-click');
+                $('#searchForm').submit();
             });
 
             // Xoa ung vien

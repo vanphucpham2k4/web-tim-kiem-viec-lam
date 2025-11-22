@@ -982,83 +982,72 @@
     <div class="blog-container">
         <button class="blog-nav prev">‹</button>
         <div class="blog-grid">
-            <div class="blog-card" data-url="/Blog/Detail/1">
-                <img src="https://images.unsplash.com/photo-1557425493-6f90ae4659fc?w=500" alt="CV" class="blog-image">
-                <div class="blog-content">
-                    <span class="blog-category">TƯ VẤN NGHỀ NGHIỆP</span>
-                    <h3 class="blog-title">10 Mẹo Viết CV Giúp Bạn Nổi Bật Trong Mắt Nhà Tuyển Dụng</h3>
-                    <p class="blog-excerpt">Khám phá những bí quyết để tạo ra một bản CV thu hút, chuyên nghiệp và gây ấn tượng mạnh với nhà tuyển dụng...</p>
-                    <div class="blog-meta">
-                        <span class="blog-date">📅 3 ngày trước</span>
-                        <span class="blog-views">👁 1,234 lượt xem</span>
+            @{
+                var danhSachBlog = ViewBag.DanhSachBlog as List<Unicareer.Models.Blog> ?? new List<Unicareer.Models.Blog>();
+            }
+            @if (danhSachBlog.Any())
+            {
+                @foreach (var blog in danhSachBlog)
+                {
+                    var thoiGianDang = DateTime.Now - blog.NgayDang;
+                    var thoiGianDangText = thoiGianDang.TotalHours < 1 
+                        ? $"Đăng {(int)thoiGianDang.TotalMinutes} phút trước"
+                        : thoiGianDang.TotalDays < 1 
+                            ? $"Đăng {(int)thoiGianDang.TotalHours} giờ trước"
+                            : thoiGianDang.TotalDays < 7
+                                ? $"Đăng {(int)thoiGianDang.TotalDays} ngày trước"
+                                : thoiGianDang.TotalDays < 30
+                                    ? $"Đăng {(int)(thoiGianDang.TotalDays / 7)} tuần trước"
+                                    : $"Đăng {(int)(thoiGianDang.TotalDays / 30)} tháng trước";
+                    
+                    var hinhAnh = !string.IsNullOrEmpty(blog.HinhAnh) 
+                        ? blog.HinhAnh 
+                        : "https://images.unsplash.com/photo-1557425493-6f90ae4659fc?w=500";
+                    var blogUrl = !string.IsNullOrEmpty(blog.Permalink) 
+                        ? $"/Home/BlogDetail?permalink={Uri.EscapeDataString(blog.Permalink)}" 
+                        : $"/Home/BlogDetail?id={blog.MaBlog}";
+                    
+                    <div class="blog-card" data-url="@blogUrl">
+                        <img src="@hinhAnh" alt="@blog.TieuDe" class="blog-image" onerror="this.src='https://images.unsplash.com/photo-1557425493-6f90ae4659fc?w=500'">
+                        <div class="blog-content">
+                            @if (blog.TheLoaiBlog != null)
+                            {
+                                <span class="blog-category" style="background: @(blog.TheLoaiBlog.MauSac ?? "#e8f8f5"); color: @(blog.TheLoaiBlog.MauSac != null ? "white" : "#10b981");">
+                                    @blog.TheLoaiBlog.TenTheLoai
+                                </span>
+                            }
+                            else if (!string.IsNullOrEmpty(blog.TheLoai))
+                            {
+                                <span class="blog-category">@blog.TheLoai</span>
+                            }
+                            else
+                            {
+                                <span class="blog-category">BLOG</span>
+                            }
+                            <h3 class="blog-title">@blog.TieuDe</h3>
+                            <p class="blog-excerpt">@(blog.MoTaNgan ?? (blog.NoiDung != null && blog.NoiDung.Length > 100 ? blog.NoiDung.Substring(0, 100) + "..." : blog.NoiDung ?? ""))</p>
+                            <div class="blog-meta">
+                                <span class="blog-date">📅 @thoiGianDangText</span>
+                                <span class="blog-views">👁 @blog.LuotXem.ToString("N0") lượt xem</span>
+                            </div>
+                        </div>
                     </div>
+                }
+            }
+            else
+            {
+                <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #999;">
+                    <p>Chưa có blog nào được đăng tải</p>
                 </div>
-            </div>
-            <div class="blog-card" data-url="/Blog/Detail/2">
-                <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=500" alt="Interview" class="blog-image">
-                <div class="blog-content">
-                    <span class="blog-category">KỸ NĂNG PHỎNG VẤN</span>
-                    <h3 class="blog-title">Cách Trả Lời 15 Câu Hỏi Phỏng Vấn Khó Nhằn Nhất</h3>
-                    <p class="blog-excerpt">Tự tin đối mặt với những câu hỏi khó trong phỏng vấn với hướng dẫn chi tiết và ví dụ cụ thể từ chuyên gia...</p>
-                    <div class="blog-meta">
-                        <span class="blog-date">📅 5 ngày trước</span>
-                        <span class="blog-views">👁 2,156 lượt xem</span>
-                    </div>
-                </div>
-            </div>
-            <div class="blog-card" data-url="/Blog/Detail/3">
-                <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=500" alt="Salary" class="blog-image">
-                <div class="blog-content">
-                    <span class="blog-category">LƯƠNG THƯỞNG</span>
-                    <h3 class="blog-title">Bảng Lương Ngành IT 2025: Xu Hướng Và Mức Lương Trung Bình</h3>
-                    <p class="blog-excerpt">Cập nhật mức lương mới nhất cho các vị trí trong ngành công nghệ thông tin năm 2025, giúp bạn định hướng sự nghiệp...</p>
-                    <div class="blog-meta">
-                        <span class="blog-date">📅 1 tuần trước</span>
-                        <span class="blog-views">👁 3,892 lượt xem</span>
-                    </div>
-                </div>
-            </div>
-            <div class="blog-card" data-url="/Blog/Detail/4">
-                <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=500" alt="Remote Work" class="blog-image">
-                <div class="blog-content">
-                    <span class="blog-category">LÀM VIỆC TỪ XA</span>
-                    <h3 class="blog-title">Top 20 Việc Làm Remote Lương Cao Cho Năm 2025</h3>
-                    <p class="blog-excerpt">Danh sách những công việc làm từ xa với mức lương hấp dẫn, phù hợp cho những ai muốn linh hoạt thời gian và địa điểm...</p>
-                    <div class="blog-meta">
-                        <span class="blog-date">📅 2 tuần trước</span>
-                        <span class="blog-views">👁 4,521 lượt xem</span>
-                    </div>
-                </div>
-            </div>
-            <div class="blog-card" data-url="/Blog/Detail/5">
-                <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=500" alt="Career Growth" class="blog-image">
-                <div class="blog-content">
-                    <span class="blog-category">PHÁT TRIỂN SỰ NGHIỆP</span>
-                    <h3 class="blog-title">5 Bước Để Thăng Tiến Nhanh Chóng Trong Công Việc</h3>
-                    <p class="blog-excerpt">Chiến lược cụ thể giúp bạn phát triển sự nghiệp một cách vững chắc và đạt được vị trí cao hơn trong tổ chức...</p>
-                    <div class="blog-meta">
-                        <span class="blog-date">📅 3 tuần trước</span>
-                        <span class="blog-views">👁 2,789 lượt xem</span>
-                    </div>
-                </div>
-            </div>
-            <div class="blog-card" data-url="/Blog/Detail/6">
-                <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=500" alt="Skill Development" class="blog-image">
-                <div class="blog-content">
-                    <span class="blog-category">KỸ NĂNG MỀM</span>
-                    <h3 class="blog-title">Những Kỹ Năng Mềm Quan Trọng Nhất Mà Nhà Tuyển Dụng Tìm Kiếm</h3>
-                    <p class="blog-excerpt">Tìm hiểu về các kỹ năng mềm thiết yếu và cách phát triển chúng để trở nên nổi bật trên thị trường lao động...</p>
-                    <div class="blog-meta">
-                        <span class="blog-date">📅 1 tháng trước</span>
-                        <span class="blog-views">👁 3,345 lượt xem</span>
-                    </div>
-                </div>
-            </div>
+            }
         </div>
         <button class="blog-nav next">›</button>
         <div class="blog-indicators"></div>
     </div>
-    <button class="view-more-btn" style="margin-top: 30px;">Xem Thêm Bài Viết</button>
+    @if (danhSachBlog.Any())
+    {
+        <a href="/Home/Blog" class="view-more-btn" style="margin-top: 30px; text-decoration: none; display: inline-block;">Xem Thêm Bài Viết</a>
+    }
 </div>
 
 <script>

@@ -25,6 +25,9 @@ builder.Services.AddRepositories(builder.Configuration);
 // Đăng ký Background Service để tự động cập nhật trạng thái tin tuyển dụng hết hạn
 builder.Services.AddHostedService<UpdateTrangThaiBackgroundService>();
 
+// Đăng ký Email Service
+builder.Services.AddScoped<IEmailService, EmailService>();
+
 // Log trạng thái sử dụng repository (sẽ log sau khi app được build)
 
 // Cấu hình Session để lưu CAPTCHA

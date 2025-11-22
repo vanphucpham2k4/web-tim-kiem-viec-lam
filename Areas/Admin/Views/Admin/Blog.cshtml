@@ -1,0 +1,499 @@
+@model List<Unicareer.Models.Blog>
+
+@{
+    ViewData["Title"] = "Quản lý Blog";
+    var search = ViewBag.Search as string ?? "";
+    var pageNumber = ViewBag.PageNumber as int? ?? 1;
+    var pageSize = ViewBag.PageSize as int? ?? 20;
+    var totalPages = ViewBag.TotalPages as int? ?? 1;
+    var totalItems = ViewBag.TotalItems as int? ?? 0;
+}
+
+<style>
+    .blog-management-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 10px 40px rgba(37, 69, 184, 0.3);
+    }
+
+    .page-header h1 {
+        font-weight: 700;
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .filter-section {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .filter-form {
+        display: grid;
+        grid-template-columns: 2fr auto;
+        gap: 15px;
+        align-items: end;
+    }
+
+    .filter-form input {
+        padding: 12px 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        width: 100%;
+    }
+
+    .btn-filter {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        overflow-x: auto;
+    }
+
+    .blog-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .blog-table thead {
+        background: #f8f9fa;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .blog-table th {
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+        color: #2d3748;
+        font-size: 14px;
+    }
+
+    .blog-table td {
+        padding: 15px;
+        border-bottom: 1px solid #e9ecef;
+        vertical-align: middle;
+    }
+
+    .blog-table tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-success {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .badge-warning {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .badge-danger {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-edit {
+        background: #f3e8ff;
+        color: #6b21a8;
+    }
+
+    .btn-delete {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .btn-toggle {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 30px;
+    }
+
+    .page-link {
+        border: 2px solid #e2e8f0;
+        color: #2545B8;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .page-link:hover {
+        background: #2545B8;
+        color: white;
+    }
+
+    .page-item.active .page-link {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        color: white;
+    }
+</style>
+
+<div class="blog-management-container">
+    <div class="page-header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1><i class="bi bi-journal-text"></i> Quản lý Blog</h1>
+                <p>Quản lý các bài viết blog trên trang chủ</p>
+            </div>
+            <a href="@Url.Action("ThemBlog", "Admin", new { area = "Admin" })" class="btn" style="background: white; color: #2545B8; padding: 12px 30px; border-radius: 10px; font-weight: 600; text-decoration: none;">
+                <i class="bi bi-plus-circle"></i> Thêm blog mới
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["ThanhCong"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["ThanhCong"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Loi"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Loi"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <form class="filter-form" method="get" action="@Url.Action("Blog", "Admin", new { area = "Admin" })">
+            <div>
+                <input type="text" name="search" value="@search" placeholder="Tìm kiếm theo tiêu đề, mô tả, thể loại..." />
+            </div>
+            <div>
+                <button type="submit" class="btn-filter">
+                    <i class="bi bi-search"></i> Tìm kiếm
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Table Section -->
+    <div class="table-container">
+        @if (Model != null && Model.Any())
+        {
+            <table class="blog-table">
+                <thead>
+                    <tr>
+                        <th>Mã</th>
+                        <th>Hình ảnh</th>
+                        <th>Tiêu đề</th>
+                        <th>Thể loại</th>
+                        <th>Tác giả</th>
+                        <th>Ngày đăng</th>
+                        <th>Lượt xem</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var blog in Model)
+                    {
+                        <tr>
+                            <td><strong>#@blog.MaBlog</strong></td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(blog.HinhAnh))
+                                {
+                                    <img src="@blog.HinhAnh" alt="@blog.TieuDe" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;" />
+                                }
+                                else
+                                {
+                                    <div style="width: 60px; height: 60px; background: #e2e8f0; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="bi bi-image" style="font-size: 24px; color: #a0aec0;"></i>
+                                    </div>
+                                }
+                            </td>
+                            <td>
+                                <strong>@blog.TieuDe</strong><br />
+                                <small class="text-muted">@(blog.MoTaNgan != null && blog.MoTaNgan.Length > 50 ? blog.MoTaNgan.Substring(0, 50) + "..." : blog.MoTaNgan ?? "")</small>
+                            </td>
+                            <td>
+                                @if (blog.TheLoaiBlog != null)
+                                {
+                                    <span class="badge" style="background: @(blog.TheLoaiBlog.MauSac ?? "#fef3c7"); color: @(blog.TheLoaiBlog.MauSac != null ? "white" : "#92400e");">
+                                        @if (!string.IsNullOrEmpty(blog.TheLoaiBlog.Icon))
+                                        {
+                                            <i class="@blog.TheLoaiBlog.Icon"></i>
+                                        }
+                                        @blog.TheLoaiBlog.TenTheLoai
+                                    </span>
+                                }
+                                else if (!string.IsNullOrEmpty(blog.TheLoai))
+                                {
+                                    <span class="badge badge-warning">@blog.TheLoai</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-warning">Chưa phân loại</span>
+                                }
+                            </td>
+                            <td>
+                                @if (blog.User != null)
+                                {
+                                    <div>
+                                        <strong>@(blog.User.HoTen ?? blog.User.UserName ?? blog.User.Email ?? "N/A")</strong>
+                                        @if (!string.IsNullOrEmpty(blog.User.Email))
+                                        {
+                                            <br /><small class="text-muted">@blog.User.Email</small>
+                                        }
+                                    </div>
+                                }
+                                else if (!string.IsNullOrEmpty(blog.TacGia))
+                                {
+                                    <span>@blog.TacGia</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Admin</span>
+                                }
+                            </td>
+                            <td>@blog.NgayDang.ToString("dd/MM/yyyy")</td>
+                            <td>@blog.LuotXem</td>
+                            <td>
+                                @if (!blog.DaDang)
+                                {
+                                    <span class="badge badge-warning">Bản nháp</span>
+                                }
+                                else if (blog.DaDang && !blog.DaDuyet)
+                                {
+                                    <span class="badge" style="background: #fef3c7; color: #92400e;">Đã đăng - Chờ duyệt</span>
+                                }
+                                else if (blog.DaDang && blog.DaDuyet && !blog.HienThi)
+                                {
+                                    <span class="badge" style="background: #dbeafe; color: #1e40af;">Đã duyệt - Ẩn</span>
+                                }
+                                else if (blog.DaDang && blog.DaDuyet && blog.HienThi)
+                                {
+                                    <span class="badge badge-success">Đã duyệt - Hiển thị</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-danger">Không xác định</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="@Url.Action("SuaBlog", "Admin", new { area = "Admin", id = blog.MaBlog })" class="btn-action btn-edit">
+                                        <i class="bi bi-pencil"></i> Sửa
+                                    </a>
+                                    
+                                    @if (!blog.DaDang)
+                                    {
+                                        <button class="btn-action" style="background: #d1fae5; color: #065f46;" onclick="toggleDang(@blog.MaBlog, true)">
+                                            <i class="bi bi-send"></i> Đăng
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn-action" style="background: #fee2e2; color: #991b1b;" onclick="toggleDang(@blog.MaBlog, false)">
+                                            <i class="bi bi-arrow-counterclockwise"></i> Hủy đăng
+                                        </button>
+                                        
+                                        @if (!blog.DaDuyet)
+                                        {
+                                            <button class="btn-action" style="background: #dbeafe; color: #1e40af;" onclick="toggleDuyet(@blog.MaBlog, true)">
+                                                <i class="bi bi-check-circle"></i> Duyệt
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn-action" style="background: #fef3c7; color: #92400e;" onclick="toggleDuyet(@blog.MaBlog, false)">
+                                                <i class="bi bi-x-circle"></i> Hủy duyệt
+                                            </button>
+                                            
+                                            @if (!blog.HienThi)
+                                            {
+                                                <button class="btn-action btn-toggle" onclick="toggleHienThi(@blog.MaBlog, true)">
+                                                    <i class="bi bi-eye"></i> Hiện
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn-action btn-toggle" onclick="toggleHienThi(@blog.MaBlog, false)">
+                                                    <i class="bi bi-eye-slash"></i> Ẩn
+                                                </button>
+                                            }
+                                        }
+                                    }
+                                    
+                                    <button class="btn-action btn-delete" onclick="xoaBlog(@blog.MaBlog)">
+                                        <i class="bi bi-trash"></i> Xóa
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <!-- Pagination -->
+            @if (totalPages > 1)
+            {
+                <nav aria-label="Phân trang">
+                    <ul class="pagination">
+                        @if (pageNumber > 1)
+                        {
+                            <li><a href="@Url.Action("Blog", "Admin", new { area = "Admin", search = search, pageNumber = pageNumber - 1, pageSize = pageSize })" class="page-link">Trước</a></li>
+                        }
+                        @for (int i = Math.Max(1, pageNumber - 2); i <= Math.Min(totalPages, pageNumber + 2); i++)
+                        {
+                            <li class="@(i == pageNumber ? "active" : "")">
+                                <a href="@Url.Action("Blog", "Admin", new { area = "Admin", search = search, pageNumber = i, pageSize = pageSize })" class="page-link">@i</a>
+                            </li>
+                        }
+                        @if (pageNumber < totalPages)
+                        {
+                            <li><a href="@Url.Action("Blog", "Admin", new { area = "Admin", search = search, pageNumber = pageNumber + 1, pageSize = pageSize })" class="page-link">Sau</a></li>
+                        }
+                    </ul>
+                </nav>
+            }
+        }
+        else
+        {
+            <div style="text-align: center; padding: 60px 20px; color: #718096;">
+                <i class="bi bi-journal-x" style="font-size: 4rem; margin-bottom: 20px; opacity: 0.5;"></i>
+                <p>Chưa có blog nào. Hãy thêm blog mới!</p>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    function toggleDang(id, daDang) {
+        const message = daDang ? 'Bạn có chắc muốn đăng blog này?' : 'Bạn có chắc muốn chuyển blog về bản nháp? (Sẽ hủy trạng thái duyệt và hiển thị)';
+        if (confirm(message)) {
+            fetch('@Url.Action("DangBlog", "Admin", new { area = "Admin" })?id=' + id + '&daDang=' + daDang, {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Có lỗi xảy ra!');
+                }
+            });
+        }
+    }
+
+    function toggleDuyet(id, daDuyet) {
+        const message = daDuyet ? 'Bạn có chắc muốn duyệt blog này?' : 'Bạn có chắc muốn hủy duyệt blog này? (Sẽ hủy trạng thái hiển thị)';
+        if (confirm(message)) {
+            fetch('@Url.Action("DuyetBlog", "Admin", new { area = "Admin" })?id=' + id + '&daDuyet=' + daDuyet, {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Có lỗi xảy ra!');
+                }
+            });
+        }
+    }
+
+    function toggleHienThi(id, hienThi) {
+        const message = hienThi ? 'Bạn có chắc muốn hiển thị blog này trên trang chủ?' : 'Bạn có chắc muốn ẩn blog này khỏi trang chủ?';
+        if (confirm(message)) {
+            fetch('@Url.Action("HienThiBlog", "Admin", new { area = "Admin" })?id=' + id + '&hienThi=' + hienThi, {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Có lỗi xảy ra!');
+                }
+            });
+        }
+    }
+
+    function xoaBlog(id) {
+        if (confirm('Bạn có chắc muốn xóa blog này? Hành động này không thể hoàn tác!')) {
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '@Url.Action("XoaBlog", "Admin", new { area = "Admin" })?id=' + id;
+            
+            var token = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (token) {
+                var tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = '__RequestVerificationToken';
+                tokenInput.value = token.value;
+                form.appendChild(tokenInput);
+            }
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+</script>
+

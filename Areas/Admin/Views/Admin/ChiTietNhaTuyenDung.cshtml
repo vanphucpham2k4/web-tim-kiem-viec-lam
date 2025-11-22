@@ -192,6 +192,18 @@
         transform: translateY(-2px);
     }
 
+    .btn-delete {
+        border-color: #f56565;
+        color: #f56565;
+        background: transparent;
+    }
+
+    .btn-delete:hover {
+        background: #f56565;
+        color: white;
+        transform: translateY(-2px);
+    }
+
     .empty-state {
         text-align: center;
         padding: 60px 20px;
@@ -708,6 +720,12 @@
                                                    class="btn btn-action btn-view" title="Xem chi tiết">
                                                     <i class="bi bi-eye"></i> Xem
                                                 </a>
+                                                <button class="btn btn-action btn-delete btn-xoa-tin" 
+                                                        data-ma="@tin.MaTinTuyenDung" 
+                                                        data-ten="@tin.TenViecLam"
+                                                        title="Xóa tin tuyển dụng">
+                                                    <i class="bi bi-trash"></i> Xóa
+                                                </button>
                                             </td>
                                         </tr>
                                     }
@@ -936,6 +954,45 @@
                         },
                         error: function() {
                             showNotification('Có lỗi xảy ra khi xóa nhà tuyển dụng!', 'error');
+                        }
+                    });
+                }
+            });
+
+            // Xóa tin tuyển dụng
+            $('.btn-xoa-tin').on('click', function(e) {
+                e.preventDefault();
+                var row = $(this).closest('tr');
+                var ma = $(this).data('ma');
+                var ten = $(this).data('ten');
+                
+                if (confirm('Bạn có chắc chắn muốn xóa tin tuyển dụng "' + ten + '" không? Hành động này không thể hoàn tác!')) {
+                    $.ajax({
+                        url: '@Url.Action("XoaTinTuyenDung", "Admin")',
+                        type: 'POST',
+                        headers: {
+                            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        data: { 
+                            id: ma,
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                row.fadeOut(400, function() {
+                                    $(this).remove();
+                                    showNotification('Đã xóa tin tuyển dụng thành công!', 'success');
+                                    // Reload trang sau 1 giây để cập nhật số liệu thống kê
+                                    setTimeout(function() {
+                                        location.reload();
+                                    }, 1000);
+                                });
+                            } else {
+                                showNotification(response.message || 'Có lỗi xảy ra!', 'error');
+                            }
+                        },
+                        error: function() {
+                            showNotification('Có lỗi xảy ra khi xóa tin tuyển dụng!', 'error');
                         }
                     });
                 }

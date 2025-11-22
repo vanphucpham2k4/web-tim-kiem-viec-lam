@@ -29,6 +29,7 @@ namespace Unicareer.Repository
                 services.AddScoped<INganhNgheRepository, MockNganhNgheRepository>();
                 services.AddScoped<IChuyenNganhRepository, MockChuyenNganhRepository>();
                 services.AddScoped<ITruongDaiHocRepository, MockTruongDaiHocRepository>();
+                // Note: BlogRepository không có mock version
             }
             else
             {
@@ -42,6 +43,8 @@ namespace Unicareer.Repository
                 services.AddScoped<INganhNgheRepository, NganhNgheRepository>();
                 services.AddScoped<IChuyenNganhRepository, ChuyenNganhRepository>();
                 services.AddScoped<ITruongDaiHocRepository, TruongDaiHocRepository>();
+                services.AddScoped<IBlogRepository, BlogRepository>();
+                services.AddScoped<ITheLoaiBlogRepository, TheLoaiBlogRepository>();
             }
         }
     }
