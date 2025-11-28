@@ -27,7 +27,7 @@ namespace Unicareer.Repository
             return _context.Blogs
                 .Include(b => b.User)
                 .Include(b => b.TheLoaiBlog)
-                .Where(b => b.DaDang && b.DaDuyet && b.HienThi)
+                .Where(b => b.DaDang && b.HienThi)
                 .OrderByDescending(b => b.NgayDang)
                 .ToList();
         }
@@ -89,7 +89,6 @@ namespace Unicareer.Repository
                 blogHienTai.Tags = blog.Tags;
                 blogHienTai.IsPermalinkAuto = blog.IsPermalinkAuto;
                 blogHienTai.DaDang = blog.DaDang;
-                blogHienTai.DaDuyet = blog.DaDuyet;
                 blogHienTai.HienThi = blog.HienThi;
                 blogHienTai.NgayCapNhat = DateTime.Now;
                 _context.SaveChanges();

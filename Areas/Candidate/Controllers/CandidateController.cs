@@ -8,6 +8,7 @@ using Unicareer.Repository;
 using Unicareer.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 
 namespace Unicareer.Areas.Candidate.Controllers
 {
@@ -23,6 +24,7 @@ namespace Unicareer.Areas.Candidate.Controllers
         private readonly IViecLamDaLuuRepository _viecLamDaLuuRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
+        private readonly IMapper _mapper;
 
         public CandidateController(
             ITinTuyenDungRepository tinTuyenDungRepository, 
@@ -32,7 +34,8 @@ namespace Unicareer.Areas.Candidate.Controllers
             INganhNgheRepository nganhNgheRepository,
             IViecLamDaLuuRepository viecLamDaLuuRepository,
             UserManager<ApplicationUser> userManager,
-            ApplicationDbContext context)
+            ApplicationDbContext context,
+            IMapper mapper)
         {
             _tinTuyenDungRepository = tinTuyenDungRepository;
             _tinUngTuyenRepository = tinUngTuyenRepository;
@@ -42,6 +45,7 @@ namespace Unicareer.Areas.Candidate.Controllers
             _viecLamDaLuuRepository = viecLamDaLuuRepository;
             _userManager = userManager;
             _context = context;
+            _mapper = mapper;
         }
         // GET: Trang chu ung vien
         public async Task<IActionResult> Index()
@@ -184,37 +188,33 @@ namespace Unicareer.Areas.Candidate.Controllers
                     };
                 }
 
-                // Cập nhật thông tin cơ bản
-                ungVien.HoTen = hoTen ?? ungVien.HoTen;
-                ungVien.GioiTinh = gioiTinh;
-                if (ngaySinh.HasValue)
+                // Tạo object UngVien tạm thời từ các tham số để sử dụng AutoMapper
+                var ungVienNguon = new UngVien
                 {
-                    ungVien.NgaySinh = ngaySinh.Value;
-                }
+                    HoTen = hoTen ?? ungVien.HoTen,
+                    GioiTinh = gioiTinh,
+                    NgaySinh = ngaySinh ?? ungVien.NgaySinh,
+                    ViTriMongMuon = viTriMongMuon,
+                    MaChuyenNganh = maChuyenNganh,
+                    ChuyenNganhKhac = chuyenNganhKhac,
+                    MucLuongKyVong = mucLuongKyVong,
+                    NoiLamViecMongMuon = noiLamViecMongMuon,
+                    MucTieuNgheNghiep = mucTieuNgheNghiep,
+                    HocVanChiTiet = hocVanChiTiet,
+                    KinhNghiemChiTiet = kinhNghiemChiTiet,
+                    KyNangChiTiet = kyNangChiTiet,
+                    ChungChi = chungChi,
+                    LinkGitHub = linkGitHub,
+                    LinkBehance = linkBehance,
+                    LinkPortfolio = linkPortfolio,
+                    MoTaBanThan = moTaBanThan,
+                    TrangThaiTimViec = trangThaiTimViec,
+                    HienThiCongKhai = hienThiCongKhai
+                };
 
-                // Thông tin nghề nghiệp
-                ungVien.ViTriMongMuon = viTriMongMuon;
-                ungVien.MaChuyenNganh = maChuyenNganh;
-                ungVien.ChuyenNganhKhac = chuyenNganhKhac;
-                ungVien.MucLuongKyVong = mucLuongKyVong;
-                ungVien.NoiLamViecMongMuon = noiLamViecMongMuon;
-
-                // CV và hồ sơ
-                ungVien.MucTieuNgheNghiep = mucTieuNgheNghiep;
-                ungVien.HocVanChiTiet = hocVanChiTiet;
-                ungVien.KinhNghiemChiTiet = kinhNghiemChiTiet;
-                ungVien.KyNangChiTiet = kyNangChiTiet;
-                ungVien.ChungChi = chungChi;
-
-                // Portfolio
-                ungVien.LinkGitHub = linkGitHub;
-                ungVien.LinkBehance = linkBehance;
-                ungVien.LinkPortfolio = linkPortfolio;
-
-                // Mô tả và trạng thái
-                ungVien.MoTaBanThan = moTaBanThan;
-                ungVien.TrangThaiTimViec = trangThaiTimViec;
-                ungVien.HienThiCongKhai = hienThiCongKhai;
+                // Cập nhật thông tin bằng AutoMapper
+                // AutoMapper sẽ tự động map các thuộc tính và bỏ qua các thuộc tính đặc biệt
+                _mapper.Map(ungVienNguon, ungVien);
 
                 // Upload CV file nếu có
                 if (cvFile != null && cvFile.Length > 0)
@@ -499,13 +499,20 @@ namespace Unicareer.Areas.Candidate.Controllers
                 }
                 else
                 {
-                    // Cập nhật UngVien
-                    ungVien.HoTen = hoTen;
-                    ungVien.Email = email;
-                    ungVien.SoDienThoai = soDienThoai;
-                    ungVien.NgaySinh = ngaySinh.Value;
-                    ungVien.GioiTinh = gioiTinh;
-                    ungVien.DiaChi = diaChi;
+                    // Tạo object UngVien tạm thời từ các tham số để sử dụng AutoMapper
+                    var ungVienNguon = new UngVien
+                    {
+                        HoTen = hoTen,
+                        Email = email,
+                        SoDienThoai = soDienThoai,
+                        NgaySinh = ngaySinh.Value,
+                        GioiTinh = gioiTinh,
+                        DiaChi = diaChi
+                    };
+
+                    // Cập nhật UngVien bằng AutoMapper
+                    // AutoMapper sẽ tự động map các thuộc tính và bỏ qua các thuộc tính đặc biệt
+                    _mapper.Map(ungVienNguon, ungVien);
                     _ungVienRepository.CapNhatUngVien(ungVien);
                 }
 

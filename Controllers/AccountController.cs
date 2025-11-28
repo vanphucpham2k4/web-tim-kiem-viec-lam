@@ -283,7 +283,7 @@ namespace Unicareer.Controllers
             {
                 // Đăng nhập thành công
                 var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
-                return await RedirectToHomePage(user);
+                return await RedirectToHomePage(user, returnUrl);
             }
 
             // Nếu user chưa có tài khoản, lấy thông tin từ Google và yêu cầu chọn loại tài khoản
@@ -326,7 +326,7 @@ namespace Unicareer.Controllers
                     }
 
                     await _signInManager.SignInAsync(existingUser, isPersistent: false);
-                    return await RedirectToHomePage(existingUser);
+                    return await RedirectToHomePage(existingUser, returnUrl);
                 }
             }
 
@@ -426,7 +426,7 @@ namespace Unicareer.Controllers
                         }
                         
                         await _signInManager.SignInAsync(existingUser, isPersistent: false);
-                        return await RedirectToHomePage(existingUser);
+                        return await RedirectToHomePage(existingUser, returnUrl);
                     }
                     else
                     {
@@ -467,7 +467,7 @@ namespace Unicareer.Controllers
                     // Đăng nhập
                     await _signInManager.SignInAsync(user, isPersistent: false);
                     
-                    return await RedirectToHomePage(user);
+                    return await RedirectToHomePage(user, returnUrl);
                 }
                 else
                 {
@@ -491,8 +491,15 @@ namespace Unicareer.Controllers
             return View();
         }
 
-        private async Task<IActionResult> RedirectToHomePage(ApplicationUser user)
+        private async Task<IActionResult> RedirectToHomePage(ApplicationUser user, string? returnUrl = null)
         {
+            // Ưu tiên sử dụng returnUrl nếu có và là URL hợp lệ
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+
+            // Nếu không có returnUrl hoặc không hợp lệ, redirect theo role
             if (await _userManager.IsInRoleAsync(user, SD.Role_Admin))
             {
                 return RedirectToAction("Index", "Admin", new { area = "Admin" });

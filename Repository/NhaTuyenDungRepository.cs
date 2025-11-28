@@ -40,6 +40,20 @@ namespace Unicareer.Repository
                 .Include(n => n.User)
                 .FirstOrDefault(n => n.UserId == userId);
         }
+
+        public NhaTuyenDung? CapNhatNhaTuyenDung(NhaTuyenDung nhaTuyenDung)
+        {
+            try
+            {
+                _context.NhaTuyenDungs.Update(nhaTuyenDung);
+                _context.SaveChanges();
+                return nhaTuyenDung;
+            }
+            catch
+            {
+                return null;
+            }
+        }
     }
 }
 

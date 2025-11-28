@@ -21,7 +21,7 @@
         position: relative;
         height: 400px;
         overflow: hidden;
-        background: linear-gradient(135deg, #059669, #10b981);
+        background: transparent;
     }
     .banner-slider {
         position: relative;
@@ -37,6 +37,9 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
     }
     .banner-slide.active {
         opacity: 1;
@@ -51,12 +54,14 @@
     .banner-content h1 {
         font-size: 48px;
         margin-bottom: 20px;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        text-shadow: 2px 2px 8px rgba(0,0,0,0.7), 0 0 20px rgba(0,0,0,0.5);
+        font-weight: 700;
     }
     .banner-content p {
         font-size: 20px;
         margin-bottom: 30px;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        text-shadow: 1px 1px 4px rgba(0,0,0,0.7), 0 0 15px rgba(0,0,0,0.5);
+        font-weight: 500;
     }
     .banner-btn {
         padding: 15px 40px;
@@ -463,6 +468,10 @@
         content: '🔥';
         font-size: 32px;
     }
+    .blog-section .view-more-wrapper {
+        text-align: center;
+        margin-top: 24px;
+    }
     .blog-container {
         position: relative;
         overflow: hidden;
@@ -485,35 +494,6 @@
     .blog-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-    }
-    .blog-nav {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        background: rgba(46, 204, 113, 0.8);
-        color: white;
-        border: none;
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        cursor: pointer;
-        font-size: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 10;
-        transition: all 0.3s;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }
-    .blog-nav:hover {
-        background: rgba(39, 174, 96, 1);
-        transform: translateY(-50%) scale(1.1);
-    }
-    .blog-nav.prev {
-        left: -25px;
-    }
-    .blog-nav.next {
-        right: -25px;
     }
     .blog-indicators {
         display: flex;
@@ -558,6 +538,18 @@
         color: #333;
         margin-bottom: 10px;
         line-height: 1.4;
+        cursor: pointer;
+        transition: color 0.3s;
+    }
+    .blog-title:hover {
+        color: #10b981;
+    }
+    .blog-title a {
+        color: inherit;
+        text-decoration: none;
+    }
+    .blog-title a:hover {
+        color: #10b981;
     }
     .blog-excerpt {
         font-size: 14px;
@@ -597,17 +589,6 @@
         }
         .blog-card {
             flex: 0 0 calc(100% - 17px);
-        }
-        .blog-nav {
-            width: 40px;
-            height: 40px;
-            font-size: 20px;
-        }
-        .blog-nav.prev {
-            left: 10px;
-        }
-        .blog-nav.next {
-            right: 10px;
         }
     }
 </style>
@@ -703,25 +684,25 @@
 <!-- Banner Section -->
 <div class="banner-section">
     <div class="banner-slider">
-        <div class="banner-slide active">
+        <div class="banner-slide active" style="background-image: url('https://images.unsplash.com/photo-1521791136064-7986c2920216?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80');">
             <div class="banner-content">
                 <h1>Tìm Việc Làm Mơ Ước Của Bạn</h1>
                 <p>Hơn 10,000+ cơ hội việc làm đang chờ đón bạn</p>
-                <button class="banner-btn">Khám Phá Ngay</button>
+                <button class="banner-btn" data-url="/Home/TimViec">Khám Phá Ngay</button>
             </div>
         </div>
-        <div class="banner-slide">
+        <div class="banner-slide" style="background-image: url('https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80');">
             <div class="banner-content">
                 <h1>Kết Nối Với Top Nhà Tuyển Dụng</h1>
                 <p>Gặp gỡ những công ty hàng đầu tại Việt Nam</p>
-                <button class="banner-btn">Xem Công Ty</button>
+                <button class="banner-btn" data-url="/Home/CongTy">Xem Công Ty</button>
             </div>
         </div>
-        <div class="banner-slide">
+        <div class="banner-slide" style="background-image: url('https://images.unsplash.com/photo-1505373877841-8d25f7d46678?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80');">
             <div class="banner-content">
                 <h1>Nâng Cao Kỹ Năng - Thăng Tiến Sự Nghiệp</h1>
                 <p>Khóa học miễn phí và tài liệu hữu ích dành cho bạn</p>
-                <button class="banner-btn">Học Ngay</button>
+                <button class="banner-btn" data-url="/Home/Blog">Học Ngay</button>
             </div>
         </div>
     </div>
@@ -984,7 +965,6 @@
 <div class="blog-section">
     <h2>Blog Hot Về Việc Làm</h2>
     <div class="blog-container">
-        <button class="blog-nav prev">‹</button>
         <div class="blog-grid">
             @{
                 var danhSachBlog = ViewBag.DanhSachBlog as List<Unicareer.Models.Blog> ?? new List<Unicareer.Models.Blog>();
@@ -1028,7 +1008,9 @@
                             {
                                 <span class="blog-category">BLOG</span>
                             }
-                            <h3 class="blog-title">@blog.TieuDe</h3>
+                            <h3 class="blog-title">
+                                <a href="@blogUrl">@blog.TieuDe</a>
+                            </h3>
                             @{
                                 string excerptText = "";
                                 if (!string.IsNullOrEmpty(blog.MoTaNgan))
@@ -1064,12 +1046,13 @@
                 </div>
             }
         </div>
-        <button class="blog-nav next">›</button>
         <div class="blog-indicators"></div>
     </div>
     @if (danhSachBlog.Any())
     {
-        <a href="/Home/Blog" class="view-more-btn" style="margin-top: 30px; text-decoration: none; display: inline-block;">Xem Thêm Bài Viết</a>
+        <div class="view-more-wrapper">
+            <a href="/Home/Blog" class="view-more-btn">Xem Thêm Bài Viết</a>
+        </div>
     }
 </div>
 
@@ -1224,6 +1207,13 @@
     const blogCards = document.querySelectorAll('.blog-card');
     const blogGrid = document.querySelector('.blog-grid');
     const blogIndicatorsContainer = document.querySelector('.blog-indicators');
+    const blogContainer = document.querySelector('.blog-container');
+    let nextBlogSlideRef;
+    let prevBlogSlideRef;
+    const swipeThreshold = 60;
+    let pointerStartX = 0;
+    let pointerDeltaX = 0;
+    let isPointerDown = false;
     
     function getCardsPerView() {
         return window.innerWidth > 768 ? 3 : 1;
@@ -1270,6 +1260,9 @@
             updateBlogCarousel();
         }
         
+        nextBlogSlideRef = nextBlogSlide;
+        prevBlogSlideRef = prevBlogSlide;
+        
         // Clear existing interval
         if (blogAutoSlideInterval) {
             clearInterval(blogAutoSlideInterval);
@@ -1277,19 +1270,6 @@
         
         // Auto slide blog every 4 seconds
         blogAutoSlideInterval = setInterval(nextBlogSlide, 4000);
-        
-        // Manual navigation
-        const nextBtn = document.querySelector('.blog-nav.next');
-        const prevBtn = document.querySelector('.blog-nav.prev');
-        
-        // Remove old event listeners by cloning
-        const newNextBtn = nextBtn.cloneNode(true);
-        const newPrevBtn = prevBtn.cloneNode(true);
-        nextBtn.parentNode.replaceChild(newNextBtn, nextBtn);
-        prevBtn.parentNode.replaceChild(newPrevBtn, prevBtn);
-        
-        newNextBtn.addEventListener('click', nextBlogSlide);
-        newPrevBtn.addEventListener('click', prevBlogSlide);
         
         // Indicator click
         blogIndicators.forEach((indicator, index) => {
@@ -1303,6 +1283,67 @@
         updateBlogCarousel();
     }
     
+    function finalizeSwipe(e) {
+        if (!isPointerDown) return;
+        
+        // Check if clicking on a link - if so, don't process swipe
+        const target = e.target;
+        if (target.tagName === 'A' || target.closest('a')) {
+            isPointerDown = false;
+            pointerDeltaX = 0;
+            return; // Let the link handle the click naturally
+        }
+        
+        isPointerDown = false;
+        // Only process swipe if there was significant movement
+        if (Math.abs(pointerDeltaX) > swipeThreshold) {
+            if (pointerDeltaX < 0) {
+                nextBlogSlideRef?.();
+            } else {
+                prevBlogSlideRef?.();
+            }
+        }
+        pointerDeltaX = 0;
+    }
+
+    if (blogContainer) {
+        blogContainer.addEventListener('pointerdown', function(e) {
+            // Don't start swipe if clicking on a link or any interactive element
+            const target = e.target;
+            if (target.tagName === 'A' || target.closest('a') || 
+                target.tagName === 'BUTTON' || target.closest('button')) {
+                return; // Let the link/button handle the click
+            }
+            isPointerDown = true;
+            pointerStartX = e.clientX;
+            pointerDeltaX = 0;
+            blogContainer.setPointerCapture?.(e.pointerId);
+        });
+
+        blogContainer.addEventListener('pointermove', function(e) {
+            if (!isPointerDown) return;
+            pointerDeltaX = e.clientX - pointerStartX;
+        });
+
+        const releaseHandler = function(e) {
+            blogContainer.releasePointerCapture?.(e.pointerId);
+            finalizeSwipe(e);
+        };
+
+        blogContainer.addEventListener('pointerup', releaseHandler);
+        blogContainer.addEventListener('pointercancel', releaseHandler);
+        blogContainer.addEventListener('pointerleave', releaseHandler);
+        
+        // Also handle click events to ensure links work
+        blogContainer.addEventListener('click', function(e) {
+            // If clicking on a link, let it work naturally
+            if (e.target.tagName === 'A' || e.target.closest('a')) {
+                // Don't prevent default - let the link navigate
+                return;
+            }
+        }, true); // Use capture phase to handle before other handlers
+    }
+
     // Initialize on page load
     initBlogCarousel();
     
@@ -1318,7 +1359,22 @@
     
     // Blog card click handlers - Navigate to blog detail page
     document.querySelectorAll('.blog-card').forEach(card => {
+        // First, ensure all links inside blog cards work properly
+        const links = card.querySelectorAll('a');
+        links.forEach(link => {
+            link.addEventListener('click', function(e) {
+                // Let the link work naturally - don't prevent default
+                e.stopPropagation(); // Prevent card click handler from firing
+            });
+        });
+        
+        // Then add click handler for the card itself (non-link areas)
         card.addEventListener('click', function(e) {
+            // If clicking on a link, it's already handled above
+            if (e.target.tagName === 'A' || e.target.closest('a')) {
+                return;
+            }
+            // Only navigate if clicking on non-link areas of the card
             const url = this.getAttribute('data-url');
             if (url) {
                 window.location.href = url;
@@ -1403,7 +1459,10 @@
     document.querySelectorAll('.banner-btn').forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.stopPropagation();
-            alert('Chuyển đến trang tương ứng...');
+            const url = this.getAttribute('data-url');
+            if (url) {
+                window.location.href = url;
+            }
         });
     });
     

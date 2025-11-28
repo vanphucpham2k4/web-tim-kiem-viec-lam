@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Unicareer.Services;
+using AutoMapper;
 
 namespace Unicareer.Controllers
 {
@@ -24,8 +25,9 @@ namespace Unicareer.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IEmailService _emailService;
+        private readonly IMapper _mapper;
 
-        public HomeController(ILogger<HomeController> logger, INhaTuyenDungRepository nhaTuyenDungRepository, ITinTuyenDungRepository tinTuyenDungRepository, IUngVienRepository ungVienRepository, ITruongDaiHocRepository truongDaiHocRepository, INganhNgheRepository nganhNgheRepository, IBlogRepository blogRepository, ApplicationDbContext context, UserManager<ApplicationUser> userManager, IEmailService emailService)
+        public HomeController(ILogger<HomeController> logger, INhaTuyenDungRepository nhaTuyenDungRepository, ITinTuyenDungRepository tinTuyenDungRepository, IUngVienRepository ungVienRepository, ITruongDaiHocRepository truongDaiHocRepository, INganhNgheRepository nganhNgheRepository, IBlogRepository blogRepository, ApplicationDbContext context, UserManager<ApplicationUser> userManager, IEmailService emailService, IMapper mapper)
         {
             _logger = logger;
             _nhaTuyenDungRepository = nhaTuyenDungRepository;
@@ -37,6 +39,7 @@ namespace Unicareer.Controllers
             _context = context;
             _userManager = userManager;
             _emailService = emailService;
+            _mapper = mapper;
         }
 
         // Helper method để lấy logo theo tên công ty
@@ -49,30 +52,27 @@ namespace Unicareer.Controllers
             return logos;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             // Lấy danh sách việc làm nổi bật (top 9)
-            var danhSachViecLam = _tinTuyenDungRepository.LayDanhSachTinTuyenDung()
-                .OrderByDescending(j => j.SoLuongUngTuyen)
-                .ThenByDescending(j => j.NgayDang)
-                .Take(9)
-                .ToList();
+            var query = _tinTuyenDungRepository.LayDanhSachTinTuyenDung(onlyApproved: true);
             
-            // Lấy danh sách tỉnh/thành phố
-            var danhSachTinhThanh = _context.Provinces
-                .OrderBy(p => p.FullName)
-                .ToList();
-            
-            // Lấy tất cả tin tuyển dụng để phân tích
-            var tatCaTinTuyenDung = _tinTuyenDungRepository.LayDanhSachTinTuyenDung();
-            
-            // Lấy danh sách 10 tỉnh thành ưu tiên cho phần "Bạn Muốn Làm Việc Ở Đâu?"
-            // Đếm số lượng việc làm theo tỉnh/thành phố
-            var soLuongViecLamTheoTinh = tatCaTinTuyenDung
-                .Where(t => !string.IsNullOrEmpty(t.TinhThanhPho))
-                .GroupBy(t => t.TinhThanhPho)
-                .Select(g => new { TinhThanhPho = g.Key, SoLuong = g.Count() })
-                .ToList();
+            // Kiểm tra nếu user đã đăng nhập và là ứng viên có NoiLamViecMongMuon
+            string? noiLamViecMongMuon = null;
+            if (User.Identity?.IsAuthenticated == true && User.IsInRole(SD.Role_UngVien))
+            {
+                var currentUser = await _userManager.GetUserAsync(User);
+                if (currentUser != null)
+                {
+                    var ungVien = _ungVienRepository.LayDanhSachUngVien()
+                        .FirstOrDefault(u => u.UserId == currentUser.Id);
+                    
+                    if (ungVien != null && !string.IsNullOrEmpty(ungVien.NoiLamViecMongMuon))
+                    {
+                        noiLamViecMongMuon = ungVien.NoiLamViecMongMuon;
+                    }
+                }
+            }
             
             // Hàm helper để kiểm tra xem tên tỉnh/thành phố có khớp không (linh hoạt)
             Func<string, string, bool> isMatch = (provinceFullName, jobCityName) =>
@@ -108,6 +108,63 @@ namespace Unicareer.Controllers
                 
                 return false;
             };
+            
+            // Nếu có NoiLamViecMongMuon, ưu tiên hiển thị việc làm ở tỉnh thành đó
+            List<TinTuyenDung> danhSachViecLam;
+            if (!string.IsNullOrEmpty(noiLamViecMongMuon))
+            {
+                // Lấy tất cả việc làm và phân loại
+                var tatCaViecLam = query.ToList();
+                
+                // Tách thành 2 nhóm: việc làm ở tỉnh thành mong muốn và các việc làm khác
+                var viecLamTheoTinhMongMuon = tatCaViecLam
+                    .Where(j => !string.IsNullOrEmpty(j.TinhThanhPho) && 
+                           isMatch(noiLamViecMongMuon, j.TinhThanhPho))
+                    .OrderByDescending(j => j.SoLuongUngTuyen ?? 0)
+                    .ThenByDescending(j => j.NgayDang)
+                    .ToList();
+                
+                var viecLamKhac = tatCaViecLam
+                    .Where(j => string.IsNullOrEmpty(j.TinhThanhPho) || 
+                           !isMatch(noiLamViecMongMuon, j.TinhThanhPho))
+                    .OrderByDescending(j => j.SoLuongUngTuyen ?? 0)
+                    .ThenByDescending(j => j.NgayDang)
+                    .ToList();
+                
+                // Ưu tiên hiển thị việc làm ở tỉnh thành mong muốn trước, sau đó là các việc làm khác
+                danhSachViecLam = viecLamTheoTinhMongMuon
+                    .Take(9)
+                    .Concat(viecLamKhac.Take(9 - viecLamTheoTinhMongMuon.Count))
+                    .Take(9)
+                    .ToList();
+            }
+            else
+            {
+                // Logic hiện tại: sắp xếp theo số lượng ứng tuyển và ngày đăng
+                danhSachViecLam = query
+                    .OrderByDescending(j => j.SoLuongUngTuyen ?? 0)
+                    .ThenByDescending(j => j.NgayDang)
+                    .Take(9)
+                    .ToList();
+            }
+            
+            // Lấy danh sách tỉnh/thành phố
+            var danhSachTinhThanh = _context.Provinces
+                .OrderBy(p => p.FullName)
+                .ToList();
+            
+            // Lấy tất cả tin tuyển dụng để phân tích
+            var tatCaTinTuyenDung = _tinTuyenDungRepository.LayDanhSachTinTuyenDung(onlyApproved: true);
+            
+            // Lấy danh sách 10 tỉnh thành ưu tiên cho phần "Bạn Muốn Làm Việc Ở Đâu?"
+            // Đếm số lượng việc làm theo tỉnh/thành phố
+            var soLuongViecLamTheoTinh = tatCaTinTuyenDung
+                .Where(t => !string.IsNullOrEmpty(t.TinhThanhPho))
+                .GroupBy(t => t.TinhThanhPho)
+                .Select(g => new { TinhThanhPho = g.Key, SoLuong = g.Count() })
+                .ToList();
+            
+            // Sử dụng lại hàm isMatch đã được định nghĩa ở trên
             
             // Lấy danh sách tỉnh thành với thông tin số lượng việc làm
             var danhSachTinhThanhWithCount = danhSachTinhThanh
@@ -285,7 +342,9 @@ namespace Unicareer.Controllers
         public IActionResult TimViec(string keyword, string tinhThanh, string quanHuyen, string nganhNghe, string loaiCongViec, string capBac, string kinhNghiem, string mucLuong, string sort)
         {
             // Query trực tiếp từ database để tối ưu hiệu suất
-            var danhSachTinTuyenDung = _context.TinTuyenDungs.AsQueryable();
+            var danhSachTinTuyenDung = _context.TinTuyenDungs
+                .Where(t => t.TrangThaiDuyet == "Da duyet")
+                .AsQueryable();
             
             // Tìm kiếm theo từ khóa (keyword) - tìm trong TuKhoa, TenViecLam, CongTy, MoTa, YeuCau, KyNang
             if (!string.IsNullOrEmpty(keyword))
@@ -392,7 +451,7 @@ namespace Unicareer.Controllers
             var ketQuaTimKiem = danhSachTinTuyenDung.ToList();
             
             // Đếm số lượng việc làm theo tỉnh/thành phố và sắp xếp từ cao đến thấp, lấy top 5
-            var tatCaTinTuyenDung = _tinTuyenDungRepository.LayDanhSachTinTuyenDung();
+            var tatCaTinTuyenDung = _tinTuyenDungRepository.LayDanhSachTinTuyenDung(onlyApproved: true);
             var soLuongViecLamTheoTinh = tatCaTinTuyenDung
                 .GroupBy(job => job.TinhThanhPho)
                 .Select(g => new { TinhThanhPho = g.Key, SoLuong = g.Count() })
@@ -495,7 +554,7 @@ namespace Unicareer.Controllers
         {
             // Query trực tiếp từ database để tối ưu hiệu suất - chỉ lấy các tin thực tập
             var danhSachThucTap = _context.TinTuyenDungs
-                .Where(t => t.LoaiCongViec != null && t.LoaiCongViec.ToLower().Contains("thực tập"))
+                .Where(t => t.LoaiCongViec != null && t.LoaiCongViec.ToLower().Contains("thực tập") && t.TrangThaiDuyet == "Da duyet")
                 .AsQueryable();
             
             // Tìm kiếm theo từ khóa (keyword) - tìm trong TuKhoa, TenViecLam, CongTy, MoTa, YeuCau, KyNang
@@ -596,7 +655,7 @@ namespace Unicareer.Controllers
             
             // Đếm số lượng việc làm thực tập theo tỉnh/thành phố và sắp xếp từ cao đến thấp
             var tatCaTinThucTapForCount = _context.TinTuyenDungs
-                .Where(t => t.LoaiCongViec != null && t.LoaiCongViec.ToLower().Contains("thực tập"));
+                .Where(t => t.LoaiCongViec != null && t.LoaiCongViec.ToLower().Contains("thực tập") && t.TrangThaiDuyet == "Da duyet");
             var soLuongViecLamTheoTinh = tatCaTinThucTapForCount
                 .GroupBy(job => job.TinhThanhPho)
                 .Select(g => new { TinhThanhPho = g.Key, SoLuong = g.Count() })
@@ -629,7 +688,9 @@ namespace Unicareer.Controllers
             var danhSachKinhNghiem = DropdownOptions.KinhNghiem;
             
             // Lấy tất cả tin thực tập để tạo gợi ý
-            var tatCaTinThucTap = _tinTuyenDungRepository.LayDanhSachThucTap();
+            var tatCaTinThucTap = _tinTuyenDungRepository.LayDanhSachThucTap()
+                .Where(t => t.TrangThaiDuyet == "Da duyet")
+                .ToList();
             
             // Tạo danh sách gợi ý tìm kiếm từ dữ liệu thực tế
             var danhSachGoiYTimKiem = new List<GoiYTimKiem>();
@@ -699,7 +760,7 @@ namespace Unicareer.Controllers
             var danhSachCongTy = _nhaTuyenDungRepository.LayDanhSachNhaTuyenDung();
             
             // Lấy tất cả tin tuyển dụng và nhóm theo tên công ty để tính số tin đã đăng
-            var tatCaTinTuyenDung = _tinTuyenDungRepository.LayDanhSachTinTuyenDung();
+            var tatCaTinTuyenDung = _tinTuyenDungRepository.LayDanhSachTinTuyenDung(onlyApproved: true);
             var soTinTheoCongTy = tatCaTinTuyenDung
                 .Where(t => !string.IsNullOrEmpty(t.CongTy))
                 .GroupBy(t => t.CongTy.ToLower().Trim())
@@ -907,10 +968,23 @@ namespace Unicareer.Controllers
                 return NotFound();
             }
             
+            if (tinTuyenDung.TrangThaiDuyet != "Da duyet")
+            {
+                return NotFound();
+            }
+            
             // Tự động cập nhật trạng thái "Het han" nếu đã quá hạn nộp và chưa được set
             if (tinTuyenDung.HanNop < DateTime.Now.Date && tinTuyenDung.TrangThai != "Het han" && tinTuyenDung.TrangThai != "Da dong")
             {
-                tinTuyenDung.TrangThai = "Het han";
+                // Tạo object TinTuyenDung tạm thời với trạng thái mới để sử dụng AutoMapper
+                var tinTuyenDungNguon = new TinTuyenDung
+                {
+                    TrangThai = "Het han"
+                };
+
+                // Cập nhật trạng thái bằng AutoMapper
+                // AutoMapper sẽ tự động map các thuộc tính và bỏ qua các thuộc tính đặc biệt
+                _mapper.Map(tinTuyenDungNguon, tinTuyenDung);
                 _context.SaveChanges();
             }
             
@@ -929,7 +1003,8 @@ namespace Unicareer.Controllers
             
             // Lấy danh sách việc làm khác từ cùng công ty (loại trừ tin hiện tại)
             var danhSachViecLamKhac = _tinTuyenDungRepository.LayDanhSachTheoCongTy(tinTuyenDung.CongTy ?? "")
-                .Where(t => t.MaTinTuyenDung != id && 
+                .Where(t => t.TrangThaiDuyet == "Da duyet" &&
+                           t.MaTinTuyenDung != id && 
                            t.TrangThai != "Da dong" && 
                            t.TrangThai != "Het han" &&
                            t.HanNop >= DateTime.Now.Date)
@@ -986,6 +1061,17 @@ namespace Unicareer.Controllers
                     return Json(new { success = false, message = "Không tìm thấy tin tuyển dụng" });
                 }
 
+                if (tinTuyenDung.TrangThaiDuyet != "Da duyet")
+                {
+                    var notificationMessage = tinTuyenDung.TrangThaiDuyet switch
+                    {
+                        "Tu choi" => $"Tin tuyển dụng đã bị từ chối{(!string.IsNullOrWhiteSpace(tinTuyenDung.LyDoTuChoi) ? $": {tinTuyenDung.LyDoTuChoi}" : ".")}",
+                        _ => "Tin tuyển dụng này đang chờ admin duyệt."
+                    };
+
+                    return Json(new { success = false, message = notificationMessage });
+                }
+
                 // Kiểm tra trạng thái tin tuyển dụng
                 if (tinTuyenDung.TrangThai == "Da dong")
                 {
@@ -1004,7 +1090,15 @@ namespace Unicareer.Controllers
                     // Tự động cập nhật trạng thái thành "Het han" nếu chưa được set
                     if (tinTuyenDung.TrangThai != "Het han")
                     {
-                        tinTuyenDung.TrangThai = "Het han";
+                        // Tạo object TinTuyenDung tạm thời với trạng thái mới để sử dụng AutoMapper
+                        var tinTuyenDungNguon = new TinTuyenDung
+                        {
+                            TrangThai = "Het han"
+                        };
+
+                        // Cập nhật trạng thái bằng AutoMapper
+                        // AutoMapper sẽ tự động map các thuộc tính và bỏ qua các thuộc tính đặc biệt
+                        _mapper.Map(tinTuyenDungNguon, tinTuyenDung);
                         _context.SaveChanges();
                     }
                     return Json(new { success = false, message = "Tin tuyển dụng đã hết hạn nộp hồ sơ. Không thể ứng tuyển nữa." });
@@ -1187,6 +1281,26 @@ namespace Unicareer.Controllers
             return View(ungVien);
         }
 
+        public IActionResult Blog(int? categoryId)
+        {
+            var danhSachBlog = _blogRepository.LayDanhSachBlogHienThi();
+            if (categoryId.HasValue)
+            {
+                danhSachBlog = danhSachBlog
+                    .Where(b => b.MaTheLoai.HasValue && b.MaTheLoai.Value == categoryId.Value)
+                    .ToList();
+            }
+            var danhSachTheLoaiBlog = _context.TheLoaiBlogs
+                .Where(t => t.HienThi)
+                .OrderBy(t => t.ThuTu)
+                .ThenBy(t => t.TenTheLoai)
+                .ToList();
+
+            ViewBag.DanhSachTheLoaiBlog = danhSachTheLoaiBlog;
+            ViewBag.SelectedCategoryId = categoryId;
+            return View(danhSachBlog);
+        }
+
         public IActionResult BlogDetail(int? id, string? permalink)
         {
             Blog? blog = null;
@@ -1233,7 +1347,7 @@ namespace Unicareer.Controllers
             }
 
             // Kiểm tra lại trạng thái blog (đã được filter ở trên, nhưng kiểm tra lại để đảm bảo)
-            if (!blog.DaDang || !blog.DaDuyet || !blog.HienThi)
+            if (!blog.DaDang || !blog.HienThi)
             {
                 return NotFound();
             }
@@ -1250,6 +1364,78 @@ namespace Unicareer.Controllers
             ViewBag.DanhSachBlogLienQuan = danhSachBlogLienQuan;
 
             return View(blog);
+        }
+
+        public IActionResult BlogDetailPartial(int? id, string? permalink)
+        {
+            Blog? blog = null;
+
+            // Tìm blog theo ID hoặc permalink (sử dụng logic tương tự BlogDetail)
+            if (id.HasValue && id.Value > 0)
+            {
+                blog = _blogRepository.LayBlogTheoId(id.Value);
+            }
+            else if (!string.IsNullOrEmpty(permalink))
+            {
+                var cleanPermalink = permalink.Replace(".html", "").Trim();
+                var allBlogs = _blogRepository.LayDanhSachBlogHienThi();
+                
+                blog = allBlogs.FirstOrDefault(b => 
+                    !string.IsNullOrEmpty(b.Permalink) && 
+                    b.Permalink.Equals(cleanPermalink, StringComparison.OrdinalIgnoreCase));
+                
+                if (blog == null)
+                {
+                    blog = allBlogs.FirstOrDefault(b => 
+                        !string.IsNullOrEmpty(b.Permalink) && 
+                        b.Permalink.Equals(cleanPermalink + ".html", StringComparison.OrdinalIgnoreCase));
+                }
+                
+                if (blog == null)
+                {
+                    blog = allBlogs.FirstOrDefault(b => 
+                        !string.IsNullOrEmpty(b.Permalink) && 
+                        b.Permalink.Replace(".html", "").Equals(cleanPermalink, StringComparison.OrdinalIgnoreCase));
+                }
+            }
+
+            if (blog == null || !blog.DaDang || !blog.HienThi)
+            {
+                return NotFound();
+            }
+
+            // Tăng lượt xem
+            _blogRepository.TangLuotXem(blog.MaBlog);
+
+            // Cập nhật sidebar với danh sách blog liên quan mới
+            var danhSachBlogLienQuan = _blogRepository.LayDanhSachBlogHienThi()
+                .Where(b => b.MaBlog != blog.MaBlog)
+                .Take(5)
+                .ToList();
+
+            ViewBag.DanhSachBlogLienQuan = danhSachBlogLienQuan;
+            ViewBag.CurrentBlogId = blog.MaBlog;
+            ViewBag.CurrentBlogTitle = blog.TieuDe;
+
+            return PartialView("_BlogDetailMain", blog);
+        }
+
+        public IActionResult BlogDetailSidebar(int? excludeBlogId)
+        {
+            var danhSachBlogLienQuan = _blogRepository.LayDanhSachBlogHienThi();
+            
+            if (excludeBlogId.HasValue)
+            {
+                danhSachBlogLienQuan = danhSachBlogLienQuan
+                    .Where(b => b.MaBlog != excludeBlogId.Value)
+                    .ToList();
+            }
+            
+            danhSachBlogLienQuan = danhSachBlogLienQuan.Take(5).ToList();
+            
+            ViewBag.DanhSachBlogLienQuan = danhSachBlogLienQuan;
+            
+            return PartialView("_BlogDetailSidebar");
         }
 
         public IActionResult Privacy()

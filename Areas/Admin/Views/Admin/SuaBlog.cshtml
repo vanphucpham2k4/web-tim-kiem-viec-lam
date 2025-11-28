@@ -1389,14 +1389,17 @@
         
         updatePermalinkValue();
         
+        // ✅ Cập nhật hiddenMaBlog trong form trước khi tạo FormData
+        const hiddenMaBlog = document.getElementById('hiddenMaBlog');
+        if (savedMaBlog && savedMaBlog > 0) {
+            if (hiddenMaBlog) {
+                hiddenMaBlog.value = savedMaBlog;
+            }
+        }
+        
         // Tạo FormData để gửi
         const form = document.getElementById('blogForm');
         const formData = new FormData(form);
-        
-        // Thêm MaBlog nếu đã có (để cập nhật thay vì tạo mới)
-        if (savedMaBlog) {
-            formData.set('MaBlog', savedMaBlog);
-        }
         
         // Lấy anti-forgery token
         const token = document.querySelector('input[name="__RequestVerificationToken"]');
@@ -1413,14 +1416,35 @@
         .then(response => response.json())
         .then(data => {
             isSaving = false;
-            if (saveStatus) {
-                if (data.success) {
+            if (data.success) {
+                // ✅ QUAN TRỌNG: Cập nhật savedMaBlog và hiddenMaBlog với giá trị trả về từ server
+                // Điều này đảm bảo lần lưu tiếp theo sẽ cập nhật blog hiện có thay vì tạo mới
+                if (data.maBlog && data.maBlog > 0) {
+                    savedMaBlog = data.maBlog;
+                    const hiddenMaBlog = document.getElementById('hiddenMaBlog');
+                    if (hiddenMaBlog) {
+                        hiddenMaBlog.value = data.maBlog;
+                    }
+                    console.log('✅ Đã cập nhật savedMaBlog và hiddenMaBlog với giá trị:', data.maBlog);
+                    
+                    // Nếu là blog mới (chưa có MaBlog trước đó), cập nhật URL để đảm bảo form luôn có MaBlog
+                    const currentUrl = window.location.href;
+                    if (currentUrl.includes('id=0') || currentUrl.includes('SuaBlog') && !currentUrl.includes('id=')) {
+                        // Cập nhật URL mà không reload trang
+                        const newUrl = '@Url.Action("SuaBlog", "Admin", new { area = "Admin" })?id=' + data.maBlog;
+                        window.history.replaceState({}, '', newUrl);
+                    }
+                }
+                
+                if (saveStatus) {
                     if (showManualSave) {
                         saveStatus.textContent = 'Đã lưu bản nháp';
                     } else {
                         saveStatus.textContent = 'Đã lưu';
                     }
-                } else {
+                }
+            } else {
+                if (saveStatus) {
                     saveStatus.textContent = 'Lỗi khi lưu';
                 }
             }
@@ -1464,12 +1488,16 @@
         
         updatePermalinkValue();
         
+        // ✅ Cập nhật hiddenMaBlog trong form trước khi tạo FormData
+        const hiddenMaBlog = document.getElementById('hiddenMaBlog');
+        if (savedMaBlog && savedMaBlog > 0) {
+            if (hiddenMaBlog) {
+                hiddenMaBlog.value = savedMaBlog;
+            }
+        }
+        
         const form = document.getElementById('blogForm');
         const formData = new FormData(form);
-        
-        if (savedMaBlog) {
-            formData.set('MaBlog', savedMaBlog);
-        }
         
         // Lấy anti-forgery token
         const token = document.querySelector('input[name="__RequestVerificationToken"]');
@@ -1483,7 +1511,19 @@
             body: formData,
             keepalive: true,
             credentials: 'same-origin'
-        }).catch(() => {
+        })
+        .then(response => response.json())
+        .then(data => {
+            // ✅ Cập nhật savedMaBlog nếu server trả về maBlog mới (khi tạo blog mới)
+            if (data.success && data.maBlog && data.maBlog > 0 && (!savedMaBlog || savedMaBlog === 0)) {
+                savedMaBlog = data.maBlog;
+                const hiddenMaBlog = document.getElementById('hiddenMaBlog');
+                if (hiddenMaBlog) {
+                    hiddenMaBlog.value = data.maBlog;
+                }
+            }
+        })
+        .catch(() => {
             // Bỏ qua lỗi khi trang đang đóng
         });
     }

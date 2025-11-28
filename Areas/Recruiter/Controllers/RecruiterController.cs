@@ -8,6 +8,7 @@ using Unicareer.Repository;
 using Unicareer.Data;
 using Microsoft.EntityFrameworkCore;
 using Unicareer.Services;
+using AutoMapper;
 
 namespace Unicareer.Areas.Recruiter.Controllers
 {
@@ -24,6 +25,7 @@ namespace Unicareer.Areas.Recruiter.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
         private readonly IEmailService _emailService;
+        private readonly IMapper _mapper;
 
         public RecruiterController(
             ITinTuyenDungRepository tinTuyenDungRepository, 
@@ -34,7 +36,8 @@ namespace Unicareer.Areas.Recruiter.Controllers
             INhaTuyenDungRepository nhaTuyenDungRepository,
             UserManager<ApplicationUser> userManager,
             ApplicationDbContext context,
-            IEmailService emailService)
+            IEmailService emailService,
+            IMapper mapper)
         {
             _tinTuyenDungRepository = tinTuyenDungRepository;
             _tinUngTuyenRepository = tinUngTuyenRepository;
@@ -45,6 +48,7 @@ namespace Unicareer.Areas.Recruiter.Controllers
             _userManager = userManager;
             _context = context;
             _emailService = emailService;
+            _mapper = mapper;
         }
         // GET: Trang chu nha tuyen dung
         public async Task<IActionResult> Index()
@@ -337,6 +341,9 @@ namespace Unicareer.Areas.Recruiter.Controllers
             var totalHetHan = danhSach.Count(t => 
                 t.TrangThai == "Het han" || (string.IsNullOrEmpty(t.TrangThai) && t.HanNop < DateTime.Now) || t.TrangThai == "Da dong");
             var totalUngTuyen = danhSach.Sum(t => t.SoLuongUngTuyen) ?? 0;
+            var totalChoDuyet = danhSach.Count(t => t.TrangThaiDuyet == "Cho duyet");
+            var totalDaDuyet = danhSach.Count(t => t.TrangThaiDuyet == "Da duyet");
+            var totalTuChoi = danhSach.Count(t => t.TrangThaiDuyet == "Tu choi");
             
             // Lọc theo tìm kiếm
             if (!string.IsNullOrEmpty(searchTerm))
@@ -376,7 +383,10 @@ namespace Unicareer.Areas.Recruiter.Controllers
                 TrangThaiFilter = trangThaiFilter,
                 TotalDangTuyen = totalDangTuyen,
                 TotalHetHan = totalHetHan,
-                TotalUngTuyen = totalUngTuyen
+                TotalUngTuyen = totalUngTuyen,
+                TotalChoDuyet = totalChoDuyet,
+                TotalDaDuyet = totalDaDuyet,
+                TotalTuChoi = totalTuChoi
             };
             
             return View(model);
@@ -1527,20 +1537,30 @@ namespace Unicareer.Areas.Recruiter.Controllers
                 }
                 else
                 {
-                    // Cập nhật thông tin
-                    nhaTuyenDung.TenCongTy = tenCongTy;
-                    nhaTuyenDung.Email = email;
-                    nhaTuyenDung.SoDienThoai = soDienThoai;
-                    nhaTuyenDung.Website = website;
-                    nhaTuyenDung.TinhThanhPho = tinhThanhPho;
-                    nhaTuyenDung.QuanHuyen = quanHuyen;
-                    nhaTuyenDung.DiaChi = diaChi;
-                    nhaTuyenDung.NguoiDaiDien = nguoiDaiDien;
-                    nhaTuyenDung.ChucVu = chucVu;
-                    nhaTuyenDung.SoDienThoaiNguoiDaiDien = soDienThoaiNguoiDaiDien;
-                    nhaTuyenDung.EmailNguoiDaiDien = emailNguoiDaiDien;
+                    // Tạo object NhaTuyenDung tạm thời từ các tham số để sử dụng AutoMapper
+                    var nhaTuyenDungNguon = new NhaTuyenDung
+                    {
+                        TenCongTy = tenCongTy,
+                        Email = email,
+                        SoDienThoai = soDienThoai,
+                        Website = website,
+                        TinhThanhPho = tinhThanhPho,
+                        QuanHuyen = quanHuyen,
+                        DiaChi = diaChi,
+                        NguoiDaiDien = nguoiDaiDien,
+                        ChucVu = chucVu,
+                        SoDienThoaiNguoiDaiDien = soDienThoaiNguoiDaiDien,
+                        EmailNguoiDaiDien = emailNguoiDaiDien,
+                        MoTa = moTa,
+                        Latitude = !string.IsNullOrEmpty(latitude) ? double.Parse(latitude) : null,
+                        Longitude = !string.IsNullOrEmpty(longitude) ? double.Parse(longitude) : null
+                    };
+
+                    // Cập nhật thông tin bằng AutoMapper
+                    // AutoMapper sẽ tự động map các thuộc tính và bỏ qua các thuộc tính đặc biệt
+                    _mapper.Map(nhaTuyenDungNguon, nhaTuyenDung);
                     
-                    // Xử lý logo: xóa hoặc cập nhật
+                    // Xử lý logo: xóa hoặc cập nhật (được xử lý riêng sau khi mapping)
                     if (xoaLogo == "true")
                     {
                         // Xóa logo cũ nếu có
@@ -1570,9 +1590,6 @@ namespace Unicareer.Areas.Recruiter.Controllers
                     }
                     // Nếu không có logoFile mới và không xóa logo, giữ nguyên logo cũ
                     
-                    nhaTuyenDung.MoTa = moTa;
-                    nhaTuyenDung.Latitude = !string.IsNullOrEmpty(latitude) ? double.Parse(latitude) : null;
-                    nhaTuyenDung.Longitude = !string.IsNullOrEmpty(longitude) ? double.Parse(longitude) : null;
                     _context.NhaTuyenDungs.Update(nhaTuyenDung);
                 }
 
@@ -1795,6 +1812,37 @@ namespace Unicareer.Areas.Recruiter.Controllers
                         CreatedAt = don.NgayUngTuyen,
                         RelatedId = don.MaTinUngTuyen,
                         NotificationKey = $"PendingReview_{don.MaTinUngTuyen}_{don.NgayUngTuyen:yyyyMMddHHmmss}"
+                    });
+                }
+
+                // 5. Thông báo tin tuyển dụng đã được admin duyệt hoặc từ chối
+                var thongBaoDuyet = danhSachTinTuyenDung
+                    .Where(t => (t.TrangThaiDuyet == "Da duyet" || t.TrangThaiDuyet == "Tu choi") && t.NgayDuyet.HasValue)
+                    .OrderByDescending(t => t.NgayDuyet)
+                    .Take(10)
+                    .ToList();
+
+                foreach (var tin in thongBaoDuyet)
+                {
+                    var isApproved = tin.TrangThaiDuyet == "Da duyet";
+                    var statusLabel = isApproved ? "Đã duyệt" : "Đã từ chối";
+                    var icon = isApproved ? "bi-check-circle-fill" : "bi-x-circle-fill";
+                    var color = isApproved ? "text-success" : "text-danger";
+                    var message = isApproved
+                        ? $"Tin \"{tin.TenViecLam}\" đã được duyệt và sẽ hiển thị trên hệ thống."
+                        : $"Tin \"{tin.TenViecLam}\" bị từ chối{(!string.IsNullOrWhiteSpace(tin.LyDoTuChoi) ? $": {tin.LyDoTuChoi}" : ".")}";
+
+                    notifications.Add(new NotificationItem
+                    {
+                        Type = "JobApproval",
+                        Title = statusLabel,
+                        Message = message,
+                        Icon = icon,
+                        Color = color,
+                        Url = Url.Action("ChiTietTinDaDang", "Recruiter", new { area = "Recruiter", id = tin.MaTinTuyenDung }),
+                        CreatedAt = tin.NgayDuyet.Value,
+                        RelatedId = tin.MaTinTuyenDung,
+                        NotificationKey = $"JobApproval_{tin.TrangThaiDuyet}_{tin.MaTinTuyenDung}_{tin.NgayDuyet:yyyyMMddHHmmss}"
                     });
                 }
 

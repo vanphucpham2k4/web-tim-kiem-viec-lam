@@ -7,6 +7,7 @@ using Unicareer.Repository;
 using Unicareer.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 
 namespace Unicareer.Areas.Admin.Controllers
 {
@@ -26,8 +27,9 @@ namespace Unicareer.Areas.Admin.Controllers
         private readonly ITheLoaiBlogRepository _theLoaiBlogRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
+        private readonly IMapper _mapper;
 
-        public AdminController(INhaTuyenDungRepository nhaTuyenDungRepository, IUngVienRepository ungVienRepository, ITinTuyenDungRepository tinTuyenDungRepository, ITinUngTuyenRepository tinUngTuyenRepository, ILoaiCongViecRepository loaiCongViecRepository, INganhNgheRepository nganhNgheRepository, IChuyenNganhRepository chuyenNganhRepository, ITruongDaiHocRepository truongDaiHocRepository, IBlogRepository blogRepository, ITheLoaiBlogRepository theLoaiBlogRepository, UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        public AdminController(INhaTuyenDungRepository nhaTuyenDungRepository, IUngVienRepository ungVienRepository, ITinTuyenDungRepository tinTuyenDungRepository, ITinUngTuyenRepository tinUngTuyenRepository, ILoaiCongViecRepository loaiCongViecRepository, INganhNgheRepository nganhNgheRepository, IChuyenNganhRepository chuyenNganhRepository, ITruongDaiHocRepository truongDaiHocRepository, IBlogRepository blogRepository, ITheLoaiBlogRepository theLoaiBlogRepository, UserManager<ApplicationUser> userManager, ApplicationDbContext context, IMapper mapper)
         {
             _nhaTuyenDungRepository = nhaTuyenDungRepository;
             _ungVienRepository = ungVienRepository;
@@ -41,6 +43,7 @@ namespace Unicareer.Areas.Admin.Controllers
             _theLoaiBlogRepository = theLoaiBlogRepository;
             _userManager = userManager;
             _context = context;
+            _mapper = mapper;
         }
 
         public IActionResult Index()
@@ -337,6 +340,12 @@ namespace Unicareer.Areas.Admin.Controllers
             ViewBag.DanhSachLoaiCongViec = danhSachLoaiCongViec;
             ViewBag.ActiveTab = activeTab ?? "thongtin"; // Mặc định là tab thông tin
             
+            // Lấy danh sách tỉnh/thành phố cho dropdown
+            var danhSachTinhThanh = _context.Provinces
+                .OrderBy(p => p.FullName)
+                .ToList();
+            ViewBag.DanhSachTinhThanh = danhSachTinhThanh;
+            
             return View(nhaTuyenDung);
         }
 
@@ -598,8 +607,16 @@ namespace Unicareer.Areas.Admin.Controllers
                     return Json(new { success = false, message = "Tên ngành nghề không được để trống!" });
                 }
 
-                nganhNghe.TenNganhNghe = tenNganhNghe;
-                nganhNghe.MoTa = string.IsNullOrWhiteSpace(moTa) ? null : moTa;
+                // Tạo object NganhNghe tạm thời từ các tham số để sử dụng AutoMapper
+                var nganhNgheNguon = new NganhNghe
+                {
+                    TenNganhNghe = tenNganhNghe,
+                    MoTa = string.IsNullOrWhiteSpace(moTa) ? null : moTa
+                };
+
+                // Cập nhật thông tin bằng AutoMapper
+                // AutoMapper sẽ tự động map các thuộc tính và bỏ qua các thuộc tính đặc biệt
+                _mapper.Map(nganhNgheNguon, nganhNghe);
 
                 var ketQua = _nganhNgheRepository.CapNhatNganhNghe(nganhNghe);
                 if (ketQua == null)
@@ -742,8 +759,16 @@ namespace Unicareer.Areas.Admin.Controllers
                     return Json(new { success = false, message = "Tên loại công việc không được để trống!" });
                 }
 
-                loaiCongViec.TenLoaiCongViec = tenLoaiCongViec;
-                loaiCongViec.MoTa = string.IsNullOrWhiteSpace(moTa) ? string.Empty : moTa;
+                // Tạo object LoaiCongViec tạm thời từ các tham số để sử dụng AutoMapper
+                var loaiCongViecNguon = new LoaiCongViec
+                {
+                    TenLoaiCongViec = tenLoaiCongViec,
+                    MoTa = string.IsNullOrWhiteSpace(moTa) ? string.Empty : moTa
+                };
+
+                // Cập nhật thông tin bằng AutoMapper
+                // AutoMapper sẽ tự động map các thuộc tính và bỏ qua các thuộc tính đặc biệt
+                _mapper.Map(loaiCongViecNguon, loaiCongViec);
 
                 var ketQua = _loaiCongViecRepository.CapNhatLoaiCongViec(loaiCongViec);
                 if (ketQua == null)
@@ -959,9 +984,17 @@ namespace Unicareer.Areas.Admin.Controllers
                     return Json(new { success = false, message = "Tên chuyên ngành không được để trống!" });
                 }
 
-                chuyenNganh.TenChuyenNganh = tenChuyenNganh;
-                chuyenNganh.MoTa = moTa;
-                chuyenNganh.MaNganhNghe = maNganhNghe;
+                // Tạo object ChuyenNganh tạm thời từ các tham số để sử dụng AutoMapper
+                var chuyenNganhNguon = new ChuyenNganh
+                {
+                    TenChuyenNganh = tenChuyenNganh,
+                    MoTa = moTa,
+                    MaNganhNghe = maNganhNghe
+                };
+
+                // Cập nhật thông tin bằng AutoMapper
+                // AutoMapper sẽ tự động map các thuộc tính và bỏ qua các thuộc tính đặc biệt
+                _mapper.Map(chuyenNganhNguon, chuyenNganh);
 
                 var ketQua = _chuyenNganhRepository.CapNhatChuyenNganh(chuyenNganh);
                 if (ketQua == null)
@@ -1067,6 +1100,9 @@ namespace Unicareer.Areas.Admin.Controllers
             var trungBinhUngTuyen = danhSachTinTuyenDung.Count > 0 
                 ? (int)danhSachTinTuyenDung.Average(t => t.SoLuongUngTuyen ?? 0) 
                 : 0;
+            var totalChoDuyet = danhSachTinTuyenDung.Count(t => t.TrangThaiDuyet == "Cho duyet");
+            var totalDaDuyet = danhSachTinTuyenDung.Count(t => t.TrangThaiDuyet == "Da duyet");
+            var totalTuChoi = danhSachTinTuyenDung.Count(t => t.TrangThaiDuyet == "Tu choi");
             
             // Lọc theo tìm kiếm
             if (!string.IsNullOrEmpty(searchTerm))
@@ -1080,11 +1116,21 @@ namespace Unicareer.Areas.Admin.Controllers
             // Lọc theo trạng thái
             if (!string.IsNullOrEmpty(trangThaiFilter))
             {
-                danhSachTinTuyenDung = danhSachTinTuyenDung.Where(t =>
+                var approvalFilters = new[] { "Cho duyet", "Da duyet", "Tu choi", "Bi khoa" };
+                if (approvalFilters.Contains(trangThaiFilter))
                 {
-                    var trangThai = t.HanNop >= DateTime.Now ? "Dang tuyen" : "Het han";
-                    return trangThai == trangThaiFilter;
-                }).ToList();
+                    danhSachTinTuyenDung = danhSachTinTuyenDung
+                        .Where(t => t.TrangThaiDuyet == trangThaiFilter)
+                        .ToList();
+                }
+                else
+                {
+                    danhSachTinTuyenDung = danhSachTinTuyenDung.Where(t =>
+                    {
+                        var trangThai = t.HanNop >= DateTime.Now ? "Dang tuyen" : "Het han";
+                        return trangThai == trangThaiFilter;
+                    }).ToList();
+                }
             }
             
             // Lọc theo ngành nghề
@@ -1116,7 +1162,10 @@ namespace Unicareer.Areas.Admin.Controllers
                 TotalHetHan = totalHetHan,
                 TotalUngTuyen = totalUngTuyen,
                 TotalSapHetHan = totalSapHetHan,
-                TrungBinhUngTuyen = trungBinhUngTuyen
+                TrungBinhUngTuyen = trungBinhUngTuyen,
+                TotalChoDuyet = totalChoDuyet,
+                TotalDaDuyet = totalDaDuyet,
+                TotalTuChoi = totalTuChoi
             };
             
             return View(model);
@@ -1169,17 +1218,13 @@ namespace Unicareer.Areas.Admin.Controllers
         {
             try
             {
-                var tin = _tinTuyenDungRepository.LayTinTuyenDungTheoId(id);
+                var tin = _tinTuyenDungRepository.CapNhatTrangThaiDuyet(id, "Da duyet", null, DateTime.Now);
                 if (tin == null)
                 {
                     return Json(new { success = false, message = "Không tìm thấy tin tuyển dụng!" });
                 }
 
-                // TODO: Cập nhật trạng thái duyệt trong database
-                // Ví dụ: tin.TrangThaiDuyet = "Da duyet";
-                // _tinTuyenDungRepository.CapNhatTinTuyenDung(id, tin);
-
-                return Json(new { success = true, message = "Đã duyệt tin tuyển dụng thành công!" });
+                return Json(new { success = true, message = $"Đã duyệt tin #{tin.MaTinTuyenDung} thành công!" });
             }
             catch (Exception ex)
             {
@@ -1202,17 +1247,35 @@ namespace Unicareer.Areas.Admin.Controllers
                 int count = 0;
                 foreach (var ma in danhSachMa)
                 {
-                    var tin = _tinTuyenDungRepository.LayTinTuyenDungTheoId(ma);
+                    var tin = _tinTuyenDungRepository.CapNhatTrangThaiDuyet(ma, "Da duyet", null, DateTime.Now);
                     if (tin != null)
                     {
-                        // TODO: Cập nhật trạng thái duyệt
-                        // tin.TrangThaiDuyet = "Da duyet";
-                        // _tinTuyenDungRepository.CapNhatTinTuyenDung(ma, tin);
                         count++;
                     }
                 }
 
                 return Json(new { success = true, count = count, message = $"Đã duyệt {count} tin thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult TuChoiTinTuyenDung(int id, string? lyDoTuChoi)
+        {
+            try
+            {
+                var lyDo = string.IsNullOrWhiteSpace(lyDoTuChoi) ? null : lyDoTuChoi.Trim();
+                var tin = _tinTuyenDungRepository.CapNhatTrangThaiDuyet(id, "Tu choi", lyDo, DateTime.Now);
+                if (tin == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy tin tuyển dụng!" });
+                }
+
+                return Json(new { success = true, message = $"Đã từ chối tin #{tin.MaTinTuyenDung}!" });
             }
             catch (Exception ex)
             {
@@ -1347,37 +1410,36 @@ namespace Unicareer.Areas.Admin.Controllers
                 bool hienThiCongKhai = !string.IsNullOrEmpty(hienThiCongKhaiValue) && 
                                        (hienThiCongKhaiValue.ToLower() == "true" || hienThiCongKhaiValue == "on");
 
-                // Cập nhật thông tin cá nhân
-                if (!string.IsNullOrEmpty(hoTen)) ungVien.HoTen = hoTen;
-                if (!string.IsNullOrEmpty(email)) ungVien.Email = email;
-                if (!string.IsNullOrEmpty(soDienThoai)) ungVien.SoDienThoai = soDienThoai;
-                if (ngaySinh.HasValue) ungVien.NgaySinh = ngaySinh.Value;
-                ungVien.GioiTinh = gioiTinh;
-                ungVien.DiaChi = diaChi;
+                // Tạo object UngVien tạm thời từ các tham số để sử dụng AutoMapper
+                var ungVienNguon = new UngVien
+                {
+                    HoTen = hoTen ?? string.Empty,
+                    Email = email ?? string.Empty,
+                    SoDienThoai = soDienThoai ?? string.Empty,
+                    NgaySinh = ngaySinh ?? ungVien.NgaySinh,
+                    GioiTinh = gioiTinh,
+                    DiaChi = diaChi,
+                    ViTriMongMuon = viTriMongMuon,
+                    MaChuyenNganh = maChuyenNganh,
+                    ChuyenNganhKhac = chuyenNganhKhac,
+                    MucLuongKyVong = mucLuongKyVong,
+                    NoiLamViecMongMuon = noiLamViecMongMuon,
+                    TrangThaiTimViec = trangThaiTimViec,
+                    HienThiCongKhai = hienThiCongKhai,
+                    MucTieuNgheNghiep = mucTieuNgheNghiep,
+                    HocVanChiTiet = hocVanChiTiet,
+                    KinhNghiemChiTiet = kinhNghiemChiTiet,
+                    KyNangChiTiet = kyNangChiTiet,
+                    ChungChi = chungChi,
+                    LinkGitHub = linkGitHub,
+                    LinkBehance = linkBehance,
+                    LinkPortfolio = linkPortfolio,
+                    MoTaBanThan = moTaBanThan
+                };
 
-                // Cập nhật thông tin nghề nghiệp
-                ungVien.ViTriMongMuon = viTriMongMuon;
-                ungVien.MaChuyenNganh = maChuyenNganh;
-                ungVien.ChuyenNganhKhac = chuyenNganhKhac;
-                ungVien.MucLuongKyVong = mucLuongKyVong;
-                ungVien.NoiLamViecMongMuon = noiLamViecMongMuon;
-                ungVien.TrangThaiTimViec = trangThaiTimViec;
-                ungVien.HienThiCongKhai = hienThiCongKhai;
-
-                // Cập nhật CV và hồ sơ
-                ungVien.MucTieuNgheNghiep = mucTieuNgheNghiep;
-                ungVien.HocVanChiTiet = hocVanChiTiet;
-                ungVien.KinhNghiemChiTiet = kinhNghiemChiTiet;
-                ungVien.KyNangChiTiet = kyNangChiTiet;
-                ungVien.ChungChi = chungChi;
-
-                // Cập nhật Portfolio
-                ungVien.LinkGitHub = linkGitHub;
-                ungVien.LinkBehance = linkBehance;
-                ungVien.LinkPortfolio = linkPortfolio;
-
-                // Cập nhật mô tả bản thân
-                ungVien.MoTaBanThan = moTaBanThan;
+                // Cập nhật thông tin bằng AutoMapper
+                // AutoMapper sẽ tự động map các thuộc tính và bỏ qua các thuộc tính đặc biệt
+                _mapper.Map(ungVienNguon, ungVien);
 
                 // Lưu vào database
                 var ketQua = _ungVienRepository.CapNhatUngVien(ungVien);
@@ -1511,30 +1573,9 @@ namespace Unicareer.Areas.Admin.Controllers
                 }
             }
             
-            // Nếu có lỗi validation, cập nhật các trường đã thay đổi vào tin hiện tại và hiển thị lại
-            tinHienTai.TenViecLam = model.TenViecLam;
-            tinHienTai.NganhNghe = model.NganhNghe;
-            tinHienTai.NganhNgheChiTiet = model.NganhNgheChiTiet;
-            tinHienTai.LoaiCongViec = model.LoaiCongViec;
-            tinHienTai.KinhNghiem = model.KinhNghiem;
-            tinHienTai.ViTri = model.ViTri;
-            tinHienTai.NgoaiNgu = model.NgoaiNgu;
-            tinHienTai.KyNang = model.KyNang;
-            tinHienTai.MoTa = model.MoTa;
-            tinHienTai.YeuCau = model.YeuCau;
-            tinHienTai.QuyenLoi = model.QuyenLoi;
-            tinHienTai.MucLuongThapNhat = model.MucLuongThapNhat;
-            tinHienTai.MucLuongCaoNhat = model.MucLuongCaoNhat;
-            tinHienTai.DiaChiLamViec = model.DiaChiLamViec;
-            tinHienTai.PhuongXa = model.PhuongXa;
-            tinHienTai.TinhThanhPho = model.TinhThanhPho;
-            tinHienTai.NguoiLienHe = model.NguoiLienHe;
-            tinHienTai.EmailLienHe = model.EmailLienHe;
-            tinHienTai.SDTLienHe = model.SDTLienHe;
-            tinHienTai.TuKhoa = model.TuKhoa;
-            tinHienTai.HanNop = model.HanNop;
-            tinHienTai.Latitude = model.Latitude;
-            tinHienTai.Longitude = model.Longitude;
+            // Nếu có lỗi validation, cập nhật các trường đã thay đổi vào tin hiện tại bằng AutoMapper
+            // AutoMapper sẽ tự động map các thuộc tính và bỏ qua các thuộc tính đặc biệt
+            _mapper.Map(model, tinHienTai);
 
             // Lấy danh sách ứng tuyển để hiển thị lại
             var danhSachUngTuyen = _tinUngTuyenRepository.LayDanhSachTinUngTuyen()
@@ -1628,6 +1669,80 @@ namespace Unicareer.Areas.Admin.Controllers
             catch (Exception ex)
             {
                 return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
+        // POST: Cập nhật thông tin nhà tuyển dụng
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CapNhatNhaTuyenDung(
+            int id,
+            string? tenCongTy,
+            string? email,
+            string? soDienThoai,
+            string? diaChi,
+            string? tinhThanhPho,
+            string? quanHuyen,
+            string? website,
+            string? nguoiDaiDien,
+            string? chucVu,
+            string? soDienThoaiNguoiDaiDien,
+            string? emailNguoiDaiDien,
+            string? linhVuc,
+            string? moTa)
+        {
+            try
+            {
+                var nhaTuyenDung = _nhaTuyenDungRepository.LayNhaTuyenDungTheoId(id);
+                if (nhaTuyenDung == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy nhà tuyển dụng!" });
+                }
+
+                // Cập nhật thông tin
+                if (!string.IsNullOrEmpty(tenCongTy))
+                    nhaTuyenDung.TenCongTy = tenCongTy;
+                if (!string.IsNullOrEmpty(email))
+                    nhaTuyenDung.Email = email;
+                if (!string.IsNullOrEmpty(soDienThoai))
+                    nhaTuyenDung.SoDienThoai = soDienThoai;
+                if (diaChi != null)
+                    nhaTuyenDung.DiaChi = diaChi;
+                if (tinhThanhPho != null)
+                    nhaTuyenDung.TinhThanhPho = tinhThanhPho;
+                if (quanHuyen != null)
+                    nhaTuyenDung.QuanHuyen = quanHuyen;
+                if (website != null)
+                    nhaTuyenDung.Website = website;
+                if (nguoiDaiDien != null)
+                    nhaTuyenDung.NguoiDaiDien = nguoiDaiDien;
+                if (chucVu != null)
+                    nhaTuyenDung.ChucVu = chucVu;
+                if (soDienThoaiNguoiDaiDien != null)
+                    nhaTuyenDung.SoDienThoaiNguoiDaiDien = soDienThoaiNguoiDaiDien;
+                if (emailNguoiDaiDien != null)
+                    nhaTuyenDung.EmailNguoiDaiDien = emailNguoiDaiDien;
+                if (linhVuc != null)
+                    nhaTuyenDung.LinhVuc = linhVuc;
+                if (moTa != null)
+                    nhaTuyenDung.MoTa = moTa;
+
+                var ketQua = _nhaTuyenDungRepository.CapNhatNhaTuyenDung(nhaTuyenDung);
+                if (ketQua != null)
+                {
+                    TempData["ThanhCong"] = "Cập nhật thông tin nhà tuyển dụng thành công!";
+                    return RedirectToAction("ChiTietNhaTuyenDung", new { id = id });
+                }
+                else
+                {
+                    TempData["Loi"] = "Có lỗi xảy ra khi cập nhật thông tin!";
+                    return RedirectToAction("ChiTietNhaTuyenDung", new { id = id });
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Loi"] = "Có lỗi xảy ra: " + ex.Message;
+                return RedirectToAction("ChiTietNhaTuyenDung", new { id = id });
             }
         }
 
@@ -1825,6 +1940,38 @@ namespace Unicareer.Areas.Admin.Controllers
                 blog.Permalink = GeneratePermalinkFromTitle(blog.TieuDe ?? string.Empty, blog.MaBlog > 0 ? blog.MaBlog : null);
                 System.Diagnostics.Debug.WriteLine($"Permalink tự động tạo (ThemBlog): '{blog.Permalink}'");
             }
+            
+            // ✅ QUAN TRỌNG: Đảm bảo permalink luôn duy nhất TRƯỚC KHI lưu
+            // Nếu permalink là "blog-post" (mặc định) hoặc trùng với blog khác, tạo lại
+            if (!string.IsNullOrWhiteSpace(blog.Permalink))
+            {
+                var permalinkTrimmed = blog.Permalink.Trim();
+                System.Diagnostics.Debug.WriteLine($"Kiểm tra permalink (ThemBlog): '{permalinkTrimmed}', MaBlog: {blog.MaBlog}");
+                
+                // Nếu permalink là "blog-post" (mặc định) và đang tạo blog mới, tạo permalink duy nhất ngay
+                if (permalinkTrimmed == "blog-post" && blog.MaBlog == 0)
+                {
+                    var oldPermalink = blog.Permalink;
+                    blog.Permalink = GenerateUniquePermalink("blog-post", null);
+                    System.Diagnostics.Debug.WriteLine($"⚠️ Permalink mặc định '{oldPermalink}', đã tạo lại: '{blog.Permalink}'");
+                }
+                // Kiểm tra xem permalink có trùng với blog khác không (trừ blog hiện tại nếu đang sửa)
+                else
+                {
+                    var existingBlog = _blogRepository.LayBlogTheoPermalink(permalinkTrimmed);
+                    if (existingBlog != null && existingBlog.MaBlog != blog.MaBlog)
+                    {
+                        // Permalink trùng, tạo lại với số đằng sau
+                        var oldPermalink = blog.Permalink;
+                        blog.Permalink = GenerateUniquePermalink(permalinkTrimmed, blog.MaBlog > 0 ? blog.MaBlog : null);
+                        System.Diagnostics.Debug.WriteLine($"⚠️ Permalink '{oldPermalink}' trùng với blog #{existingBlog.MaBlog}, đã tạo lại: '{blog.Permalink}'");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"✅ Permalink '{permalinkTrimmed}' hợp lệ và duy nhất");
+                    }
+                }
+            }
             // Nếu IsPermalinkAuto = false, Permalink đã được lấy từ form ở trên
 
             // Đảm bảo Tags và TacGia được lưu
@@ -1843,22 +1990,12 @@ namespace Unicareer.Areas.Admin.Controllers
                 var blogHienTai = _blogRepository.LayBlogTheoId(blog.MaBlog);
                 if (blogHienTai != null)
                 {
-                    // Cập nhật blog hiện có
-                    blogHienTai.TieuDe = blog.TieuDe;
-                    blogHienTai.NoiDung = blog.NoiDung;
-                    blogHienTai.MoTaNgan = blog.MoTaNgan;
-                    blogHienTai.MaTheLoai = blog.MaTheLoai;
-                    blogHienTai.TheLoai = blog.TheLoai;
-                    blogHienTai.Tags = blog.Tags;
-                    blogHienTai.Permalink = blog.Permalink;
-                    blogHienTai.IsPermalinkAuto = blog.IsPermalinkAuto;
-                    blogHienTai.NgayCapNhat = DateTime.Now;
-                    blogHienTai.HienThi = true;
+                    // Cập nhật blog hiện có bằng AutoMapper
+                    // AutoMapper sẽ tự động map các thuộc tính và set NgayCapNhat = DateTime.Now
+                    _mapper.Map(blog, blogHienTai);
                     
-                    if (!string.IsNullOrEmpty(blog.HinhAnh))
-                    {
-                        blogHienTai.HinhAnh = blog.HinhAnh;
-                    }
+                    // Set các thuộc tính đặc biệt sau khi mapping
+                    blogHienTai.HienThi = true;
                     
                     result = _blogRepository.CapNhatBlog(blogHienTai);
                 }
@@ -1872,6 +2009,26 @@ namespace Unicareer.Areas.Admin.Controllers
             {
                 // Tạo blog mới
                 result = _blogRepository.ThemBlog(blog);
+                
+                // ✅ Sau khi blog đã được lưu và có MaBlog, kiểm tra lại permalink
+                // Nếu permalink là "blog-post" hoặc trùng với blog khác, tạo lại permalink duy nhất
+                if (result != null && !string.IsNullOrWhiteSpace(result.Permalink))
+                {
+                    var existingBlog = _blogRepository.LayBlogTheoPermalink(result.Permalink);
+                    // Nếu permalink trùng với blog khác (không phải blog hiện tại)
+                    if (existingBlog != null && existingBlog.MaBlog != result.MaBlog)
+                    {
+                        // Tạo lại permalink duy nhất với MaBlog
+                        result.Permalink = GeneratePermalinkFromTitle(result.TieuDe ?? string.Empty, result.MaBlog);
+                        _blogRepository.CapNhatBlog(result);
+                    }
+                    // Nếu permalink là "blog-post" (mặc định), cũng tạo lại để có permalink tốt hơn
+                    else if (result.Permalink == "blog-post" && !string.IsNullOrWhiteSpace(result.TieuDe))
+                    {
+                        result.Permalink = GeneratePermalinkFromTitle(result.TieuDe, result.MaBlog);
+                        _blogRepository.CapNhatBlog(result);
+                    }
+                }
             }
             
             // Debug: Log giá trị sau khi lưu
@@ -1879,6 +2036,7 @@ namespace Unicareer.Areas.Admin.Controllers
             {
                 System.Diagnostics.Debug.WriteLine($"Tags sau khi lưu: {result.Tags}");
                 System.Diagnostics.Debug.WriteLine($"TacGia sau khi lưu: {result.TacGia}");
+                System.Diagnostics.Debug.WriteLine($"Permalink sau khi lưu: {result.Permalink}");
             }
             if (result != null)
             {
@@ -1977,6 +2135,38 @@ namespace Unicareer.Areas.Admin.Controllers
                 blog.Permalink = GeneratePermalinkFromTitle(blog.TieuDe ?? string.Empty, blog.MaBlog > 0 ? blog.MaBlog : null);
                 System.Diagnostics.Debug.WriteLine($"Permalink tự động tạo (LuuTamBlog): '{blog.Permalink}'");
             }
+            
+            // ✅ QUAN TRỌNG: Đảm bảo permalink luôn duy nhất TRƯỚC KHI lưu
+            // Nếu permalink là "blog-post" (mặc định) hoặc trùng với blog khác, tạo lại
+            if (!string.IsNullOrWhiteSpace(blog.Permalink))
+            {
+                var permalinkTrimmed = blog.Permalink.Trim();
+                System.Diagnostics.Debug.WriteLine($"Kiểm tra permalink (LuuTamBlog): '{permalinkTrimmed}', MaBlog: {blog.MaBlog}");
+                
+                // Nếu permalink là "blog-post" (mặc định) và đang tạo blog mới, tạo permalink duy nhất ngay
+                if (permalinkTrimmed == "blog-post" && blog.MaBlog == 0)
+                {
+                    var oldPermalink = blog.Permalink;
+                    blog.Permalink = GenerateUniquePermalink("blog-post", null);
+                    System.Diagnostics.Debug.WriteLine($"⚠️ Permalink mặc định '{oldPermalink}', đã tạo lại: '{blog.Permalink}'");
+                }
+                // Kiểm tra xem permalink có trùng với blog khác không (trừ blog hiện tại nếu đang sửa)
+                else
+                {
+                    var existingBlog = _blogRepository.LayBlogTheoPermalink(permalinkTrimmed);
+                    if (existingBlog != null && existingBlog.MaBlog != blog.MaBlog)
+                    {
+                        // Permalink trùng, tạo lại với số đằng sau
+                        var oldPermalink = blog.Permalink;
+                        blog.Permalink = GenerateUniquePermalink(permalinkTrimmed, blog.MaBlog > 0 ? blog.MaBlog : null);
+                        System.Diagnostics.Debug.WriteLine($"⚠️ Permalink '{oldPermalink}' trùng với blog #{existingBlog.MaBlog}, đã tạo lại: '{blog.Permalink}'");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"✅ Permalink '{permalinkTrimmed}' hợp lệ và duy nhất");
+                    }
+                }
+            }
             // Nếu IsPermalinkAuto = false, Permalink đã được lấy từ form ở trên
 
             // Lưu bản nháp: HienThi = false
@@ -1990,33 +2180,51 @@ namespace Unicareer.Areas.Admin.Controllers
                 var blogHienTai = _blogRepository.LayBlogTheoId(blog.MaBlog);
                 if (blogHienTai != null)
                 {
-                    blogHienTai.TieuDe = blog.TieuDe;
-                    blogHienTai.NoiDung = blog.NoiDung;
-                    blogHienTai.MoTaNgan = blog.MoTaNgan;
-                    blogHienTai.MaTheLoai = blog.MaTheLoai;
-                    blogHienTai.TheLoai = blog.TheLoai;
-                    blogHienTai.Tags = blog.Tags;
-                    blogHienTai.Permalink = blog.Permalink;
-                    blogHienTai.IsPermalinkAuto = blog.IsPermalinkAuto;
-                    blogHienTai.NgayCapNhat = DateTime.Now;
-                    blogHienTai.HienThi = false;
+                    // ✅ Cập nhật tất cả các trường từ blog mới vào blog hiện có bằng AutoMapper
+                    // AutoMapper sẽ tự động map các thuộc tính và set NgayCapNhat = DateTime.Now
+                    _mapper.Map(blog, blogHienTai);
                     
-                    if (!string.IsNullOrEmpty(blog.HinhAnh))
-                    {
-                        blogHienTai.HinhAnh = blog.HinhAnh;
-                    }
+                    // Set các thuộc tính đặc biệt sau khi mapping
+                    blogHienTai.HienThi = false;
+                    // ✅ Giữ nguyên DaDang (không thay đổi trạng thái đăng khi lưu bản nháp)
+                    // blogHienTai.DaDang = false; // Không set lại, giữ nguyên giá trị hiện tại
 
                     result = _blogRepository.CapNhatBlog(blogHienTai);
                 }
                 else
                 {
+                    // Blog không tồn tại với MaBlog này, tạo mới
+                    blog.MaBlog = 0; // Reset để tạo mới
                     result = _blogRepository.ThemBlog(blog);
                 }
             }
             else
             {
                 // Thêm blog mới
+                // ✅ Đảm bảo DaDang = false và HienThi = false cho bản nháp
+                blog.DaDang = false;
+                blog.HienThi = false;
                 result = _blogRepository.ThemBlog(blog);
+                
+                // ✅ Sau khi blog đã được lưu và có MaBlog, kiểm tra lại permalink
+                // Nếu permalink là "blog-post" hoặc trùng với blog khác, tạo lại permalink duy nhất
+                if (result != null && !string.IsNullOrWhiteSpace(result.Permalink))
+                {
+                    var existingBlog = _blogRepository.LayBlogTheoPermalink(result.Permalink);
+                    // Nếu permalink trùng với blog khác (không phải blog hiện tại)
+                    if (existingBlog != null && existingBlog.MaBlog != result.MaBlog)
+                    {
+                        // Tạo lại permalink duy nhất với MaBlog
+                        result.Permalink = GeneratePermalinkFromTitle(result.TieuDe ?? string.Empty, result.MaBlog);
+                        _blogRepository.CapNhatBlog(result);
+                    }
+                    // Nếu permalink là "blog-post" (mặc định), cũng tạo lại để có permalink tốt hơn
+                    else if (result.Permalink == "blog-post" && !string.IsNullOrWhiteSpace(result.TieuDe))
+                    {
+                        result.Permalink = GeneratePermalinkFromTitle(result.TieuDe, result.MaBlog);
+                        _blogRepository.CapNhatBlog(result);
+                    }
+                }
             }
 
                 if (result != null)
@@ -2119,16 +2327,9 @@ namespace Unicareer.Areas.Admin.Controllers
                     blog.Permalink = GeneratePermalinkFromTitle(blog.TieuDe ?? string.Empty, blogHienTai.MaBlog);
                 }
 
-                // Cập nhật thông tin blog
-                blogHienTai.TieuDe = blog.TieuDe;
-                blogHienTai.NoiDung = blog.NoiDung;
-                blogHienTai.MoTaNgan = blog.MoTaNgan;
-                blogHienTai.MaTheLoai = blog.MaTheLoai;
-                blogHienTai.TheLoai = blog.TheLoai;
-                blogHienTai.Tags = blog.Tags;
-                blogHienTai.Permalink = blog.Permalink;
-                blogHienTai.IsPermalinkAuto = blog.IsPermalinkAuto;
-                blogHienTai.NgayCapNhat = DateTime.Now;
+                // Cập nhật thông tin blog bằng AutoMapper
+                // AutoMapper sẽ tự động map các thuộc tính và set NgayCapNhat = DateTime.Now
+                _mapper.Map(blog, blogHienTai);
                 
                 // Chuyển về bản nháp: DaDang = false (và tự động reset trạng thái hiển thị)
                 blogHienTai.DaDang = false;
@@ -2328,6 +2529,27 @@ namespace Unicareer.Areas.Admin.Controllers
                 blog.Permalink = GeneratePermalinkFromTitle(blog.TieuDe ?? string.Empty, excludeMaBlog);
                 System.Diagnostics.Debug.WriteLine($"Permalink tự động tạo: '{blog.Permalink}'");
             }
+            
+            // ✅ QUAN TRỌNG: Đảm bảo permalink luôn duy nhất TRƯỚC KHI lưu
+            // Nếu permalink là "blog-post" (mặc định) hoặc trùng với blog khác, tạo lại
+            if (!string.IsNullOrWhiteSpace(blog.Permalink))
+            {
+                int? excludeMaBlog = blogHienTai != null ? blogHienTai.MaBlog : (blog.MaBlog > 0 ? blog.MaBlog : null);
+                // Kiểm tra xem permalink có trùng với blog khác không (trừ blog hiện tại nếu đang sửa)
+                var existingBlog = _blogRepository.LayBlogTheoPermalink(blog.Permalink);
+                if (existingBlog != null && existingBlog.MaBlog != excludeMaBlog)
+                {
+                    // Permalink trùng, tạo lại với số đằng sau
+                    blog.Permalink = GenerateUniquePermalink(blog.Permalink, excludeMaBlog);
+                    System.Diagnostics.Debug.WriteLine($"Permalink trùng, đã tạo lại: '{blog.Permalink}'");
+                }
+                // Nếu permalink là "blog-post" và đang tạo blog mới, tạo permalink duy nhất
+                else if (blog.Permalink == "blog-post" && excludeMaBlog == null)
+                {
+                    blog.Permalink = GenerateUniquePermalink("blog-post", null);
+                    System.Diagnostics.Debug.WriteLine($"Permalink mặc định, đã tạo lại: '{blog.Permalink}'");
+                }
+            }
             // Nếu IsPermalinkAuto = false, Permalink đã được lấy từ form ở trên
 
             // Upload hình ảnh mới nếu có
@@ -2433,11 +2655,32 @@ namespace Unicareer.Areas.Admin.Controllers
                 // Tạo blog mới
                 result = _blogRepository.ThemBlog(blog);
                 
+                // ✅ Sau khi blog đã được lưu và có MaBlog, kiểm tra lại permalink
+                // Nếu permalink là "blog-post" hoặc trùng với blog khác, tạo lại permalink duy nhất
+                if (result != null && !string.IsNullOrWhiteSpace(result.Permalink))
+                {
+                    var existingBlog = _blogRepository.LayBlogTheoPermalink(result.Permalink);
+                    // Nếu permalink trùng với blog khác (không phải blog hiện tại)
+                    if (existingBlog != null && existingBlog.MaBlog != result.MaBlog)
+                    {
+                        // Tạo lại permalink duy nhất với MaBlog
+                        result.Permalink = GeneratePermalinkFromTitle(result.TieuDe ?? string.Empty, result.MaBlog);
+                        _blogRepository.CapNhatBlog(result);
+                    }
+                    // Nếu permalink là "blog-post" (mặc định), cũng tạo lại để có permalink tốt hơn
+                    else if (result.Permalink == "blog-post" && !string.IsNullOrWhiteSpace(result.TieuDe))
+                    {
+                        result.Permalink = GeneratePermalinkFromTitle(result.TieuDe, result.MaBlog);
+                        _blogRepository.CapNhatBlog(result);
+                    }
+                }
+                
                 // Debug: Log giá trị sau khi tạo
                 if (result != null)
                 {
                     System.Diagnostics.Debug.WriteLine($"Tags sau khi tạo: {result.Tags}");
                     System.Diagnostics.Debug.WriteLine($"TacGia sau khi tạo: {result.TacGia}");
+                    System.Diagnostics.Debug.WriteLine($"Permalink sau khi tạo: {result.Permalink}");
                 }
                 
                 if (result != null)
@@ -2644,8 +2887,9 @@ namespace Unicareer.Areas.Admin.Controllers
                 return RedirectToAction("TheLoaiBlog");
             }
 
-            // Only update name
-            theLoaiHienTai.TenTheLoai = theLoai.TenTheLoai;
+            // Cập nhật thông tin bằng AutoMapper
+            // AutoMapper sẽ tự động map các thuộc tính và bỏ qua các thuộc tính đặc biệt
+            _mapper.Map(theLoai, theLoaiHienTai);
 
             var result = _theLoaiBlogRepository.CapNhatTheLoai(theLoaiHienTai);
             if (result != null)
@@ -2715,11 +2959,28 @@ namespace Unicareer.Areas.Admin.Controllers
 
         private string GenerateUniquePermalink(string basePermalink, int? excludeMaBlog = null)
         {
+            // ✅ Nếu basePermalink là "blog-post" (mặc định) và chưa có MaBlog, thêm timestamp ngay để tránh trùng
+            // Điều này đảm bảo mỗi blog mới có permalink duy nhất ngay từ đầu
+            if (basePermalink == "blog-post" && !excludeMaBlog.HasValue)
+            {
+                // Tạo permalink duy nhất với timestamp để tránh trùng khi tạo nhiều blog mới
+                var timestampPermalink = $"{basePermalink}-{DateTime.Now:yyyyMMddHHmmss}";
+                var existingBlog = _blogRepository.LayBlogTheoPermalink(timestampPermalink);
+                
+                // Nếu vẫn trùng (rất hiếm), thêm thêm milliseconds
+                if (existingBlog != null)
+                {
+                    timestampPermalink = $"{basePermalink}-{DateTime.Now:yyyyMMddHHmmssfff}";
+                }
+                
+                return timestampPermalink;
+            }
+            
             // Kiểm tra xem permalink cơ bản đã tồn tại chưa
-            var existingBlog = _blogRepository.LayBlogTheoPermalink(basePermalink);
+            var existingBlogCheck = _blogRepository.LayBlogTheoPermalink(basePermalink);
             
             // Nếu permalink chưa tồn tại hoặc là blog hiện tại đang sửa, trả về permalink cơ bản
-            if (existingBlog == null || (excludeMaBlog.HasValue && existingBlog.MaBlog == excludeMaBlog.Value))
+            if (existingBlogCheck == null || (excludeMaBlog.HasValue && existingBlogCheck.MaBlog == excludeMaBlog.Value))
             {
                 return basePermalink;
             }
@@ -2727,7 +2988,7 @@ namespace Unicareer.Areas.Admin.Controllers
             // Nếu permalink đã tồn tại, thử thêm số phía sau (từ 1 đến 999)
             for (int i = 1; i <= 999; i++)
             {
-                var newPermalink = $"{basePermalink}_{i}";
+                var newPermalink = $"{basePermalink}-{i}";
                 var checkBlog = _blogRepository.LayBlogTheoPermalink(newPermalink);
                 
                 // Nếu permalink chưa tồn tại hoặc là blog hiện tại đang sửa, trả về permalink mới
@@ -2738,7 +2999,200 @@ namespace Unicareer.Areas.Admin.Controllers
             }
 
             // Nếu không tìm được permalink duy nhất trong phạm vi 1-999, thêm timestamp
-            return $"{basePermalink}_{DateTime.Now:yyyyMMddHHmmss}";
+            return $"{basePermalink}-{DateTime.Now:yyyyMMddHHmmss}";
+        }
+
+        // GET: Lấy thông báo cho admin
+        [HttpGet]
+        public IActionResult GetNotifications()
+        {
+            try
+            {
+                var notifications = new List<NotificationItem>();
+                var now = DateTime.Now;
+                var threeDaysFromNow = now.AddDays(3);
+                var sevenDaysAgo = now.AddDays(-7);
+
+                // 1. Tin tuyển dụng chờ duyệt
+                var tinChoDuyet = _tinTuyenDungRepository.LayDanhSachTinTuyenDung()
+                    .Where(t => t.TrangThaiDuyet == "Cho duyet")
+                    .OrderByDescending(t => t.NgayDang)
+                    .Take(10)
+                    .ToList();
+
+                foreach (var tin in tinChoDuyet)
+                {
+                    notifications.Add(new NotificationItem
+                    {
+                        Type = "PendingApproval",
+                        Title = "Tin tuyển dụng chờ duyệt",
+                        Message = $"Tin \"{tin.TenViecLam}\" từ {tin.NhaTuyenDung?.TenCongTy ?? tin.CongTy ?? "N/A"} đang chờ duyệt",
+                        Icon = "bi-hourglass-split",
+                        Color = "text-warning",
+                        Url = Url.Action("ChiTietTinTuyenDung", "Admin", new { area = "Admin", id = tin.MaTinTuyenDung }),
+                        CreatedAt = tin.NgayDang,
+                        RelatedId = tin.MaTinTuyenDung,
+                        NotificationKey = $"PendingApproval_{tin.MaTinTuyenDung}_{tin.NgayDang:yyyyMMddHHmmss}"
+                    });
+                }
+
+                // 2. Đơn ứng tuyển mới (trong 7 ngày gần đây)
+                var donUngTuyenMoi = _tinUngTuyenRepository.LayDanhSachTinUngTuyen()
+                    .Where(t => t.NgayUngTuyen >= sevenDaysAgo)
+                    .OrderByDescending(t => t.NgayUngTuyen)
+                    .Take(10)
+                    .ToList();
+
+                foreach (var don in donUngTuyenMoi)
+                {
+                    // Chuyển đổi MaTinTuyenDung từ string sang int
+                    TinTuyenDung? tinTuyenDung = null;
+                    if (int.TryParse(don.MaTinTuyenDung, out int maTinTuyenDung))
+                    {
+                        tinTuyenDung = _tinTuyenDungRepository.LayTinTuyenDungTheoId(maTinTuyenDung);
+                    }
+                    
+                    // Tìm UngVien từ UserId để lấy MaUngVien
+                    var ungVien = !string.IsNullOrEmpty(don.UserId) 
+                        ? _ungVienRepository.LayDanhSachUngVien().FirstOrDefault(u => u.UserId == don.UserId)
+                        : null;
+                    
+                    // Nếu có UngVien thì link đến ChiTietUngVien, nếu không thì link đến Dashboard
+                    var url = ungVien != null 
+                        ? Url.Action("ChiTietUngVien", "Admin", new { area = "Admin", id = ungVien.MaUngVien })
+                        : Url.Action("Dashboard", "Admin", new { area = "Admin" });
+                    
+                    notifications.Add(new NotificationItem
+                    {
+                        Type = "NewApplication",
+                        Title = "Đơn ứng tuyển mới",
+                        Message = $"{don.HoTen} đã ứng tuyển vào vị trí \"{tinTuyenDung?.TenViecLam ?? don.ViTriUngTuyen}\"",
+                        Icon = "bi-person-plus-fill",
+                        Color = "text-primary",
+                        Url = url,
+                        CreatedAt = don.NgayUngTuyen,
+                        RelatedId = don.MaTinUngTuyen,
+                        NotificationKey = $"NewApplication_{don.MaTinUngTuyen}_{don.NgayUngTuyen:yyyyMMddHHmmss}"
+                    });
+                }
+
+                // 3. Tin tuyển dụng sắp hết hạn (trong 3 ngày tới)
+                var tinSapHetHan = _tinTuyenDungRepository.LayDanhSachTinTuyenDung()
+                    .Where(t => t.HanNop >= now && t.HanNop <= threeDaysFromNow && 
+                                t.TrangThaiDuyet == "Da duyet" &&
+                                (t.TrangThai == "Dang tuyen" || string.IsNullOrEmpty(t.TrangThai)))
+                    .OrderBy(t => t.HanNop)
+                    .ToList();
+
+                foreach (var tin in tinSapHetHan)
+                {
+                    var daysLeft = (tin.HanNop.Date - now.Date).Days;
+                    notifications.Add(new NotificationItem
+                    {
+                        Type = "ExpiringSoon",
+                        Title = "Tin tuyển dụng sắp hết hạn",
+                        Message = $"Tin \"{tin.TenViecLam}\" sẽ hết hạn sau {daysLeft} ngày ({tin.HanNop:dd/MM/yyyy})",
+                        Icon = "bi-clock-history",
+                        Color = "text-warning",
+                        Url = Url.Action("ChiTietTinTuyenDung", "Admin", new { area = "Admin", id = tin.MaTinTuyenDung }),
+                        CreatedAt = tin.HanNop,
+                        RelatedId = tin.MaTinTuyenDung,
+                        NotificationKey = $"ExpiringSoon_{tin.MaTinTuyenDung}_{tin.HanNop:yyyyMMdd}"
+                    });
+                }
+
+                // 4. Tin tuyển dụng đã hết hạn (chưa đóng)
+                var tinHetHan = _tinTuyenDungRepository.LayDanhSachTinTuyenDung()
+                    .Where(t => t.HanNop < now && 
+                                t.TrangThaiDuyet == "Da duyet" &&
+                                (t.TrangThai == "Dang tuyen" || string.IsNullOrEmpty(t.TrangThai) || t.TrangThai == "Het han"))
+                    .OrderByDescending(t => t.HanNop)
+                    .Take(5)
+                    .ToList();
+
+                foreach (var tin in tinHetHan)
+                {
+                    notifications.Add(new NotificationItem
+                    {
+                        Type = "Expired",
+                        Title = "Tin tuyển dụng đã hết hạn",
+                        Message = $"Tin \"{tin.TenViecLam}\" đã hết hạn từ ngày {tin.HanNop:dd/MM/yyyy}",
+                        Icon = "bi-exclamation-triangle-fill",
+                        Color = "text-danger",
+                        Url = Url.Action("ChiTietTinTuyenDung", "Admin", new { area = "Admin", id = tin.MaTinTuyenDung }),
+                        CreatedAt = tin.HanNop,
+                        RelatedId = tin.MaTinTuyenDung,
+                        NotificationKey = $"Expired_{tin.MaTinTuyenDung}_{tin.HanNop:yyyyMMdd}"
+                    });
+                }
+
+                // 5. Nhà tuyển dụng mới đăng ký (trong 7 ngày gần đây)
+                var nhaTuyenDungMoi = _nhaTuyenDungRepository.LayDanhSachNhaTuyenDung()
+                    .Where(n => n.User != null && n.User.NgayDangKy >= sevenDaysAgo)
+                    .OrderByDescending(n => n.User!.NgayDangKy)
+                    .Take(5)
+                    .ToList();
+
+                foreach (var ntd in nhaTuyenDungMoi)
+                {
+                    if (ntd.User != null)
+                    {
+                        notifications.Add(new NotificationItem
+                        {
+                            Type = "NewRecruiter",
+                            Title = "Nhà tuyển dụng mới đăng ký",
+                            Message = $"{ntd.TenCongTy} đã đăng ký tài khoản mới",
+                            Icon = "bi-building",
+                            Color = "text-info",
+                            Url = Url.Action("ChiTietNhaTuyenDung", "Admin", new { area = "Admin", id = ntd.MaNhaTuyenDung }),
+                            CreatedAt = ntd.User.NgayDangKy,
+                            RelatedId = ntd.MaNhaTuyenDung,
+                            NotificationKey = $"NewRecruiter_{ntd.MaNhaTuyenDung}_{ntd.User.NgayDangKy:yyyyMMddHHmmss}"
+                        });
+                    }
+                }
+
+                // 6. Ứng viên mới đăng ký (trong 7 ngày gần đây)
+                var ungVienMoi = _ungVienRepository.LayDanhSachUngVien()
+                    .Where(u => u.User != null && u.User.NgayDangKy >= sevenDaysAgo)
+                    .OrderByDescending(u => u.User!.NgayDangKy)
+                    .Take(5)
+                    .ToList();
+
+                foreach (var uv in ungVienMoi)
+                {
+                    if (uv.User != null)
+                    {
+                        notifications.Add(new NotificationItem
+                        {
+                            Type = "NewCandidate",
+                            Title = "Ứng viên mới đăng ký",
+                            Message = $"{uv.HoTen} đã đăng ký tài khoản mới",
+                            Icon = "bi-person-badge",
+                            Color = "text-info",
+                            Url = Url.Action("ChiTietUngVien", "Admin", new { area = "Admin", id = uv.MaUngVien }),
+                            CreatedAt = uv.User.NgayDangKy,
+                            RelatedId = uv.MaUngVien,
+                            NotificationKey = $"NewCandidate_{uv.MaUngVien}_{uv.User.NgayDangKy:yyyyMMddHHmmss}"
+                        });
+                    }
+                }
+
+                // Sắp xếp theo thời gian (mới nhất trước)
+                notifications = notifications.OrderByDescending(n => n.CreatedAt).ToList();
+
+                var viewModel = new NotificationViewModel
+                {
+                    TotalCount = notifications.Count,
+                    Notifications = notifications
+                };
+
+                return Json(new { success = true, data = viewModel });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
         }
     }
 }

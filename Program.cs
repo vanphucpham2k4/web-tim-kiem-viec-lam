@@ -9,26 +9,34 @@ using Unicareer.Data;
 using Unicareer.Models;
 using Unicareer.Repository;
 using Unicareer.Services;
+using Unicareer.Mappings;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-// Đăng ký Repository với Dependency Injection
-// Tự động chuyển đổi giữa Mock Data và Real Data dựa trên cấu hình Repository:UseMockData
-// - Development: mặc định sử dụng Mock Data (có thể thay đổi trong appsettings.Development.json)
-// - Production: mặc định sử dụng Real Data (có thể thay đổi trong appsettings.json)
-var useMockData = builder.Configuration.GetValue<bool>("Repository:UseMockData", false);
-builder.Services.AddRepositories(builder.Configuration);
+// Cấu hình AutoMapper
+builder.Services.AddAutoMapper(typeof(BlogMappingProfile), typeof(UngVienMappingProfile), typeof(NhaTuyenDungMappingProfile), typeof(TinTuyenDungMappingProfile), typeof(MasterDataMappingProfile));
+
+// Đăng ký repository cho Dependency Injection
+builder.Services.AddScoped<INhaTuyenDungRepository, NhaTuyenDungRepository>();
+builder.Services.AddScoped<IUngVienRepository, UngVienRepository>();
+builder.Services.AddScoped<ITinTuyenDungRepository, TinTuyenDungRepository>();
+builder.Services.AddScoped<ITinUngTuyenRepository, TinUngTuyenRepository>();
+builder.Services.AddScoped<IViecLamDaLuuRepository, ViecLamDaLuuRepository>();
+builder.Services.AddScoped<ILoaiCongViecRepository, LoaiCongViecRepository>();
+builder.Services.AddScoped<INganhNgheRepository, NganhNgheRepository>();
+builder.Services.AddScoped<IChuyenNganhRepository, ChuyenNganhRepository>();
+builder.Services.AddScoped<ITruongDaiHocRepository, TruongDaiHocRepository>();
+builder.Services.AddScoped<IBlogRepository, BlogRepository>();
+builder.Services.AddScoped<ITheLoaiBlogRepository, TheLoaiBlogRepository>();
 
 // Đăng ký Background Service để tự động cập nhật trạng thái tin tuyển dụng hết hạn
 builder.Services.AddHostedService<UpdateTrangThaiBackgroundService>();
 
 // Đăng ký Email Service
 builder.Services.AddScoped<IEmailService, EmailService>();
-
-// Log trạng thái sử dụng repository (sẽ log sau khi app được build)
 
 // Cấu hình Session để lưu CAPTCHA
 builder.Services.AddSession(options =>
@@ -133,13 +141,6 @@ if (!string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientS
 }
 
 var app = builder.Build();
-
-// Log trạng thái sử dụng repository
-var repositoryLogger = app.Services.GetRequiredService<ILogger<Program>>();
-repositoryLogger.LogInformation("=== REPOSITORY CONFIGURATION ===");
-repositoryLogger.LogInformation("UseMockData: {UseMockData}", useMockData);
-repositoryLogger.LogInformation("Repository Mode: {Mode}", useMockData ? "MOCK DATA" : "REAL DATABASE");
-repositoryLogger.LogInformation("================================");
 
 // Seed roles và admin user
 using (var scope = app.Services.CreateScope())

@@ -20,6 +20,9 @@ namespace Unicareer.Models.ViewModels
         public int TotalDangTuyen { get; set; }
         public int TotalHetHan { get; set; }
         public int TotalUngTuyen { get; set; }
+        public int TotalChoDuyet { get; set; }
+        public int TotalDaDuyet { get; set; }
+        public int TotalTuChoi { get; set; }
     }
 }
 

@@ -1,0 +1,68 @@
+@model Unicareer.Models.Blog
+
+@if (!string.IsNullOrEmpty(Model.TieuDe))
+{
+    <h1 class="blog-detail-title">@Model.TieuDe</h1>
+}
+
+<div class="blog-detail-meta">
+    @if (Model.TheLoaiBlog != null)
+    {
+        <span class="blog-detail-category" style="background: @(Model.TheLoaiBlog.MauSac ?? "#e3f2fd"); color: @(Model.TheLoaiBlog.MauSac != null ? "white" : "#1976d2");">
+            @Model.TheLoaiBlog.TenTheLoai
+        </span>
+    }
+    else if (!string.IsNullOrEmpty(Model.TheLoai))
+    {
+        <span class="blog-detail-category">@Model.TheLoai</span>
+    }
+
+    @if (Model.User != null)
+    {
+        <div class="blog-detail-meta-item">
+            <i class="bi bi-person"></i>
+            <span>@(Model.User.HoTen ?? Model.User.UserName ?? Model.User.Email ?? "Admin")</span>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(Model.TacGia))
+    {
+        <div class="blog-detail-meta-item">
+            <i class="bi bi-person"></i>
+            <span>@Model.TacGia</span>
+        </div>
+    }
+
+    <div class="blog-detail-meta-item">
+        <i class="bi bi-calendar"></i>
+        <span>@Model.NgayDang.ToString("dd/MM/yyyy HH:mm")</span>
+    </div>
+
+    @if (Model.LuotXem > 0)
+    {
+        <div class="blog-detail-meta-item">
+            <i class="bi bi-eye"></i>
+            <span>@Model.LuotXem.ToString("N0") lượt xem</span>
+        </div>
+    }
+</div>
+
+@if (!string.IsNullOrEmpty(Model.NoiDung))
+{
+    <div class="blog-detail-content">
+        @Html.Raw(Model.NoiDung)
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(Model.Tags))
+{
+    <div class="blog-detail-tags">
+        @{
+            var tags = Model.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        }
+        @foreach (var tag in tags)
+        {
+            <a href="/Home/TimViec?keyword=@Uri.EscapeDataString(tag.Trim())" class="blog-detail-tag">#@tag.Trim()</a>
+        }
+    </div>
+}
+

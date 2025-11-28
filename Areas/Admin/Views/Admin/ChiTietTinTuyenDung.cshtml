@@ -969,6 +969,54 @@
     </div>
 </div>
 
+@{
+    var trangThaiDuyet = !string.IsNullOrEmpty(Model.TrangThaiDuyet) ? Model.TrangThaiDuyet : "Cho duyet";
+    var badgeClassDuyet = trangThaiDuyet switch
+    {
+        "Da duyet" => "badge bg-success",
+        "Tu choi" => "badge bg-danger",
+        _ => "badge bg-warning"
+    };
+    var labelDuyet = trangThaiDuyet switch
+    {
+        "Da duyet" => "Đã duyệt",
+        "Tu choi" => "Đã từ chối",
+        _ => "Chờ duyệt"
+    };
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <span class="@badgeClassDuyet">@labelDuyet</span>
+                @if (!string.IsNullOrEmpty(Model.LyDoTuChoi) && trangThaiDuyet == "Tu choi")
+                {
+                    <p class="mb-0 small text-danger mt-2">
+                        <strong>Lý do:</strong> @Model.LyDoTuChoi
+                    </p>
+                }
+                else
+                {
+                    <p class="mb-0 small text-muted mt-2">
+                        @(trangThaiDuyet == "Cho duyet"
+                            ? "Tin đang chờ admin kiểm tra trước khi hiển thị cho người tìm việc."
+                            : "Tin đã được duyệt và đang khả dụng.")
+                    </p>
+                }
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <button type="button" class="btn btn-success" id="btnApprove">
+                    <i class="bi bi-check-circle"></i> Duyệt tin
+                </button>
+                <button type="button" class="btn btn-outline-danger" id="btnReject" data-bs-toggle="modal" data-bs-target="#tuChoiModal">
+                    <i class="bi bi-x-circle"></i> Từ chối
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Thông tin cơ bản -->
 <div class="row mb-4">
     <div class="col-12">
@@ -1760,6 +1808,27 @@
                 <button class="btn btn-danger w-100 mb-2 btn-xoa" data-ma="@Model.MaTinTuyenDung">
                     <i class="bi bi-trash"></i> Xóa tin
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="tuChoiModal" tabindex="-1" aria-labelledby="tuChoiModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tuChoiModalLabel">Lý do từ chối</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="lyDoTuChoi" class="form-label">Ghi rõ lý do</label>
+                    <textarea id="lyDoTuChoi" class="form-control" rows="3" placeholder="Ví dụ: Bài viết thiếu thông tin lương, không đúng quy định..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" id="confirmReject">Gửi từ chối</button>
             </div>
         </div>
     </div>

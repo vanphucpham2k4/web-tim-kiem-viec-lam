@@ -18,8 +18,7 @@ namespace Unicareer.Models
         public DateTime? NgayCapNhat { get; set; }
         public int LuotXem { get; set; } = 0;
         public bool DaDang { get; set; } = false; // Đã đăng (false = bản nháp, true = đã đăng)
-        public bool DaDuyet { get; set; } = false; // Trạng thái duyệt (chỉ áp dụng khi DaDang = true)
-        public bool HienThi { get; set; } = false; // Hiển thị trên trang chủ (chỉ áp dụng khi DaDuyet = true)
+        public bool HienThi { get; set; } = false; // Hiển thị trên trang chủ (chỉ áp dụng khi DaDang = true)
         public string? UserId { get; set; } // Người tạo (admin)
         public ApplicationUser? User { get; set; } // Navigation property
     }

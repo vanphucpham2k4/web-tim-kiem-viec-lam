@@ -182,7 +182,10 @@
                         </div>
 
                         <div class="d-grid gap-2 mb-3">
-                            <a asp-action="ExternalLogin" asp-route-provider="Google" class="btn" 
+                            @{
+                                var returnUrl = ViewData["ReturnUrl"]?.ToString() ?? Context.Request.Query["returnUrl"].ToString();
+                            }
+                            <a asp-action="ExternalLogin" asp-route-provider="Google" asp-route-returnUrl="@returnUrl" class="btn" 
                                style="background: #fff; border: 2px solid #e0e0e0; border-radius: 10px; padding: 12px; 
                                       color: #333; font-weight: 600; text-decoration: none; display: flex; 
                                       align-items: center; justify-content: center; gap: 10px; transition: all 0.3s;">

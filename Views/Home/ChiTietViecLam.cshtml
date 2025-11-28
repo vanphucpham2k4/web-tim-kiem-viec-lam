@@ -107,6 +107,21 @@
         margin-bottom: 8px;
     }
 
+    .company-name a {
+        color: var(--primary-color);
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .company-name a:hover {
+        color: var(--primary-dark);
+        text-decoration: underline;
+        transform: translateX(3px);
+    }
+
     .job-meta-header {
         display: flex;
         gap: 25px;
@@ -126,12 +141,6 @@
     .job-meta-header i {
         color: var(--primary-color);
         font-size: 16px;
-    }
-
-    .job-id {
-        font-size: 13px;
-        color: var(--text-secondary);
-        margin-top: 8px;
     }
 
     .action-buttons {
@@ -269,6 +278,30 @@
     .content-text li {
         margin-bottom: 10px;
         padding-left: 5px;
+    }
+
+    .content-text a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .content-text a:hover {
+        color: var(--primary-dark);
+        text-decoration: underline;
+    }
+
+    .info-value a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .info-value a:hover {
+        color: var(--primary-dark);
+        text-decoration: underline;
     }
 
     .sidebar-info {
@@ -928,7 +961,16 @@
                     <div class="flex-grow-1">
                         <h1>@Model.TenViecLam</h1>
                         <div class="company-name">
-                            <i class="bi bi-building"></i> @Model.CongTy
+                            @if (Model.MaNhaTuyenDung.HasValue && Model.MaNhaTuyenDung.Value > 0)
+                            {
+                                <a href="/Home/ChiTietCongTy/@Model.MaNhaTuyenDung.Value">
+                                    <i class="bi bi-building"></i> @Model.CongTy
+                                </a>
+                            }
+                            else
+                            {
+                                <i class="bi bi-building"></i> @Model.CongTy
+                            }
                         </div>
                         <div class="job-meta-header">
                             <span><i class="bi bi-geo-alt-fill"></i> @Model.DiaChiLamViec</span>
@@ -936,7 +978,6 @@
                                 <i class="bi bi-calendar-x"></i> Hết hạn: @Model.HanNop.ToString("dd/MM/yyyy")
                             </span>
                         </div>
-                        <div class="job-id">ID: job@Model.MaTinTuyenDung</div>
                     </div>
                 </div>
 
@@ -1075,7 +1116,18 @@
                                 Về @Model.CongTy
                             </h3>
                             <div class="content-text">
-                                <p><strong>Tên công ty:</strong> @Model.CongTy</p>
+                                <p><strong>Tên công ty:</strong> 
+                                    @if (Model.MaNhaTuyenDung.HasValue && Model.MaNhaTuyenDung.Value > 0)
+                                    {
+                                        <a href="/Home/ChiTietCongTy/@Model.MaNhaTuyenDung.Value">
+                                            @Model.CongTy
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        @Model.CongTy
+                                    }
+                                </p>
                                 <p><strong>Địa chỉ:</strong> @Model.DiaChiLamViec, @Model.TinhThanhPho</p>
                                 @if (!string.IsNullOrEmpty(Model.EmailLienHe))
                                 {
@@ -1294,7 +1346,16 @@
                             Nhà tuyển dụng
                         </div>
                         <div class="info-value">
-                            @Model.CongTy
+                            @if (Model.MaNhaTuyenDung.HasValue && Model.MaNhaTuyenDung.Value > 0)
+                            {
+                                <a href="/Home/ChiTietCongTy/@Model.MaNhaTuyenDung.Value">
+                                    @Model.CongTy
+                                </a>
+                            }
+                            else
+                            {
+                                @Model.CongTy
+                            }
                         </div>
                     </div>
 
@@ -1447,6 +1508,25 @@
     
     <script>
         $(document).ready(function() {
+            // Kiểm tra tham số apply=true trong URL để tự động mở modal ứng tuyển
+            // (Sau khi đăng nhập thành công và được redirect về trang này)
+            var urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('apply') === 'true') {
+                // Chỉ mở modal nếu người dùng đã đăng nhập và không phải nhà tuyển dụng
+                @if (SignInManager.IsSignedIn(User) && !isNhaTuyenDung && coTheUngTuyen)
+                {
+                    <text>
+                    // Đợi một chút để đảm bảo trang đã load xong
+                    setTimeout(function() {
+                        var applyModal = new bootstrap.Modal(document.getElementById('applyModal'));
+                        applyModal.show();
+                        // Xóa tham số apply khỏi URL để tránh mở lại khi refresh
+                        var newUrl = window.location.pathname;
+                        window.history.replaceState({}, document.title, newUrl);
+                    }, 300);
+                    </text>
+                }
+            }
             // Initialize map
             var lat = @(Model.Latitude?.ToString().Replace(",", ".") ?? "21.028511");
             var lng = @(Model.Longitude?.ToString().Replace(",", ".") ?? "105.804817");
@@ -1786,7 +1866,12 @@
                         if (xhr.responseJSON && xhr.responseJSON.message) {
                             errorMessage = xhr.responseJSON.message;
                         } else if (xhr.status === 401 || xhr.status === 403) {
-                            errorMessage = 'Vui lòng đăng nhập để ứng tuyển';
+                            // Khi chưa đăng nhập, redirect đến trang login với returnUrl là trang tin tuyển dụng hiện tại
+                            // Thêm tham số apply=true để tự động mở modal ứng tuyển sau khi đăng nhập
+                            var currentJobId = @Model.MaTinTuyenDung;
+                            var returnUrl = '/Home/ChiTietViecLam/' + currentJobId + '?apply=true';
+                            window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(returnUrl);
+                            return; // Dừng xử lý tiếp
                         } else if (xhr.status === 400) {
                             errorMessage = 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.';
                         }

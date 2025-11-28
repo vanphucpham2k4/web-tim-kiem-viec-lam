@@ -287,7 +287,142 @@
             font-size: 16px;
         }
     }
+
+    .blog-detail-main.loading {
+        opacity: 0.6;
+        pointer-events: none;
+        position: relative;
+    }
+
+    .blog-detail-main.loading::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #10b981;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @@keyframes spin {
+        0% { transform: translate(-50%, -50%) rotate(0deg); }
+        100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
 </style>
+
+<script>
+    // Function để khởi tạo event listeners cho các link trong sidebar
+    function initRelatedBlogLinks() {
+        const relatedBlogLinks = document.querySelectorAll('.blog-related-item[data-blog-url]');
+        const mainContainer = document.getElementById('blog-detail-main-container');
+        const sidebarContainer = document.getElementById('blog-detail-sidebar-container');
+        const breadcrumbText = document.querySelector('.breadcrumb-custom span:last-child');
+        
+        relatedBlogLinks.forEach(function(link) {
+            // Xóa event listener cũ nếu có
+            link.replaceWith(link.cloneNode(true));
+        });
+        
+        // Lấy lại các link sau khi clone
+        const newRelatedBlogLinks = document.querySelectorAll('.blog-related-item[data-blog-url]');
+        
+        newRelatedBlogLinks.forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const blogUrl = this.getAttribute('data-blog-url');
+                const fullUrl = this.getAttribute('href');
+                const blogId = this.getAttribute('data-blog-id');
+                
+                // Thêm class loading
+                mainContainer.classList.add('loading');
+                
+                // Load content qua AJAX
+                fetch(blogUrl)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.text();
+                    })
+                    .then(html => {
+                        // Cập nhật nội dung
+                        mainContainer.innerHTML = html;
+                        mainContainer.classList.remove('loading');
+                        
+                        // Scroll to top của container
+                        const container = document.querySelector('.blog-detail-container');
+                        if (container) {
+                            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                        
+                        // Cập nhật URL trong browser (không reload trang)
+                        window.history.pushState({ path: fullUrl }, '', fullUrl);
+                        
+                        // Cập nhật title và breadcrumb
+                        const titleElement = document.querySelector('.blog-detail-title');
+                        if (titleElement && breadcrumbText) {
+                            const newTitle = titleElement.textContent.trim();
+                            document.title = newTitle + ' - UniCareer';
+                            breadcrumbText.textContent = newTitle;
+                        }
+                        
+                        // Load lại sidebar với danh sách blog liên quan mới
+                        // Sử dụng blog ID từ link đã click để exclude khỏi sidebar
+                        if (blogId) {
+                            loadRelatedBlogs(blogId);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading blog:', error);
+                        mainContainer.classList.remove('loading');
+                        alert('Có lỗi xảy ra khi tải bài viết. Vui lòng thử lại.');
+                        // Fallback: redirect to full page
+                        window.location.href = fullUrl;
+                    });
+            });
+        });
+    }
+    
+    // Function để load lại sidebar với blog liên quan mới
+    function loadRelatedBlogs(excludeBlogId) {
+        const sidebarContainer = document.getElementById('blog-detail-sidebar-container');
+        const sidebarUrl = '/Home/BlogDetailSidebar?excludeBlogId=' + excludeBlogId;
+        
+        fetch(sidebarUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.text();
+            })
+            .then(html => {
+                sidebarContainer.innerHTML = html;
+                // Khởi tạo lại event listeners cho các link mới
+                initRelatedBlogLinks();
+            })
+            .catch(error => {
+                console.error('Error loading sidebar:', error);
+                // Không hiển thị lỗi cho user, sidebar cũ vẫn hoạt động
+            });
+    }
+    
+    // Khởi tạo khi trang được load
+    document.addEventListener('DOMContentLoaded', function() {
+        initRelatedBlogLinks();
+        
+        // Xử lý browser back/forward buttons
+        window.addEventListener('popstate', function(e) {
+            if (e.state && e.state.path) {
+                window.location.href = e.state.path;
+            }
+        });
+    });
+</script>
 
 <div class="blog-detail-container">
     <!-- Breadcrumb -->
@@ -301,107 +436,13 @@
 
     <div class="blog-detail-wrapper">
         <!-- Main Content -->
-        <div class="blog-detail-main">
-            @if (!string.IsNullOrEmpty(Model.TieuDe))
-            {
-                <h1 class="blog-detail-title">@Model.TieuDe</h1>
-            }
-
-            <div class="blog-detail-meta">
-                @if (Model.TheLoaiBlog != null)
-                {
-                    <span class="blog-detail-category" style="background: @(Model.TheLoaiBlog.MauSac ?? "#e3f2fd"); color: @(Model.TheLoaiBlog.MauSac != null ? "white" : "#1976d2");">
-                        @Model.TheLoaiBlog.TenTheLoai
-                    </span>
-                }
-                else if (!string.IsNullOrEmpty(Model.TheLoai))
-                {
-                    <span class="blog-detail-category">@Model.TheLoai</span>
-                }
-
-                @if (Model.User != null)
-                {
-                    <div class="blog-detail-meta-item">
-                        <i class="bi bi-person"></i>
-                        <span>@(Model.User.HoTen ?? Model.User.UserName ?? Model.User.Email ?? "Admin")</span>
-                    </div>
-                }
-                else if (!string.IsNullOrEmpty(Model.TacGia))
-                {
-                    <div class="blog-detail-meta-item">
-                        <i class="bi bi-person"></i>
-                        <span>@Model.TacGia</span>
-                    </div>
-                }
-
-                <div class="blog-detail-meta-item">
-                    <i class="bi bi-calendar"></i>
-                    <span>@Model.NgayDang.ToString("dd/MM/yyyy HH:mm")</span>
-                </div>
-
-                @if (Model.LuotXem > 0)
-                {
-                    <div class="blog-detail-meta-item">
-                        <i class="bi bi-eye"></i>
-                        <span>@Model.LuotXem.ToString("N0") lượt xem</span>
-                    </div>
-                }
-            </div>
-
-            @if (!string.IsNullOrEmpty(Model.NoiDung))
-            {
-                <div class="blog-detail-content">
-                    @Html.Raw(Model.NoiDung)
-                </div>
-            }
-
-            @if (!string.IsNullOrEmpty(Model.Tags))
-            {
-                <div class="blog-detail-tags">
-                    @{
-                        var tags = Model.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries);
-                    }
-                    @foreach (var tag in tags)
-                    {
-                        <a href="/Home/TimViec?keyword=@Uri.EscapeDataString(tag.Trim())" class="blog-detail-tag">#@tag.Trim()</a>
-                    }
-                </div>
-            }
+        <div class="blog-detail-main" id="blog-detail-main-container">
+            @await Html.PartialAsync("_BlogDetailMain", Model)
         </div>
 
         <!-- Sidebar -->
-        <div class="blog-detail-sidebar">
-            @if (ViewBag.DanhSachBlogLienQuan != null && ((List<Unicareer.Models.Blog>)ViewBag.DanhSachBlogLienQuan).Any())
-            {
-                <div class="sidebar-section">
-                    <h3 class="sidebar-section-title">Bài viết liên quan</h3>
-                    @foreach (var blogLienQuan in (List<Unicareer.Models.Blog>)ViewBag.DanhSachBlogLienQuan)
-                    {
-                        var blogUrl = blogLienQuan.Permalink != null 
-                            ? $"/Home/BlogDetail?permalink={Uri.EscapeDataString(blogLienQuan.Permalink)}" 
-                            : $"/Home/BlogDetail?id={blogLienQuan.MaBlog}";
-                        
-                        <a href="@blogUrl" class="blog-related-item">
-                            @if (!string.IsNullOrEmpty(blogLienQuan.HinhAnh))
-                            {
-                                <img src="@blogLienQuan.HinhAnh" alt="@blogLienQuan.TieuDe" class="blog-related-item-image" onerror="this.style.display='none'" />
-                            }
-                            else
-                            {
-                                <div class="blog-related-item-image" style="background: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #999; font-size: 24px;">
-                                    <i class="bi bi-file-text"></i>
-                                </div>
-                            }
-                            <div class="blog-related-item-content">
-                                <div class="blog-related-item-title">@blogLienQuan.TieuDe</div>
-                                <div class="blog-related-item-date">
-                                    <i class="bi bi-calendar"></i> @blogLienQuan.NgayDang.ToString("dd/MM/yyyy")
-                                </div>
-                            </div>
-                        </a>
-                    }
-                </div>
-            }
+        <div class="blog-detail-sidebar" id="blog-detail-sidebar-container">
+            @await Html.PartialAsync("_BlogDetailSidebar")
         </div>
     </div>
 </div>

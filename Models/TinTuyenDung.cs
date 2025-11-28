@@ -45,6 +45,11 @@ namespace Unicareer.Models
         public DateTime NgayDang { get; set; }
         public DateTime HanNop { get; set; }
         public string? TrangThai { get; set; } = "Dang tuyen"; // Trạng thái: "Dang tuyen", "Het han", "Da dong"
+
+        // Trạng thái duyệt của admin
+        public string TrangThaiDuyet { get; set; } = "Cho duyet"; // Giá trị: "Cho duyet", "Da duyet", "Tu choi"
+        public string? LyDoTuChoi { get; set; }
+        public DateTime? NgayDuyet { get; set; }
         
         // Geolocation
         public double? Latitude { get; set; }

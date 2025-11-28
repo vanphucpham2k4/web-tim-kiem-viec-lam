@@ -575,19 +575,7 @@
         @RenderBody()
     </main>
 
-    <footer class="mt-5 py-4 bg-light border-top">
-        <div class="container-fluid px-5">
-            <div class="row">
-                <div class="col-md-6">
-                    <p class="mb-0">&copy; 2025 - Unicareer - Nền tảng tuyển dụng sinh viên hàng đầu Việt Nam</p>
-                </div>
-                <div class="col-md-6 text-end">
-                    <a href="#" class="text-decoration-none me-3">Điều khoản sử dụng</a>
-                    <a href="#" class="text-decoration-none">Chính sách bảo mật</a>
-                </div>
-            </div>
-        </div>
-    </footer>
+    @await Html.PartialAsync("_Footer")
     
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

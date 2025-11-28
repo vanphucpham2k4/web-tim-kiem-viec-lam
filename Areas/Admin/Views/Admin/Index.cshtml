@@ -44,6 +44,16 @@
             </a>
         </div>
 
+        <!-- Quản lý blog -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("Blog", "Admin")" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <i class="bi bi-journal-text"></i>
+                    <h5>Quản lý blog</h5>
+                </div>
+            </a>
+        </div>
+
         <!-- Quản lý ngành nghề -->
         <div class="col-xl-3 col-lg-4 col-md-6">
             <a href="@Url.Action("NganhNghe", "Admin")" class="text-decoration-none">
@@ -90,6 +100,26 @@
                 <div class="dashboard-card">
                     <i class="bi bi-mortarboard"></i>
                     <h5>Quản lý trường đại học</h5>
+                </div>
+            </a>
+        </div>
+
+        <!-- Quản lý tỉnh thành -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("Index", "Province")" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <i class="bi bi-geo-alt-fill"></i>
+                    <h5>Quản lý tỉnh thành</h5>
+                </div>
+            </a>
+        </div>
+
+        <!-- Quản lý quận huyện -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("Index", "Ward")" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <i class="bi bi-geo-fill"></i>
+                    <h5>Quản lý quận huyện</h5>
                 </div>
             </a>
         </div>
@@ -182,6 +212,9 @@
     .col-xl-3:nth-child(8) .dashboard-card { animation-delay: 0.45s; }
     .col-xl-3:nth-child(9) .dashboard-card { animation-delay: 0.5s; }
     .col-xl-3:nth-child(10) .dashboard-card { animation-delay: 0.55s; }
+    .col-xl-3:nth-child(11) .dashboard-card { animation-delay: 0.6s; }
+    .col-xl-3:nth-child(12) .dashboard-card { animation-delay: 0.65s; }
+    .col-xl-3:nth-child(13) .dashboard-card { animation-delay: 0.7s; }
 
     @@keyframes fadeInUp {
         from {

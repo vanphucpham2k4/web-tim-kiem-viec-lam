@@ -14,9 +14,15 @@ namespace Unicareer.Repository
             _context = context;
         }
 
-        public List<TinTuyenDung> LayDanhSachTinTuyenDung()
+        public List<TinTuyenDung> LayDanhSachTinTuyenDung(bool onlyApproved = false)
         {
-            return _context.TinTuyenDungs
+            var query = _context.TinTuyenDungs.AsQueryable();
+            if (onlyApproved)
+            {
+                query = query.Where(t => t.TrangThaiDuyet == "Da duyet");
+            }
+
+            return query
                 .OrderByDescending(t => t.NgayDang)
                 .ToList();
         }
@@ -112,6 +118,22 @@ namespace Unicareer.Repository
             }
 
             tinTuyenDung.TrangThai = trangThai;
+            _context.TinTuyenDungs.Update(tinTuyenDung);
+            _context.SaveChanges();
+            return tinTuyenDung;
+        }
+
+        public TinTuyenDung? CapNhatTrangThaiDuyet(int id, string trangThaiDuyet, string? lyDoTuChoi = null, DateTime? ngayDuyet = null)
+        {
+            var tinTuyenDung = _context.TinTuyenDungs.Find(id);
+            if (tinTuyenDung == null)
+            {
+                return null;
+            }
+
+            tinTuyenDung.TrangThaiDuyet = trangThaiDuyet;
+            tinTuyenDung.LyDoTuChoi = lyDoTuChoi;
+            tinTuyenDung.NgayDuyet = ngayDuyet;
             _context.TinTuyenDungs.Update(tinTuyenDung);
             _context.SaveChanges();
             return tinTuyenDung;

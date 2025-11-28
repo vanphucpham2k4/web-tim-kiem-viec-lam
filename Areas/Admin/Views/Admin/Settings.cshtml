@@ -859,6 +859,17 @@
             </text>
         }
 
+        // Auto-select security tab if hash is #baomat
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.location.hash === '#baomat') {
+                const baomatTab = document.getElementById('baomat-tab');
+                if (baomatTab) {
+                    const tab = new bootstrap.Tab(baomatTab);
+                    tab.show();
+                }
+            }
+        });
+
         // Show notification
         function showNotification(message, type) {
             const bgColor = type === 'success' ? '#10b981' : '#e53e3e';
