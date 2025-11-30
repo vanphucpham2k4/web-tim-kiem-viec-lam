@@ -83,6 +83,19 @@ namespace Unicareer.Repository
             _context.SaveChanges();
             return tinUngTuyen;
         }
+
+        public bool XoaTinUngTuyen(int id)
+        {
+            var tinUngTuyen = _context.TinUngTuyens.Find(id);
+            if (tinUngTuyen == null)
+            {
+                return false;
+            }
+
+            _context.TinUngTuyens.Remove(tinUngTuyen);
+            _context.SaveChanges();
+            return true;
+        }
     }
 }
 

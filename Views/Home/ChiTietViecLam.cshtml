@@ -572,6 +572,50 @@
         box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
     }
 
+    .apply-form-group .select2-container {
+        width: 100% !important;
+    }
+
+    .apply-form-group .select2-container--bootstrap-5 .select2-selection {
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        min-height: 45px;
+        padding: 2px 8px;
+    }
+
+    .apply-form-group .select2-container--bootstrap-5 .select2-selection:focus,
+    .apply-form-group .select2-container--bootstrap-5.select2-container--focus .select2-selection {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+
+    .apply-form-group .select2-container--bootstrap-5 .select2-selection__rendered {
+        padding-left: 0;
+        line-height: 40px;
+    }
+
+    .apply-form-group .select2-container--bootstrap-5 .select2-selection__arrow {
+        height: 43px;
+    }
+
+    .apply-form-group .select2-dropdown {
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .apply-form-group .select2-search--dropdown .select2-search__field {
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 8px 12px;
+    }
+
+    .apply-form-group .select2-search--dropdown .select2-search__field:focus {
+        border-color: var(--primary-color);
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
+    }
+
     .apply-form-group textarea {
         min-height: 120px;
         resize: vertical;
@@ -1500,8 +1544,15 @@
 </div>
 
 @section Scripts {
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -1586,6 +1637,43 @@
                 
                 var applyModal = new bootstrap.Modal(document.getElementById('applyModal'));
                 applyModal.show();
+            });
+
+            // Initialize Select2 for searchable dropdowns when modal is shown
+            $('#applyModal').on('shown.bs.modal', function() {
+                if (!$('#school').hasClass('select2-hidden-accessible')) {
+                    $('#school').select2({
+                        theme: 'bootstrap-5',
+                        dropdownParent: $('#applyModal'),
+                        placeholder: 'Chọn hoặc tìm kiếm trường học',
+                        allowClear: true,
+                        language: {
+                            noResults: function() {
+                                return 'Không tìm thấy kết quả';
+                            },
+                            searching: function() {
+                                return 'Đang tìm kiếm...';
+                            }
+                        }
+                    });
+                }
+                
+                if (!$('#major').hasClass('select2-hidden-accessible')) {
+                    $('#major').select2({
+                        theme: 'bootstrap-5',
+                        dropdownParent: $('#applyModal'),
+                        placeholder: 'Chọn hoặc tìm kiếm ngành nghề',
+                        allowClear: true,
+                        language: {
+                            noResults: function() {
+                                return 'Không tìm thấy kết quả';
+                            },
+                            searching: function() {
+                                return 'Đang tìm kiếm...';
+                            }
+                        }
+                    });
+                }
             });
 
             // Check if job is saved on page load
@@ -1884,6 +1972,14 @@
 
             // Reset form when modal is closed
             $('#applyModal').on('hidden.bs.modal', function() {
+                // Destroy Select2 instances to avoid conflicts
+                if ($('#school').hasClass('select2-hidden-accessible')) {
+                    $('#school').select2('destroy');
+                }
+                if ($('#major').hasClass('select2-hidden-accessible')) {
+                    $('#major').select2('destroy');
+                }
+                
                 $('#applyForm')[0].reset();
                 $('.apply-form-group').removeClass('has-error');
                 $('#fileSelected').hide();

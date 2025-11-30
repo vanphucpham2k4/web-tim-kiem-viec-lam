@@ -1,0 +1,251 @@
+@model Unicareer.Models.ViewModels.UngVienManagementViewModel
+
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="dashboard-card special-card">
+            <div class="hero-title d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div>
+                    <h5 class="mb-1 text-white">Quản lý ứng viên</h5>
+                    <p class="mb-0 text-white-75">Theo dõi hồ sơ ứng tuyển và đánh giá nhanh các chỉ số chính.</p>
+                </div>
+                <i class="bi bi-person-badge icon-large text-white"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-xl-3 col-lg-4 col-md-6">
+        <div class="dashboard-card">
+            <i class="bi bi-people-fill text-primary"></i>
+            <h5 class="mt-3">Tổng ứng viên</h5>
+            <p class="stat-value mb-0">@Model.TotalUngVien</p>
+        </div>
+    </div>
+    <div class="col-xl-3 col-lg-4 col-md-6">
+        <div class="dashboard-card">
+            <i class="bi bi-file-earmark-check text-success"></i>
+            <h5 class="mt-3">Tổng ứng tuyển</h5>
+            <p class="stat-value mb-0">@Model.TotalUngTuyen</p>
+        </div>
+    </div>
+    <div class="col-xl-3 col-lg-4 col-md-6">
+        <div class="dashboard-card">
+            <i class="bi bi-graph-up-arrow text-warning"></i>
+            <h5 class="mt-3">TB ứng tuyển/người</h5>
+            <p class="stat-value mb-0">@Model.TrungBinhUngTuyenPerUngVien</p>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="filter-card">
+            <form id="searchForm" method="get" action="@Url.Action("UngVien", "Admin", new { area = "Admin" })">
+                <input type="hidden" id="pageNumberInput" name="pageNumber" value="@Model.PageNumber" />
+                <div class="row g-3 align-items-end">
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">Tìm kiếm</label>
+                        <div class="search-wrapper">
+                            <i class="bi bi-search search-icon"></i>
+                            <input type="text" class="form-control search-input" id="timKiemInput" name="search" value="@Model.SearchTerm" placeholder="Họ tên, email, điện thoại...">
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label">Ngành nghề</label>
+                        <div class="filter-select-wrapper">
+                            <i class="bi bi-briefcase filter-icon"></i>
+                            <select class="form-select filter-select" id="locNganhNghe" name="nganhNghe">
+                                <option value="">Tất cả ngành nghề</option>
+                                @foreach (var nganhNghe in Model.DanhSachNganhNghe)
+                                {
+                                    if (Model.NganhNgheFilter == nganhNghe.TenNganhNghe)
+                                    {
+                                        <option value="@nganhNghe.TenNganhNghe" selected>@nganhNghe.TenNganhNghe</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@nganhNghe.TenNganhNghe">@nganhNghe.TenNganhNghe</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label">Kinh nghiệm</label>
+                        <div class="filter-select-wrapper">
+                            <i class="bi bi-award filter-icon"></i>
+                            <select class="form-select filter-select" id="locKinhNghiem" name="kinhNghiem">
+                                <option value="">Tất cả kinh nghiệm</option>
+                                @foreach (var kn in Model.DanhSachKinhNghiem)
+                                {
+                                    if (Model.KinhNghiemFilter == kn)
+                                    {
+                                        <option value="@kn" selected>@kn</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@kn">@kn</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-6">
+                        <button class="btn btn-primary w-100 filter-btn" type="submit" id="btnTimKiem">
+                            <i class="bi bi-funnel-fill me-1"></i> Lọc
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="data-table-card">
+            <div class="table-responsive">
+                <table class="table table-hover modern-table" id="bangUngVien">
+                    <thead>
+                        <tr>
+                            <th>Mã</th>
+                            <th>Họ tên</th>
+                            <th>Email / SĐT</th>
+                            <th>Ngày sinh</th>
+                            <th>Địa chỉ</th>
+                            <th>Số lần ứng tuyển</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var uv in Model.UngViens)
+                        {
+                            <tr data-ma="@uv.MaUngVien">
+                                <td>@uv.MaUngVien</td>
+                                <td>
+                                    <strong>@uv.HoTen</strong>
+                                </td>
+                                <td>
+                                    @uv.Email<br />
+                                    <small class="text-muted">@uv.SoDienThoai</small>
+                                </td>
+                                <td>@uv.NgaySinh.ToString("dd/MM/yyyy")</td>
+                                <td>@uv.DiaChi</td>
+                                <td><span class="badge border border-dark text-dark">@uv.SoLanUngTuyen</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a href="@Url.Action("ChiTietUngVien", "Admin", new { area = "Admin", id = uv.MaUngVien })"
+                                           class="btn-action btn-view" title="Xem chi tiết">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <button class="btn-action btn-delete btn-xoa" data-ma="@uv.MaUngVien" title="Xóa">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        @if (Model.TotalPages > 1)
+        {
+            <nav aria-label="Phân trang" style="margin-top: 30px;">
+                <ul class="pagination justify-content-center">
+                    @if (Model.PageNumber > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">
+                                <i class="bi bi-chevron-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(Model.PageNumber - 1))">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="bi bi-chevron-double-left"></i></span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                        </li>
+                    }
+
+                    @{
+                        int startPage = Math.Max(1, Model.PageNumber - 2);
+                        int endPage = Math.Min(Model.TotalPages, Model.PageNumber + 2);
+                    }
+
+                    @if (startPage > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">1</a>
+                        </li>
+                        @if (startPage > 2)
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        }
+                    }
+
+                    @for (int i = startPage; i <= endPage; i++)
+                    {
+                        <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(@i)">@i</a>
+                        </li>
+                    }
+
+                    @if (endPage < Model.TotalPages)
+                    {
+                        @if (endPage < Model.TotalPages - 1)
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        }
+                        <li class="page-item">
+                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(@Model.TotalPages)">@Model.TotalPages</a>
+                        </li>
+                    }
+
+                    @if (Model.PageNumber < Model.TotalPages)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(Model.PageNumber + 1))">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(@Model.TotalPages)">
+                                <i class="bi bi-chevron-double-right"></i>
+                            </a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="bi bi-chevron-double-right"></i></span>
+                        </li>
+                    }
+                </ul>
+                <div class="pagination-info">
+                    Hiển thị <strong>@((Model.PageNumber - 1) * Model.PageSize + 1)</strong> -
+                    <strong>@(Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount))</strong>
+                    trong tổng số <strong>@Model.TotalCount</strong> ứng viên
+                </div>
+            </nav>
+        }
+    </div>
+</div>
+

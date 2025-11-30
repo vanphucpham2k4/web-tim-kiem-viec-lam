@@ -7,12 +7,12 @@
 
 <style>
     .page-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
         border-radius: 20px;
         padding: 30px;
         margin-bottom: 30px;
         color: white;
-        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 10px 40px rgba(37, 69, 184, 0.3);
     }
 
     .page-header h1 {
@@ -41,7 +41,7 @@
     }
 
     .info-card h5 i {
-        color: #667eea;
+        color: #2545B8;
         font-size: 1.3rem;
     }
 
@@ -85,7 +85,7 @@
     }
 
     .badge-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
         color: white;
     }
 
@@ -121,8 +121,8 @@
     }
 
     .nav-tabs .nav-link.active {
-        color: #667eea;
-        border-bottom-color: #667eea;
+        color: #2545B8;
+        border-bottom-color: #2545B8;
         background: transparent;
     }
 
@@ -229,8 +229,8 @@
 
     .back-button {
         background: white;
-        border: 2px solid #667eea;
-        color: #667eea;
+        border: 2px solid #2545B8;
+        color: #2545B8;
         padding: 10px 20px;
         border-radius: 10px;
         text-decoration: none;
@@ -242,7 +242,7 @@
     }
 
     .back-button:hover {
-        background: #667eea;
+        background: #2545B8;
         color: white;
         transform: translateX(-5px);
     }
@@ -283,7 +283,7 @@
     }
 
     .stat-card.primary .stat-number {
-        color: #667eea;
+        color: #2545B8;
     }
 
     .stat-card.success .stat-number {
@@ -311,7 +311,7 @@
 
     .pagination .page-link {
         border: 2px solid #e2e8f0;
-        color: #667eea;
+        color: #2545B8;
         padding: 10px 16px;
         border-radius: 8px;
         font-weight: 600;
@@ -320,17 +320,17 @@
     }
 
     .pagination .page-link:hover {
-        background: #667eea;
+        background: #2545B8;
         color: white;
-        border-color: #667eea;
+        border-color: #2545B8;
         transform: translateY(-2px);
     }
 
     .pagination .page-item.active .page-link {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-color: #667eea;
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        border-color: #2545B8;
         color: white;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 4px 15px rgba(37, 69, 184, 0.4);
     }
 
     .pagination .page-item.disabled .page-link {
@@ -346,13 +346,35 @@
     }
 
     /* Form tìm kiếm styles */
-    .input-group .form-control {
+    .input-group .form-control,
+    .input-group .form-control-edit {
         border-radius: 10px 0 0 10px;
+        border-right: none;
     }
 
     .input-group .btn {
         border-radius: 0 10px 10px 0;
-        border-left: none;
+        border-left: 2px solid #e2e8f0;
+        padding: 12px 20px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .input-group .btn-outline-primary {
+        border: 2px solid #e2e8f0;
+        border-left: 2px solid #e2e8f0;
+        color: #2545B8;
+        background: white;
+    }
+
+    .input-group .btn-outline-primary:hover {
+        background: #2545B8;
+        color: white;
+        border-color: #2545B8;
+    }
+
+    .input-group .form-control-edit:focus {
+        border-right: none;
     }
 
     .form-select, .form-control {
@@ -363,8 +385,8 @@
     }
 
     .form-select:focus, .form-control:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        border-color: #2545B8;
+        box-shadow: 0 0 0 4px rgba(37, 69, 184, 0.1);
         outline: none;
     }
 
@@ -379,7 +401,7 @@
     }
 
     .btn-edit {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
         border: none;
         color: white;
         padding: 12px 25px;
@@ -393,7 +415,7 @@
 
     .btn-edit:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 6px 20px rgba(37, 69, 184, 0.4);
     }
 
     .btn-cancel {
@@ -465,8 +487,8 @@
     }
 
     .form-control-edit:focus, .form-select-edit:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        border-color: #2545B8;
+        box-shadow: 0 0 0 4px rgba(37, 69, 184, 0.1);
         outline: none;
     }
 
@@ -506,12 +528,12 @@
         font-weight: 600;
         margin-bottom: 25px;
         padding-bottom: 15px;
-        border-bottom: 3px solid #667eea;
+        border-bottom: 3px solid #2545B8;
         display: inline-block;
     }
 
     .edit-content .form-section h4 i {
-        color: #667eea;
+        color: #2545B8;
         margin-right: 10px;
         font-size: 1.3rem;
     }
@@ -546,8 +568,8 @@
     }
 
     .logo-preview-view.has-image {
-        border-color: #667eea;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        border-color: #2545B8;
+        box-shadow: 0 4px 15px rgba(37, 69, 184, 0.2);
     }
 
     /* Map Styles for View Mode and Edit Mode */
@@ -607,7 +629,7 @@
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        background: rgba(102, 126, 234, 0.3);
+        background: rgba(37, 69, 184, 0.3);
         animation: ripple 2s ease-out infinite;
         top: 0;
         left: 0;
@@ -628,12 +650,12 @@
         position: absolute;
         width: 30px;
         height: 30px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
         border-radius: 50% 50% 50% 0;
         transform: rotate(-45deg);
         top: 5px;
         left: 5px;
-        box-shadow: 0 3px 10px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 3px 10px rgba(37, 69, 184, 0.4);
     }
 
     .marker-pin::after {
@@ -965,7 +987,7 @@
                                     </div>
                                     <div class="col-md-12 mb-3">
                                         <label class="form-label">Địa chỉ</label>
-                                        <input type="text" class="form-control-edit" name="diaChi" id="editDiaChi" value="@Model.DiaChi">
+                                        <input type="text" class="form-control-edit" name="diaChi" id="editDiaChi" value="@Model.DiaChi" placeholder="123 Nguyễn Huệ, Quận 1">
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">Tỉnh/Thành phố</label>
@@ -1003,9 +1025,18 @@
                             <!-- Map Section for Edit Mode -->
                             <div class="form-section">
                                 <h4><i class="bi bi-geo-alt-fill"></i> Vị trí trên bản đồ</h4>
-                                <p class="text-muted mb-3">
-                                    <i class="bi bi-info-circle"></i> Kéo marker trên bản đồ để chọn vị trí chính xác của công ty, hoặc click vào bản đồ để đặt marker.
-                                </p>
+                                <div class="mb-3">
+                                    <label class="form-label">Tìm kiếm địa chỉ trên bản đồ</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control-edit" id="editDiaChiForMap" placeholder="Nhập địa chỉ để tìm kiếm (ví dụ: 123 Nguyễn Huệ, Quận 1, TP.HCM)" value="@Model.DiaChi">
+                                        <button type="button" class="btn btn-outline-primary" id="btnSearchAddressEdit">
+                                            <i class="bi bi-search"></i> Tìm trên bản đồ
+                                        </button>
+                                    </div>
+                                    <small class="text-muted">
+                                        <i class="bi bi-info-circle"></i> Nhập địa chỉ và click "Tìm trên bản đồ" để tìm vị trí, hoặc kéo marker trên bản đồ để chọn vị trí chính xác, hoặc click vào bản đồ để đặt marker.
+                                    </small>
+                                </div>
                                 <!-- Map Container for Edit Mode -->
                                 <div class="map-container">
                                     <div id="mapEdit"></div>
@@ -1513,53 +1544,31 @@
                     initQuillEditor();
                 }, 100);
                 
-                // Load quận/huyện nếu đã có tỉnh/thành phố - sử dụng setTimeout để đảm bảo DOM đã render
-                setTimeout(function() {
-                    var selectedProvince = $('#editTinhThanhPho option:selected');
-                    var currentQuanHuyen = '@(Model.QuanHuyen ?? "")';
-                    var provinceCode = null;
+                // Load quận/huyện ngay lập tức khi chuyển sang edit mode
+                function loadWardsOnEdit() {
+                    const $selectedOption = $('#editTinhThanhPho option:selected');
+                    const selectedProvinceCode = $selectedOption.attr('data-code');
+                    const selectedWardName = '@(Model.QuanHuyen ?? "")';
                     
-                    // Thử lấy data-code từ option selected
-                    if (selectedProvince.length > 0) {
-                        provinceCode = selectedProvince.attr('data-code');
-                        
-                        // Nếu không có data-code, thử lấy từ value và tìm lại option
-                        if (!provinceCode && selectedProvince.val()) {
-                            var provinceName = selectedProvince.val();
-                            var provinceOption = $('#editTinhThanhPho option[value="' + provinceName + '"]');
-                            if (provinceOption.length > 0) {
-                                provinceCode = provinceOption.attr('data-code');
-                            }
-                        }
-                        
-                        // Nếu vẫn không có, thử lấy từ tất cả các option có value khớp
-                        if (!provinceCode && selectedProvince.val()) {
-                            var provinceName = selectedProvince.val();
-                            $('#editTinhThanhPho option').each(function() {
-                                if ($(this).val() === provinceName) {
-                                    var code = $(this).attr('data-code');
-                                    if (code) {
-                                        provinceCode = code;
-                                        return false; // break
-                                    }
-                                }
-                            });
-                        }
-                    }
+                    console.log('Loading wards - Province Code:', selectedProvinceCode, 'Ward Name:', selectedWardName);
                     
-                    // Load quận/huyện nếu có provinceCode
-                    if (provinceCode) {
-                        console.log('Loading wards for province code:', provinceCode, 'Current ward:', currentQuanHuyen);
-                        loadWardsByProvince(provinceCode, currentQuanHuyen);
+                    if (selectedProvinceCode) {
+                        loadWardsByProvince(selectedProvinceCode, selectedWardName);
                     } else {
-                        console.warn('Could not find province code for selected province:', selectedProvince.val());
+                        console.warn('No province code found for selected province');
                     }
-                }, 300);
+                }
+
+                // Thử load ngay lập tức
+                setTimeout(loadWardsOnEdit, 100);
                 
-                // Khởi tạo map cho edit mode
+                // Thử lại sau khi DOM đã render xong
+                setTimeout(loadWardsOnEdit, 300);
+                
+                // Khởi tạo map cho edit mode - đợi một chút để đảm bảo DOM đã render xong
                 setTimeout(function() {
                     initEditMap();
-                }, 300);
+                }, 500);
             });
 
             // Nút Hủy thay đổi
@@ -1639,12 +1648,37 @@
                 // Cập nhật giá trị từ Quill Editor vào hidden textarea
                 if (quillMoTa) {
                     var moTaContent = quillMoTa.root.innerHTML;
-                    // Loại bỏ các thẻ <p><br></p> rỗng
                     moTaContent = moTaContent.replace(/<p><br><\/p>/gi, '');
                     moTaContent = moTaContent.replace(/<p>\s*<\/p>/gi, '');
                     $('#editMoTa').val(moTaContent);
                 }
                 
+                // Luôn cập nhật coordinates từ marker nếu map đã được khởi tạo
+                if (editMarker && editMap && editMapInitialized) {
+                    try {
+                        var position = editMarker.getLatLng();
+                        var lat = position.lat;
+                        var lng = position.lng;
+                        $('#editLatitude').val(lat.toFixed(6));
+                        $('#editLongitude').val(lng.toFixed(6));
+                        console.log('Coordinates updated from marker:', {
+                            latitude: lat.toFixed(6),
+                            longitude: lng.toFixed(6)
+                        });
+                    } catch (error) {
+                        console.error('Error getting marker position:', error);
+                    }
+                }
+                
+                // Validate coordinates trước khi submit
+                var latValue = $('#editLatitude').val();
+                var lngValue = $('#editLongitude').val();
+                console.log('Final coordinates before submit:', {
+                    latitude: latValue,
+                    longitude: lngValue
+                });
+                
+                // Validate form
                 var isValid = true;
                 $('.form-control-edit, .form-select-edit').each(function() {
                     if ($(this).attr('required') && !$(this).val()) {
@@ -1663,9 +1697,17 @@
                 $('#editForm').submit();
             });
 
-            // Load quận/huyện theo tỉnh/thành phố
+            // Function to load wards by province (improved with better error handling)
             function loadWardsByProvince(provinceCode, selectedWardName = null) {
                 const $editQuanHuyen = $('#editQuanHuyen');
+                
+                console.log('loadWardsByProvince called with:', { provinceCode, selectedWardName });
+                
+                // Kiểm tra xem dropdown có tồn tại không
+                if ($editQuanHuyen.length === 0) {
+                    console.error('editQuanHuyen dropdown not found');
+                    return;
+                }
                 
                 if (!provinceCode) {
                     console.warn('loadWardsByProvince: provinceCode is empty');
@@ -1673,36 +1715,67 @@
                     return;
                 }
                 
+                // Reset quận/huyện dropdown
                 $editQuanHuyen.html('<option value="">Chọn quận/huyện</option>');
+                
+                // Show loading state
                 $editQuanHuyen.prop('disabled', true);
                 $editQuanHuyen.html('<option value="">Đang tải...</option>');
                 
-                console.log('Fetching wards for province code:', provinceCode);
+                const apiUrl = `/Admin/Admin/GetWardsByProvince?provinceCode=${encodeURIComponent(provinceCode)}`;
+                console.log('Fetching wards from:', apiUrl);
                 
-                fetch(`/Admin/Admin/GetWardsByProvince?provinceCode=${encodeURIComponent(provinceCode)}`)
+                // Fetch wards from API
+                fetch(apiUrl)
                     .then(response => {
+                        console.log('Response status:', response.status);
                         if (!response.ok) {
-                            throw new Error('Network response was not ok');
+                            throw new Error(`HTTP error! status: ${response.status}`);
                         }
                         return response.json();
                     })
                     .then(data => {
-                        console.log('Received wards data:', data);
+                        console.log('Wards data received:', data);
                         $editQuanHuyen.html('<option value="">Chọn quận/huyện</option>');
                         
                         if (data && Array.isArray(data) && data.length > 0) {
+                            let foundSelected = false;
+                            
+                            // Decode HTML entities và normalize selectedWardName
+                            let normalizedSelectedWard = '';
+                            if (selectedWardName) {
+                                // Decode HTML entities
+                                const tempDiv = document.createElement('div');
+                                tempDiv.innerHTML = selectedWardName;
+                                normalizedSelectedWard = tempDiv.textContent || tempDiv.innerText || '';
+                                // Normalize: trim và lowercase để so sánh
+                                normalizedSelectedWard = normalizedSelectedWard.trim().toLowerCase();
+                                console.log('Normalized selected ward:', normalizedSelectedWard);
+                            }
+                            
                             data.forEach(ward => {
                                 const option = $('<option></option>')
                                     .attr('value', ward.fullName)
                                     .text(ward.fullName);
-                                // So sánh không phân biệt hoa thường và bỏ qua khoảng trắng đầu cuối
-                                if (selectedWardName && ward.fullName && 
-                                    ward.fullName.trim().toLowerCase() === selectedWardName.trim().toLowerCase()) {
-                                    option.attr('selected', 'selected');
-                                    console.log('Selected ward matched:', ward.fullName);
+                                
+                                // So sánh với normalized selected ward
+                                if (selectedWardName) {
+                                    const normalizedWardName = ward.fullName.trim().toLowerCase();
+                                    if (normalizedWardName === normalizedSelectedWard || ward.fullName === selectedWardName) {
+                                        option.attr('selected', 'selected');
+                                        foundSelected = true;
+                                        console.log('Selected ward matched:', ward.fullName);
+                                    }
                                 }
+                                
                                 $editQuanHuyen.append(option);
                             });
+                            
+                            if (selectedWardName && !foundSelected) {
+                                console.warn('Selected ward not found in list:', selectedWardName);
+                                console.log('Available wards (first 5):', data.slice(0, 5).map(w => w.fullName));
+                            }
+                            
                             console.log('Loaded', data.length, 'wards');
                         } else {
                             console.warn('No wards data received');
@@ -1718,14 +1791,48 @@
                     });
             }
 
-            // Khi thay đổi tỉnh/thành phố
-            $('#editTinhThanhPho').on('change', function() {
+            // Event handler for province change - register outside using event delegation
+            $(document).on('change', '#editTinhThanhPho', function() {
                 var selectedOption = $(this).find('option:selected');
+                var cityName = $(this).val();
                 var provinceCode = selectedOption.attr('data-code');
+                
+                // Load wards for selected province
                 if (provinceCode) {
                     loadWardsByProvince(provinceCode);
                 } else {
                     $('#editQuanHuyen').html('<option value="">Chọn quận/huyện</option>');
+                }
+                
+                // Update map coordinates if map is initialized
+                if (editMap && editMarker) {
+                    var coordinates = {
+                        'Hà Nội': [21.028511, 105.804817],
+                        'Thành phố Hà Nội': [21.028511, 105.804817],
+                        'TP Hồ Chí Minh': [10.762622, 106.660172],
+                        'Thành phố Hồ Chí Minh': [10.762622, 106.660172],
+                        'Đà Nẵng': [16.047079, 108.206230],
+                        'Thành phố Đà Nẵng': [16.047079, 108.206230],
+                        'Hải Phòng': [20.844892, 106.687973],
+                        'Thành phố Hải Phòng': [20.844892, 106.687973],
+                        'Cần Thơ': [10.045162, 105.746857],
+                        'Thành phố Cần Thơ': [10.045162, 105.746857]
+                    };
+                    
+                    // Try to find matching coordinates
+                    var coords = null;
+                    for (var key in coordinates) {
+                        if (cityName && (cityName.includes(key) || key.includes(cityName))) {
+                            coords = coordinates[key];
+                            break;
+                        }
+                    }
+                    
+                    if (coords) {
+                        editMap.setView(coords, 13);
+                        editMarker.setLatLng(coords);
+                        updateEditCoordinates(coords[0], coords[1]);
+                    }
                 }
             });
 
@@ -1878,6 +1985,23 @@
             var editMarker = null;
             var editMapInitialized = false;
             
+            // Function to update edit coordinates
+            function updateEditCoordinates(lat, lng) {
+                var latStr = lat.toFixed(6);
+                var lngStr = lng.toFixed(6);
+                
+                $('#editLatitude').val(latStr);
+                $('#editLongitude').val(lngStr);
+                $('#currentCoordsEdit').text(latStr + ', ' + lngStr);
+                
+                // Debug log để kiểm tra
+                console.log('Coordinates updated:', { lat: latStr, lng: lngStr });
+                console.log('Hidden fields:', {
+                    latitude: $('#editLatitude').val(),
+                    longitude: $('#editLongitude').val()
+                });
+            }
+            
             function initEditMap() {
                 if (typeof L === 'undefined') {
                     setTimeout(initEditMap, 500);
@@ -1887,6 +2011,13 @@
                 // Kiểm tra xem map element có tồn tại không
                 var mapElement = document.getElementById('mapEdit');
                 if (!mapElement) {
+                    setTimeout(initEditMap, 300);
+                    return;
+                }
+
+                // Kiểm tra xem map element có đang hiển thị không
+                var $mapContainer = $('#mapEdit').closest('.map-container');
+                if ($mapContainer.length > 0 && $mapContainer.is(':hidden')) {
                     setTimeout(initEditMap, 300);
                     return;
                 }
@@ -1915,12 +2046,16 @@
                         maxZoom: 19
                     }).addTo(editMap);
 
-                    // Invalidate size sau khi map được tạo
+                    // Invalidate size sau khi map được tạo để đảm bảo hiển thị đúng
                     setTimeout(function() {
                         if (editMap) {
                             editMap.invalidateSize();
+                            // Đảm bảo marker có thể kéo được
+                            if (editMarker) {
+                                editMarker.dragging.enable();
+                            }
                         }
-                    }, 200);
+                    }, 300);
 
                     delete L.Icon.Default.prototype._getIconUrl;
                     L.Icon.Default.mergeOptions({
@@ -1944,23 +2079,164 @@
                     }).addTo(editMap);
 
                     editMarker.bindPopup('<strong>📍 Vị trí công ty</strong><br>Kéo marker để điều chỉnh vị trí chính xác').openPopup();
+                    
+                    // Đảm bảo coordinates được cập nhật ngay sau khi marker được tạo
+                    updateEditCoordinates(mapLat, mapLng);
 
-                    function updateEditCoordinates(lat, lng) {
-                        $('#editLatitude').val(lat.toFixed(6));
-                        $('#editLongitude').val(lng.toFixed(6));
-                        $('#currentCoordsEdit').text(lat.toFixed(6) + ', ' + lng.toFixed(6));
-                    }
-
+                    // Update coordinates when marker is dragged
                     editMarker.on('dragend', function(e) {
-                        var position = editMarker.getLatLng();
-                        updateEditCoordinates(position.lat, position.lng);
-                        editMarker.bindPopup('<strong>✓ Vị trí đã cập nhật</strong><br>Lat: ' + position.lat.toFixed(6) + '<br>Lng: ' + position.lng.toFixed(6)).openPopup();
+                        var lat = e.target.getLatLng().lat;
+                        var lng = e.target.getLatLng().lng;
+                        updateEditCoordinates(lat, lng);
+                        editMarker.bindPopup('<strong>✓ Vị trí đã cập nhật</strong><br>Lat: ' + lat.toFixed(6) + '<br>Lng: ' + lng.toFixed(6)).openPopup();
+                        
+                        // Reverse geocoding để lấy địa chỉ khi kéo marker
+                        $.ajax({
+                            url: 'https://nominatim.openstreetmap.org/reverse',
+                            data: {
+                                lat: lat,
+                                lon: lng,
+                                format: 'json',
+                                addressdetails: 1
+                            },
+                            success: function(data) {
+                                if (data && data.address) {
+                                    var address = '';
+                                    if (data.address.road) address += data.address.road + ', ';
+                                    if (data.address.suburb || data.address.neighbourhood) address += (data.address.suburb || data.address.neighbourhood) + ', ';
+                                    if (data.address.city || data.address.town) address += (data.address.city || data.address.town);
+                                    if (address) {
+                                        $('#editDiaChi').val(address.trim());
+                                    }
+                                } else if (data && data.display_name) {
+                                    // Fallback: sử dụng display_name nếu không có address object
+                                    var addressParts = data.display_name.split(',');
+                                    if (addressParts.length > 0) {
+                                        var mainAddress = addressParts.slice(0, Math.min(4, addressParts.length)).join(', ').trim();
+                                        $('#editDiaChi').val(mainAddress);
+                                    }
+                                }
+                            }
+                        });
                     });
 
+                    // Update marker when clicking on map
                     editMap.on('click', function(e) {
-                        editMarker.setLatLng(e.latlng);
-                        updateEditCoordinates(e.latlng.lat, e.latlng.lng);
-                        editMarker.bindPopup('<strong>✓ Vị trí đã cập nhật</strong><br>Lat: ' + e.latlng.lat.toFixed(6) + '<br>Lng: ' + e.latlng.lng.toFixed(6)).openPopup();
+                        var lat = e.latlng.lat;
+                        var lng = e.latlng.lng;
+                        
+                        editMarker.setLatLng([lat, lng]);
+                        updateEditCoordinates(lat, lng);
+                        editMarker.bindPopup('<strong>✓ Vị trí đã cập nhật</strong><br>Lat: ' + lat.toFixed(6) + '<br>Lng: ' + lng.toFixed(6)).openPopup();
+                        
+                        // Reverse geocoding để lấy địa chỉ
+                        $.ajax({
+                            url: 'https://nominatim.openstreetmap.org/reverse',
+                            data: {
+                                lat: lat,
+                                lon: lng,
+                                format: 'json',
+                                addressdetails: 1
+                            },
+                            success: function(data) {
+                                if (data && data.address) {
+                                    var address = '';
+                                    if (data.address.road) address += data.address.road + ', ';
+                                    if (data.address.suburb || data.address.neighbourhood) address += (data.address.suburb || data.address.neighbourhood) + ', ';
+                                    if (data.address.city || data.address.town) address += (data.address.city || data.address.town);
+                                    if (address) {
+                                        $('#editDiaChi').val(address.trim());
+                                    }
+                                } else if (data && data.display_name) {
+                                    // Fallback: sử dụng display_name nếu không có address object
+                                    var addressParts = data.display_name.split(',');
+                                    if (addressParts.length > 0) {
+                                        var mainAddress = addressParts.slice(0, Math.min(4, addressParts.length)).join(', ').trim();
+                                        $('#editDiaChi').val(mainAddress);
+                                    }
+                                }
+                            }
+                        });
+                    });
+
+                    // Button tìm kiếm địa chỉ
+                    $('#btnSearchAddressEdit').click(function() {
+                        var address = $('#editDiaChiForMap').val();
+                        var city = $('#editTinhThanhPho').val();
+                        
+                        if (!address) {
+                            alert('Vui lòng nhập địa chỉ!');
+                            return;
+                        }
+
+                        var searchQuery = address + (city ? ', ' + city : '') + ', Vietnam';
+                        
+                        $.ajax({
+                            url: 'https://nominatim.openstreetmap.org/search',
+                            data: {
+                                q: searchQuery,
+                                format: 'json',
+                                limit: 1
+                            },
+                            success: function(data) {
+                                if (data && data.length > 0) {
+                                    var lat = parseFloat(data[0].lat);
+                                    var lon = parseFloat(data[0].lon);
+                                    
+                                    editMap.setView([lat, lon], 16);
+                                    editMarker.setLatLng([lat, lon]);
+                                    updateEditCoordinates(lat, lon);
+                                    
+                                    // Cập nhật địa chỉ chính nếu tìm thấy
+                                    $('#editDiaChi').val(data[0].display_name.split(',')[0] || address);
+                                    
+                                    editMarker.bindPopup('<strong>📍 Tìm thấy địa chỉ</strong><br>' + data[0].display_name).openPopup();
+                                } else {
+                                    alert('Không tìm thấy địa chỉ. Vui lòng thử lại!');
+                                }
+                            },
+                            error: function() {
+                                alert('Có lỗi xảy ra khi tìm kiếm địa chỉ!');
+                            }
+                        });
+                    });
+
+                    // Cho phép nhấn Enter để tìm kiếm
+                    $('#editDiaChiForMap').keypress(function(e) {
+                        if (e.which === 13) {
+                            e.preventDefault();
+                            $('#btnSearchAddressEdit').click();
+                        }
+                    });
+
+                    // Geocoding khi nhập địa chỉ (tự động tìm vị trí)
+                    var geocodeTimeout;
+                    $('#editDiaChi').on('input', function() {
+                        clearTimeout(geocodeTimeout);
+                        var address = $(this).val();
+                        
+                        if (address.length > 10 && editMap && editMarker) {
+                            geocodeTimeout = setTimeout(function() {
+                                $.ajax({
+                                    url: 'https://nominatim.openstreetmap.org/search',
+                                    data: {
+                                        q: address + ', ' + $('#editTinhThanhPho').val() + ', Vietnam',
+                                        format: 'json',
+                                        limit: 1
+                                    },
+                                    success: function(data) {
+                                        if (data && data.length > 0) {
+                                            var lat = parseFloat(data[0].lat);
+                                            var lon = parseFloat(data[0].lon);
+                                            
+                                            editMap.setView([lat, lon], 16);
+                                            editMarker.setLatLng([lat, lon]);
+                                            updateEditCoordinates(lat, lon);
+                                        }
+                                    }
+                                });
+                            }, 1000);
+                        }
                     });
                     
                     editMapInitialized = true;

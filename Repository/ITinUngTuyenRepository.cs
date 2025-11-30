@@ -10,6 +10,7 @@ namespace Unicareer.Repository
         TinUngTuyen? LayTinUngTuyenTheoId(int id);
         TinUngTuyen ThemTinUngTuyen(TinUngTuyen tinUngTuyen);
         TinUngTuyen? CapNhatTrangThai(int id, string trangThai, string? ghiChu = null);
+        bool XoaTinUngTuyen(int id);
     }
 }
 

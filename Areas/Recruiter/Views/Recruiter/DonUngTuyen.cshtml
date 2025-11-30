@@ -303,6 +303,180 @@
         color: #718096;
     }
 
+    .modal-content {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border-radius: 20px 20px 0 0;
+        padding: 25px 30px;
+        border-bottom: none;
+    }
+
+    .modal-header .modal-title {
+        font-weight: 700;
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .modal-header .btn-close {
+        filter: brightness(0) invert(1);
+        opacity: 0.9;
+    }
+
+    .modal-header .btn-close:hover {
+        opacity: 1;
+    }
+
+    .modal-body {
+        padding: 30px;
+        max-height: calc(100vh - 200px);
+        overflow-y: auto;
+    }
+
+    .modal-footer {
+        border-top: 2px solid #e2e8f0;
+        padding: 20px 30px;
+        border-radius: 0 0 20px 20px;
+    }
+
+    .info-card {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .info-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+
+    .info-card h6 {
+        color: #10b981;
+        font-weight: 700;
+        font-size: 1rem;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .info-card h6 i {
+        font-size: 1.2rem;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: flex-start;
+        padding: 12px 0;
+        border-bottom: 1px solid #e2e8f0;
+        word-wrap: break-word;
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #2d3748;
+        min-width: 150px;
+        max-width: 150px;
+        margin-right: 15px;
+        flex-shrink: 0;
+        line-height: 1.5;
+    }
+
+    .info-value {
+        color: #4a5568;
+        flex: 1;
+        min-width: 0;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        line-height: 1.5;
+    }
+
+    .info-value a {
+        color: #10b981;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .info-value a:hover {
+        text-decoration: underline;
+    }
+
+    .cv-card {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 20px;
+        border: 2px solid #10b981;
+    }
+
+    .cv-card h6 {
+        color: #059669;
+        font-weight: 700;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .notes-card {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 20px;
+        border: 2px solid #f59e0b;
+    }
+
+    .notes-card h6 {
+        color: #d97706;
+        font-weight: 700;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .notes-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .notes-list li {
+        padding: 8px 0;
+        color: #78350f;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .notes-list li i {
+        color: #10b981;
+        margin-top: 4px;
+        flex-shrink: 0;
+    }
+
+    .status-badge-modal {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: inline-block;
+    }
+
     @@media (max-width: 768px) {
         .action-bar {
             flex-direction: column;
@@ -311,6 +485,36 @@
 
         .search-filter-group {
             flex-direction: column;
+        }
+
+        .modal-body {
+            padding: 20px 15px;
+        }
+
+        .info-card {
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .info-item {
+            flex-direction: column;
+            padding: 10px 0;
+        }
+
+        .info-label {
+            min-width: auto;
+            max-width: 100%;
+            margin-right: 0;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            width: 100%;
+        }
+
+        .cv-card, .notes-card {
+            padding: 15px;
+            margin-top: 15px;
         }
     }
 </style>
@@ -626,17 +830,20 @@
 
 <!-- Modal xem chi tiết -->
 <div class="modal fade" id="chiTietModal" tabindex="-1" aria-labelledby="chiTietModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="chiTietModalLabel">Chi tiết đơn ứng tuyển</h5>
+                <h5 class="modal-title" id="chiTietModalLabel">
+                    <i class="bi bi-file-earmark-text-fill"></i> Chi tiết đơn ứng tuyển
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="chiTietModalBody">
-                <!-- Nội dung sẽ được load bằng JavaScript -->
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i> Đóng
+                </button>
             </div>
         </div>
     </div>
@@ -735,10 +942,9 @@
         
         function xemChiTiet(maDon) {
             var modal = new bootstrap.Modal(document.getElementById('chiTietModal'));
-            $('#chiTietModalBody').html('<div class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Đang tải...</span></div><p class="mt-2">Đang tải thông tin...</p></div>');
+            $('#chiTietModalBody').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"><span class="visually-hidden">Đang tải...</span></div><p class="mt-3 text-muted">Đang tải thông tin...</p></div>');
             modal.show();
             
-            // Gọi API để lấy chi tiết đơn ứng tuyển từ database
             $.ajax({
                 url: '@Url.Action("ChiTietDonUngTuyen", "Recruiter", new { area = "Recruiter" })',
                 type: 'GET',
@@ -746,35 +952,43 @@
                 success: function(response) {
                     if (response.success && response.data) {
                         var data = response.data;
+                        
+                        var trangThaiBadge = '';
+                        if (data.trangThaiXuLy) {
+                            var badgeClass = 'bg-secondary';
+                            var trangThai = data.trangThaiXuLy.toLowerCase();
+                            if (trangThai.includes('xem xét')) badgeClass = 'bg-warning';
+                            else if (trangThai.includes('phỏng vấn')) badgeClass = 'bg-info';
+                            else if (trangThai.includes('tuyển dụng')) badgeClass = 'bg-success';
+                            else if (trangThai.includes('từ chối') || trangThai.includes('không phù hợp')) badgeClass = 'bg-danger';
+                            trangThaiBadge = `<span class="badge ${badgeClass} status-badge-modal">${data.trangThaiXuLy}</span>`;
+                        }
+                        
                         var cvSection = '';
                         if (data.linkCV && data.linkCV.trim() !== '') {
                             cvSection = `
-                                <div class="mt-3">
-                                    <h6><i class="bi bi-file-earmark-pdf"></i> CV ứng viên</h6>
-                                    <a href="${data.linkCV}" target="_blank" class="btn btn-outline-primary btn-sm">
-                                        <i class="bi bi-download"></i> Tải CV
+                                <div class="cv-card">
+                                    <h6><i class="bi bi-file-earmark-pdf-fill"></i> CV ứng viên</h6>
+                                    <a href="${data.linkCV}" target="_blank" class="btn btn-success">
+                                        <i class="bi bi-download me-2"></i> Tải CV
                                     </a>
                                 </div>
                             `;
-                        } else {
-                            cvSection = '<div class="mt-3"><p class="text-muted">Ứng viên chưa đính kèm CV</p></div>';
                         }
                         
                         var ghiChuSection = '';
                         if (data.ghiChu && data.ghiChu.trim() !== '') {
-                            // Parse ghi chú để hiển thị đẹp hơn
                             var ghiChuParts = data.ghiChu.split(';');
-                            var ghiChuHtml = '<ul class="list-unstyled">';
+                            var ghiChuHtml = '<ul class="notes-list">';
                             ghiChuParts.forEach(function(part) {
                                 if (part.trim()) {
-                                    ghiChuHtml += '<li><i class="bi bi-check-circle text-success me-2"></i>' + part.trim() + '</li>';
+                                    ghiChuHtml += '<li><i class="bi bi-check-circle-fill"></i><span>' + part.trim() + '</span></li>';
                                 }
                             });
                             ghiChuHtml += '</ul>';
                             ghiChuSection = `
-                                <hr>
-                                <div>
-                                    <h6><i class="bi bi-sticky"></i> Thông tin bổ sung</h6>
+                                <div class="notes-card">
+                                    <h6><i class="bi bi-sticky-fill"></i> Thông tin bổ sung</h6>
                                     ${ghiChuHtml}
                                 </div>
                             `;
@@ -782,19 +996,47 @@
                         
                         $('#chiTietModalBody').html(`
                             <div class="row">
-                                <div class="col-md-6">
-                                    <h6 class="mb-3"><i class="bi bi-person-circle"></i> Thông tin ứng viên</h6>
-                                    <p><strong>Họ và tên:</strong> ${data.hoTen}</p>
-                                    <p><strong>Email:</strong> <a href="mailto:${data.email}">${data.email}</a></p>
-                                    <p><strong>Số điện thoại:</strong> <a href="tel:${data.soDienThoai}">${data.soDienThoai}</a></p>
+                                <div class="col-md-6 mb-3">
+                                    <div class="info-card">
+                                        <h6><i class="bi bi-person-circle-fill"></i> Thông tin ứng viên</h6>
+                                        <div class="info-item">
+                                            <span class="info-label"><i class="bi bi-person me-1"></i> Họ và tên:</span>
+                                            <span class="info-value">${data.hoTen || 'Chưa cập nhật'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label"><i class="bi bi-envelope me-1"></i> Email:</span>
+                                            <span class="info-value"><a href="mailto:${data.email}">${data.email}</a></span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label"><i class="bi bi-telephone me-1"></i> Số điện thoại:</span>
+                                            <span class="info-value"><a href="tel:${data.soDienThoai}">${data.soDienThoai || 'Chưa cập nhật'}</a></span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <h6 class="mb-3"><i class="bi bi-briefcase"></i> Thông tin ứng tuyển</h6>
-                                    <p><strong>Vị trí ứng tuyển:</strong> ${data.viTriUngTuyen}</p>
-                                    <p><strong>Tên công việc:</strong> ${data.tenViecLam || data.viTriUngTuyen}</p>
-                                    <p><strong>Công ty:</strong> ${data.congTy}</p>
-                                    <p><strong>Ngày ứng tuyển:</strong> ${data.ngayUngTuyen}</p>
-                                    <p><strong>Trạng thái:</strong> <span class="badge bg-info">${data.trangThaiXuLy}</span></p>
+                                <div class="col-md-6 mb-3">
+                                    <div class="info-card">
+                                        <h6><i class="bi bi-briefcase-fill"></i> Thông tin ứng tuyển</h6>
+                                        <div class="info-item">
+                                            <span class="info-label"><i class="bi bi-briefcase me-1"></i> Vị trí:</span>
+                                            <span class="info-value">${data.viTriUngTuyen || 'N/A'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label"><i class="bi bi-file-text me-1"></i> Tên công việc:</span>
+                                            <span class="info-value">${data.tenViecLam || data.viTriUngTuyen || 'N/A'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label"><i class="bi bi-building me-1"></i> Công ty:</span>
+                                            <span class="info-value">${data.congTy || 'N/A'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label"><i class="bi bi-calendar-event me-1"></i> Ngày ứng tuyển:</span>
+                                            <span class="info-value">${data.ngayUngTuyen || 'N/A'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label"><i class="bi bi-toggle-on me-1"></i> Trạng thái:</span>
+                                            <span class="info-value">${trangThaiBadge}</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             ${cvSection}
@@ -803,7 +1045,7 @@
                     } else {
                         $('#chiTietModalBody').html(`
                             <div class="alert alert-danger">
-                                <i class="bi bi-exclamation-triangle"></i> ${response.message || 'Không thể tải thông tin đơn ứng tuyển'}
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>${response.message || 'Không thể tải thông tin đơn ứng tuyển'}
                             </div>
                         `);
                     }
@@ -815,7 +1057,7 @@
                     }
                     $('#chiTietModalBody').html(`
                         <div class="alert alert-danger">
-                            <i class="bi bi-exclamation-triangle"></i> ${errorMessage}
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>${errorMessage}
                         </div>
                     `);
                 }
@@ -885,11 +1127,7 @@
         
         // Hàm xem thông tin tài khoản
         function xemThongTinTaiKhoan(userId) {
-            var modal = new bootstrap.Modal(document.getElementById('taiKhoanModal'));
-            $('#taiKhoanModalBody').html('<div class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Đang tải...</span></div><p class="mt-2">Đang tải thông tin tài khoản...</p></div>');
-            modal.show();
-            
-            // Gọi API để lấy thông tin tài khoản
+            // Gọi API để lấy thông tin tài khoản và chuyển đến trang hồ sơ
             $.ajax({
                 url: '@Url.Action("ThongTinTaiKhoanUser", "Recruiter", new { area = "Recruiter" })',
                 type: 'GET',
@@ -897,6 +1135,21 @@
                 success: function(response) {
                     if (response.success && response.data) {
                         var data = response.data;
+                        
+                        // Kiểm tra nếu có thông tin ứng viên và mã ứng viên, chuyển đến trang hồ sơ
+                        if (data.ungVien && data.ungVien.maUngVien) {
+                            var baseUrl = window.location.origin;
+                            var profileUrl = baseUrl + '/PublicProfile/ThongTinCaNhan?id=' + data.ungVien.maUngVien;
+                            console.log('Redirecting to:', profileUrl);
+                            console.log('MaUngVien:', data.ungVien.maUngVien);
+                            window.location.href = profileUrl;
+                            return;
+                        }
+                        
+                        // Nếu không có mã ứng viên, hiển thị modal như cũ
+                        var modal = new bootstrap.Modal(document.getElementById('taiKhoanModal'));
+                        $('#taiKhoanModalBody').html('<div class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Đang tải...</span></div><p class="mt-2">Đang tải thông tin tài khoản...</p></div>');
+                        modal.show();
                         var avatarHtml = '';
                         if (data.avatar) {
                             avatarHtml = `<img src="${data.avatar}" alt="Avatar" class="rounded-circle mb-3" style="width: 100px; height: 100px; object-fit: cover;">`;
@@ -987,14 +1240,17 @@
                             </div>
                         `);
                     } else {
+                        var modal = new bootstrap.Modal(document.getElementById('taiKhoanModal'));
                         $('#taiKhoanModalBody').html(`
                             <div class="alert alert-danger">
                                 <i class="bi bi-exclamation-triangle"></i> ${response.message || 'Không thể tải thông tin tài khoản'}
                             </div>
                         `);
+                        modal.show();
                     }
                 },
                 error: function(xhr) {
+                    var modal = new bootstrap.Modal(document.getElementById('taiKhoanModal'));
                     var errorMessage = 'Có lỗi xảy ra khi tải thông tin tài khoản';
                     if (xhr.responseJSON && xhr.responseJSON.message) {
                         errorMessage = xhr.responseJSON.message;

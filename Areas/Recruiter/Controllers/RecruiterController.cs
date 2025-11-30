@@ -1864,9 +1864,18 @@ namespace Unicareer.Areas.Recruiter.Controllers
         }
 
         // GET: Tìm ứng viên
-        public IActionResult TimUngVien(string keyword)
+        public IActionResult TimUngVien(
+            string keyword, 
+            string? tinhThanh, 
+            string? chuyenNganh, 
+            string? nganhNghe,
+            string? gioiTinh, 
+            string? trangThaiTimViec, 
+            string? mucLuong,
+            string? viTriMongMuon,
+            int? tuoiMin,
+            int? tuoiMax)
         {
-            // Query trực tiếp từ database - chỉ lấy ứng viên có HienThiCongKhai = true
             var danhSachUngVien = _context.UngViens
                 .Include(u => u.User)
                 .Include(u => u.ChuyenNganh)
@@ -1874,7 +1883,6 @@ namespace Unicareer.Areas.Recruiter.Controllers
                 .Where(u => u.HienThiCongKhai && !string.IsNullOrEmpty(u.HoTen))
                 .AsQueryable();
 
-            // Tìm kiếm theo từ khóa
             if (!string.IsNullOrEmpty(keyword))
             {
                 var keywordTrimmed = keyword.Trim();
@@ -1882,16 +1890,126 @@ namespace Unicareer.Areas.Recruiter.Controllers
                     (!string.IsNullOrEmpty(u.HoTen) && u.HoTen.Contains(keywordTrimmed)) ||
                     (!string.IsNullOrEmpty(u.ViTriMongMuon) && u.ViTriMongMuon.Contains(keywordTrimmed)) ||
                     (!string.IsNullOrEmpty(u.Email) && u.Email.Contains(keywordTrimmed)) ||
+                    (!string.IsNullOrEmpty(u.MoTaBanThan) && u.MoTaBanThan.Contains(keywordTrimmed)) ||
+                    (!string.IsNullOrEmpty(u.KyNangChiTiet) && u.KyNangChiTiet.Contains(keywordTrimmed)) ||
                     (u.ChuyenNganh != null && !string.IsNullOrEmpty(u.ChuyenNganh.TenChuyenNganh) && u.ChuyenNganh.TenChuyenNganh.Contains(keywordTrimmed))
                 );
             }
 
-            // Sắp xếp theo ngày đăng ký mới nhất
+            if (!string.IsNullOrEmpty(tinhThanh))
+            {
+                danhSachUngVien = danhSachUngVien.Where(u =>
+                    !string.IsNullOrEmpty(u.NoiLamViecMongMuon) && u.NoiLamViecMongMuon.Contains(tinhThanh));
+            }
+
+            if (!string.IsNullOrEmpty(chuyenNganh))
+            {
+                if (int.TryParse(chuyenNganh, out int maChuyenNganh))
+                {
+                    danhSachUngVien = danhSachUngVien.Where(u => u.MaChuyenNganh == maChuyenNganh);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(nganhNghe))
+            {
+                danhSachUngVien = danhSachUngVien.Where(u =>
+                    u.ChuyenNganh != null && u.ChuyenNganh.NganhNghe != null && u.ChuyenNganh.NganhNghe.TenNganhNghe == nganhNghe);
+            }
+
+            if (!string.IsNullOrEmpty(gioiTinh))
+            {
+                danhSachUngVien = danhSachUngVien.Where(u => u.GioiTinh == gioiTinh);
+            }
+
+            if (!string.IsNullOrEmpty(trangThaiTimViec))
+            {
+                danhSachUngVien = danhSachUngVien.Where(u => u.TrangThaiTimViec == trangThaiTimViec);
+            }
+
+            if (!string.IsNullOrEmpty(mucLuong))
+            {
+                if (mucLuong == "Duoi10")
+                {
+                    danhSachUngVien = danhSachUngVien.Where(u => u.MucLuongKyVong.HasValue && u.MucLuongKyVong < 10);
+                }
+                else if (mucLuong == "10-15")
+                {
+                    danhSachUngVien = danhSachUngVien.Where(u => u.MucLuongKyVong.HasValue && u.MucLuongKyVong >= 10 && u.MucLuongKyVong <= 15);
+                }
+                else if (mucLuong == "15-25")
+                {
+                    danhSachUngVien = danhSachUngVien.Where(u => u.MucLuongKyVong.HasValue && u.MucLuongKyVong >= 15 && u.MucLuongKyVong <= 25);
+                }
+                else if (mucLuong == "25-50")
+                {
+                    danhSachUngVien = danhSachUngVien.Where(u => u.MucLuongKyVong.HasValue && u.MucLuongKyVong >= 25 && u.MucLuongKyVong <= 50);
+                }
+                else if (mucLuong == "Tren50")
+                {
+                    danhSachUngVien = danhSachUngVien.Where(u => u.MucLuongKyVong.HasValue && u.MucLuongKyVong > 50);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(viTriMongMuon))
+            {
+                danhSachUngVien = danhSachUngVien.Where(u =>
+                    !string.IsNullOrEmpty(u.ViTriMongMuon) && u.ViTriMongMuon.Contains(viTriMongMuon));
+            }
+
+            if (tuoiMin.HasValue || tuoiMax.HasValue)
+            {
+                var ngayHienTai = DateTime.Now;
+                if (tuoiMin.HasValue && tuoiMax.HasValue)
+                {
+                    var ngaySinhMax = ngayHienTai.AddYears(-tuoiMin.Value);
+                    var ngaySinhMin = ngayHienTai.AddYears(-tuoiMax.Value - 1).AddDays(1);
+                    danhSachUngVien = danhSachUngVien.Where(u => u.NgaySinh <= ngaySinhMax && u.NgaySinh >= ngaySinhMin);
+                }
+                else if (tuoiMin.HasValue)
+                {
+                    var ngaySinhMax = ngayHienTai.AddYears(-tuoiMin.Value);
+                    danhSachUngVien = danhSachUngVien.Where(u => u.NgaySinh <= ngaySinhMax);
+                }
+                else if (tuoiMax.HasValue)
+                {
+                    var ngaySinhMin = ngayHienTai.AddYears(-tuoiMax.Value - 1).AddDays(1);
+                    danhSachUngVien = danhSachUngVien.Where(u => u.NgaySinh >= ngaySinhMin);
+                }
+            }
+
             danhSachUngVien = danhSachUngVien.OrderByDescending(u => u.NgayDangKy);
 
             var ketQuaTimKiem = danhSachUngVien.ToList();
 
+            var danhSachTinhThanh = _context.Provinces
+                .OrderBy(p => p.FullName)
+                .ToList();
+
+            var danhSachNganhNghe = _context.NganhNghes
+                .OrderBy(n => n.TenNganhNghe)
+                .ToList();
+
+            var danhSachChuyenNganh = _context.ChuyenNganhs
+                .Where(c => c.IsActive)
+                .Include(c => c.NganhNghe)
+                .OrderBy(c => c.TenChuyenNganh)
+                .ToList();
+
             ViewBag.Keyword = keyword;
+            ViewBag.TinhThanh = tinhThanh;
+            ViewBag.ChuyenNganh = chuyenNganh;
+            ViewBag.NganhNghe = nganhNghe;
+            ViewBag.GioiTinh = gioiTinh;
+            ViewBag.TrangThaiTimViec = trangThaiTimViec;
+            ViewBag.MucLuong = mucLuong;
+            ViewBag.ViTriMongMuon = viTriMongMuon;
+            ViewBag.TuoiMin = tuoiMin;
+            ViewBag.TuoiMax = tuoiMax;
+            ViewBag.DanhSachTinhThanh = danhSachTinhThanh;
+            ViewBag.DanhSachNganhNghe = danhSachNganhNghe;
+            ViewBag.DanhSachChuyenNganh = danhSachChuyenNganh;
+            ViewBag.TrangThaiTimViecOptions = new List<string> { "Đang tìm việc", "Đang thực tập", "Đã có việc" };
+            ViewBag.GioiTinhOptions = new List<string> { "Nam", "Nữ" };
 
             return View(ketQuaTimKiem);
         }

@@ -128,13 +128,9 @@
                                     <td>@ntd.MaNhaTuyenDung</td>
                                     <td>
                                         <strong>@ntd.TenCongTy</strong>
-                                        <br />
-                                        <small><a href="@ntd.Website" target="_blank" class="text-primary"><i class="bi bi-link-45deg"></i> @ntd.Website</a></small>
                                     </td>
                                     <td>
                                         @ntd.NguoiDaiDien
-                                        <br />
-                                        <small class="text-muted">@ntd.ChucVu</small>
                                     </td>
                                     <td>
                                         <i class="bi bi-envelope"></i> @ntd.Email<br />
@@ -145,13 +141,15 @@
                                     <td><span class="badge bg-success">@Model.DanhSachTinTuyenDung.Count(t => t.CongTy == ntd.TenCongTy)</span></td>
                                     <td><span class="badge bg-warning text-dark">@Model.DanhSachTinUngTuyen.Count(t => t.CongTy == ntd.TenCongTy)</span></td>
                                     <td>
-                                        <a href="@Url.Action("ChiTietNhaTuyenDung", "Admin", new { id = ntd.MaNhaTuyenDung })"
-                                           class="btn btn-sm btn-outline-info" title="Xem chi tiết">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
-                                        <button class="btn btn-sm btn-outline-danger btn-xoa" data-ma="@ntd.MaNhaTuyenDung" title="Xóa">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
+                                        <div class="action-buttons">
+                                            <a href="@Url.Action("ChiTietNhaTuyenDung", "Admin", new { id = ntd.MaNhaTuyenDung })"
+                                               class="btn-action btn-view" title="Xem chi tiết">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <button class="btn-action btn-delete btn-xoa" data-ma="@ntd.MaNhaTuyenDung" title="Xóa">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             }
@@ -606,6 +604,42 @@
         margin-top: 15px;
         color: #4c566a;
         font-size: 0.9rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-view {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .btn-view:hover {
+        background: #bfdbfe;
+    }
+
+    .btn-delete {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .btn-delete:hover {
+        background: #fecaca;
     }
 
     @@keyframes fadeInUp {

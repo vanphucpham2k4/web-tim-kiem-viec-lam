@@ -149,6 +149,92 @@ namespace Unicareer.Areas.Candidate.Controllers
             return View(ungVien);
         }
 
+        // GET: Thong tin ca nhan (trang hồ sơ công khai)
+        [AllowAnonymous]
+        public async Task<IActionResult> ThongTinCaNhan(int? id)
+        {
+            ViewData["Title"] = "Thông tin cá nhân";
+            
+            UngVien? ungVien = null;
+            var currentUser = await _userManager.GetUserAsync(User);
+            bool isOwner = false;
+            bool canView = false;
+
+            if (id.HasValue)
+            {
+                ungVien = _context.UngViens
+                    .Include(u => u.User)
+                    .Include(u => u.ChuyenNganh)
+                        .ThenInclude(c => c!.NganhNghe)
+                    .FirstOrDefault(u => u.MaUngVien == id.Value);
+                
+                if (ungVien != null && currentUser != null && ungVien.UserId == currentUser.Id)
+                {
+                    isOwner = true;
+                }
+            }
+            else if (currentUser != null && User.IsInRole(SD.Role_UngVien))
+            {
+                ungVien = _ungVienRepository.LayUngVienTheoUserId(currentUser.Id);
+                isOwner = true;
+                canView = true;
+            }
+
+            if (ungVien == null)
+            {
+                return NotFound();
+            }
+
+            if (!isOwner)
+            {
+                if (ungVien.HienThiCongKhai)
+                {
+                    if (currentUser != null)
+                    {
+                        canView = true;
+                    }
+                    else
+                    {
+                        TempData["Loi"] = "Bạn cần đăng nhập để xem hồ sơ này.";
+                        return RedirectToAction("Login", "Account", new { area = "" });
+                    }
+                }
+                else
+                {
+                    TempData["Loi"] = "Ứng viên này không cho phép hiển thị hồ sơ công khai.";
+                    return RedirectToAction("Index", "Home", new { area = "" });
+                }
+            }
+            else
+            {
+                canView = true;
+            }
+
+            if (!canView)
+            {
+                return Forbid();
+            }
+
+            ViewBag.IsOwner = isOwner;
+            
+            bool emailConfirmed = false;
+            if (ungVien.User != null)
+            {
+                emailConfirmed = ungVien.User.EmailConfirmed;
+            }
+            else if (ungVien.UserId != null)
+            {
+                var user = await _userManager.FindByIdAsync(ungVien.UserId);
+                if (user != null)
+                {
+                    emailConfirmed = user.EmailConfirmed;
+                }
+            }
+            ViewBag.EmailConfirmed = emailConfirmed;
+            
+            return View(ungVien);
+        }
+
         // POST: Luu ho so ung vien
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -250,6 +336,60 @@ namespace Unicareer.Areas.Candidate.Controllers
                 }
 
                 return Json(new { success = true, message = "Lưu hồ sơ thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
+        // POST: Xoa CV
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> XoaCV()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy người dùng" });
+            }
+
+            try
+            {
+                var ungVien = _ungVienRepository.LayUngVienTheoUserId(user.Id);
+                
+                if (ungVien == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy hồ sơ ứng viên" });
+                }
+
+                if (string.IsNullOrEmpty(ungVien.CVFile))
+                {
+                    return Json(new { success = false, message = "Không có CV để xóa" });
+                }
+
+                // Xóa file CV từ server
+                if (ungVien.CVFile.StartsWith("/uploads/"))
+                {
+                    var cvPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", ungVien.CVFile.TrimStart('/'));
+                    if (System.IO.File.Exists(cvPath))
+                    {
+                        try
+                        {
+                            System.IO.File.Delete(cvPath);
+                        }
+                        catch (Exception ex)
+                        {
+                            return Json(new { success = false, message = "Không thể xóa file CV: " + ex.Message });
+                        }
+                    }
+                }
+
+                // Xóa đường dẫn CV trong database
+                ungVien.CVFile = null;
+                _ungVienRepository.CapNhatUngVien(ungVien);
+
+                return Json(new { success = true, message = "Xóa CV thành công!" });
             }
             catch (Exception ex)
             {

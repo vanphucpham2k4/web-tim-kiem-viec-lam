@@ -117,6 +117,21 @@
         text-decoration: underline;
     }
 
+    .cv-preview .btn-danger {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        border: none;
+        color: white;
+        font-weight: 600;
+        padding: 8px 16px;
+        transition: all 0.3s ease;
+    }
+
+    .cv-preview .btn-danger:hover {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+    }
+
     .switch {
         position: relative;
         display: inline-block;
@@ -204,8 +219,19 @@
 </style>
 
 <div class="page-header">
-    <h1><i class="bi bi-person-badge"></i> Hồ sơ ứng viên</h1>
-    <p>Điền thông tin để tạo hồ sơ chuyên nghiệp và thu hút nhà tuyển dụng</p>
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="bi bi-person-badge"></i> Hồ sơ ứng viên</h1>
+            <p>Điền thông tin để tạo hồ sơ chuyên nghiệp và thu hút nhà tuyển dụng</p>
+        </div>
+        @if (Model != null && Model.MaUngVien > 0)
+        {
+            <a href="@Url.Action("ThongTinCaNhan", "Candidate", new { area = "Candidate", id = Model.MaUngVien })" 
+               class="btn btn-light" style="background: rgba(255,255,255,0.2); border: 2px solid white; color: white; font-weight: 600;">
+                <i class="bi bi-eye"></i> Xem hồ sơ công khai
+            </a>
+        }
+    </div>
 </div>
 
 <div id="alertContainer"></div>
@@ -296,9 +322,16 @@
             <div id="fileInfo" class="mt-2"></div>
             @if (!string.IsNullOrEmpty(Model?.CVFile))
             {
-                <div class="cv-preview">
-                    <i class="bi bi-file-earmark-pdf"></i> 
-                    <a href="@Model.CVFile" target="_blank">Xem CV hiện tại</a>
+                <div class="cv-preview" id="currentCvPreview">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-file-earmark-pdf"></i> 
+                            <a href="@Model.CVFile" target="_blank">Xem CV hiện tại</a>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-danger" id="btnXoaCV" style="border-radius: 6px;">
+                            <i class="bi bi-trash"></i> Xóa CV
+                        </button>
+                    </div>
                 </div>
             }
         </div>
@@ -583,6 +616,52 @@
                     alert.remove();
                 }
             }, 5000);
+        }
+
+        // Xóa CV hiện tại
+        const btnXoaCV = document.getElementById('btnXoaCV');
+        if (btnXoaCV) {
+            btnXoaCV.addEventListener('click', async function() {
+                if (!confirm('Bạn có chắc chắn muốn xóa CV hiện tại không?')) {
+                    return;
+                }
+
+                const originalText = btnXoaCV.innerHTML;
+                btnXoaCV.disabled = true;
+                btnXoaCV.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang xóa...';
+
+                try {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                    const response = await fetch('@Url.Action("XoaCV", "Candidate", new { area = "Candidate" })', {
+                        method: 'POST',
+                        headers: {
+                            'RequestVerificationToken': token,
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: `__RequestVerificationToken=${encodeURIComponent(token)}`
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        showAlert('success', result.message);
+                        const currentCvPreview = document.getElementById('currentCvPreview');
+                        if (currentCvPreview) {
+                            currentCvPreview.remove();
+                        }
+                        cvFileInput.value = '';
+                        fileInfo.innerHTML = '';
+                    } else {
+                        showAlert('danger', result.message);
+                        btnXoaCV.disabled = false;
+                        btnXoaCV.innerHTML = originalText;
+                    }
+                } catch (error) {
+                    showAlert('danger', 'Có lỗi xảy ra khi xóa CV: ' + error.message);
+                    btnXoaCV.disabled = false;
+                    btnXoaCV.innerHTML = originalText;
+                }
+            });
         }
     });
     </script>
