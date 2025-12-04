@@ -17,18 +17,26 @@
         <span class="blog-detail-category">@Model.TheLoai</span>
     }
 
-    @if (Model.User != null)
+    @if (!string.IsNullOrEmpty(Model.TacGia))
+    {
+        <div class="blog-detail-meta-item">
+            <i class="bi bi-person-fill"></i>
+            <span><strong>@Model.TacGia</strong></span>
+        </div>
+    }
+    else if (Model.User != null)
     {
         <div class="blog-detail-meta-item">
             <i class="bi bi-person"></i>
             <span>@(Model.User.HoTen ?? Model.User.UserName ?? Model.User.Email ?? "Admin")</span>
         </div>
     }
-    else if (!string.IsNullOrEmpty(Model.TacGia))
+
+    @if (!string.IsNullOrEmpty(Model.NguonBaiViet))
     {
         <div class="blog-detail-meta-item">
-            <i class="bi bi-person"></i>
-            <span>@Model.TacGia</span>
+            <i class="bi bi-globe2"></i>
+            <span style="color: #10b981; font-weight: 500;">@Model.NguonBaiViet</span>
         </div>
     }
 
@@ -50,6 +58,47 @@
 {
     <div class="blog-detail-content">
         @Html.Raw(Model.NoiDung)
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(Model.NguonBaiViet))
+{
+    string? sourceUrl = null;
+    string sourceName = Model.NguonBaiViet;
+    
+    var urlMatch = System.Text.RegularExpressions.Regex.Match(Model.NguonBaiViet, @"\((https?://[^\)]+)\)");
+    if (urlMatch.Success)
+    {
+        sourceUrl = urlMatch.Groups[1].Value;
+        sourceName = Model.NguonBaiViet.Substring(0, urlMatch.Index).Trim();
+    }
+    else if (Model.NguonBaiViet.StartsWith("http://") || Model.NguonBaiViet.StartsWith("https://"))
+    {
+        sourceUrl = Model.NguonBaiViet;
+        var uri = new Uri(Model.NguonBaiViet);
+        sourceName = uri.Host;
+    }
+    
+    <div class="blog-source-callout">
+        <div class="callout-icon">
+            <i class="bi bi-info-circle-fill"></i>
+        </div>
+        <div class="callout-content">
+            <h4 class="callout-title">📰 Bài viết từ nguồn bên ngoài</h4>
+            <p class="callout-text">
+                Bài viết này được tổng hợp từ <strong>@sourceName</strong>. 
+                @if (!string.IsNullOrEmpty(sourceUrl))
+                {
+                    <text>Để xem bản đầy đủ và chi tiết hơn, vui lòng truy cập:</text>
+                }
+            </p>
+            @if (!string.IsNullOrEmpty(sourceUrl))
+            {
+                <a href="@sourceUrl" target="_blank" rel="noopener noreferrer" class="source-link">
+                    <i class="bi bi-box-arrow-up-right"></i> Xem bài viết gốc tại @sourceName
+                </a>
+            }
+        </div>
     </div>
 }
 

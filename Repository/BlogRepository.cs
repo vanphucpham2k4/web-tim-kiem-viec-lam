@@ -15,21 +15,42 @@ namespace Unicareer.Repository
 
         public List<Blog> LayDanhSachBlog()
         {
-            return _context.Blogs
-                .Include(b => b.User)
-                .Include(b => b.TheLoaiBlog)
-                .OrderByDescending(b => b.NgayDang)
-                .ToList();
+            try
+            {
+                return _context.Blogs
+                    .Include(b => b.User)
+                    .Include(b => b.TheLoaiBlog)
+                    .OrderByDescending(b => b.NgayDang)
+                    .ToList();
+            }
+            catch (Exception)
+            {
+                return _context.Blogs
+                    .Include(b => b.TheLoaiBlog)
+                    .OrderByDescending(b => b.NgayDang)
+                    .ToList();
+            }
         }
 
         public List<Blog> LayDanhSachBlogHienThi()
         {
-            return _context.Blogs
-                .Include(b => b.User)
-                .Include(b => b.TheLoaiBlog)
-                .Where(b => b.DaDang && b.HienThi)
-                .OrderByDescending(b => b.NgayDang)
-                .ToList();
+            try
+            {
+                return _context.Blogs
+                    .Include(b => b.User)
+                    .Include(b => b.TheLoaiBlog)
+                    .Where(b => b.DaDang && b.HienThi)
+                    .OrderByDescending(b => b.NgayDang)
+                    .ToList();
+            }
+            catch (Exception)
+            {
+                return _context.Blogs
+                    .Include(b => b.TheLoaiBlog)
+                    .Where(b => b.DaDang && b.HienThi)
+                    .OrderByDescending(b => b.NgayDang)
+                    .ToList();
+            }
         }
 
         public Blog? LayBlogTheoId(int id)
@@ -133,6 +154,33 @@ namespace Unicareer.Repository
             catch
             {
                 return false;
+            }
+        }
+
+        public Blog? LayBlogTheoApiArticleId(string apiArticleId)
+        {
+            return _context.Blogs
+                .FirstOrDefault(b => b.ApiArticleId == apiArticleId);
+        }
+
+        public List<Blog> LayDanhSachBlogChoDuyet()
+        {
+            try
+            {
+                return _context.Blogs
+                    .Include(b => b.User)
+                    .Include(b => b.TheLoaiBlog)
+                    .Where(b => !b.DaDang && !string.IsNullOrEmpty(b.NguonBaiViet))
+                    .OrderByDescending(b => b.NgayDang)
+                    .ToList();
+            }
+            catch (Exception)
+            {
+                return _context.Blogs
+                    .Include(b => b.TheLoaiBlog)
+                    .Where(b => !b.DaDang && !string.IsNullOrEmpty(b.NguonBaiViet))
+                    .OrderByDescending(b => b.NgayDang)
+                    .ToList();
             }
         }
     }

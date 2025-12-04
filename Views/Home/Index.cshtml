@@ -559,10 +559,16 @@
     }
     .blog-meta {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
         font-size: 13px;
         color: #999;
+    }
+    .blog-author {
+        display: flex;
+        align-items: center;
+        color: #10b981;
+        font-weight: 500;
     }
     .blog-date {
         display: flex;
@@ -1032,6 +1038,10 @@
                             }
                             <p class="blog-excerpt">@excerptText</p>
                             <div class="blog-meta">
+                                @if (!string.IsNullOrEmpty(blog.TacGia))
+                                {
+                                    <span class="blog-author">✍️ @blog.TacGia</span>
+                                }
                                 <span class="blog-date">📅 @thoiGianDangText</span>
                                 <span class="blog-views">👁 @blog.LuotXem.ToString("N0") lượt xem</span>
                             </div>

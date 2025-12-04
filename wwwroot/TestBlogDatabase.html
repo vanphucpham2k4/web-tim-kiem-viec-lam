@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiểm Tra Database Blog - Unicareer</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2545B8;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        button {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #059669;
+        }
+        button.fix-btn {
+            background: #f59e0b;
+        }
+        button.fix-btn:hover {
+            background: #d97706;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .success {
+            border-left: 4px solid #10b981;
+            background: #d1fae5;
+        }
+        .error {
+            border-left: 4px solid #ef4444;
+            background: #fee2e2;
+        }
+        .warning {
+            border-left: 4px solid #f59e0b;
+            background: #fef3c7;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 12px;
+        }
+        .issue-card {
+            border: 1px solid #e2e8f0;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 6px;
+            background: white;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Kiểm Tra Database Blog</h1>
+        <p>Công cụ này giúp bạn kiểm tra và sửa các vấn đề trong database blog.</p>
+
+        <div class="test-section">
+            <h3>Bước 1: Kiểm tra vấn đề</h3>
+            <p>Nhấn nút bên dưới để kiểm tra các blog có vấn đề trong database.</p>
+            <button onclick="checkDatabase()">🔍 Kiểm tra Database</button>
+            <div id="checkResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Bước 2: Sửa vấn đề</h3>
+            <p>Sau khi kiểm tra, nhấn nút này để tự động sửa các vấn đề tìm thấy.</p>
+            <button class="fix-btn" onclick="fixDatabase()">🔧 Sửa Database</button>
+            <div id="fixResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>ℹ️ Các vấn đề có thể xảy ra:</h3>
+            <ul>
+                <li><strong>Blog với UserId không hợp lệ:</strong> Blog có UserId trỏ đến user không tồn tại trong database</li>
+                <li><strong>Blog không có tiêu đề:</strong> Blog với trường TieuDe rỗng hoặc null</li>
+                <li><strong>Blog không có nội dung:</strong> Blog với trường NoiDung rỗng hoặc null</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        async function checkDatabase() {
+            const resultDiv = document.getElementById('checkResult');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result warning';
+            resultDiv.innerHTML = '⏳ Đang kiểm tra database...';
+
+            try {
+                const response = await fetch('/Admin/Admin/KiemTraBlogDatabase', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    resultDiv.className = 'result success';
+                    
+                    const hasIssues = result.blogsWithInvalidUser.length > 0 || 
+                                     result.blogsWithoutTitle.length > 0 || 
+                                     result.blogsWithoutContent.length > 0;
+
+                    let html = `
+                        <h4>✅ Kiểm tra hoàn tất!</h4>
+                        <div class="stats">
+                            <div class="stat-card">
+                                <div class="stat-number">${result.totalBlogs}</div>
+                                <div>Tổng số Blog</div>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                                <div class="stat-number">${result.blogsWithInvalidUser.length}</div>
+                                <div>UserId không hợp lệ</div>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                                <div class="stat-number">${result.blogsWithoutTitle.length}</div>
+                                <div>Không có tiêu đề</div>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                                <div class="stat-number">${result.blogsWithoutContent.length}</div>
+                                <div>Không có nội dung</div>
+                            </div>
+                        </div>
+                    `;
+
+                    if (hasIssues) {
+                        html += '<h4 style="color: #ef4444;">⚠️ Các vấn đề tìm thấy:</h4>';
+                        
+                        if (result.blogsWithInvalidUser.length > 0) {
+                            html += '<h5>Blog với UserId không hợp lệ:</h5>';
+                            result.blogsWithInvalidUser.forEach(blog => {
+                                html += `
+                                    <div class="issue-card">
+                                        <strong>MaBlog:</strong> ${blog.MaBlog}<br>
+                                        <strong>Tiêu đề:</strong> ${blog.TieuDe}<br>
+                                        <strong>UserId:</strong> ${blog.UserId}<br>
+                                        <strong>Nguồn:</strong> ${blog.NguonBaiViet || 'N/A'}
+                                    </div>
+                                `;
+                            });
+                        }
+
+                        if (result.blogsWithoutTitle.length > 0) {
+                            html += '<h5>Blog không có tiêu đề:</h5>';
+                            result.blogsWithoutTitle.forEach(blog => {
+                                html += `
+                                    <div class="issue-card">
+                                        <strong>MaBlog:</strong> ${blog.MaBlog}<br>
+                                        <strong>UserId:</strong> ${blog.UserId || 'NULL'}<br>
+                                        <strong>Nguồn:</strong> ${blog.NguonBaiViet || 'N/A'}
+                                    </div>
+                                `;
+                            });
+                        }
+
+                        if (result.blogsWithoutContent.length > 0) {
+                            html += '<h5>Blog không có nội dung:</h5>';
+                            result.blogsWithoutContent.forEach(blog => {
+                                html += `
+                                    <div class="issue-card">
+                                        <strong>MaBlog:</strong> ${blog.MaBlog}<br>
+                                        <strong>Tiêu đề:</strong> ${blog.TieuDe}<br>
+                                        <strong>Nguồn:</strong> ${blog.NguonBaiViet || 'N/A'}
+                                    </div>
+                                `;
+                            });
+                        }
+
+                        html += '<p style="margin-top: 20px;"><strong>👉 Nhấn nút "Sửa Database" ở Bước 2 để tự động sửa các vấn đề này.</strong></p>';
+                    } else {
+                        html += '<p style="color: #10b981; font-size: 18px; text-align: center;">🎉 Database không có vấn đề gì!</p>';
+                    }
+
+                    resultDiv.innerHTML = html;
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <h4>❌ Lỗi kiểm tra!</h4>
+                    <p><strong>Lỗi:</strong> ${error.message}</p>
+                    <p><strong>Nguyên nhân có thể:</strong></p>
+                    <ul>
+                        <li>Bạn chưa đăng nhập với tài khoản Admin</li>
+                        <li>Database connection bị lỗi</li>
+                        <li>Endpoint chưa được deploy</li>
+                    </ul>
+                    <p><strong>Giải pháp:</strong> Vui lòng đăng nhập với tài khoản Admin và thử lại.</p>
+                `;
+            }
+        }
+
+        async function fixDatabase() {
+            if (!confirm('Bạn có chắc muốn sửa database? Hành động này sẽ:\n- Xóa UserId không hợp lệ\n- Thêm tiêu đề mặc định cho blog không có tiêu đề\n- Thêm nội dung mặc định cho blog không có nội dung')) {
+                return;
+            }
+
+            const resultDiv = document.getElementById('fixResult');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result warning';
+            resultDiv.innerHTML = '⏳ Đang sửa database...';
+
+            try {
+                const token = await getAntiForgeryToken();
+                
+                const response = await fetch('/Admin/Admin/SuaBlogDatabase', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': token
+                    },
+                    body: new URLSearchParams({
+                        __RequestVerificationToken: token
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <h4>✅ ${result.message}</h4>
+                        <p>Database đã được sửa thành công!</p>
+                        <p><strong>👉 Bây giờ bạn có thể quay lại trang Blog và kiểm tra.</strong></p>
+                        <p><a href="/Admin/Admin/Blog" style="color: #2545B8; text-decoration: none; font-weight: bold;">→ Đi đến trang Blog</a></p>
+                    `;
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <h4>❌ Lỗi sửa database!</h4>
+                    <p><strong>Lỗi:</strong> ${error.message}</p>
+                    <p>Vui lòng thử lại hoặc kiểm tra log server.</p>
+                `;
+            }
+        }
+
+        async function getAntiForgeryToken() {
+            const response = await fetch('/Admin/Admin/Blog');
+            const text = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(text, 'text/html');
+            const token = doc.querySelector('input[name="__RequestVerificationToken"]');
+            return token ? token.value : '';
+        }
+
+        window.addEventListener('load', () => {
+            console.log('🔍 Page loaded. Ready to check database.');
+        });
+    </script>
+</body>
+</html>
+

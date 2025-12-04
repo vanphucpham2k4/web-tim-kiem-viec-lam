@@ -38,6 +38,9 @@ builder.Services.AddHostedService<UpdateTrangThaiBackgroundService>();
 // Đăng ký Email Service
 builder.Services.AddScoped<IEmailService, EmailService>();
 
+// Đăng ký External Article Service với HttpClient
+builder.Services.AddHttpClient<IExternalArticleService, ExternalArticleService>();
+
 // Cấu hình Session để lưu CAPTCHA
 builder.Services.AddSession(options =>
 {

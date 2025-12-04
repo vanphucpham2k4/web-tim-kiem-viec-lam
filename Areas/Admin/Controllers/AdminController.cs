@@ -8,6 +8,7 @@ using Unicareer.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
+using Unicareer.Services;
 
 namespace Unicareer.Areas.Admin.Controllers
 {
@@ -28,8 +29,10 @@ namespace Unicareer.Areas.Admin.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
+        private readonly IExternalArticleService _externalArticleService;
+        private readonly ILogger<AdminController> _logger;
 
-        public AdminController(INhaTuyenDungRepository nhaTuyenDungRepository, IUngVienRepository ungVienRepository, ITinTuyenDungRepository tinTuyenDungRepository, ITinUngTuyenRepository tinUngTuyenRepository, ILoaiCongViecRepository loaiCongViecRepository, INganhNgheRepository nganhNgheRepository, IChuyenNganhRepository chuyenNganhRepository, ITruongDaiHocRepository truongDaiHocRepository, IBlogRepository blogRepository, ITheLoaiBlogRepository theLoaiBlogRepository, UserManager<ApplicationUser> userManager, ApplicationDbContext context, IMapper mapper)
+        public AdminController(INhaTuyenDungRepository nhaTuyenDungRepository, IUngVienRepository ungVienRepository, ITinTuyenDungRepository tinTuyenDungRepository, ITinUngTuyenRepository tinUngTuyenRepository, ILoaiCongViecRepository loaiCongViecRepository, INganhNgheRepository nganhNgheRepository, IChuyenNganhRepository chuyenNganhRepository, ITruongDaiHocRepository truongDaiHocRepository, IBlogRepository blogRepository, ITheLoaiBlogRepository theLoaiBlogRepository, UserManager<ApplicationUser> userManager, ApplicationDbContext context, IMapper mapper, IExternalArticleService externalArticleService, ILogger<AdminController> logger)
         {
             _nhaTuyenDungRepository = nhaTuyenDungRepository;
             _ungVienRepository = ungVienRepository;
@@ -44,6 +47,8 @@ namespace Unicareer.Areas.Admin.Controllers
             _userManager = userManager;
             _context = context;
             _mapper = mapper;
+            _externalArticleService = externalArticleService;
+            _logger = logger;
         }
 
         public IActionResult Index()
@@ -509,6 +514,80 @@ namespace Unicareer.Areas.Admin.Controllers
 
             // Trả về đường dẫn URL
             return $"/uploads/{folder}/{fileName}";
+        }
+
+        private async Task<string?> DownloadImageFromUrlAsync(string imageUrl, string articleId)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(imageUrl))
+                    return null;
+
+                if (!Uri.TryCreate(imageUrl, UriKind.Absolute, out var uri))
+                {
+                    _logger.LogWarning("Invalid image URL: {ImageUrl}", imageUrl);
+                    return null;
+                }
+
+                using var httpClient = new HttpClient();
+                httpClient.Timeout = TimeSpan.FromSeconds(30);
+                httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
+
+                var response = await httpClient.GetAsync(imageUrl);
+                
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("Failed to download image from {ImageUrl}: {StatusCode}", imageUrl, response.StatusCode);
+                    return null;
+                }
+
+                var contentType = response.Content.Headers.ContentType?.MediaType;
+                var allowedTypes = new[] { "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp" };
+                
+                if (contentType == null || !allowedTypes.Contains(contentType.ToLower()))
+                {
+                    _logger.LogWarning("Invalid content type for image: {ContentType}", contentType);
+                    return null;
+                }
+
+                var extension = contentType.ToLower() switch
+                {
+                    "image/jpeg" => ".jpg",
+                    "image/jpg" => ".jpg",
+                    "image/png" => ".png",
+                    "image/gif" => ".gif",
+                    "image/webp" => ".webp",
+                    _ => ".jpg"
+                };
+
+                var bytes = await response.Content.ReadAsByteArrayAsync();
+                
+                if (bytes.Length > 10 * 1024 * 1024)
+                {
+                    _logger.LogWarning("Image too large: {Size} bytes", bytes.Length);
+                    return null;
+                }
+
+                var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "blogs");
+                if (!Directory.Exists(uploadsPath))
+                {
+                    Directory.CreateDirectory(uploadsPath);
+                }
+
+                var safeArticleId = articleId.Replace("/", "_").Replace("\\", "_").Replace(":", "_");
+                var fileName = $"api_{safeArticleId}_{DateTime.Now:yyyyMMddHHmmss}{extension}";
+                var filePath = Path.Combine(uploadsPath, fileName);
+
+                await System.IO.File.WriteAllBytesAsync(filePath, bytes);
+
+                _logger.LogInformation("Successfully downloaded image from {ImageUrl} to {FilePath}", imageUrl, fileName);
+                return $"/uploads/blogs/{fileName}";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error downloading image from {ImageUrl}", imageUrl);
+                return null;
+            }
         }
 
         // POST: Upload avatar
@@ -2102,35 +2181,65 @@ namespace Unicareer.Areas.Admin.Controllers
         // ========== BLOG MANAGEMENT ==========
         public IActionResult Blog(string? search = null, int pageNumber = 1, int pageSize = 20)
         {
-            var danhSachBlog = _blogRepository.LayDanhSachBlog();
-            
-            // Tìm kiếm
-            if (!string.IsNullOrEmpty(search))
+            try
             {
-                var searchLower = search.ToLower();
-                danhSachBlog = danhSachBlog.Where(b =>
-                    (b.TieuDe != null && b.TieuDe.ToLower().Contains(searchLower)) ||
-                    (b.MoTaNgan != null && b.MoTaNgan.ToLower().Contains(searchLower)) ||
-                    (b.TheLoai != null && b.TheLoai.ToLower().Contains(searchLower)) ||
-                    (b.TacGia != null && b.TacGia.ToLower().Contains(searchLower))
-                ).ToList();
+                var danhSachBlog = _blogRepository.LayDanhSachBlog();
+                var danhSachBaiVietChoDuyet = _blogRepository.LayDanhSachBlogChoDuyet();
+                
+                _logger.LogInformation($"Fetched {danhSachBlog?.Count ?? 0} blogs from repository");
+                
+                if (danhSachBlog == null || !danhSachBlog.Any())
+                {
+                    _logger.LogWarning("No blogs found in database");
+                    ViewBag.Search = search;
+                    ViewBag.PageNumber = pageNumber;
+                    ViewBag.PageSize = pageSize;
+                    ViewBag.TotalPages = 0;
+                    ViewBag.TotalItems = 0;
+                    ViewBag.DanhSachBaiVietChoDuyet = new List<Blog>();
+                    return View(new List<Blog>());
+                }
+                
+                if (!string.IsNullOrEmpty(search))
+                {
+                    var searchLower = search.ToLower();
+                    danhSachBlog = danhSachBlog.Where(b =>
+                        (b.TieuDe != null && b.TieuDe.ToLower().Contains(searchLower)) ||
+                        (b.MoTaNgan != null && b.MoTaNgan.ToLower().Contains(searchLower)) ||
+                        (b.TheLoai != null && b.TheLoai.ToLower().Contains(searchLower)) ||
+                        (b.TacGia != null && b.TacGia.ToLower().Contains(searchLower)) ||
+                        (b.NguonBaiViet != null && b.NguonBaiViet.ToLower().Contains(searchLower))
+                    ).ToList();
+                }
+                
+                var totalItems = danhSachBlog.Count;
+                var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+                var pagedBlogs = danhSachBlog
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+                
+                ViewBag.Search = search;
+                ViewBag.PageNumber = pageNumber;
+                ViewBag.PageSize = pageSize;
+                ViewBag.TotalPages = totalPages;
+                ViewBag.TotalItems = totalItems;
+                ViewBag.DanhSachBaiVietChoDuyet = danhSachBaiVietChoDuyet ?? new List<Blog>();
+                
+                return View(pagedBlogs);
             }
-            
-            // Phân trang
-            var totalItems = danhSachBlog.Count;
-            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
-            var pagedBlogs = danhSachBlog
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-            
-            ViewBag.Search = search;
-            ViewBag.PageNumber = pageNumber;
-            ViewBag.PageSize = pageSize;
-            ViewBag.TotalPages = totalPages;
-            ViewBag.TotalItems = totalItems;
-            
-            return View(pagedBlogs);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching blogs: {Message}", ex.Message);
+                TempData["Loi"] = $"Lỗi khi tải danh sách blog: {ex.Message}. Vui lòng kiểm tra log để biết chi tiết.";
+                ViewBag.Search = search;
+                ViewBag.PageNumber = pageNumber;
+                ViewBag.PageSize = pageSize;
+                ViewBag.TotalPages = 0;
+                ViewBag.TotalItems = 0;
+                ViewBag.DanhSachBaiVietChoDuyet = new List<Blog>();
+                return View(new List<Blog>());
+            }
         }
 
         [HttpGet]
@@ -3150,6 +3259,278 @@ namespace Unicareer.Areas.Admin.Controllers
             else
             {
                 return Json(new { success = false, message = "Có lỗi xảy ra!" });
+            }
+        }
+
+        // ========== EXTERNAL ARTICLES MANAGEMENT ==========
+        public async Task<IActionResult> QuanLyBaiVietAPI(string? keyword = null)
+        {
+            var danhSachBaiVietChoDuyet = _blogRepository.LayDanhSachBlogChoDuyet();
+            ViewBag.DanhSachBaiVietChoDuyet = danhSachBaiVietChoDuyet;
+            ViewBag.Keyword = keyword;
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> TimKiemBaiVietAPI(string? keyword = null, int pageSize = 10)
+        {
+            try
+            {
+                _logger.LogInformation("=== TimKiemBaiVietAPI called with keyword: {Keyword}, pageSize: {PageSize}", keyword ?? "null", pageSize);
+                
+                if (_externalArticleService == null)
+                {
+                    _logger.LogError("ExternalArticleService is NULL!");
+                    return Json(new { success = false, message = "Service chưa được khởi tạo!" });
+                }
+                
+                var articles = await _externalArticleService.FetchArticlesAsync(keyword, pageSize);
+                
+                _logger.LogInformation("Fetched {Count} articles from external API", articles?.Count ?? 0);
+                
+                if (articles == null || articles.Count == 0)
+                {
+                    _logger.LogWarning("No articles returned from service");
+                    return Json(new { success = false, message = "Không tìm thấy bài viết nào", data = new List<object>() });
+                }
+                
+                return Json(new { success = true, data = articles, count = articles.Count });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "ERROR in TimKiemBaiVietAPI");
+                return Json(new { success = false, message = $"Lỗi khi tìm kiếm bài viết: {ex.Message}", details = ex.ToString() });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ImportBaiVietAPI(string articleId, string title, string? description, string content, string? imageUrl, string? author, string? sourceUrl, string? sourceName, string? tags, DateTime? publishedAt)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(title))
+                {
+                    return Json(new { success = false, message = "Tiêu đề không được để trống!" });
+                }
+
+                if (string.IsNullOrWhiteSpace(content))
+                {
+                    return Json(new { success = false, message = "Nội dung không được để trống!" });
+                }
+
+                var existingBlog = _blogRepository.LayBlogTheoApiArticleId(articleId);
+                if (existingBlog != null)
+                {
+                    return Json(new { success = false, message = "Bài viết này đã được import trước đó!" });
+                }
+
+                var currentUser = await _userManager.GetUserAsync(User);
+                if (currentUser == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy người dùng!" });
+                }
+
+                string? localImagePath = null;
+                if (!string.IsNullOrWhiteSpace(imageUrl))
+                {
+                    localImagePath = await DownloadImageFromUrlAsync(imageUrl, articleId);
+                }
+
+                string nguonBaiViet;
+                if (!string.IsNullOrWhiteSpace(sourceName))
+                {
+                    nguonBaiViet = sourceName;
+                    if (!string.IsNullOrWhiteSpace(sourceUrl) && sourceUrl != sourceName)
+                    {
+                        nguonBaiViet += $" ({sourceUrl})";
+                    }
+                }
+                else if (!string.IsNullOrWhiteSpace(sourceUrl))
+                {
+                    nguonBaiViet = sourceUrl;
+                }
+                else
+                {
+                    nguonBaiViet = "External API";
+                }
+
+                var blog = new Blog
+                {
+                    TieuDe = title.Trim(),
+                    MoTaNgan = string.IsNullOrWhiteSpace(description) ? title.Substring(0, Math.Min(150, title.Length)) : description.Trim(),
+                    NoiDung = content.Trim(),
+                    HinhAnh = localImagePath ?? imageUrl,
+                    TacGia = string.IsNullOrWhiteSpace(author) ? (sourceName ?? "External Author") : author.Trim(),
+                    NguonBaiViet = nguonBaiViet,
+                    ApiArticleId = articleId,
+                    Tags = tags,
+                    DaDang = false,
+                    HienThi = false,
+                    UserId = currentUser.Id,
+                    NgayDang = publishedAt ?? DateTime.Now,
+                    IsPermalinkAuto = true
+                };
+
+                blog.Permalink = GeneratePermalinkFromTitle(blog.TieuDe ?? string.Empty, null);
+
+                _logger.LogInformation("=== Importing Blog from API ===");
+                _logger.LogInformation("Title: {Title}", blog.TieuDe);
+                _logger.LogInformation("Author: {Author}", blog.TacGia);
+                _logger.LogInformation("Source: {Source}", blog.NguonBaiViet);
+                _logger.LogInformation("ArticleId: {ArticleId}", blog.ApiArticleId);
+                _logger.LogInformation("Image: {Image}", blog.HinhAnh);
+
+                var result = _blogRepository.ThemBlog(blog);
+                if (result != null)
+                {
+                    if (result.Permalink == "blog-post" || _blogRepository.LayBlogTheoPermalink(result.Permalink) != null)
+                    {
+                        result.Permalink = GeneratePermalinkFromTitle(result.TieuDe, result.MaBlog);
+                        _blogRepository.CapNhatBlog(result);
+                    }
+
+                    _logger.LogInformation("✅ Successfully imported blog #{MaBlog} - {Title} | Author: {Author} | Source: {Source}", 
+                        result.MaBlog, result.TieuDe, result.TacGia, result.NguonBaiViet);
+                    return Json(new { success = true, message = "Đã import bài viết thành công! Vui lòng duyệt bài viết.", maBlog = result.MaBlog });
+                }
+                else
+                {
+                    _logger.LogError("Failed to import blog from API - repository returned null");
+                    return Json(new { success = false, message = "Có lỗi xảy ra khi import bài viết!" });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error importing blog from API: {Message}", ex.Message);
+                return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> KiemTraBlogDatabase()
+        {
+            try
+            {
+                var allBlogs = _context.Blogs.ToList();
+                var blogsWithInvalidUser = new List<object>();
+                var blogsWithoutTitle = new List<object>();
+                var blogsWithoutContent = new List<object>();
+
+                foreach (var blog in allBlogs)
+                {
+                    if (!string.IsNullOrEmpty(blog.UserId))
+                    {
+                        var user = await _userManager.FindByIdAsync(blog.UserId);
+                        if (user == null)
+                        {
+                            blogsWithInvalidUser.Add(new { 
+                                MaBlog = blog.MaBlog, 
+                                TieuDe = blog.TieuDe, 
+                                UserId = blog.UserId,
+                                NguonBaiViet = blog.NguonBaiViet
+                            });
+                        }
+                    }
+
+                    if (string.IsNullOrEmpty(blog.TieuDe))
+                    {
+                        blogsWithoutTitle.Add(new { 
+                            MaBlog = blog.MaBlog, 
+                            UserId = blog.UserId,
+                            NguonBaiViet = blog.NguonBaiViet
+                        });
+                    }
+
+                    if (string.IsNullOrEmpty(blog.NoiDung))
+                    {
+                        blogsWithoutContent.Add(new { 
+                            MaBlog = blog.MaBlog, 
+                            TieuDe = blog.TieuDe,
+                            NguonBaiViet = blog.NguonBaiViet
+                        });
+                    }
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    totalBlogs = allBlogs.Count,
+                    blogsWithInvalidUser = blogsWithInvalidUser,
+                    blogsWithoutTitle = blogsWithoutTitle,
+                    blogsWithoutContent = blogsWithoutContent,
+                    message = "Kiểm tra hoàn tất!"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking blog database");
+                return Json(new { success = false, message = ex.Message, stackTrace = ex.StackTrace });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SuaBlogDatabase()
+        {
+            try
+            {
+                var currentUser = await _userManager.GetUserAsync(User);
+                if (currentUser == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy người dùng hiện tại!" });
+                }
+
+                var allBlogs = _context.Blogs.ToList();
+                int fixedCount = 0;
+
+                foreach (var blog in allBlogs)
+                {
+                    bool needsUpdate = false;
+
+                    if (!string.IsNullOrEmpty(blog.UserId))
+                    {
+                        var user = await _userManager.FindByIdAsync(blog.UserId);
+                        if (user == null)
+                        {
+                            blog.UserId = null;
+                            needsUpdate = true;
+                        }
+                    }
+
+                    if (string.IsNullOrEmpty(blog.TieuDe))
+                    {
+                        blog.TieuDe = $"Blog #{blog.MaBlog}";
+                        needsUpdate = true;
+                    }
+
+                    if (string.IsNullOrEmpty(blog.NoiDung))
+                    {
+                        blog.NoiDung = blog.MoTaNgan ?? "Nội dung đang được cập nhật...";
+                        needsUpdate = true;
+                    }
+
+                    if (needsUpdate)
+                    {
+                        fixedCount++;
+                    }
+                }
+
+                if (fixedCount > 0)
+                {
+                    await _context.SaveChangesAsync();
+                }
+
+                return Json(new { 
+                    success = true, 
+                    message = $"Đã sửa {fixedCount} bài viết có vấn đề!" 
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fixing blog database");
+                return Json(new { success = false, message = ex.Message });
             }
         }
 

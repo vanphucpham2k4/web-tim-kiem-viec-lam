@@ -21,6 +21,8 @@ namespace Unicareer.Models
         public bool HienThi { get; set; } = false; // Hiển thị trên trang chủ (chỉ áp dụng khi DaDang = true)
         public string? UserId { get; set; } // Người tạo (admin)
         public ApplicationUser? User { get; set; } // Navigation property
+        public string? NguonBaiViet { get; set; } // Nguồn bài viết (API URL nếu lấy từ API)
+        public string? ApiArticleId { get; set; } // ID bài viết từ API để tránh trùng lặp
     }
 }
 

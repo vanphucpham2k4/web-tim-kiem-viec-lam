@@ -12,6 +12,8 @@ namespace Unicareer.Repository
         Blog? CapNhatBlog(Blog blog);
         bool XoaBlog(int id);
         bool TangLuotXem(int id);
+        Blog? LayBlogTheoApiArticleId(string apiArticleId);
+        List<Blog> LayDanhSachBlogChoDuyet();
     }
 }
 

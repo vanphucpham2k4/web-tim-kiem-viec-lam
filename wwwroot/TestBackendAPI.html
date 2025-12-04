@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Backend API - Unicareer</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1400px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2545B8;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .control-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px 10px 0;
+        }
+        button:hover {
+            background: #059669;
+        }
+        button:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .success {
+            border-left: 4px solid #10b981;
+            background: #d1fae5;
+        }
+        .error {
+            border-left: 4px solid #ef4444;
+            background: #fee2e2;
+        }
+        .warning {
+            border-left: 4px solid #f59e0b;
+            background: #fef3c7;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 12px;
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        .article-card {
+            border: 1px solid #e2e8f0;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            background: white;
+        }
+        .article-image {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        .article-title {
+            font-weight: bold;
+            color: #2545B8;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        .article-meta {
+            font-size: 13px;
+            color: #718096;
+            margin: 5px 0;
+        }
+        .tag {
+            display: inline-block;
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            margin: 2px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        .status-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Test Backend API Endpoint</h1>
+        <p>Tool này giúp bạn debug API endpoint <code>/Admin/Admin/TimKiemBaiVietAPI</code></p>
+
+        <div class="test-section">
+            <h3>⚙️ Cấu hình Request</h3>
+            
+            <div class="control-group">
+                <label for="keyword">Keyword:</label>
+                <input type="text" id="keyword" placeholder="career, programming, javascript..." value="career">
+            </div>
+
+            <div class="control-group">
+                <label for="pageSize">Page Size:</label>
+                <input type="number" id="pageSize" value="12" min="1" max="50">
+            </div>
+
+            <button onclick="testBackendAPI()" id="testBtn">
+                🚀 Test Backend API
+            </button>
+            
+            <button onclick="testDirectAPI()" style="background: #2545B8;">
+                🌐 Test Direct Dev.to API (so sánh)
+            </button>
+
+            <div id="status" style="margin-top: 15px; font-weight: 600;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Kết Quả Backend API</h3>
+            <div id="backendResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🌐 Kết Quả Direct API (để so sánh)</h3>
+            <div id="directResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🐛 Debug Info</h3>
+            <div id="debugInfo"></div>
+            <button onclick="showCookies()" style="background: #8b5cf6;">
+                🍪 Show Cookies
+            </button>
+            <button onclick="checkAuth()" style="background: #f59e0b;">
+                🔐 Check Authentication
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            const colors = {
+                'info': '#2545B8',
+                'success': '#10b981',
+                'error': '#ef4444',
+                'warning': '#f59e0b'
+            };
+            statusDiv.style.color = colors[type] || colors.info;
+            statusDiv.textContent = message;
+        }
+
+        async function testBackendAPI() {
+            const keyword = document.getElementById('keyword').value || 'career';
+            const pageSize = parseInt(document.getElementById('pageSize').value) || 12;
+            const resultDiv = document.getElementById('backendResult');
+            const testBtn = document.getElementById('testBtn');
+            
+            testBtn.disabled = true;
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result warning';
+            resultDiv.innerHTML = '⏳ Đang gọi Backend API...';
+            updateStatus('Đang gọi API...', 'info');
+
+            try {
+                // Step 1: Get anti-forgery token
+                updateStatus('Step 1/3: Lấy Anti-Forgery Token...', 'info');
+                const tokenResponse = await fetch('/Admin/Admin/Blog');
+                const tokenHtml = await tokenResponse.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(tokenHtml, 'text/html');
+                const tokenInput = doc.querySelector('input[name="__RequestVerificationToken"]');
+                const token = tokenInput ? tokenInput.value : '';
+                
+                if (!token) {
+                    throw new Error('Không lấy được Anti-Forgery Token. Có thể bạn chưa đăng nhập Admin.');
+                }
+
+                updateStatus('Step 2/3: Gửi request đến Backend API...', 'info');
+                
+                // Step 2: Call backend API
+                const formData = new URLSearchParams({
+                    keyword: keyword,
+                    pageSize: pageSize.toString(),
+                    __RequestVerificationToken: token
+                });
+
+                const startTime = Date.now();
+                const response = await fetch('/Admin/Admin/TimKiemBaiVietAPI', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': token
+                    },
+                    body: formData
+                });
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+
+                updateStatus('Step 3/3: Xử lý response...', 'info');
+
+                const responseText = await response.text();
+                let result;
+                
+                try {
+                    result = JSON.parse(responseText);
+                } catch (e) {
+                    throw new Error(`Response không phải JSON: ${responseText.substring(0, 500)}`);
+                }
+
+                // Display results
+                if (result.success && result.data && result.data.length > 0) {
+                    resultDiv.className = 'result success';
+                    let html = `
+                        <h4>✅ Backend API thành công!</h4>
+                        <p><strong>Số bài viết:</strong> ${result.data.length} (request time: ${duration}ms)</p>
+                        <p><strong>Status Code:</strong> ${response.status}</p>
+                        <h5 style="margin-top: 20px;">Danh sách bài viết:</h5>
+                    `;
+                    
+                    result.data.forEach((article, index) => {
+                        html += `
+                            <div class="article-card">
+                                <div style="display: flex; justify-content: space-between; align-items: start;">
+                                    <div class="article-title">#${index + 1}: ${article.title}</div>
+                                    <span class="tag">${article.sourceName}</span>
+                                </div>
+                                ${article.imageUrl ? `<img src="${article.imageUrl}" class="article-image" onerror="this.style.display='none'">` : ''}
+                                <div class="article-meta">👤 ${article.author || 'Unknown'}</div>
+                                <div class="article-meta">📅 ${article.publishedAt ? new Date(article.publishedAt).toLocaleDateString('vi-VN') : 'N/A'}</div>
+                                <div class="article-meta">🔗 <a href="${article.sourceUrl}" target="_blank">${article.sourceUrl}</a></div>
+                                ${article.tags && article.tags.length > 0 ? `
+                                    <div style="margin-top: 10px;">
+                                        ${article.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    });
+                    
+                    html += `
+                        <details style="margin-top: 20px;">
+                            <summary style="cursor: pointer; font-weight: 600;">📝 Raw JSON Response</summary>
+                            <pre>${JSON.stringify(result, null, 2)}</pre>
+                        </details>
+                    `;
+                    
+                    resultDiv.innerHTML = html;
+                    updateStatus(`✅ Thành công! Lấy được ${result.data.length} bài viết`, 'success');
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <h4>❌ Backend API không trả về bài viết</h4>
+                        <p><strong>Status Code:</strong> ${response.status}</p>
+                        <p><strong>Success:</strong> ${result.success}</p>
+                        <p><strong>Message:</strong> ${result.message || 'Không có message'}</p>
+                        <p><strong>Request Time:</strong> ${duration}ms</p>
+                        <details>
+                            <summary>Raw Response</summary>
+                            <pre>${JSON.stringify(result, null, 2)}</pre>
+                        </details>
+                        <div style="margin-top: 15px; padding: 15px; background: #fef3c7; border-radius: 6px;">
+                            <strong>💡 Gợi ý debug:</strong>
+                            <ul>
+                                <li>Check console logs của server (dotnet run terminal)</li>
+                                <li>Kiểm tra appsettings.json có cấu hình ExternalAPIs không</li>
+                                <li>Test Direct API bên dưới để so sánh</li>
+                            </ul>
+                        </div>
+                    `;
+                    updateStatus('❌ Không có bài viết', 'error');
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <h4>❌ Lỗi khi gọi Backend API!</h4>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p><strong>Khuyến nghị:</strong></p>
+                    <ul>
+                        <li>Đăng nhập với tài khoản Admin: <a href="/Account/Login">/Account/Login</a></li>
+                        <li>Check console logs của server</li>
+                        <li>Kiểm tra endpoint <code>/Admin/Admin/TimKiemBaiVietAPI</code> có tồn tại không</li>
+                    </ul>
+                    <pre>${error.stack || error.toString()}</pre>
+                `;
+                updateStatus(`❌ Lỗi: ${error.message}`, 'error');
+            } finally {
+                testBtn.disabled = false;
+            }
+        }
+
+        async function testDirectAPI() {
+            const keyword = document.getElementById('keyword').value || 'career';
+            const pageSize = parseInt(document.getElementById('pageSize').value) || 12;
+            const resultDiv = document.getElementById('directResult');
+            
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result warning';
+            resultDiv.innerHTML = '⏳ Đang gọi Direct Dev.to API...';
+
+            try {
+                const tag = keyword.toLowerCase().replace(/\s+/g, '');
+                const url = `https://dev.to/api/articles?tag=${tag}&per_page=${Math.min(pageSize, 30)}`;
+                
+                const startTime = Date.now();
+                const response = await fetch(url);
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.length > 0) {
+                        resultDiv.className = 'result success';
+                        let html = `
+                            <h4>✅ Direct API thành công!</h4>
+                            <p><strong>Số bài viết:</strong> ${data.length} (request time: ${duration}ms)</p>
+                            <p><strong>URL:</strong> ${url}</p>
+                            <h5 style="margin-top: 20px;">Sample (5 bài đầu):</h5>
+                        `;
+                        
+                        data.slice(0, 5).forEach((article, index) => {
+                            html += `
+                                <div class="article-card">
+                                    <div class="article-title">#${index + 1}: ${article.title}</div>
+                                    ${article.cover_image ? `<img src="${article.cover_image}" class="article-image">` : ''}
+                                    <div class="article-meta">👤 ${article.user.name}</div>
+                                    <div class="article-meta">📅 ${new Date(article.published_at).toLocaleDateString('vi-VN')}</div>
+                                    <div class="article-meta">🏷️ ${article.tag_list.join(', ')}</div>
+                                </div>
+                            `;
+                        });
+                        
+                        html += `
+                            <details>
+                                <summary>Full JSON</summary>
+                                <pre>${JSON.stringify(data, null, 2)}</pre>
+                            </details>
+                        `;
+                        
+                        resultDiv.innerHTML = html;
+                    } else {
+                        resultDiv.className = 'result error';
+                        resultDiv.innerHTML = '<h4>⚠️ Dev.to không trả về bài viết nào với tag này</h4>';
+                    }
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <h4>❌ Lỗi!</h4>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+
+        function showCookies() {
+            const debugDiv = document.getElementById('debugInfo');
+            debugDiv.innerHTML = `
+                <h4>🍪 Cookies:</h4>
+                <pre>${document.cookie || 'Không có cookies'}</pre>
+                <h4>🌐 Location:</h4>
+                <pre>${JSON.stringify({
+                    origin: window.location.origin,
+                    pathname: window.location.pathname,
+                    href: window.location.href
+                }, null, 2)}</pre>
+            `;
+        }
+
+        async function checkAuth() {
+            const debugDiv = document.getElementById('debugInfo');
+            debugDiv.innerHTML = '<p>⏳ Đang kiểm tra authentication...</p>';
+            
+            try {
+                const response = await fetch('/Admin/Admin/Blog');
+                const isAuthenticated = response.ok && !response.url.includes('/Account/Login');
+                
+                debugDiv.innerHTML = `
+                    <h4>🔐 Authentication Status:</h4>
+                    <p>Status: <span class="status-badge ${isAuthenticated ? 'status-success' : 'status-error'}">
+                        ${isAuthenticated ? '✅ Authenticated' : '❌ Not Authenticated'}
+                    </span></p>
+                    <p><strong>Response URL:</strong> ${response.url}</p>
+                    <p><strong>Status Code:</strong> ${response.status}</p>
+                    ${!isAuthenticated ? '<p style="color: #ef4444;">👉 Bạn cần <a href="/Account/Login">đăng nhập Admin</a> trước</p>' : ''}
+                `;
+            } catch (error) {
+                debugDiv.innerHTML = `<p style="color: #ef4444;">❌ Lỗi: ${error.message}</p>`;
+            }
+        }
+
+        // Auto check auth on page load
+        window.addEventListener('load', () => {
+            console.log('🔧 Test Backend API Tool loaded');
+            checkAuth();
+        });
+    </script>
+</body>
+</html>
+
