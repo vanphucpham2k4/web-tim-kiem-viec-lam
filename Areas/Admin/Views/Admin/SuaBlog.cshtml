@@ -510,7 +510,12 @@
                 <input type="hidden" asp-for="LuotXem" />
                 <input type="hidden" asp-for="TieuDe" id="hiddenTieuDe" />
                 <input type="hidden" asp-for="TacGia" value="@Model.TacGia" />
-                <input type="hidden" asp-for="NoiDung" id="NoiDung" value="@Html.Raw(Model.NoiDung)" />
+                @* Store content in a safer way - using data attribute with JSON encoding *@
+                <input type="hidden" asp-for="NoiDung" id="NoiDung" data-content="@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.NoiDung ?? ""))" />
+                <script type="text/javascript">
+                    // Store full content in a JavaScript variable to avoid HTML attribute limitations
+                    window.blogContent = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.NoiDung ?? ""));
+                </script>
                 <input type="hidden" asp-for="MoTaNgan" id="MoTaNganHidden" value="@Model.MoTaNgan" />
                 <input type="hidden" asp-for="HinhAnh" id="hiddenHinhAnh" value="@Model.HinhAnh" />
                 <input type="hidden" asp-for="IsPermalinkAuto" name="IsPermalinkAuto" id="hiddenIsPermalinkAuto" value="@(Model.IsPermalinkAuto ? "true" : "false")" />
@@ -708,11 +713,71 @@
         });
 
         // Load existing content (SAU khi khởi tạo Quill và gắn event listener)
-        const existingContent = document.getElementById('NoiDung').value;
-        if (existingContent) {
-            // Convert HTML to Delta và set với source 'silent' để KHÔNG trigger text-change event
-            const delta = quill.clipboard.convert(existingContent);
-            quill.setContents(delta, 'silent');
+        // Lấy content từ JavaScript variable (tránh vấn đề HTML attribute limit)
+        let existingContent = window.blogContent || '';
+        
+        // Fallback: lấy từ hidden input nếu không có trong window.blogContent
+        if (!existingContent) {
+            const hiddenInput = document.getElementById('NoiDung');
+            if (hiddenInput) {
+                // Thử lấy từ data attribute (JSON encoded)
+                const dataContent = hiddenInput.getAttribute('data-content');
+                if (dataContent) {
+                    try {
+                        existingContent = JSON.parse(dataContent);
+                    } catch (e) {
+                        console.warn('Failed to parse data-content, using value attribute');
+                        existingContent = hiddenInput.value || '';
+                    }
+                } else {
+                    existingContent = hiddenInput.value || '';
+                }
+            }
+        }
+        
+        console.log('=== Loading content into Quill Editor ===');
+        console.log('Content length:', existingContent ? existingContent.length : 0);
+        console.log('Content preview (first 500 chars):', existingContent ? existingContent.substring(0, 500) : 'EMPTY');
+        console.log('Content preview (last 200 chars):', existingContent && existingContent.length > 200 ? '...' + existingContent.substring(existingContent.length - 200) : existingContent);
+        
+        if (existingContent && existingContent.trim()) {
+            try {
+                // Convert HTML to Delta và set với source 'silent' để KHÔNG trigger text-change event
+                // Quill có thể parse HTML trực tiếp
+                const delta = quill.clipboard.convert(existingContent);
+                quill.setContents(delta, 'silent');
+                
+                // Verify content was loaded
+                const loadedContent = quill.root.innerHTML;
+                console.log('✅ Content loaded into Quill');
+                console.log('Loaded content length:', loadedContent.length);
+                console.log('Loaded content preview (first 500 chars):', loadedContent.substring(0, Math.min(500, loadedContent.length)));
+                
+                // Nếu content bị mất quá nhiều (> 50%), thử cách khác
+                if (loadedContent.length < existingContent.length * 0.5) {
+                    console.warn('⚠️ Content có vẻ bị mất một phần, thử load trực tiếp HTML');
+                    // Thử set HTML trực tiếp
+                    quill.root.innerHTML = existingContent;
+                    const reloadedContent = quill.root.innerHTML;
+                    console.log('After direct HTML set, length:', reloadedContent.length);
+                }
+            } catch (error) {
+                console.error('❌ Error loading content into Quill:', error);
+                // Fallback: set HTML trực tiếp
+                try {
+                    quill.root.innerHTML = existingContent;
+                    console.log('✅ Fallback: Set HTML directly');
+                } catch (fallbackError) {
+                    console.error('❌ Fallback also failed:', fallbackError);
+                }
+            }
+        } else {
+            console.warn('⚠️ No existing content to load');
+        }
+        
+        // Cập nhật hidden input với content đầy đủ
+        if (existingContent && document.getElementById('NoiDung')) {
+            document.getElementById('NoiDung').value = existingContent;
         }
 
         // Load existing title và permalink

@@ -6,6 +6,7 @@ namespace Unicareer.Services
     {
         Task<List<ExternalArticle>> FetchArticlesAsync(string? keyword = null, int pageSize = 10);
         Task<ExternalArticle?> FetchArticleByIdAsync(string articleId);
+        Task<string?> FetchFullContentAsync(string articleId, string sourceName, string? sourceUrl);
     }
 
     public class ExternalArticle

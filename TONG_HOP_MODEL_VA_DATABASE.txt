@@ -1,0 +1,1392 @@
+================================================================================
+TỔNG HỢP CHI TIẾT CÁC MODEL VÀ CƠ SỞ DỮ LIỆU
+HỆ THỐNG UNICAREER - CLASS DIAGRAM & DATABASE DIAGRAM
+================================================================================
+
+NGÀY TẠO: $(Get-Date -Format "dd/MM/yyyy HH:mm:ss")
+
+================================================================================
+PHẦN 1: DANH SÁCH TẤT CẢ CÁC ENTITY/MODEL
+================================================================================
+
+1. ApplicationUser (Kế thừa từ IdentityUser)
+2. AdministrativeRegion
+3. AdministrativeUnit
+4. Province
+5. Ward
+6. UngVien
+7. NhaTuyenDung
+8. TinTuyenDung
+9. TinUngTuyen
+10. ViecLamDaLuu
+11. LoaiCongViec
+12. NganhNghe
+13. ChuyenNganh
+14. TruongDaiHoc
+15. Blog
+16. TheLoaiBlog
+
+TỔNG CỘNG: 16 ENTITY CHÍNH
+
+================================================================================
+PHẦN 2: CHI TIẾT TỪNG ENTITY VÀ THUỘC TÍNH
+================================================================================
+
+═══════════════════════════════════════════════════════════════════════════════
+1. APPLICATIONUSER
+═══════════════════════════════════════════════════════════════════════════════
+Bảng: AspNetUsers (Identity Framework)
+Kế thừa: IdentityUser
+
+THUỘC TÍNH:
+┌─────────────────────┬──────────────────┬──────────┬─────────────────────────┐
+│ Tên Thuộc Tính      │ Kiểu Dữ Liệu     │ Nullable │ Mô Tả                    │
+├─────────────────────┼──────────────────┼──────────┼─────────────────────────┤
+│ Id                  │ string           │ NO (PK)  │ Primary Key (từ Identity)│
+│ UserName            │ string           │ NO       │ Tên đăng nhập (từ Identity)│
+│ NormalizedUserName  │ string           │          │ (từ Identity)            │
+│ Email               │ string           │          │ Email (từ Identity)      │
+│ NormalizedEmail     │ string           │          │ (từ Identity)            │
+│ EmailConfirmed      │ bool             │          │ (từ Identity)            │
+│ PasswordHash        │ string           │          │ (từ Identity)            │
+│ SecurityStamp       │ string           │          │ (từ Identity)            │
+│ ConcurrencyStamp    │ string           │          │ (từ Identity)            │
+│ PhoneNumber         │ string           │          │ (từ Identity)            │
+│ PhoneNumberConfirmed│ bool             │          │ (từ Identity)            │
+│ TwoFactorEnabled    │ bool             │          │ (từ Identity)            │
+│ LockoutEnd          │ DateTimeOffset?  │          │ (từ Identity)            │
+│ LockoutEnabled      │ bool             │          │ (từ Identity)            │
+│ AccessFailedCount   │ int              │          │ (từ Identity)            │
+│ HoTen               │ string           │ YES      │ Họ tên người dùng        │
+│ LoaiTaiKhoan        │ string           │ YES      │ "UngVien" hoặc "NhaTuyenDung"│
+│ Avatar              │ string           │ YES      │ Đường dẫn file avatar    │
+│ NgayDangKy          │ DateTime         │ NO       │ Ngày đăng ký tài khoản   │
+└─────────────────────┴──────────────────┴──────────┴─────────────────────────┘
+
+PRIMARY KEY: Id (string)
+INDEXES: (Từ Identity Framework - tự động tạo)
+
+MỐI QUAN HỆ:
+- 1 ApplicationUser -> 0..1 UngVien (1:1, FK: UngVien.UserId, CASCADE DELETE)
+- 1 ApplicationUser -> 0..1 NhaTuyenDung (1:1, FK: NhaTuyenDung.UserId, CASCADE DELETE)
+- 1 ApplicationUser -> 0..N TinUngTuyen (1:N, FK: TinUngTuyen.UserId, SET NULL)
+- 1 ApplicationUser -> 0..N ViecLamDaLuu (1:N, FK: ViecLamDaLuu.UserId, CASCADE DELETE)
+- 1 ApplicationUser -> 0..N Blog (1:N, FK: Blog.UserId, SET NULL)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+2. ADMINISTRATIVE_REGION
+═══════════════════════════════════════════════════════════════════════════════
+Bảng: administrative_regions
+
+THUỘC TÍNH:
+┌─────────────────────┬──────────────────┬──────────┬─────────────────────────┐
+│ Tên Thuộc Tính      │ Kiểu Dữ Liệu     │ Nullable │ Mô Tả                    │
+├─────────────────────┼──────────────────┼──────────┼─────────────────────────┤
+│ Id                  │ int              │ NO (PK)  │ Primary Key             │
+│ Name                │ string(255)      │ NO       │ Tên vùng hành chính     │
+│ NameEn              │ string(255)      │ NO       │ Tên tiếng Anh           │
+│ CodeName            │ string(255)      │ YES      │ Mã tên                  │
+│ CodeNameEn          │ string(255)      │ YES      │ Mã tên tiếng Anh         │
+└─────────────────────┴──────────────────┴──────────┴─────────────────────────┘
+
+PRIMARY KEY: Id (int, ValueGeneratedNever - không tự động tăng)
+INDEXES: Không có
+
+
+═══════════════════════════════════════════════════════════════════════════════
+3. ADMINISTRATIVE_UNIT
+═══════════════════════════════════════════════════════════════════════════════
+Bảng: administrative_units
+
+THUỘC TÍNH:
+┌─────────────────────┬──────────────────┬──────────┬─────────────────────────┐
+│ Tên Thuộc Tính      │ Kiểu Dữ Liệu     │ Nullable │ Mô Tả                    │
+├─────────────────────┼──────────────────┼──────────┼─────────────────────────┤
+│ Id                  │ int              │ NO (PK)  │ Primary Key             │
+│ FullName            │ string(255)      │ YES      │ Tên đầy đủ               │
+│ FullNameEn          │ string(255)      │ YES      │ Tên đầy đủ tiếng Anh     │
+│ ShortName           │ string(255)      │ YES      │ Tên viết tắt             │
+│ ShortNameEn         │ string(255)      │ YES      │ Tên viết tắt tiếng Anh   │
+│ CodeName            │ string(255)      │ YES      │ Mã tên                  │
+│ CodeNameEn          │ string(255)      │ YES      │ Mã tên tiếng Anh         │
+└─────────────────────┴──────────────────┴──────────┴─────────────────────────┘
+
+PRIMARY KEY: Id (int, ValueGeneratedNever - không tự động tăng)
+
+MỐI QUAN HỆ:
+- 1 AdministrativeUnit -> 0..N Province (1:N, FK: Province.AdministrativeUnitId, SET NULL)
+- 1 AdministrativeUnit -> 0..N Ward (1:N, FK: Ward.AdministrativeUnitId, SET NULL)
+
+INDEXES:
+- idx_provinces_unit (Province.AdministrativeUnitId)
+- idx_wards_unit (Ward.AdministrativeUnitId)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+4. PROVINCE
+═══════════════════════════════════════════════════════════════════════════════
+Bảng: provinces
+
+THUỘC TÍNH:
+┌─────────────────────┬──────────────────┬──────────┬─────────────────────────┐
+│ Tên Thuộc Tính      │ Kiểu Dữ Liệu     │ Nullable │ Mô Tả                    │
+├─────────────────────┼──────────────────┼──────────┼─────────────────────────┤
+│ Code                │ string(20)       │ NO (PK)  │ Primary Key - Mã tỉnh   │
+│ Name                │ string(255)      │ NO       │ Tên tỉnh                │
+│ NameEn              │ string(255)      │ YES      │ Tên tỉnh tiếng Anh       │
+│ FullName            │ string(255)      │ NO       │ Tên đầy đủ               │
+│ FullNameEn          │ string(255)      │ YES      │ Tên đầy đủ tiếng Anh     │
+│ CodeName            │ string(255)      │ YES      │ Mã tên                  │
+│ AdministrativeUnitId│ int              │ YES (FK) │ Foreign Key             │
+│ Image               │ string(500)      │ YES      │ Đường dẫn hình ảnh       │
+└─────────────────────┴──────────────────┴──────────┴─────────────────────────┘
+
+PRIMARY KEY: Code (string(20))
+
+FOREIGN KEYS:
+- AdministrativeUnitId -> AdministrativeUnit.Id (SET NULL on delete)
+
+MỐI QUAN HỆ:
+- 1 Province -> 0..1 AdministrativeUnit (N:1, FK: AdministrativeUnitId, SET NULL)
+- 1 Province -> 0..N Ward (1:N, FK: Ward.ProvinceCode, SET NULL)
+
+INDEXES:
+- idx_provinces_unit (AdministrativeUnitId)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+5. WARD
+═══════════════════════════════════════════════════════════════════════════════
+Bảng: wards
+
+THUỘC TÍNH:
+┌─────────────────────┬──────────────────┬──────────┬─────────────────────────┐
+│ Tên Thuộc Tính      │ Kiểu Dữ Liệu     │ Nullable │ Mô Tả                    │
+├─────────────────────┼──────────────────┼──────────┼─────────────────────────┤
+│ Code                │ string(20)       │ NO (PK)  │ Primary Key - Mã phường │
+│ Name                │ string(255)      │ NO       │ Tên phường/xã            │
+│ NameEn              │ string(255)      │ YES      │ Tên tiếng Anh             │
+│ FullName            │ string(255)      │ YES      │ Tên đầy đủ               │
+│ FullNameEn          │ string(255)      │ YES      │ Tên đầy đủ tiếng Anh     │
+│ CodeName            │ string(255)      │ YES      │ Mã tên                  │
+│ ProvinceCode        │ string(20)       │ YES (FK) │ Foreign Key -> Province  │
+│ AdministrativeUnitId│ int              │ YES (FK) │ Foreign Key -> AdminUnit│
+└─────────────────────┴──────────────────┴──────────┴─────────────────────────┘
+
+PRIMARY KEY: Code (string(20))
+
+FOREIGN KEYS:
+- ProvinceCode -> Province.Code (SET NULL on delete)
+- AdministrativeUnitId -> AdministrativeUnit.Id (SET NULL on delete)
+
+MỐI QUAN HỆ:
+- 1 Ward -> 0..1 Province (N:1, FK: ProvinceCode, SET NULL)
+- 1 Ward -> 0..1 AdministrativeUnit (N:1, FK: AdministrativeUnitId, SET NULL)
+
+INDEXES:
+- idx_wards_province (ProvinceCode)
+- idx_wards_unit (AdministrativeUnitId)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+6. UNGVIEN
+═══════════════════════════════════════════════════════════════════════════════
+Bảng: UngViens
+
+THUỘC TÍNH:
+┌─────────────────────┬──────────────────┬──────────┬─────────────────────────┐
+│ Tên Thuộc Tính      │ Kiểu Dữ Liệu     │ Nullable │ Mô Tả                    │
+├─────────────────────┼──────────────────┼──────────┼─────────────────────────┤
+│ MaUngVien           │ int              │ NO (PK)  │ Primary Key (Auto)      │
+│ UserId              │ string           │ NO (FK)  │ Foreign Key -> User     │
+│ HoTen               │ string           │ NO       │ Họ tên ứng viên         │
+│ Email               │ string           │ NO       │ Email                   │
+│ SoDienThoai         │ string           │ NO       │ Số điện thoại            │
+│ NgaySinh            │ DateTime         │ NO       │ Ngày sinh (default: 2000)│
+│ GioiTinh            │ string           │ YES      │ Giới tính               │
+│ DiaChi              │ string           │ YES      │ Địa chỉ                 │
+│ NganhNghe           │ string           │ YES      │ Ngành nghề (deprecated) │
+│ MaChuyenNganh       │ int              │ YES (FK) │ Foreign Key -> ChuyenNganh│
+│ ChuyenNganhKhac     │ string           │ YES      │ Chuyên ngành khác       │
+│ LinkCV              │ string           │ YES      │ Link CV                 │
+│ SoLanUngTuyen       │ int              │ NO       │ Số lần ứng tuyển        │
+│ NgayDangKy          │ DateTime         │ NO       │ Ngày đăng ký             │
+│ ViTriMongMuon       │ string           │ YES      │ Vị trí mong muốn         │
+│ MucLuongKyVong      │ decimal(18,2)    │ YES      │ Mức lương kỳ vọng        │
+│ NoiLamViecMongMuon  │ string           │ YES      │ Nơi làm việc mong muốn   │
+│ CVFile              │ string           │ YES      │ Đường dẫn file CV       │
+│ MucTieuNgheNghiep   │ string           │ YES      │ Mục tiêu nghề nghiệp     │
+│ HocVanChiTiet       │ string           │ YES      │ Học vấn chi tiết (JSON) │
+│ KinhNghiemChiTiet   │ string           │ YES      │ Kinh nghiệm chi tiết    │
+│ KyNangChiTiet       │ string           │ YES      │ Kỹ năng chi tiết (JSON)  │
+│ ChungChi            │ string           │ YES      │ Chứng chỉ               │
+│ LinkGitHub          │ string           │ YES      │ Link GitHub              │
+│ LinkBehance         │ string           │ YES      │ Link Behance             │
+│ LinkPortfolio       │ string           │ YES      │ Link Portfolio           │
+│ MoTaBanThan         │ string           │ YES      │ Mô tả bản thân           │
+│ TrangThaiTimViec    │ string           │ YES      │ Trạng thái tìm việc      │
+│ HienThiCongKhai     │ bool             │ NO       │ Hiển thị công khai       │
+└─────────────────────┴──────────────────┴──────────┴─────────────────────────┘
+
+PRIMARY KEY: MaUngVien (int, ValueGeneratedOnAdd - tự động tăng)
+
+FOREIGN KEYS:
+- UserId -> ApplicationUser.Id (CASCADE DELETE, UNIQUE)
+- MaChuyenNganh -> ChuyenNganh.MaChuyenNganh (SET NULL on delete)
+
+MỐI QUAN HỆ:
+- 1 UngVien -> 1 ApplicationUser (1:1, FK: UserId, CASCADE DELETE, UNIQUE)
+- 1 UngVien -> 0..1 ChuyenNganh (N:1, FK: MaChuyenNganh, SET NULL)
+
+INDEXES:
+- idx_ungvien_userid (UserId) - UNIQUE
+- idx_ungvien_chuyennganh (MaChuyenNganh)
+
+CONSTRAINTS:
+- UNIQUE(UserId) - Mỗi user chỉ có 1 hồ sơ ứng viên
+
+
+═══════════════════════════════════════════════════════════════════════════════
+7. NHATUYENDUNG
+═══════════════════════════════════════════════════════════════════════════════
+Bảng: NhaTuyenDungs
+
+THUỘC TÍNH:
+┌─────────────────────┬──────────────────┬──────────┬─────────────────────────┐
+│ Tên Thuộc Tính      │ Kiểu Dữ Liệu     │ Nullable │ Mô Tả                    │
+├─────────────────────┼──────────────────┼──────────┼─────────────────────────┤
+│ MaNhaTuyenDung      │ int              │ NO (PK)  │ Primary Key (Auto)      │
+│ UserId              │ string           │ NO (FK)  │ Foreign Key -> User     │
+│ TenCongTy           │ string           │ NO       │ Tên công ty              │
+│ Email               │ string           │ NO       │ Email công ty            │
+│ SoDienThoai         │ string           │ NO       │ Số điện thoại            │
+│ DiaChi              │ string           │ YES      │ Địa chỉ                  │
+│ TinhThanhPho        │ string           │ YES      │ Tỉnh thành phố           │
+│ QuanHuyen           │ string           │ YES      │ Quận huyện               │
+│ Website             │ string           │ YES      │ Website                  │
+│ NguoiDaiDien        │ string           │ YES      │ Người đại diện           │
+│ ChucVu              │ string           │ YES      │ Chức vụ                  │
+│ SoDienThoaiNguoiDaiDien│ string      │ YES      │ SĐT người đại diện        │
+│ EmailNguoiDaiDien   │ string           │ YES      │ Email người đại diện      │
+│ LinhVuc             │ string           │ YES      │ Lĩnh vực hoạt động       │
+│ MoTa                │ string           │ YES      │ Mô tả công ty             │
+│ Logo                │ string           │ YES      │ Đường dẫn logo           │
+│ SoTinDaDang         │ int              │ NO       │ Số tin đã đăng           │
+│ SoUngVienNhan       │ int              │ NO       │ Số ứng viên nhận         │
+│ NgayDangKy          │ DateTime         │ NO       │ Ngày đăng ký             │
+│ Latitude            │ double           │ YES      │ Vĩ độ (Geolocation)      │
+│ Longitude           │ double           │ YES      │ Kinh độ (Geolocation)     │
+└─────────────────────┴──────────────────┴──────────┴─────────────────────────┘
+
+PRIMARY KEY: MaNhaTuyenDung (int, ValueGeneratedOnAdd - tự động tăng)
+
+FOREIGN KEYS:
+- UserId -> ApplicationUser.Id (CASCADE DELETE, UNIQUE)
+
+MỐI QUAN HỆ:
+- 1 NhaTuyenDung -> 1 ApplicationUser (1:1, FK: UserId, CASCADE DELETE, UNIQUE)
+- 1 NhaTuyenDung -> 0..N TinTuyenDung (1:N, FK: TinTuyenDung.MaNhaTuyenDung, SET NULL)
+
+INDEXES:
+- idx_nhatuyendung_userid (UserId) - UNIQUE
+
+CONSTRAINTS:
+- UNIQUE(UserId) - Mỗi user chỉ có 1 hồ sơ nhà tuyển dụng
+
+
+═══════════════════════════════════════════════════════════════════════════════
+8. TINTUYENDUNG
+═══════════════════════════════════════════════════════════════════════════════
+Bảng: TinTuyenDungs
+
+THUỘC TÍNH:
+┌─────────────────────┬──────────────────┬──────────┬─────────────────────────┐
+│ Tên Thuộc Tính      │ Kiểu Dữ Liệu     │ Nullable │ Mô Tả                    │
+├─────────────────────┼──────────────────┼──────────┼─────────────────────────┤
+│ MaTinTuyenDung      │ int              │ NO (PK)  │ Primary Key (Auto)      │
+│ TenViecLam          │ string           │ YES      │ Tên việc làm             │
+│ CongTy              │ string           │ YES      │ Tên công ty              │
+│ MaNhaTuyenDung      │ int              │ YES (FK) │ Foreign Key -> NhaTuyenDung│
+│ NganhNghe           │ string           │ YES      │ Ngành nghề               │
+│ NganhNgheChiTiet    │ string           │ YES      │ Ngành nghề chi tiết       │
+│ LoaiCongViec        │ string           │ YES      │ Loại công việc           │
+│ KinhNghiem          │ string           │ YES      │ Kinh nghiệm yêu cầu      │
+│ ViTri               │ string           │ YES      │ Vị trí công việc          │
+│ NgoaiNgu            │ string           │ YES      │ Ngoại ngữ yêu cầu        │
+│ TuKhoa              │ string           │ YES      │ Từ khóa                  │
+│ KyNang              │ string           │ YES      │ Kỹ năng yêu cầu          │
+│ MoTa                │ string           │ YES      │ Mô tả công việc           │
+│ YeuCau              │ string           │ YES      │ Yêu cầu công việc         │
+│ MucLuongThapNhat    │ decimal(18,2)    │ YES      │ Mức lương thấp nhất      │
+│ MucLuongCaoNhat      │ decimal(18,2)    │ YES      │ Mức lương cao nhất       │
+│ QuyenLoi            │ string           │ YES      │ Quyền lợi                 │
+│ NguoiLienHe         │ string           │ YES      │ Người liên hệ             │
+│ EmailLienHe         │ string           │ YES      │ Email liên hệ             │
+│ SDTLienHe           │ string           │ YES      │ SĐT liên hệ               │
+│ TinhThanhPho        │ string           │ YES      │ Tỉnh thành phố           │
+│ PhuongXa            │ string           │ YES      │ Phường xã                 │
+│ DiaChiLamViec       │ string           │ YES      │ Địa chỉ làm việc          │
+│ AnhVanPhong         │ string           │ YES      │ Ảnh văn phòng             │
+│ SoLuongUngTuyen     │ int              │ YES      │ Số lượng ứng tuyển        │
+│ NgayDang            │ DateTime         │ NO       │ Ngày đăng                 │
+│ HanNop              │ DateTime         │ NO       │ Hạn nộp hồ sơ             │
+│ TrangThai           │ string           │ YES      │ "Dang tuyen", "Het han", "Da dong"│
+│ TrangThaiDuyet      │ string           │ NO       │ "Cho duyet", "Da duyet", "Tu choi"│
+│ LyDoTuChoi          │ string           │ YES      │ Lý do từ chối             │
+│ NgayDuyet           │ DateTime         │ YES      │ Ngày duyệt                │
+│ Latitude            │ double           │ YES      │ Vĩ độ (Geolocation)      │
+│ Longitude           │ double           │ YES      │ Kinh độ (Geolocation)     │
+└─────────────────────┴──────────────────┴──────────┴─────────────────────────┘
+
+PRIMARY KEY: MaTinTuyenDung (int, ValueGeneratedOnAdd - tự động tăng)
+
+FOREIGN KEYS:
+- MaNhaTuyenDung -> NhaTuyenDung.MaNhaTuyenDung (SET NULL on delete)
+
+MỐI QUAN HỆ:
+- 1 TinTuyenDung -> 0..1 NhaTuyenDung (N:1, FK: MaNhaTuyenDung, SET NULL)
+- 1 TinTuyenDung -> 0..N TinUngTuyen (1:N, thông qua MaTinTuyenDung string)
+- 1 TinTuyenDung -> 0..N ViecLamDaLuu (1:N, FK: ViecLamDaLuu.MaTinTuyenDung, CASCADE)
+
+INDEXES:
+- idx_tintuyendung_nhatuyendung (MaNhaTuyenDung)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+9. TINUNGTUYEN
+═══════════════════════════════════════════════════════════════════════════════
+Bảng: TinUngTuyens
+
+THUỘC TÍNH:
+┌─────────────────────┬──────────────────┬──────────┬─────────────────────────┐
+│ Tên Thuộc Tính      │ Kiểu Dữ Liệu     │ Nullable │ Mô Tả                    │
+├─────────────────────┼──────────────────┼──────────┼─────────────────────────┤
+│ MaTinUngTuyen       │ int              │ NO (PK)  │ Primary Key (Auto)      │
+│ UserId              │ string           │ YES (FK) │ Foreign Key -> User     │
+│ HoTen               │ string           │ NO       │ Họ tên ứng viên          │
+│ Email               │ string           │ NO       │ Email                    │
+│ SoDienThoai         │ string           │ NO       │ Số điện thoại            │
+│ ViTriUngTuyen       │ string           │ NO       │ Vị trí ứng tuyển         │
+│ CongTy              │ string           │ NO       │ Tên công ty               │
+│ MaTinTuyenDung      │ string           │ NO       │ Mã tin tuyển dụng (string)│
+│ TrangThaiXuLy       │ string           │ NO       │ Trạng thái xử lý         │
+│ LinkCV              │ string           │ NO       │ Link CV                  │
+│ GhiChu              │ string           │ NO       │ Ghi chú                  │
+│ NgayUngTuyen        │ DateTime         │ NO       │ Ngày ứng tuyển           │
+└─────────────────────┴──────────────────┴──────────┴─────────────────────────┘
+
+PRIMARY KEY: MaTinUngTuyen (int, ValueGeneratedOnAdd - tự động tăng)
+
+FOREIGN KEYS:
+- UserId -> ApplicationUser.Id (SET NULL on delete)
+
+MỐI QUAN HỆ:
+- 1 TinUngTuyen -> 0..1 ApplicationUser (N:1, FK: UserId, SET NULL)
+- 1 TinUngTuyen -> 0..1 TinTuyenDung (N:1, LOGIC RELATION - không có FK constraint)
+
+⚠️ QUAN HỆ ĐẶC BIỆT - QUAN HỆ LOGIC (LOGICAL RELATION):
+- TinUngTuyen.MaTinTuyenDung là string, KHÔNG có foreign key constraint đến TinTuyenDung
+- Trong DbContext: KHÔNG có cấu hình quan hệ giữa TinUngTuyen và TinTuyenDung
+- Chỉ có cấu hình quan hệ TinUngTuyen -> ApplicationUser
+
+PHÂN TÍCH CHI TIẾT:
+1. Về mặt kỹ thuật:
+   - TinTuyenDung.MaTinTuyenDung: int (Primary Key)
+   - TinUngTuyen.MaTinTuyenDung: string (không phải FK)
+   - Không đồng nhất kiểu dữ liệu (int vs string)
+   - Không có ràng buộc referential integrity
+
+2. Về mặt nghiệp vụ:
+   - MaTinTuyenDung trong TinUngTuyen là cầu nối logic để biết hồ sơ ứng tuyển thuộc tin nào
+   - Quan hệ này CẦN THIẾT để hiểu luồng nghiệp vụ: Ứng viên nộp đơn vào công việc nào
+
+3. Lý do thiết kế:
+   - Lưu snapshot/lịch sử: Giữ lại thông tin ứng tuyển ngay cả khi tin tuyển dụng gốc bị xóa
+   - Tránh mất dữ liệu: Nếu có FK constraint, việc xóa tin tuyển dụng có thể ảnh hưởng đến lịch sử ứng tuyển
+   - Tương thích dữ liệu cũ: Có thể có dữ liệu cũ với MaTinTuyenDung là string
+
+4. Rủi ro tiềm ẩn:
+   - Dữ liệu "mồ côi" (orphan): TinUngTuyen có thể trỏ đến TinTuyenDung không tồn tại
+   - Khó truy vấn ngược: Không thể dùng JOIN trực tiếp, phải convert string -> int
+   - Không đảm bảo tính toàn vẹn: Có thể có MaTinTuyenDung không hợp lệ
+
+5. Khuyến nghị khi vẽ sơ đồ:
+   - VẪN NÊN vẽ đường nối giữa TinUngTuyen và TinTuyenDung
+   - Đánh dấu bằng nét đứt (dashed line) hoặc ghi chú "Logical Relation"
+   - Ghi chú rõ: "No FK Constraint" hoặc "Soft Reference"
+   - Mục đích: Thể hiện đúng logic nghiệp vụ, không chỉ cấu trúc database
+
+
+═══════════════════════════════════════════════════════════════════════════════
+10. VIECLAMDALUU
+═══════════════════════════════════════════════════════════════════════════════
+Bảng: ViecLamDaLuus
+
+THUỘC TÍNH:
+┌─────────────────────┬──────────────────┬──────────┬─────────────────────────┐
+│ Tên Thuộc Tính      │ Kiểu Dữ Liệu     │ Nullable │ Mô Tả                    │
+├─────────────────────┼──────────────────┼──────────┼─────────────────────────┤
+│ MaViecLamDaLuu      │ int              │ NO (PK)  │ Primary Key (Auto)      │
+│ UserId              │ string           │ NO (FK)  │ Foreign Key -> User     │
+│ MaTinTuyenDung      │ int              │ NO (FK)  │ Foreign Key -> TinTuyenDung│
+│ NgayLuu             │ DateTime         │ NO       │ Ngày lưu tin             │
+└─────────────────────┴──────────────────┴──────────┴─────────────────────────┘
+
+PRIMARY KEY: MaViecLamDaLuu (int, ValueGeneratedOnAdd - tự động tăng)
+
+FOREIGN KEYS:
+- UserId -> ApplicationUser.Id (CASCADE DELETE)
+- MaTinTuyenDung -> TinTuyenDung.MaTinTuyenDung (CASCADE DELETE)
+
+MỐI QUAN HỆ:
+- 1 ViecLamDaLuu -> 1 ApplicationUser (N:1, FK: UserId, CASCADE DELETE)
+- 1 ViecLamDaLuu -> 1 TinTuyenDung (N:1, FK: MaTinTuyenDung, CASCADE DELETE)
+
+INDEXES:
+- idx_vieclamdaluu_userid_matintuyendung (UserId, MaTinTuyenDung) - UNIQUE
+- idx_vieclamdaluu_userid (UserId)
+- idx_vieclamdaluu_matintuyendung (MaTinTuyenDung)
+
+CONSTRAINTS:
+- UNIQUE(UserId, MaTinTuyenDung) - Mỗi user chỉ lưu 1 lần mỗi tin tuyển dụng
+
+
+═══════════════════════════════════════════════════════════════════════════════
+11. LOAICONGVIEC
+═══════════════════════════════════════════════════════════════════════════════
+Bảng: LoaiCongViecs
+
+THUỘC TÍNH:
+┌─────────────────────┬──────────────────┬──────────┬─────────────────────────┐
+│ Tên Thuộc Tính      │ Kiểu Dữ Liệu     │ Nullable │ Mô Tả                    │
+├─────────────────────┼──────────────────┼──────────┼─────────────────────────┤
+│ MaLoaiCongViec      │ int              │ NO (PK)  │ Primary Key (Auto)      │
+│ TenLoaiCongViec     │ string           │ NO       │ Tên loại công việc       │
+│ MoTa                │ string           │ NO       │ Mô tả                    │
+│ SoLuongViTri        │ int              │ NO       │ Số lượng vị trí           │
+│ NgayTao             │ DateTime         │ NO       │ Ngày tạo                 │
+└─────────────────────┴──────────────────┴──────────┴─────────────────────────┘
+
+PRIMARY KEY: MaLoaiCongViec (int, ValueGeneratedOnAdd - tự động tăng)
+
+MỐI QUAN HỆ: Không có foreign key
+
+
+═══════════════════════════════════════════════════════════════════════════════
+12. NGANHNGHE
+═══════════════════════════════════════════════════════════════════════════════
+Bảng: NganhNghes
+
+THUỘC TÍNH:
+┌─────────────────────┬──────────────────┬──────────┬─────────────────────────┐
+│ Tên Thuộc Tính      │ Kiểu Dữ Liệu     │ Nullable │ Mô Tả                    │
+├─────────────────────┼──────────────────┼──────────┼─────────────────────────┤
+│ MaNganhNghe         │ int              │ NO (PK)  │ Primary Key (Auto)      │
+│ TenNganhNghe        │ string           │ NO       │ Tên ngành nghề           │
+│ MoTa                │ string           │ YES      │ Mô tả                    │
+│ SoLuongCongViec     │ int              │ NO       │ Số lượng công việc       │
+│ NgayTao             │ DateTime         │ NO       │ Ngày tạo                 │
+└─────────────────────┴──────────────────┴──────────┴─────────────────────────┘
+
+PRIMARY KEY: MaNganhNghe (int, ValueGeneratedOnAdd - tự động tăng)
+
+MỐI QUAN HỆ:
+- 1 NganhNghe -> 0..N ChuyenNganh (1:N, FK: ChuyenNganh.MaNganhNghe, SET NULL)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+13. CHUYENNGANH
+═══════════════════════════════════════════════════════════════════════════════
+Bảng: ChuyenNganhs
+
+THUỘC TÍNH:
+┌─────────────────────┬──────────────────┬──────────┬─────────────────────────┐
+│ Tên Thuộc Tính      │ Kiểu Dữ Liệu     │ Nullable │ Mô Tả                    │
+├─────────────────────┼──────────────────┼──────────┼─────────────────────────┤
+│ MaChuyenNganh       │ int              │ NO (PK)  │ Primary Key (Auto)      │
+│ TenChuyenNganh      │ string           │ NO       │ Tên chuyên ngành         │
+│ MoTa                │ string           │ YES      │ Mô tả                    │
+│ MaNganhNghe         │ int              │ YES (FK) │ Foreign Key -> NganhNghe│
+│ NgayTao             │ DateTime         │ NO       │ Ngày tạo                 │
+│ IsActive            │ bool             │ NO       │ Trạng thái hoạt động    │
+└─────────────────────┴──────────────────┴──────────┴─────────────────────────┘
+
+PRIMARY KEY: MaChuyenNganh (int, ValueGeneratedOnAdd - tự động tăng)
+
+FOREIGN KEYS:
+- MaNganhNghe -> NganhNghe.MaNganhNghe (SET NULL on delete)
+
+MỐI QUAN HỆ:
+- 1 ChuyenNganh -> 0..1 NganhNghe (N:1, FK: MaNganhNghe, SET NULL)
+- 1 ChuyenNganh -> 0..N UngVien (1:N, FK: UngVien.MaChuyenNganh, SET NULL)
+
+INDEXES:
+- idx_chuyennganh_nganhnghe (MaNganhNghe)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+14. TRUONGDAIHOC
+═══════════════════════════════════════════════════════════════════════════════
+Bảng: TruongDaiHocs
+
+THUỘC TÍNH:
+┌─────────────────────┬──────────────────┬──────────┬─────────────────────────┐
+│ Tên Thuộc Tính      │ Kiểu Dữ Liệu     │ Nullable │ Mô Tả                    │
+├─────────────────────┼──────────────────┼──────────┼─────────────────────────┤
+│ MaTruong            │ int              │ NO (PK)  │ Primary Key (Auto)      │
+│ TenTruong           │ string           │ NO       │ Tên trường đại học        │
+│ MoTa                │ string           │ YES      │ Mô tả                    │
+│ NgayTao             │ DateTime         │ NO       │ Ngày tạo                 │
+└─────────────────────┴──────────────────┴──────────┴─────────────────────────┘
+
+PRIMARY KEY: MaTruong (int, ValueGeneratedOnAdd - tự động tăng)
+
+MỐI QUAN HỆ: Không có foreign key
+
+
+═══════════════════════════════════════════════════════════════════════════════
+15. BLOG
+═══════════════════════════════════════════════════════════════════════════════
+Bảng: Blogs
+
+THUỘC TÍNH:
+┌─────────────────────┬──────────────────┬──────────┬─────────────────────────┐
+│ Tên Thuộc Tính      │ Kiểu Dữ Liệu     │ Nullable │ Mô Tả                    │
+├─────────────────────┼──────────────────┼──────────┼─────────────────────────┤
+│ MaBlog              │ int              │ NO (PK)  │ Primary Key (Auto)      │
+│ TieuDe              │ string           │ NO       │ Tiêu đề bài viết         │
+│ MoTaNgan            │ string           │ YES      │ Mô tả ngắn/Excerpt       │
+│ NoiDung             │ string           │ NO       │ Nội dung đầy đủ          │
+│ HinhAnh             │ string           │ YES      │ Đường dẫn hình ảnh       │
+│ TheLoai             │ string           │ YES      │ Thể loại (deprecated)    │
+│ MaTheLoai           │ int              │ YES (FK) │ Foreign Key -> TheLoaiBlog│
+│ TacGia              │ string           │ YES      │ Tác giả                  │
+│ Permalink           │ string           │ YES      │ Permalink/Slug cho URL   │
+│ IsPermalinkAuto     │ bool             │ NO       │ Tự động permalink        │
+│ Tags                │ string           │ YES      │ Tags (phân cách dấu phẩy)│
+│ NgayDang            │ DateTime         │ NO       │ Ngày đăng                │
+│ NgayCapNhat         │ DateTime         │ YES      │ Ngày cập nhật            │
+│ LuotXem             │ int              │ NO       │ Lượt xem (default: 0)    │
+│ DaDang              │ bool             │ NO       │ Đã đăng (default: false)│
+│ HienThi             │ bool             │ NO       │ Hiển thị (default: false)│
+│ UserId              │ string           │ YES (FK) │ Foreign Key -> User     │
+│ NguonBaiViet        │ string           │ YES      │ Nguồn bài viết (API URL) │
+│ ApiArticleId        │ string           │ YES      │ ID bài viết từ API      │
+└─────────────────────┴──────────────────┴──────────┴─────────────────────────┘
+
+PRIMARY KEY: MaBlog (int, ValueGeneratedOnAdd - tự động tăng)
+
+FOREIGN KEYS:
+- UserId -> ApplicationUser.Id (SET NULL on delete)
+- MaTheLoai -> TheLoaiBlog.MaTheLoai (SET NULL on delete)
+
+MỐI QUAN HỆ:
+- 1 Blog -> 0..1 ApplicationUser (N:1, FK: UserId, SET NULL)
+- 1 Blog -> 0..1 TheLoaiBlog (N:1, FK: MaTheLoai, SET NULL)
+
+INDEXES:
+- idx_blog_userid (UserId)
+- idx_blog_matheloai (MaTheLoai)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+16. THELOAIBLOG
+═══════════════════════════════════════════════════════════════════════════════
+Bảng: TheLoaiBlogs
+
+THUỘC TÍNH:
+┌─────────────────────┬──────────────────┬──────────┬─────────────────────────┐
+│ Tên Thuộc Tính      │ Kiểu Dữ Liệu     │ Nullable │ Mô Tả                    │
+├─────────────────────┼──────────────────┼──────────┼─────────────────────────┤
+│ MaTheLoai           │ int              │ NO (PK)  │ Primary Key (Auto)      │
+│ TenTheLoai          │ string           │ NO       │ Tên thể loại             │
+│ MoTa                │ string           │ YES      │ Mô tả                    │
+│ Icon                │ string           │ YES      │ Icon class (Bootstrap)  │
+│ MauSac              │ string           │ YES      │ Màu sắc badge           │
+│ SoLuongBlog         │ int              │ NO       │ Số lượng blog (default: 0)│
+│ HienThi              │ bool            │ NO       │ Hiển thị (default: true)│
+│ NgayTao             │ DateTime         │ NO       │ Ngày tạo                 │
+│ ThuTu               │ int              │ NO       │ Thứ tự hiển thị (default: 0)│
+└─────────────────────┴──────────────────┴──────────┴─────────────────────────┘
+
+PRIMARY KEY: MaTheLoai (int, ValueGeneratedOnAdd - tự động tăng)
+
+MỐI QUAN HỆ:
+- 1 TheLoaiBlog -> 0..N Blog (1:N, FK: Blog.MaTheLoai, SET NULL)
+
+
+================================================================================
+PHẦN 3: SƠ ĐỒ MỐI QUAN HỆ GIỮA CÁC ENTITY (ER DIAGRAM)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        APPLICATIONUSER (Identity)                            │
+│                         (Primary Key: Id)                                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+                              │
+                              │ 1:1 (CASCADE)
+                              │
+        ┌─────────────────────┼─────────────────────┐
+        │                     │                     │
+        ▼                     ▼                     ▼
+┌───────────────┐    ┌───────────────┐    ┌───────────────┐
+│   UNGVIEN     │    │ NHATUYENDUNG  │    │  TINUNGTUYEN  │
+│ (PK: MaUngVien)│   │(PK: MaNhaTuyenDung)│(PK: MaTinUngTuyen)│
+│ FK: UserId    │    │ FK: UserId    │    │ FK: UserId    │
+│ (UNIQUE)      │    │ (UNIQUE)      │    │               │
+└───────────────┘    └───────────────┘    └───────────────┘
+        │                     │                     │
+        │ N:1 (SET NULL)      │ 1:N (SET NULL)      │
+        │                     │                     │
+        ▼                     ▼                     │
+┌───────────────┐    ┌───────────────┐             │
+│ CHUYENNGANH   │    │ TINTUYENDUNG  │             │
+│(PK: MaChuyenNganh)│(PK: MaTinTuyenDung)          │
+└───────────────┘    └───────────────┘             │
+        │                     │                     │
+        │ 1:N (SET NULL)      │ 1:N (CASCADE)       │
+        │                     │                     │
+        │                     ▼                     │
+        │            ┌───────────────┐             │
+        │            │ VIECLAMDALUU  │             │
+        │            │(PK: MaViecLamDaLuu)         │
+        │            │ FK: UserId, MaTinTuyenDung   │
+        │            │ UNIQUE(UserId, MaTinTuyenDung)│
+        │            └───────────────┘             │
+        │                                          │
+        └──────────────────────────────────────────┘
+                              │
+                              │ 1:N (SET NULL)
+                              │
+                              ▼
+                     ┌───────────────┐
+                     │     BLOG      │
+                     │ (PK: MaBlog)  │
+                     │ FK: UserId,   │
+                     │     MaTheLoai │
+                     └───────────────┘
+                              │
+                              │ N:1 (SET NULL)
+                              │
+                              ▼
+                     ┌───────────────┐
+                     │  THELOAIBLOG  │
+                     │(PK: MaTheLoai)│
+                     └───────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        NGANHNGHE                                            │
+│                    (PK: MaNganhNghe)                                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+                              │
+                              │ 1:N (SET NULL)
+                              │
+                              ▼
+                     ┌───────────────┐
+                     │ CHUYENNGANH   │
+                     │(PK: MaChuyenNganh)│
+                     │ FK: MaNganhNghe│
+                     └───────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    ADMINISTRATIVE_UNIT                                      │
+│                      (PK: Id)                                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+        │                              │
+        │ 1:N (SET NULL)               │ 1:N (SET NULL)
+        │                              │
+        ▼                              ▼
+┌───────────────┐            ┌───────────────┐
+│   PROVINCE    │            │     WARD      │
+│ (PK: Code)    │            │  (PK: Code)   │
+│ FK: AdminUnitId│           │ FK: ProvinceCode│
+└───────────────┘            │ FK: AdminUnitId│
+        │                    └───────────────┘
+        │ 1:N (SET NULL)
+        │
+        ▼
+┌───────────────┐
+│     WARD      │
+│  (PK: Code)   │
+└───────────────┘
+
+================================================================================
+PHẦN 4: CHI TIẾT CÁC MỐI QUAN HỆ (RELATIONSHIPS)
+================================================================================
+
+1. ApplicationUser ──[1:1]──> UngVien
+   - Foreign Key: UngVien.UserId -> ApplicationUser.Id
+   - Delete Behavior: CASCADE
+   - Constraint: UNIQUE (mỗi user chỉ có 1 hồ sơ ứng viên)
+   - Index: idx_ungvien_userid (UNIQUE)
+
+2. ApplicationUser ──[1:1]──> NhaTuyenDung
+   - Foreign Key: NhaTuyenDung.UserId -> ApplicationUser.Id
+   - Delete Behavior: CASCADE
+   - Constraint: UNIQUE (mỗi user chỉ có 1 hồ sơ nhà tuyển dụng)
+   - Index: idx_nhatuyendung_userid (UNIQUE)
+
+3. ApplicationUser ──[1:N]──> TinUngTuyen
+   - Foreign Key: TinUngTuyen.UserId -> ApplicationUser.Id
+   - Delete Behavior: SET NULL
+
+4. ApplicationUser ──[1:N]──> ViecLamDaLuu
+   - Foreign Key: ViecLamDaLuu.UserId -> ApplicationUser.Id
+   - Delete Behavior: CASCADE
+   - Index: idx_vieclamdaluu_userid
+
+5. ApplicationUser ──[1:N]──> Blog
+   - Foreign Key: Blog.UserId -> ApplicationUser.Id
+   - Delete Behavior: SET NULL
+   - Index: idx_blog_userid
+
+6. NhaTuyenDung ──[1:N]──> TinTuyenDung
+   - Foreign Key: TinTuyenDung.MaNhaTuyenDung -> NhaTuyenDung.MaNhaTuyenDung
+   - Delete Behavior: SET NULL
+   - Index: idx_tintuyendung_nhatuyendung
+
+7. TinTuyenDung ──[1:N]──> ViecLamDaLuu
+   - Foreign Key: ViecLamDaLuu.MaTinTuyenDung -> TinTuyenDung.MaTinTuyenDung
+   - Delete Behavior: CASCADE
+   - Index: idx_vieclamdaluu_matintuyendung
+   - Constraint: UNIQUE(UserId, MaTinTuyenDung) - mỗi user chỉ lưu 1 lần mỗi tin
+
+8. NganhNghe ──[1:N]──> ChuyenNganh
+   - Foreign Key: ChuyenNganh.MaNganhNghe -> NganhNghe.MaNganhNghe
+   - Delete Behavior: SET NULL
+   - Index: idx_chuyennganh_nganhnghe
+
+9. ChuyenNganh ──[1:N]──> UngVien
+   - Foreign Key: UngVien.MaChuyenNganh -> ChuyenNganh.MaChuyenNganh
+   - Delete Behavior: SET NULL
+   - Index: idx_ungvien_chuyennganh
+
+10. TheLoaiBlog ──[1:N]──> Blog
+    - Foreign Key: Blog.MaTheLoai -> TheLoaiBlog.MaTheLoai
+    - Delete Behavior: SET NULL
+    - Index: idx_blog_matheloai
+
+11. AdministrativeUnit ──[1:N]──> Province
+    - Foreign Key: Province.AdministrativeUnitId -> AdministrativeUnit.Id
+    - Delete Behavior: SET NULL
+    - Index: idx_provinces_unit
+
+12. AdministrativeUnit ──[1:N]──> Ward
+    - Foreign Key: Ward.AdministrativeUnitId -> AdministrativeUnit.Id
+    - Delete Behavior: SET NULL
+    - Index: idx_wards_unit
+
+13. Province ──[1:N]──> Ward
+    - Foreign Key: Ward.ProvinceCode -> Province.Code
+    - Delete Behavior: SET NULL
+    - Index: idx_wards_province
+
+⚠️ QUAN HỆ ĐẶC BIỆT - QUAN HỆ LOGIC (LOGICAL RELATION):
+
+TinUngTuyen ──[LOGIC]──> TinTuyenDung
+- Trường: TinUngTuyen.MaTinTuyenDung (string) -> TinTuyenDung.MaTinTuyenDung (int)
+- Loại quan hệ: LOGIC RELATION (không có Foreign Key Constraint)
+- Trong DbContext: KHÔNG có cấu hình quan hệ này
+- Delete Behavior: Không áp dụng (vì không có FK)
+
+PHÂN TÍCH:
+1. Về mặt kỹ thuật:
+   - Không đồng nhất kiểu dữ liệu: string vs int
+   - Không có ràng buộc referential integrity
+   - Không có index tự động cho quan hệ này
+
+2. Về mặt nghiệp vụ:
+   - Quan hệ này CẦN THIẾT để hiểu: Hồ sơ ứng tuyển thuộc về công việc nào
+   - Là cầu nối logic quan trọng trong luồng nghiệp vụ
+
+3. Lý do thiết kế:
+   - Lưu snapshot/lịch sử: Giữ lại thông tin ứng tuyển dù tin gốc bị xóa
+   - Tránh mất dữ liệu: Không bị ảnh hưởng khi xóa tin tuyển dụng
+   - Tương thích dữ liệu cũ: Có thể có dữ liệu legacy
+
+4. Rủi ro tiềm ẩn:
+   - Dữ liệu "mồ côi": TinUngTuyen có thể trỏ đến TinTuyenDung không tồn tại
+   - Khó truy vấn: Phải convert string -> int khi JOIN
+   - Không đảm bảo tính toàn vẹn: Có thể có giá trị không hợp lệ
+
+5. Khuyến nghị khi vẽ sơ đồ:
+   ✅ VẪN NÊN vẽ đường nối giữa TinUngTuyen và TinTuyenDung
+   ✅ Sử dụng nét đứt (dashed line) hoặc ghi chú "Logical Relation"
+   ✅ Ghi chú: "No FK Constraint" hoặc "Soft Reference"
+   ✅ Mục đích: Thể hiện đúng logic nghiệp vụ, không chỉ cấu trúc database
+
+
+================================================================================
+PHẦN 4.5: MÔ TẢ MỐI QUAN HỆ BẰNG VĂN BẢN (DỄ HIỂU ĐỂ VẼ SƠ ĐỒ)
+================================================================================
+
+Phần này mô tả các mối quan hệ giữa các bảng dưới dạng văn bản tự nhiên, dễ hiểu,
+giúp bạn dễ dàng vẽ sơ đồ mối quan hệ các bảng.
+
+═══════════════════════════════════════════════════════════════════════════════
+1. QUAN HỆ VỚI APPLICATIONUSER (NGƯỜI DÙNG)
+═══════════════════════════════════════════════════════════════════════════════
+
+1.1. ApplicationUser ──> UngVien (Ứng viên)
+    - Một người dùng (ApplicationUser) có thể có 0 hoặc 1 hồ sơ ứng viên (UngVien)
+    - Một hồ sơ ứng viên (UngVien) thuộc về đúng 1 người dùng (ApplicationUser)
+    - Quan hệ: 1:1 (Một-một)
+    - Ràng buộc: UNIQUE - Mỗi user chỉ có tối đa 1 hồ sơ ứng viên
+    - Khi xóa người dùng: Tự động xóa hồ sơ ứng viên (CASCADE DELETE)
+
+1.2. ApplicationUser ──> NhaTuyenDung (Nhà tuyển dụng)
+    - Một người dùng (ApplicationUser) có thể có 0 hoặc 1 hồ sơ nhà tuyển dụng (NhaTuyenDung)
+    - Một hồ sơ nhà tuyển dụng (NhaTuyenDung) thuộc về đúng 1 người dùng (ApplicationUser)
+    - Quan hệ: 1:1 (Một-một)
+    - Ràng buộc: UNIQUE - Mỗi user chỉ có tối đa 1 hồ sơ nhà tuyển dụng
+    - Khi xóa người dùng: Tự động xóa hồ sơ nhà tuyển dụng (CASCADE DELETE)
+
+1.3. ApplicationUser ──> TinUngTuyen (Tin ứng tuyển)
+    - Một người dùng (ApplicationUser) có thể có 0 hoặc nhiều tin ứng tuyển (TinUngTuyen)
+    - Một tin ứng tuyển (TinUngTuyen) thuộc về 0 hoặc 1 người dùng (ApplicationUser)
+    - Quan hệ: 1:N (Một-nhiều)
+    - Khi xóa người dùng: Đặt UserId = NULL (SET NULL) - Giữ lại lịch sử ứng tuyển
+
+1.4. ApplicationUser ──> ViecLamDaLuu (Việc làm đã lưu)
+    - Một người dùng (ApplicationUser) có thể lưu 0 hoặc nhiều việc làm (ViecLamDaLuu)
+    - Một việc làm đã lưu (ViecLamDaLuu) thuộc về đúng 1 người dùng (ApplicationUser)
+    - Quan hệ: 1:N (Một-nhiều)
+    - Ràng buộc: UNIQUE(UserId, MaTinTuyenDung) - Mỗi user chỉ lưu 1 lần mỗi tin tuyển dụng
+    - Khi xóa người dùng: Tự động xóa tất cả việc làm đã lưu (CASCADE DELETE)
+
+1.5. ApplicationUser ──> Blog (Bài viết blog)
+    - Một người dùng (ApplicationUser) có thể viết 0 hoặc nhiều bài blog (Blog)
+    - Một bài blog (Blog) thuộc về 0 hoặc 1 người dùng (ApplicationUser)
+    - Quan hệ: 1:N (Một-nhiều)
+    - Khi xóa người dùng: Đặt UserId = NULL (SET NULL) - Giữ lại bài viết
+
+
+═══════════════════════════════════════════════════════════════════════════════
+2. QUAN HỆ VỚI NHATUYENDUNG (NHÀ TUYỂN DỤNG)
+═══════════════════════════════════════════════════════════════════════════════
+
+2.1. NhaTuyenDung ──> TinTuyenDung (Tin tuyển dụng)
+    - Một nhà tuyển dụng (NhaTuyenDung) có thể đăng 0 hoặc nhiều tin tuyển dụng (TinTuyenDung)
+    - Một tin tuyển dụng (TinTuyenDung) thuộc về 0 hoặc 1 nhà tuyển dụng (NhaTuyenDung)
+    - Quan hệ: 1:N (Một-nhiều)
+    - Khi xóa nhà tuyển dụng: Đặt MaNhaTuyenDung = NULL (SET NULL) - Giữ lại tin tuyển dụng
+
+
+═══════════════════════════════════════════════════════════════════════════════
+3. QUAN HỆ VỚI TINTUYENDUNG (TIN TUYỂN DỤNG)
+═══════════════════════════════════════════════════════════════════════════════
+
+3.1. TinTuyenDung ──> ViecLamDaLuu (Việc làm đã lưu)
+    - Một tin tuyển dụng (TinTuyenDung) có thể được 0 hoặc nhiều người dùng lưu (ViecLamDaLuu)
+    - Một việc làm đã lưu (ViecLamDaLuu) thuộc về đúng 1 tin tuyển dụng (TinTuyenDung)
+    - Quan hệ: 1:N (Một-nhiều)
+    - Khi xóa tin tuyển dụng: Tự động xóa tất cả bản ghi lưu tin đó (CASCADE DELETE)
+
+3.2. TinTuyenDung ──> TinUngTuyen (Tin ứng tuyển) - ⚠️ QUAN HỆ LOGIC
+    - Một tin tuyển dụng (TinTuyenDung) có thể nhận 0 hoặc nhiều hồ sơ ứng tuyển (TinUngTuyen)
+    - Một hồ sơ ứng tuyển (TinUngTuyen) thuộc về 0 hoặc 1 tin tuyển dụng (TinTuyenDung)
+    - Quan hệ: 1:N (Một-nhiều) - QUAN HỆ LOGIC (không có Foreign Key Constraint)
+    - Lưu ý: Đây là quan hệ logic, không có ràng buộc database
+    - Mục đích: Lưu lịch sử ứng tuyển, không bị mất khi xóa tin tuyển dụng gốc
+
+
+═══════════════════════════════════════════════════════════════════════════════
+4. QUAN HỆ VỚI NGANHNGHE VÀ CHUYENNGANH (NGÀNH NGHỀ VÀ CHUYÊN NGÀNH)
+═══════════════════════════════════════════════════════════════════════════════
+
+4.1. NganhNghe ──> ChuyenNganh (Chuyên ngành)
+    - Một ngành nghề (NganhNghe) có thể có 0 hoặc nhiều chuyên ngành (ChuyenNganh)
+    - Một chuyên ngành (ChuyenNganh) thuộc về 0 hoặc 1 ngành nghề (NganhNghe)
+    - Quan hệ: 1:N (Một-nhiều)
+    - Khi xóa ngành nghề: Đặt MaNganhNghe = NULL (SET NULL) - Giữ lại chuyên ngành
+
+4.2. ChuyenNganh ──> UngVien (Ứng viên)
+    - Một chuyên ngành (ChuyenNganh) có thể có 0 hoặc nhiều ứng viên (UngVien)
+    - Một ứng viên (UngVien) thuộc về 0 hoặc 1 chuyên ngành (ChuyenNganh)
+    - Quan hệ: 1:N (Một-nhiều)
+    - Khi xóa chuyên ngành: Đặt MaChuyenNganh = NULL (SET NULL) - Giữ lại ứng viên
+
+
+═══════════════════════════════════════════════════════════════════════════════
+5. QUAN HỆ VỚI BLOG VÀ THELOAIBLOG (BLOG VÀ THỂ LOẠI BLOG)
+═══════════════════════════════════════════════════════════════════════════════
+
+5.1. TheLoaiBlog ──> Blog (Bài viết blog)
+    - Một thể loại blog (TheLoaiBlog) có thể có 0 hoặc nhiều bài viết (Blog)
+    - Một bài viết (Blog) thuộc về 0 hoặc 1 thể loại blog (TheLoaiBlog)
+    - Quan hệ: 1:N (Một-nhiều)
+    - Khi xóa thể loại blog: Đặt MaTheLoai = NULL (SET NULL) - Giữ lại bài viết
+
+
+═══════════════════════════════════════════════════════════════════════════════
+6. QUAN HỆ VỚI ĐỊA CHỈ (ADMINISTRATIVE_UNIT, PROVINCE, WARD)
+═══════════════════════════════════════════════════════════════════════════════
+
+6.1. AdministrativeUnit ──> Province (Tỉnh/Thành phố)
+    - Một đơn vị hành chính (AdministrativeUnit) có thể có 0 hoặc nhiều tỉnh/thành phố (Province)
+    - Một tỉnh/thành phố (Province) thuộc về 0 hoặc 1 đơn vị hành chính (AdministrativeUnit)
+    - Quan hệ: 1:N (Một-nhiều)
+    - Khi xóa đơn vị hành chính: Đặt AdministrativeUnitId = NULL (SET NULL)
+
+6.2. AdministrativeUnit ──> Ward (Phường/Xã)
+    - Một đơn vị hành chính (AdministrativeUnit) có thể có 0 hoặc nhiều phường/xã (Ward)
+    - Một phường/xã (Ward) thuộc về 0 hoặc 1 đơn vị hành chính (AdministrativeUnit)
+    - Quan hệ: 1:N (Một-nhiều)
+    - Khi xóa đơn vị hành chính: Đặt AdministrativeUnitId = NULL (SET NULL)
+
+6.3. Province ──> Ward (Phường/Xã)
+    - Một tỉnh/thành phố (Province) có thể có 0 hoặc nhiều phường/xã (Ward)
+    - Một phường/xã (Ward) thuộc về 0 hoặc 1 tỉnh/thành phố (Province)
+    - Quan hệ: 1:N (Một-nhiều)
+    - Khi xóa tỉnh/thành phố: Đặt ProvinceCode = NULL (SET NULL)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+7. TÓM TẮT CÁC QUAN HỆ THEO LOẠI
+═══════════════════════════════════════════════════════════════════════════════
+
+QUAN HỆ MỘT-MỘT (1:1):
+- ApplicationUser ──> UngVien (Mỗi user có tối đa 1 hồ sơ ứng viên)
+- ApplicationUser ──> NhaTuyenDung (Mỗi user có tối đa 1 hồ sơ nhà tuyển dụng)
+
+QUAN HỆ MỘT-NHIỀU (1:N):
+- ApplicationUser ──> TinUngTuyen (Một user có thể có nhiều tin ứng tuyển)
+- ApplicationUser ──> ViecLamDaLuu (Một user có thể lưu nhiều việc làm)
+- ApplicationUser ──> Blog (Một user có thể viết nhiều bài blog)
+- NhaTuyenDung ──> TinTuyenDung (Một nhà tuyển dụng có thể đăng nhiều tin)
+- TinTuyenDung ──> ViecLamDaLuu (Một tin có thể được nhiều người lưu)
+- NganhNghe ──> ChuyenNganh (Một ngành nghề có nhiều chuyên ngành)
+- ChuyenNganh ──> UngVien (Một chuyên ngành có nhiều ứng viên)
+- TheLoaiBlog ──> Blog (Một thể loại có nhiều bài viết)
+- AdministrativeUnit ──> Province (Một đơn vị có nhiều tỉnh)
+- AdministrativeUnit ──> Ward (Một đơn vị có nhiều phường/xã)
+- Province ──> Ward (Một tỉnh có nhiều phường/xã)
+
+QUAN HỆ LOGIC (KHÔNG CÓ FK CONSTRAINT):
+- TinTuyenDung ──> TinUngTuyen (Quan hệ logic, không có ràng buộc database)
+
+KHÔNG CÓ QUAN HỆ:
+- LoaiCongViec (Độc lập, không có foreign key)
+- TruongDaiHoc (Độc lập, không có foreign key)
+- AdministrativeRegion (Độc lập, không có foreign key)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+8. HƯỚNG DẪN SỬ DỤNG ĐỂ VẼ SƠ ĐỒ
+═══════════════════════════════════════════════════════════════════════════════
+
+Khi vẽ sơ đồ mối quan hệ các bảng, bạn có thể sử dụng các mô tả trên để:
+
+1. Xác định các bảng cần vẽ:
+   - Bắt đầu từ bảng trung tâm: ApplicationUser
+   - Vẽ các bảng liên quan theo từng nhóm
+
+2. Vẽ các đường nối:
+   - Quan hệ 1:1: Vẽ đường nối với ký hiệu 1 ── 1
+   - Quan hệ 1:N: Vẽ đường nối với ký hiệu 1 ── N
+   - Quan hệ logic: Vẽ đường nét đứt (dashed line) với ghi chú "Logical"
+
+3. Ghi chú Delete Behavior:
+   - CASCADE: Ghi chú "CASCADE" trên đường nối
+   - SET NULL: Ghi chú "SET NULL" trên đường nối
+
+4. Đánh dấu UNIQUE:
+   - Các quan hệ có ràng buộc UNIQUE: Đánh dấu [UQ] hoặc ghi chú "UNIQUE"
+
+5. Ví dụ vẽ:
+   - ApplicationUser ──[1:1, CASCADE, UNIQUE]──> UngVien
+   - NhaTuyenDung ──[1:N, SET NULL]──> TinTuyenDung
+   - TinTuyenDung ──[1:N, LOGIC]──> TinUngTuyen (nét đứt)
+
+
+================================================================================
+PHẦN 5: CÁC INDEX VÀ CONSTRAINTS
+================================================================================
+
+UNIQUE CONSTRAINTS:
+1. UngVien.UserId - UNIQUE (mỗi user chỉ có 1 hồ sơ ứng viên)
+2. NhaTuyenDung.UserId - UNIQUE (mỗi user chỉ có 1 hồ sơ nhà tuyển dụng)
+3. ViecLamDaLuu(UserId, MaTinTuyenDung) - UNIQUE (mỗi user chỉ lưu 1 lần mỗi tin)
+
+INDEXES:
+1. idx_provinces_unit (Province.AdministrativeUnitId)
+2. idx_wards_province (Ward.ProvinceCode)
+3. idx_wards_unit (Ward.AdministrativeUnitId)
+4. idx_ungvien_userid (UngVien.UserId) - UNIQUE
+5. idx_ungvien_chuyennganh (UngVien.MaChuyenNganh)
+6. idx_nhatuyendung_userid (NhaTuyenDung.UserId) - UNIQUE
+7. idx_tintuyendung_nhatuyendung (TinTuyenDung.MaNhaTuyenDung)
+8. idx_vieclamdaluu_userid_matintuyendung (ViecLamDaLuu.UserId, MaTinTuyenDung) - UNIQUE
+9. idx_vieclamdaluu_userid (ViecLamDaLuu.UserId)
+10. idx_vieclamdaluu_matintuyendung (ViecLamDaLuu.MaTinTuyenDung)
+11. idx_chuyennganh_nganhnghe (ChuyenNganh.MaNganhNghe)
+12. idx_blog_userid (Blog.UserId)
+13. idx_blog_matheloai (Blog.MaTheLoai)
+
+
+================================================================================
+PHẦN 6: DELETE BEHAVIORS (HÀNH VI XÓA)
+================================================================================
+
+CASCADE DELETE (Xóa dữ liệu con khi xóa dữ liệu cha):
+- ApplicationUser -> UngVien
+- ApplicationUser -> NhaTuyenDung
+- ApplicationUser -> ViecLamDaLuu
+- TinTuyenDung -> ViecLamDaLuu
+
+SET NULL (Đặt foreign key = NULL khi xóa dữ liệu cha):
+- ApplicationUser -> TinUngTuyen
+- ApplicationUser -> Blog
+- NhaTuyenDung -> TinTuyenDung
+- NganhNghe -> ChuyenNganh
+- ChuyenNganh -> UngVien
+- TheLoaiBlog -> Blog
+- AdministrativeUnit -> Province
+- AdministrativeUnit -> Ward
+- Province -> Ward
+
+
+================================================================================
+PHẦN 7: CÁC TRƯỜNG DECIMAL VỚI PRECISION
+================================================================================
+
+1. UngVien.MucLuongKyVong
+   - Type: decimal(18,2)
+   - Precision: 18, Scale: 2
+
+2. TinTuyenDung.MucLuongThapNhat
+   - Type: decimal(18,2)
+   - Precision: 18, Scale: 2
+
+3. TinTuyenDung.MucLuongCaoNhat
+   - Type: decimal(18,2)
+   - Precision: 18, Scale: 2
+
+
+================================================================================
+PHẦN 8: CÁC TRƯỜNG GEOLOCATION
+================================================================================
+
+1. NhaTuyenDung
+   - Latitude (double, nullable)
+   - Longitude (double, nullable)
+
+2. TinTuyenDung
+   - Latitude (double, nullable)
+   - Longitude (double, nullable)
+
+
+================================================================================
+PHẦN 9: CÁC ENUM VÀ TRẠNG THÁI
+================================================================================
+
+1. TrangThaiXuLy (Enum)
+   - DangXemXet = 1
+   - ChoPhongVan = 2
+   - DaPhongVan = 3
+   - TuyenDung = 4
+   - TuChoi = 5
+   - KhongPhuHop = 6
+
+2. TinTuyenDung.TrangThai (String)
+   - "Dang tuyen"
+   - "Het han"
+   - "Da dong"
+
+3. TinTuyenDung.TrangThaiDuyet (String)
+   - "Cho duyet"
+   - "Da duyet"
+   - "Tu choi"
+
+4. ApplicationUser.LoaiTaiKhoan (String)
+   - "UngVien"
+   - "NhaTuyenDung"
+
+5. UngVien.TrangThaiTimViec (String)
+   - "Đang tìm việc"
+   - "Đang thực tập"
+   - "Đã có việc"
+
+
+================================================================================
+PHẦN 10: TỔNG KẾT SỐ LƯỢNG
+================================================================================
+
+TỔNG SỐ ENTITY: 16
+
+PHÂN LOẠI:
+- Entity chính (Core): 10
+  + ApplicationUser
+  + UngVien
+  + NhaTuyenDung
+  + TinTuyenDung
+  + TinUngTuyen
+  + ViecLamDaLuu
+  + Blog
+  + TheLoaiBlog
+  + ChuyenNganh
+  + NganhNghe
+
+- Entity tham chiếu (Reference): 3
+  + LoaiCongViec
+  + TruongDaiHoc
+  + AdministrativeRegion
+
+- Entity địa chỉ (Address): 3
+  + AdministrativeUnit
+  + Province
+  + Ward
+
+TỔNG SỐ FOREIGN KEYS: 13
+TỔNG SỐ INDEXES: 13
+TỔNG SỐ UNIQUE CONSTRAINTS: 3
+
+
+================================================================================
+PHẦN 11: GHI CHÚ QUAN TRỌNG
+================================================================================
+
+1. ApplicationUser kế thừa từ IdentityUser của ASP.NET Core Identity Framework
+   - Có nhiều trường mặc định từ Identity (UserName, Email, PasswordHash, etc.)
+   - Primary Key là string (Id)
+
+2. Các entity địa chỉ (AdministrativeRegion, AdministrativeUnit, Province, Ward)
+   - Sử dụng ValueGeneratedNever cho Primary Key
+   - Dữ liệu được import từ file SQL
+
+3. ⚠️ QUAN HỆ LOGIC: TinUngTuyen ──> TinTuyenDung
+   - TinUngTuyen.MaTinTuyenDung: string (KHÔNG phải FK)
+   - TinTuyenDung.MaTinTuyenDung: int (PK)
+   - KHÔNG có foreign key constraint trong database
+   - KHÔNG có cấu hình trong DbContext
+   - Quan hệ chỉ là LOGIC, không có ràng buộc database
+   - Lý do: Lưu snapshot/lịch sử, tránh mất dữ liệu khi xóa tin gốc
+   - Rủi ro: Dữ liệu có thể "mồ côi", khó truy vấn (phải convert string->int)
+   - Khi vẽ sơ đồ: VẪN NÊN vẽ đường nối (dùng nét đứt + ghi chú "Logical Relation")
+
+4. Các trường deprecated (giữ lại để tương thích ngược):
+   - Blog.TheLoai (thay bằng MaTheLoai)
+   - UngVien.NganhNghe (thay bằng MaChuyenNganh)
+
+5. Các trường JSON/Text để lưu dữ liệu phức tạp:
+   - UngVien.HocVanChiTiet
+   - UngVien.KinhNghiemChiTiet
+   - UngVien.KyNangChiTiet
+
+6. Các trường Tags được lưu dưới dạng string phân cách bởi dấu phẩy:
+   - Blog.Tags
+
+7. Các trường Permalink/Slug:
+   - Blog.Permalink (có thể tự động hoặc tùy chỉnh)
+
+8. Các trường Geolocation:
+   - NhaTuyenDung: Latitude, Longitude
+   - TinTuyenDung: Latitude, Longitude
+
+9. Các trường liên quan đến API:
+   - Blog.NguonBaiViet (URL nguồn)
+   - Blog.ApiArticleId (ID từ API để tránh trùng lặp)
+
+10. Các trường trạng thái:
+    - Blog.DaDang (bản nháp/đã đăng)
+    - Blog.HienThi (hiển thị trên trang chủ)
+    - TinTuyenDung.TrangThai (trạng thái tuyển dụng)
+    - TinTuyenDung.TrangThaiDuyet (trạng thái duyệt)
+    - ChuyenNganh.IsActive (hoạt động/ẩn)
+    - TheLoaiBlog.HienThi (hiển thị/ẩn)
+    - UngVien.HienThiCongKhai (hiển thị công khai)
+
+
+================================================================================
+PHẦN 12: HƯỚNG DẪN VẼ SƠ ĐỒ (DIAGRAM GUIDELINES)
+================================================================================
+
+═══════════════════════════════════════════════════════════════════════════════
+1. QUY TẮC CHUNG KHI VẼ SƠ ĐỒ
+═══════════════════════════════════════════════════════════════════════════════
+
+Khi vẽ Class Diagram hoặc ERD, mục tiêu là thể hiện:
+- Logic nghiệp vụ (Business Logic)
+- Luồng dữ liệu (Data Flow)
+- Mối quan hệ giữa các thực thể (Entity Relationships)
+
+KHÔNG chỉ đơn thuần sao chép cấu trúc vật lý của database.
+
+═══════════════════════════════════════════════════════════════════════════════
+2. CÁCH THỂ HIỆN CÁC LOẠI QUAN HỆ
+═══════════════════════════════════════════════════════════════════════════════
+
+A. QUAN HỆ CÓ FOREIGN KEY CONSTRAINT (Hard FK):
+   - Sử dụng đường nét liền (solid line)
+   - Ghi rõ cardinality: 1:1, 1:N, N:1, N:N
+   - Ghi chú Delete Behavior: CASCADE, SET NULL, RESTRICT
+   - Ví dụ: ApplicationUser -> UngVien (1:1, CASCADE)
+
+B. QUAN HỆ LOGIC (Logical Relation - Không có FK Constraint):
+   - Sử dụng đường nét đứt (dashed line) hoặc nét chấm (dotted line)
+   - Ghi chú rõ: "Logical Relation" hoặc "No FK Constraint"
+   - Vẫn ghi cardinality: 1:1, 1:N, N:1
+   - Ví dụ: TinUngTuyen ──[dashed]──> TinTuyenDung (N:1, Logical)
+
+C. QUAN HỆ KẾ THỪA (Inheritance):
+   - Sử dụng mũi tên tam giác rỗng (hollow triangle arrow)
+   - Ví dụ: ApplicationUser ──▷ IdentityUser
+
+═══════════════════════════════════════════════════════════════════════════════
+3. QUAN HỆ ĐẶC BIỆT: TinUngTuyen ──> TinTuyenDung
+═══════════════════════════════════════════════════════════════════════════════
+
+⚠️ QUAN TRỌNG: VẪN NÊN VẼ QUAN HỆ NÀY TRÊN SƠ ĐỒ
+
+Lý do:
+1. Hiểu đúng nghiệp vụ:
+   - Người xem sơ đồ cần biết TinUngTuyen (Hồ sơ ứng tuyển) thuộc về TinTuyenDung (Công việc) nào
+   - Nếu không vẽ đường nối, người đọc sẽ không hiểu làm sao hệ thống biết ứng viên đang nộp đơn vào đâu
+
+2. Tính đầy đủ của mô hình:
+   - Mặc dù trong code không có khóa ngoại cứng (FK Constraint) để tránh lỗi khi xóa dữ liệu cũ
+   - Nhưng về mặt logic, trường MaTinTuyenDung (string) trong bảng TinUngTuyen chính là cầu nối
+
+3. Gợi ý khi vẽ:
+   ✅ VẼ đường nối giữa TinUngTuyen và TinTuyenDung
+   ✅ Sử dụng nét đứt (dashed line) để phân biệt với quan hệ có FK
+   ✅ Ghi chú trên đường nối: "Logical Relation" hoặc "No FK Constraint"
+   ✅ Ghi chú thêm: "MaTinTuyenDung: string (not FK)"
+   ✅ Cardinality: N:1 (Nhiều TinUngTuyen -> 1 TinTuyenDung)
+
+Ví dụ ký hiệu:
+   TinUngTuyen ── ── ──> TinTuyenDung
+              (dashed)   [Logical Relation]
+                         [No FK Constraint]
+
+═══════════════════════════════════════════════════════════════════════════════
+4. CÁC KÝ HIỆU KHUYẾN NGHỊ
+═══════════════════════════════════════════════════════════════════════════════
+
+PRIMARY KEY:
+   - Gạch chân (underline) hoặc ký hiệu [PK]
+   - Ví dụ: MaUngVien [PK]
+
+FOREIGN KEY:
+   - Ký hiệu [FK] hoặc ghi chú "FK -> EntityName"
+   - Ví dụ: UserId [FK -> ApplicationUser]
+
+UNIQUE CONSTRAINT:
+   - Ký hiệu [UQ] hoặc [UNIQUE]
+   - Ví dụ: UserId [UQ]
+
+INDEX:
+   - Ký hiệu [IDX] hoặc ghi chú trong phần riêng
+   - Ví dụ: idx_ungvien_userid [IDX]
+
+NULLABLE:
+   - Dấu ? sau kiểu dữ liệu
+   - Ví dụ: string? (nullable), string (required)
+
+CARDINALITY:
+   - 1:1 (One-to-One)
+   - 1:N (One-to-Many)
+   - N:1 (Many-to-One)
+   - N:N (Many-to-Many) - không có trong hệ thống này
+
+DELETE BEHAVIOR:
+   - CASCADE: Xóa dữ liệu con khi xóa dữ liệu cha
+   - SET NULL: Đặt FK = NULL khi xóa dữ liệu cha
+   - RESTRICT: Không cho phép xóa nếu có dữ liệu con
+
+═══════════════════════════════════════════════════════════════════════════════
+5. VÍ DỤ SƠ ĐỒ MỐI QUAN HỆ QUAN TRỌNG
+═══════════════════════════════════════════════════════════════════════════════
+
+ApplicationUser [PK: Id]
+    │
+    ├──[1:1, CASCADE, UNIQUE]──> UngVien [PK: MaUngVien, FK: UserId]
+    │                              │
+    │                              └──[N:1, SET NULL]──> ChuyenNganh [PK: MaChuyenNganh]
+    │
+    ├──[1:1, CASCADE, UNIQUE]──> NhaTuyenDung [PK: MaNhaTuyenDung, FK: UserId]
+    │                              │
+    │                              └──[1:N, SET NULL]──> TinTuyenDung [PK: MaTinTuyenDung]
+    │                                                      │
+    │                                                      ├──[1:N, CASCADE]──> ViecLamDaLuu
+    │                                                      │
+    │                                                      └──[1:N, LOGIC]──> TinUngTuyen
+    │                                                                         (dashed line)
+    │                                                                         [No FK Constraint]
+    │
+    ├──[1:N, SET NULL]──> TinUngTuyen [PK: MaTinUngTuyen, FK: UserId]
+    │
+    ├──[1:N, CASCADE]──> ViecLamDaLuu [PK: MaViecLamDaLuu]
+    │
+    └──[1:N, SET NULL]──> Blog [PK: MaBlog, FK: UserId, MaTheLoai]
+                                │
+                                └──[N:1, SET NULL]──> TheLoaiBlog [PK: MaTheLoai]
+
+═══════════════════════════════════════════════════════════════════════════════
+6. CHECKLIST KHI VẼ SƠ ĐỒ
+═══════════════════════════════════════════════════════════════════════════════
+
+□ Đã vẽ đủ 16 entity
+□ Đã ghi rõ Primary Key cho mỗi entity
+□ Đã vẽ tất cả Foreign Key relationships (13 quan hệ có FK)
+□ Đã vẽ quan hệ LOGIC: TinUngTuyen -> TinTuyenDung (dashed line)
+□ Đã ghi chú Delete Behavior cho mỗi quan hệ
+□ Đã ghi chú Cardinality (1:1, 1:N, N:1)
+□ Đã đánh dấu UNIQUE constraints (3 constraints)
+□ Đã ghi chú các trường đặc biệt (decimal precision, geolocation, etc.)
+□ Đã phân biệt rõ quan hệ có FK (solid line) và quan hệ logic (dashed line)
+
+═══════════════════════════════════════════════════════════════════════════════
+7. LƯU Ý KHI VẼ CLASS DIAGRAM (UML)
+═══════════════════════════════════════════════════════════════════════════════
+
+- Mỗi class = 1 entity
+- Attributes = Properties/Columns
+- Methods = Có thể bỏ qua (chỉ tập trung vào cấu trúc dữ liệu)
+- Associations = Relationships
+- Navigation Properties = Thể hiện bằng mũi tên hai chiều hoặc một chiều
+- Inheritance: ApplicationUser ──▷ IdentityUser
+
+═══════════════════════════════════════════════════════════════════════════════
+8. LƯU Ý KHI VẼ ERD (ENTITY RELATIONSHIP DIAGRAM)
+═══════════════════════════════════════════════════════════════════════════════
+
+- Entity = Hình chữ nhật
+- Attributes = Hình oval hoặc liệt kê trong entity
+- Relationships = Hình thoi hoặc đường nối
+- Primary Key = Gạch chân hoặc [PK]
+- Foreign Key = Ghi chú [FK] hoặc đường nối có mũi tên
+- Cardinality = 1, N, hoặc số cụ thể
+- Optionality = (0..1) hoặc (1..N)
+
+═══════════════════════════════════════════════════════════════════════════════
+9. LƯU Ý KHI VẼ DATABASE SCHEMA DIAGRAM
+═══════════════════════════════════════════════════════════════════════════════
+
+- Table = Hình chữ nhật
+- Columns = Liệt kê trong table
+- Data Types = Ghi rõ (int, string, decimal(18,2), DateTime, etc.)
+- Primary Key = Gạch chân hoặc [PK]
+- Foreign Key = Đường nối có mũi tên + ghi chú [FK]
+- Indexes = Có thể ghi chú riêng hoặc ký hiệu [IDX]
+- Constraints = Ghi chú UNIQUE, CHECK, etc.
+- Logical Relations = Nét đứt + ghi chú "Logical" hoặc "No FK"
+
+
+================================================================================
+KẾT THÚC TÀI LIỆU
+================================================================================
+
+Tài liệu này cung cấp đầy đủ thông tin để vẽ:
+- Class Diagram (UML)
+- Entity Relationship Diagram (ERD)
+- Database Schema Diagram
+
+Tất cả các thuộc tính, mối quan hệ, constraints, và indexes đã được liệt kê chi tiết.
+
+⚠️ LƯU Ý QUAN TRỌNG:
+- Quan hệ TinUngTuyen -> TinTuyenDung là QUAN HỆ LOGIC (không có FK constraint)
+- VẪN NÊN vẽ quan hệ này trên sơ đồ để thể hiện đúng logic nghiệp vụ
+- Sử dụng nét đứt (dashed line) và ghi chú "Logical Relation" để phân biệt
+

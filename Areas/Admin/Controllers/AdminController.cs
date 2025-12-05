@@ -1926,17 +1926,28 @@ namespace Unicareer.Areas.Admin.Controllers
                 var tin = _tinTuyenDungRepository.LayTinTuyenDungTheoId(id);
                 if (tin == null)
                 {
+                    _logger.LogWarning("Attempted to delete non-existent job posting with ID: {Id}", id);
                     return Json(new { success = false, message = "Không tìm thấy tin tuyển dụng!" });
                 }
 
-                // TODO: Xóa tin trong database
-                // _tinTuyenDungRepository.XoaTinTuyenDung(id);
-
-                return Json(new { success = true, message = "Đã xóa tin tuyển dụng thành công!" });
+                _logger.LogInformation("Admin attempting to delete job posting ID: {Id}, Title: {Title}", id, tin.TenViecLam);
+                
+                var ketQua = _tinTuyenDungRepository.XoaTinTuyenDung(id);
+                if (ketQua)
+                {
+                    _logger.LogInformation("Successfully deleted job posting ID: {Id}", id);
+                    return Json(new { success = true, message = "Đã xóa tin tuyển dụng thành công!" });
+                }
+                else
+                {
+                    _logger.LogWarning("Failed to delete job posting ID: {Id} - repository returned false", id);
+                    return Json(new { success = false, message = "Không thể xóa tin tuyển dụng!" });
+                }
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+                _logger.LogError(ex, "Error deleting job posting ID: {Id}", id);
+                return Json(new { success = false, message = "Có lỗi xảy ra khi xóa tin tuyển dụng: " + ex.Message });
             }
         }
 
@@ -3315,11 +3326,6 @@ namespace Unicareer.Areas.Admin.Controllers
                     return Json(new { success = false, message = "Tiêu đề không được để trống!" });
                 }
 
-                if (string.IsNullOrWhiteSpace(content))
-                {
-                    return Json(new { success = false, message = "Nội dung không được để trống!" });
-                }
-
                 var existingBlog = _blogRepository.LayBlogTheoApiArticleId(articleId);
                 if (existingBlog != null)
                 {
@@ -3330,6 +3336,90 @@ namespace Unicareer.Areas.Admin.Controllers
                 if (currentUser == null)
                 {
                     return Json(new { success = false, message = "Không tìm thấy người dùng!" });
+                }
+
+                // ✅ LẤY NỘI DUNG ĐẦY ĐỦ TỪ API GỐC
+                string finalContent = content?.Trim() ?? string.Empty;
+                
+                _logger.LogInformation("=== BẮT ĐẦU XỬ LÝ CONTENT ===");
+                _logger.LogInformation("Content ban đầu từ JavaScript: Length={Length}, Preview={Preview}", 
+                    finalContent.Length, 
+                    finalContent.Length > 100 ? finalContent.Substring(0, 100) + "..." : finalContent);
+                _logger.LogInformation("Description: Length={Length}, Preview={Preview}", 
+                    description?.Length ?? 0,
+                    description?.Length > 100 ? description.Substring(0, 100) + "..." : description);
+                _logger.LogInformation("ArticleId: {ArticleId}, SourceName: {SourceName}", articleId, sourceName);
+                
+                // LUÔN LUÔN thử lấy full content từ API nếu là Dev.to (vì content ban đầu chỉ là description)
+                // Hoặc nếu content quá ngắn (< 500 ký tự) hoặc chỉ là description
+                bool shouldFetchFullContent = false;
+                
+                if (articleId.StartsWith("devto_"))
+                {
+                    // Dev.to: LUÔN LUÔN lấy full content vì content ban đầu chỉ là description
+                    shouldFetchFullContent = true;
+                    _logger.LogInformation("🔵 Dev.to article - SẼ lấy full content từ API");
+                }
+                else if (string.IsNullOrWhiteSpace(finalContent) || 
+                         finalContent.Length < 500 || 
+                         finalContent == description ||
+                         (description != null && finalContent == description))
+                {
+                    // Các API khác: chỉ lấy nếu content quá ngắn
+                    shouldFetchFullContent = true;
+                    _logger.LogInformation("🔵 Content quá ngắn hoặc chỉ là description - SẼ lấy full content từ API");
+                }
+                else
+                {
+                    _logger.LogInformation("✅ Content đã đủ dài ({Length} ký tự), không cần lấy thêm", finalContent.Length);
+                }
+                
+                if (shouldFetchFullContent)
+                {
+                    _logger.LogInformation("📡 Đang gọi FetchFullContentAsync...");
+                    _logger.LogInformation("ArticleId: {ArticleId}, SourceName: {SourceName}, SourceUrl: {SourceUrl}", 
+                        articleId, sourceName, sourceUrl);
+                    
+                    if (_externalArticleService != null)
+                    {
+                        try
+                        {
+                            var fullContent = await _externalArticleService.FetchFullContentAsync(articleId, sourceName ?? "Unknown", sourceUrl);
+                            
+                            if (!string.IsNullOrWhiteSpace(fullContent) && fullContent.Length > finalContent.Length)
+                            {
+                                finalContent = fullContent;
+                                _logger.LogInformation("✅ Đã lấy được full content từ API, độ dài: {Length} ký tự", finalContent.Length);
+                                _logger.LogInformation("Full content preview (first 200 chars): {Preview}", 
+                                    finalContent.Length > 200 ? finalContent.Substring(0, 200) + "..." : finalContent);
+                            }
+                            else
+                            {
+                                _logger.LogWarning("⚠️ FetchFullContentAsync trả về null hoặc content ngắn hơn. FullContent length: {FullLength}, Current length: {CurrentLength}", 
+                                    fullContent?.Length ?? 0, finalContent.Length);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "❌ Lỗi khi gọi FetchFullContentAsync: {Message}", ex.Message);
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogError("❌ ExternalArticleService is NULL, không thể lấy full content");
+                    }
+                }
+
+                // Nếu vẫn không có content, dùng description hoặc title
+                if (string.IsNullOrWhiteSpace(finalContent))
+                {
+                    finalContent = description ?? title;
+                    _logger.LogWarning("⚠️ Không có content, sử dụng description hoặc title");
+                }
+
+                if (string.IsNullOrWhiteSpace(finalContent))
+                {
+                    return Json(new { success = false, message = "Nội dung không được để trống!" });
                 }
 
                 string? localImagePath = null;
@@ -3360,7 +3450,7 @@ namespace Unicareer.Areas.Admin.Controllers
                 {
                     TieuDe = title.Trim(),
                     MoTaNgan = string.IsNullOrWhiteSpace(description) ? title.Substring(0, Math.Min(150, title.Length)) : description.Trim(),
-                    NoiDung = content.Trim(),
+                    NoiDung = finalContent.Trim(),
                     HinhAnh = localImagePath ?? imageUrl,
                     TacGia = string.IsNullOrWhiteSpace(author) ? (sourceName ?? "External Author") : author.Trim(),
                     NguonBaiViet = nguonBaiViet,
@@ -3380,6 +3470,11 @@ namespace Unicareer.Areas.Admin.Controllers
                 _logger.LogInformation("Author: {Author}", blog.TacGia);
                 _logger.LogInformation("Source: {Source}", blog.NguonBaiViet);
                 _logger.LogInformation("ArticleId: {ArticleId}", blog.ApiArticleId);
+                _logger.LogInformation("Content Length: {Length} characters", blog.NoiDung?.Length ?? 0);
+                _logger.LogInformation("Content Preview (first 200 chars): {Preview}", 
+                    blog.NoiDung?.Length > 200 ? blog.NoiDung.Substring(0, 200) + "..." : blog.NoiDung);
+                _logger.LogInformation("Content Preview (last 200 chars): {Preview}", 
+                    blog.NoiDung?.Length > 200 ? "..." + blog.NoiDung.Substring(blog.NoiDung.Length - 200) : blog.NoiDung);
                 _logger.LogInformation("Image: {Image}", blog.HinhAnh);
 
                 var result = _blogRepository.ThemBlog(blog);
@@ -3563,10 +3658,6 @@ namespace Unicareer.Areas.Admin.Controllers
                 return RedirectToAction("TheLoaiBlog");
             }
 
-            // Set default values
-            theLoai.MoTa = null;
-            theLoai.Icon = null;
-            theLoai.MauSac = null;
             theLoai.ThuTu = 0;
             theLoai.HienThi = true;
 

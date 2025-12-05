@@ -17,6 +17,7 @@ namespace Unicareer.Repository
         public List<TinUngTuyen> LayDanhSachTinUngTuyen()
         {
             return _context.TinUngTuyens
+                .Include(t => t.TruongDaiHoc)
                 .OrderByDescending(t => t.NgayUngTuyen)
                 .ToList();
         }
@@ -24,6 +25,7 @@ namespace Unicareer.Repository
         public List<TinUngTuyen> LayDanhSachTinUngTuyenTheoEmail(string email)
         {
             return _context.TinUngTuyens
+                .Include(t => t.TruongDaiHoc)
                 .Where(t => t.Email.ToLower() == email.ToLower())
                 .OrderByDescending(t => t.NgayUngTuyen)
                 .ToList();
@@ -32,6 +34,7 @@ namespace Unicareer.Repository
         public List<TinUngTuyen> LayDanhSachTinUngTuyenTheoUserId(string userId)
         {
             return _context.TinUngTuyens
+                .Include(t => t.TruongDaiHoc)
                 .Where(t => t.UserId == userId)
                 .OrderByDescending(t => t.NgayUngTuyen)
                 .ToList();
@@ -40,6 +43,7 @@ namespace Unicareer.Repository
         public TinUngTuyen? LayTinUngTuyenTheoId(int id)
         {
             return _context.TinUngTuyens
+                .Include(t => t.TruongDaiHoc)
                 .FirstOrDefault(t => t.MaTinUngTuyen == id);
         }
 

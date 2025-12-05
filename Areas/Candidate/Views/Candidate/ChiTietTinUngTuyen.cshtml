@@ -246,6 +246,10 @@
                 <div class="info-value">@Model.HoTen</div>
             </div>
             <div class="info-row">
+                <div class="info-label">Trường đại học:</div>
+                <div class="info-value">@((Model.TruongDaiHoc?.TenTruong) ?? "Không có")</div>
+            </div>
+            <div class="info-row">
                 <div class="info-label">Email:</div>
                 <div class="info-value">
                     <a href="mailto:@Model.Email">@Model.Email</a>

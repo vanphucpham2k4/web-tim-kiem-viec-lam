@@ -960,7 +960,7 @@ namespace Unicareer.Controllers
             return View(congTy);
         }
 
-        public IActionResult ChiTietViecLam(int id)
+        public async Task<IActionResult> ChiTietViecLam(int id)
         {
             var tinTuyenDung = _tinTuyenDungRepository.LayTinTuyenDungTheoId(id);
             if (tinTuyenDung == null)
@@ -1013,6 +1013,18 @@ namespace Unicareer.Controllers
                 .ToList();
             ViewBag.DanhSachViecLamKhac = danhSachViecLamKhac;
             
+            // Lấy thông tin ứng viên nếu đã đăng nhập và là ứng viên
+            UngVien? ungVien = null;
+            if (User.Identity?.IsAuthenticated == true && User.IsInRole(SD.Role_UngVien))
+            {
+                var currentUser = await _userManager.GetUserAsync(User);
+                if (currentUser != null)
+                {
+                    ungVien = _ungVienRepository.LayUngVienTheoUserId(currentUser.Id);
+                }
+            }
+            ViewBag.UngVien = ungVien;
+            
             return View(tinTuyenDung);
         }
 
@@ -1025,7 +1037,7 @@ namespace Unicareer.Controllers
             string fullName, 
             string email, 
             string phone, 
-            string? school, 
+            int? maTruong, 
             string? major, 
             string content,
             IFormFile? cvFile)
@@ -1123,6 +1135,14 @@ namespace Unicareer.Controllers
                 }
                 string userId = user.Id;
 
+                // Lấy thông tin trường (nếu có) để lưu kèm
+                string? tenTruong = null;
+                if (maTruong.HasValue)
+                {
+                    var truong = _truongDaiHocRepository.LayTruongDaiHocTheoId(maTruong.Value);
+                    tenTruong = truong?.TenTruong;
+                }
+
                 // Tạo tin ứng tuyển
                 var tinUngTuyen = new TinUngTuyen
                 {
@@ -1130,12 +1150,13 @@ namespace Unicareer.Controllers
                     HoTen = fullName.Trim(),
                     Email = email.Trim(),
                     SoDienThoai = phone.Trim(),
+                    MaTruong = maTruong,
                     ViTriUngTuyen = tinTuyenDung.TenViecLam ?? "",
                     CongTy = tinTuyenDung.CongTy ?? "",
                     MaTinTuyenDung = jobId.ToString(),
                     TrangThaiXuLy = TrangThaiXuLyHelper.ToString(TrangThaiXuLy.DangXemXet),
                     LinkCV = cvPath ?? "",
-                    GhiChu = $"Trường: {school ?? "Không có"}; Ngành: {major ?? "Không có"}; Nội dung: {content.Trim()}",
+                    GhiChu = $"Trường: {tenTruong ?? "Không có"}; Ngành: {major ?? "Không có"}; Nội dung: {content.Trim()}",
                     NgayUngTuyen = DateTime.Now
                 };
 

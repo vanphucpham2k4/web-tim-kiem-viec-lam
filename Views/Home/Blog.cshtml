@@ -419,10 +419,6 @@
                         {
                             <li>
                             <a class="category-link @(selectedCategoryId == theLoai.MaTheLoai ? "is-active" : "")" href="@BuildCategoryUrl(theLoai.MaTheLoai)">
-                                @if (!string.IsNullOrEmpty(theLoai.Icon))
-                                {
-                                    <span class="category-icon"><i class="@theLoai.Icon"></i></span>
-                                }
                                 <span>@theLoai.TenTheLoai</span>
                             </a>
                             </li>

@@ -743,11 +743,13 @@
                 var row = $(this).closest('tr');
                 var jobTitle = row.find('td:eq(2) strong').text();
                 var ma = $(this).data('ma');
+                var token = $('input[name="__RequestVerificationToken"]').first().val();
 
                 if (confirm('Bạn có chắc chắn muốn xóa tin tuyển dụng "' + jobTitle + '" không?')) {
                     $.ajax({
                         url: '@Url.Action("XoaTinTuyenDung", "Admin")',
                         type: 'POST',
+                        headers: { 'RequestVerificationToken': token || '' },
                         data: { id: ma },
                         success: function(response) {
                             if (response.success) {
@@ -759,8 +761,12 @@
                                 showNotification(response.message || 'Có lỗi xảy ra!', 'error');
                             }
                         },
-                        error: function() {
-                            showNotification('Có lỗi xảy ra khi xóa tin!', 'error');
+                        error: function(xhr) {
+                            var errorMsg = 'Có lỗi xảy ra khi xóa tin!';
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMsg = xhr.responseJSON.message;
+                            }
+                            showNotification(errorMsg, 'error');
                         }
                     });
                 }

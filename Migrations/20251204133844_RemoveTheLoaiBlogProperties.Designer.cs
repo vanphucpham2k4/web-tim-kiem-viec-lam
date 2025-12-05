@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Unicareer.Data;
 
@@ -11,9 +12,11 @@ using Unicareer.Data;
 namespace Unicareer.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251204133844_RemoveTheLoaiBlogProperties")]
+    partial class RemoveTheLoaiBlogProperties
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -771,9 +774,6 @@ namespace Unicareer.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("MaTruong")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("NgayUngTuyen")
                         .HasColumnType("datetime2");
 
@@ -793,9 +793,6 @@ namespace Unicareer.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("MaTinUngTuyen");
-
-                    b.HasIndex("MaTruong")
-                        .HasDatabaseName("idx_tinungtuyen_truong");
 
                     b.HasIndex("UserId");
 
@@ -1131,17 +1128,10 @@ namespace Unicareer.Migrations
 
             modelBuilder.Entity("Unicareer.Models.TinUngTuyen", b =>
                 {
-                    b.HasOne("Unicareer.Models.TruongDaiHoc", "TruongDaiHoc")
-                        .WithMany()
-                        .HasForeignKey("MaTruong")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("Unicareer.Models.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("TruongDaiHoc");
 
                     b.Navigation("User");
                 });

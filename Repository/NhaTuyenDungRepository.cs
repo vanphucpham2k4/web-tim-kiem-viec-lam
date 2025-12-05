@@ -41,6 +41,20 @@ namespace Unicareer.Repository
                 .FirstOrDefault(n => n.UserId == userId);
         }
 
+        public NhaTuyenDung? ThemNhaTuyenDung(NhaTuyenDung nhaTuyenDung)
+        {
+            try
+            {
+                _context.NhaTuyenDungs.Add(nhaTuyenDung);
+                _context.SaveChanges();
+                return nhaTuyenDung;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         public NhaTuyenDung? CapNhatNhaTuyenDung(NhaTuyenDung nhaTuyenDung)
         {
             try

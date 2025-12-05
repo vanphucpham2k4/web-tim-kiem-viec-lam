@@ -1468,17 +1468,16 @@
                     </div>
 
                     <div class="apply-form-group">
-                        <label for="school">Trường học</label>
-                        <select id="school" name="school">
+                        <label for="maTruong">Trường đại học</label>
+                        <select id="maTruong" name="maTruong">
                             <option value="">–</option>
                             @if (ViewBag.DanhSachTruongDaiHoc != null)
                             {
                                 @foreach (var truong in ViewBag.DanhSachTruongDaiHoc as List<TruongDaiHoc>)
                                 {
-                                    <option value="@truong.TenTruong">@truong.TenTruong</option>
+                                    <option value="@truong.MaTruong">@truong.TenTruong</option>
                                 }
                             }
-                            <option value="Khác">Khác</option>
                         </select>
                     </div>
 
@@ -1641,8 +1640,8 @@
 
             // Initialize Select2 for searchable dropdowns when modal is shown
             $('#applyModal').on('shown.bs.modal', function() {
-                if (!$('#school').hasClass('select2-hidden-accessible')) {
-                    $('#school').select2({
+                if (!$('#maTruong').hasClass('select2-hidden-accessible')) {
+                    $('#maTruong').select2({
                         theme: 'bootstrap-5',
                         dropdownParent: $('#applyModal'),
                         placeholder: 'Chọn hoặc tìm kiếm trường học',
@@ -1673,6 +1672,63 @@
                             }
                         }
                     });
+                }
+                
+                // Tự động điền thông tin ứng viên nếu có
+                @if (ViewBag.UngVien != null)
+                {
+                    var ungVien = ViewBag.UngVien as UngVien;
+                    <text>
+                    // Tự động điền thông tin từ hồ sơ ứng viên
+                    @if (!string.IsNullOrEmpty(ungVien.HoTen))
+                    {
+                        <text>
+                        $('#fullName').val(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ungVien.HoTen)));
+                        </text>
+                    }
+                    @if (!string.IsNullOrEmpty(ungVien.Email))
+                    {
+                        <text>
+                        $('#email').val(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ungVien.Email)));
+                        </text>
+                    }
+                    @if (!string.IsNullOrEmpty(ungVien.SoDienThoai))
+                    {
+                        <text>
+                        $('#phone').val(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ungVien.SoDienThoai)));
+                        </text>
+                    }
+                    
+                    // Điền ngành nghề nếu có
+                    @if (!string.IsNullOrEmpty(ungVien.NganhNghe))
+                    {
+                        <text>
+                        setTimeout(function() {
+                            var majorValue = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ungVien.NganhNghe));
+                            var majorOption = $('#major option').filter(function() {
+                                return $(this).text().trim() === majorValue || $(this).val() === majorValue;
+                            }).first();
+                            if (majorOption.length > 0) {
+                                $('#major').val(majorOption.val()).trigger('change');
+                            }
+                        }, 100);
+                        </text>
+                    }
+                    else if (ungVien.ChuyenNganh != null && ungVien.ChuyenNganh.NganhNghe != null && !string.IsNullOrEmpty(ungVien.ChuyenNganh.NganhNghe.TenNganhNghe))
+                    {
+                        <text>
+                        setTimeout(function() {
+                            var majorValue = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ungVien.ChuyenNganh.NganhNghe.TenNganhNghe));
+                            var majorOption = $('#major option').filter(function() {
+                                return $(this).text().trim() === majorValue || $(this).val() === majorValue;
+                            }).first();
+                            if (majorOption.length > 0) {
+                                $('#major').val(majorOption.val()).trigger('change');
+                            }
+                        }, 100);
+                        </text>
+                    }
+                    </text>
                 }
             });
 
@@ -1903,7 +1959,7 @@
                 formData.append('fullName', $('#fullName').val().trim());
                 formData.append('email', $('#email').val().trim());
                 formData.append('phone', $('#phone').val().trim());
-                formData.append('school', $('#school').val() || '');
+                formData.append('maTruong', $('#maTruong').val() || '');
                 formData.append('major', $('#major').val() || '');
                 formData.append('content', $('#content').val().trim());
                 
@@ -1973,8 +2029,8 @@
             // Reset form when modal is closed
             $('#applyModal').on('hidden.bs.modal', function() {
                 // Destroy Select2 instances to avoid conflicts
-                if ($('#school').hasClass('select2-hidden-accessible')) {
-                    $('#school').select2('destroy');
+                if ($('#maTruong').hasClass('select2-hidden-accessible')) {
+                    $('#maTruong').select2('destroy');
                 }
                 if ($('#major').hasClass('select2-hidden-accessible')) {
                     $('#major').select2('destroy');

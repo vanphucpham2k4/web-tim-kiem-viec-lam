@@ -6,6 +6,7 @@ using System.Security.Claims;
 using Unicareer.Models;
 using Unicareer.Models.ViewModels;
 using Unicareer.Services;
+using Unicareer.Repository;
 
 namespace Unicareer.Controllers
 {
@@ -16,19 +17,25 @@ namespace Unicareer.Controllers
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ILogger<AccountController> _logger;
         private readonly IEmailService _emailService;
+        private readonly IUngVienRepository _ungVienRepository;
+        private readonly INhaTuyenDungRepository _nhaTuyenDungRepository;
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             RoleManager<IdentityRole> roleManager,
             ILogger<AccountController> logger,
-            IEmailService emailService)
+            IEmailService emailService,
+            IUngVienRepository ungVienRepository,
+            INhaTuyenDungRepository nhaTuyenDungRepository)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
             _logger = logger;
             _emailService = emailService;
+            _ungVienRepository = ungVienRepository;
+            _nhaTuyenDungRepository = nhaTuyenDungRepository;
         }
 
         // GET: Account/Register
@@ -92,6 +99,46 @@ namespace Unicareer.Controllers
                         : SD.Role_UngVien;
                     
                     await _userManager.AddToRoleAsync(user, roleName);
+                    
+                    // Logic mới: Tạo UngVien hoặc NhaTuyenDung tương ứng (chạy song song với logic cũ)
+                    try
+                    {
+                        if (model.LoaiTaiKhoan == SD.Role_NhaTuyenDung)
+                        {
+                            // Tạo NhaTuyenDung với TenCongTy từ HoTen
+                            var nhaTuyenDung = new NhaTuyenDung
+                            {
+                                UserId = user.Id,
+                                TenCongTy = model.HoTen ?? string.Empty,
+                                Email = model.Email,
+                                SoDienThoai = model.SoDienThoai ?? string.Empty,
+                                NgayDangKy = DateTime.Now,
+                                SoTinDaDang = 0,
+                                SoUngVienNhan = 0
+                            };
+                            _nhaTuyenDungRepository.ThemNhaTuyenDung(nhaTuyenDung);
+                        }
+                        else
+                        {
+                            // Tạo UngVien với HoTen từ model
+                            var ungVien = new UngVien
+                            {
+                                UserId = user.Id,
+                                HoTen = model.HoTen ?? string.Empty,
+                                Email = model.Email,
+                                SoDienThoai = model.SoDienThoai ?? string.Empty,
+                                NgaySinh = new DateTime(2000, 1, 1),
+                                NgayDangKy = DateTime.Now,
+                                SoLanUngTuyen = 0
+                            };
+                            _ungVienRepository.ThemUngVien(ungVien);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log lỗi nhưng không chặn đăng ký (logic cũ vẫn chạy)
+                        _logger.LogWarning(ex, "Không thể tạo UngVien/NhaTuyenDung sau khi đăng ký. UserId: {UserId}", user.Id);
+                    }
                     
                     await _signInManager.SignInAsync(user, isPersistent: false);
                     
@@ -463,6 +510,46 @@ namespace Unicareer.Controllers
                 {
                     // Gán role
                     await _userManager.AddToRoleAsync(user, loaiTaiKhoan);
+                    
+                    // Logic mới: Tạo UngVien hoặc NhaTuyenDung tương ứng (chạy song song với logic cũ)
+                    try
+                    {
+                        if (loaiTaiKhoan == SD.Role_NhaTuyenDung)
+                        {
+                            // Tạo NhaTuyenDung với TenCongTy từ HoTen
+                            var nhaTuyenDung = new NhaTuyenDung
+                            {
+                                UserId = user.Id,
+                                TenCongTy = user.HoTen ?? name ?? "Người dùng",
+                                Email = email,
+                                SoDienThoai = string.Empty,
+                                NgayDangKy = DateTime.Now,
+                                SoTinDaDang = 0,
+                                SoUngVienNhan = 0
+                            };
+                            _nhaTuyenDungRepository.ThemNhaTuyenDung(nhaTuyenDung);
+                        }
+                        else
+                        {
+                            // Tạo UngVien với HoTen từ user
+                            var ungVien = new UngVien
+                            {
+                                UserId = user.Id,
+                                HoTen = user.HoTen ?? name ?? "Người dùng",
+                                Email = email,
+                                SoDienThoai = string.Empty,
+                                NgaySinh = new DateTime(2000, 1, 1),
+                                NgayDangKy = DateTime.Now,
+                                SoLanUngTuyen = 0
+                            };
+                            _ungVienRepository.ThemUngVien(ungVien);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log lỗi nhưng không chặn đăng ký (logic cũ vẫn chạy)
+                        _logger.LogWarning(ex, "Không thể tạo UngVien/NhaTuyenDung sau khi đăng ký Google OAuth. UserId: {UserId}", user.Id);
+                    }
                     
                     // Đăng nhập
                     await _signInManager.SignInAsync(user, isPersistent: false);

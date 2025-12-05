@@ -141,68 +141,89 @@ namespace Unicareer.Repository
 
         public bool XoaTinTuyenDung(int id)
         {
-            var tinTuyenDung = _context.TinTuyenDungs.Find(id);
-            if (tinTuyenDung == null)
+            using var transaction = _context.Database.BeginTransaction();
+            try
             {
-                return false;
-            }
-
-            // Xóa các đơn ứng tuyển liên quan
-            var danhSachTinUngTuyen = _context.TinUngTuyens
-                .Where(t => t.MaTinTuyenDung == id.ToString())
-                .ToList();
-            
-            if (danhSachTinUngTuyen.Any())
-            {
-                _context.TinUngTuyens.RemoveRange(danhSachTinUngTuyen);
-            }
-
-            // Xóa ảnh văn phòng nếu có
-            if (!string.IsNullOrEmpty(tinTuyenDung.AnhVanPhong))
-            {
-                try
+                var tinTuyenDung = _context.TinTuyenDungs.Find(id);
+                if (tinTuyenDung == null)
                 {
-                    var danhSachAnh = new List<string>();
-                    if (tinTuyenDung.AnhVanPhong.Trim().StartsWith("["))
-                    {
-                        var jsonArray = System.Text.Json.JsonSerializer.Deserialize<string[]>(tinTuyenDung.AnhVanPhong);
-                        if (jsonArray != null)
-                        {
-                            danhSachAnh = jsonArray.ToList();
-                        }
-                    }
-                    else
-                    {
-                        danhSachAnh = tinTuyenDung.AnhVanPhong
-                            .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                            .Select(s => s.Trim())
-                            .Where(s => !string.IsNullOrEmpty(s))
-                            .ToList();
-                    }
+                    return false;
+                }
 
-                    // Xóa các file ảnh
-                    foreach (var anhPath in danhSachAnh)
+                // Xóa các đơn ứng tuyển liên quan (TinUngTuyen không có FK constraint nên phải xóa thủ công)
+                var danhSachTinUngTuyen = _context.TinUngTuyens
+                    .Where(t => t.MaTinTuyenDung == id.ToString())
+                    .ToList();
+                
+                if (danhSachTinUngTuyen.Any())
+                {
+                    _context.TinUngTuyens.RemoveRange(danhSachTinUngTuyen);
+                }
+
+                // Xóa các việc làm đã lưu liên quan (có FK với Cascade delete nhưng xóa trước để tránh lỗi)
+                var danhSachViecLamDaLuu = _context.ViecLamDaLuus
+                    .Where(v => v.MaTinTuyenDung == id)
+                    .ToList();
+                
+                if (danhSachViecLamDaLuu.Any())
+                {
+                    _context.ViecLamDaLuus.RemoveRange(danhSachViecLamDaLuu);
+                }
+
+                // Xóa ảnh văn phòng nếu có
+                if (!string.IsNullOrEmpty(tinTuyenDung.AnhVanPhong))
+                {
+                    try
                     {
-                        if (!string.IsNullOrEmpty(anhPath) && anhPath.StartsWith("/uploads/"))
+                        var danhSachAnh = new List<string>();
+                        if (tinTuyenDung.AnhVanPhong.Trim().StartsWith("["))
                         {
-                            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", anhPath.TrimStart('/'));
-                            if (System.IO.File.Exists(filePath))
+                            var jsonArray = System.Text.Json.JsonSerializer.Deserialize<string[]>(tinTuyenDung.AnhVanPhong);
+                            if (jsonArray != null)
                             {
-                                System.IO.File.Delete(filePath);
+                                danhSachAnh = jsonArray.ToList();
+                            }
+                        }
+                        else
+                        {
+                            danhSachAnh = tinTuyenDung.AnhVanPhong
+                                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                .Select(s => s.Trim())
+                                .Where(s => !string.IsNullOrEmpty(s))
+                                .ToList();
+                        }
+
+                        // Xóa các file ảnh
+                        foreach (var anhPath in danhSachAnh)
+                        {
+                            if (!string.IsNullOrEmpty(anhPath) && anhPath.StartsWith("/uploads/"))
+                            {
+                                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", anhPath.TrimStart('/'));
+                                if (System.IO.File.Exists(filePath))
+                                {
+                                    System.IO.File.Delete(filePath);
+                                }
                             }
                         }
                     }
+                    catch
+                    {
+                        // Bỏ qua lỗi khi xóa file
+                    }
                 }
-                catch
-                {
-                    // Bỏ qua lỗi khi xóa file
-                }
-            }
 
-            // Xóa tin tuyển dụng
-            _context.TinTuyenDungs.Remove(tinTuyenDung);
-            _context.SaveChanges();
-            return true;
+                // Xóa tin tuyển dụng
+                _context.TinTuyenDungs.Remove(tinTuyenDung);
+                _context.SaveChanges();
+                
+                transaction.Commit();
+                return true;
+            }
+            catch (Exception)
+            {
+                transaction.Rollback();
+                throw;
+            }
         }
     }
 }

@@ -41,7 +41,6 @@ namespace Unicareer.Repository
             try
             {
                 theLoai.NgayTao = DateTime.Now;
-                theLoai.SoLuongBlog = 0;
                 _context.TheLoaiBlogs.Add(theLoai);
                 _context.SaveChanges();
                 return theLoai;

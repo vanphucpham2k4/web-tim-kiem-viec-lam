@@ -164,6 +164,17 @@ namespace Unicareer.Data
                 .HasForeignKey(t => t.UserId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            // TinUngTuyen -> TruongDaiHoc
+            builder.Entity<TinUngTuyen>()
+                .HasOne(t => t.TruongDaiHoc)
+                .WithMany()
+                .HasForeignKey(t => t.MaTruong)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<TinUngTuyen>()
+                .HasIndex(t => t.MaTruong)
+                .HasDatabaseName("idx_tinungtuyen_truong");
+
             // Cấu hình primary key cho LoaiCongViec
             builder.Entity<LoaiCongViec>()
                 .HasKey(l => l.MaLoaiCongViec);

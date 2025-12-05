@@ -33,10 +33,7 @@ namespace Unicareer.Mappings
             // Mapping cho TheLoaiBlog
             CreateMap<TheLoaiBlog, TheLoaiBlog>()
                 .ForMember(dest => dest.MaTheLoai, opt => opt.Ignore()) // Giữ nguyên MaTheLoai
-                .ForMember(dest => dest.SoLuongBlog, opt => opt.Ignore()) // Giữ nguyên SoLuongBlog
                 .ForMember(dest => dest.NgayTao, opt => opt.Ignore()) // Giữ nguyên NgayTao
-                .ForMember(dest => dest.Icon, opt => opt.Ignore()) // Giữ nguyên Icon
-                .ForMember(dest => dest.MauSac, opt => opt.Ignore()) // Giữ nguyên MauSac
                 .ForMember(dest => dest.HienThi, opt => opt.Ignore()) // Giữ nguyên HienThi
                 .ForMember(dest => dest.ThuTu, opt => opt.Ignore()); // Giữ nguyên ThuTu
         }
