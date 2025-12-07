@@ -1239,6 +1239,97 @@ namespace Unicareer.Areas.Admin.Controllers
             return View(model);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ThemTruongDaiHoc(string tenTruong, string? moTa)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(tenTruong))
+                {
+                    return Json(new { success = false, message = "Tên trường đại học không được để trống!" });
+                }
+
+                var truongDaiHoc = new TruongDaiHoc
+                {
+                    TenTruong = tenTruong.Trim(),
+                    MoTa = string.IsNullOrWhiteSpace(moTa) ? null : moTa.Trim()
+                };
+
+                var ketQua = _truongDaiHocRepository.ThemTruongDaiHoc(truongDaiHoc);
+                if (ketQua == null)
+                {
+                    return Json(new { success = false, message = "Có lỗi xảy ra khi thêm trường đại học!" });
+                }
+
+                return Json(new { success = true, message = "Thêm trường đại học thành công!", data = new { ma = ketQua.MaTruong, ten = ketQua.TenTruong, moTa = ketQua.MoTa, ngayTao = ketQua.NgayTao.ToString("dd/MM/yyyy") } });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CapNhatTruongDaiHoc(int id, string tenTruong, string? moTa)
+        {
+            try
+            {
+                var truongDaiHoc = _truongDaiHocRepository.LayTruongDaiHocTheoId(id);
+                if (truongDaiHoc == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy trường đại học!" });
+                }
+
+                if (string.IsNullOrWhiteSpace(tenTruong))
+                {
+                    return Json(new { success = false, message = "Tên trường đại học không được để trống!" });
+                }
+
+                truongDaiHoc.TenTruong = tenTruong.Trim();
+                truongDaiHoc.MoTa = string.IsNullOrWhiteSpace(moTa) ? null : moTa.Trim();
+
+                var ketQua = _truongDaiHocRepository.CapNhatTruongDaiHoc(truongDaiHoc);
+                if (ketQua == null)
+                {
+                    return Json(new { success = false, message = "Có lỗi xảy ra khi cập nhật trường đại học!" });
+                }
+
+                return Json(new { success = true, message = "Cập nhật trường đại học thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult XoaTruongDaiHoc(int id)
+        {
+            try
+            {
+                var truongDaiHoc = _truongDaiHocRepository.LayTruongDaiHocTheoId(id);
+                if (truongDaiHoc == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy trường đại học để xóa!" });
+                }
+
+                var ketQua = _truongDaiHocRepository.XoaTruongDaiHoc(id);
+                if (!ketQua)
+                {
+                    return Json(new { success = false, message = "Không thể xóa trường đại học. Có thể do ràng buộc dữ liệu!" });
+                }
+
+                return Json(new { success = true, message = "Xóa trường đại học thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
         public IActionResult TinTuyenDung(int pageNumber = 1, int pageSize = 10, string? searchTerm = null, string? trangThaiFilter = null, string? nganhNgheFilter = null)
         {
             var danhSachTinTuyenDung = _tinTuyenDungRepository.LayDanhSachTinTuyenDung();
