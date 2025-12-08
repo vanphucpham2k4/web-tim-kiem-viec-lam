@@ -22,12 +22,13 @@ namespace Unicareer.Controllers
         private readonly ITruongDaiHocRepository _truongDaiHocRepository;
         private readonly INganhNgheRepository _nganhNgheRepository;
         private readonly IBlogRepository _blogRepository;
+        private readonly ITinUngTuyenRepository _tinUngTuyenRepository;
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IEmailService _emailService;
         private readonly IMapper _mapper;
 
-        public HomeController(ILogger<HomeController> logger, INhaTuyenDungRepository nhaTuyenDungRepository, ITinTuyenDungRepository tinTuyenDungRepository, IUngVienRepository ungVienRepository, ITruongDaiHocRepository truongDaiHocRepository, INganhNgheRepository nganhNgheRepository, IBlogRepository blogRepository, ApplicationDbContext context, UserManager<ApplicationUser> userManager, IEmailService emailService, IMapper mapper)
+        public HomeController(ILogger<HomeController> logger, INhaTuyenDungRepository nhaTuyenDungRepository, ITinTuyenDungRepository tinTuyenDungRepository, IUngVienRepository ungVienRepository, ITruongDaiHocRepository truongDaiHocRepository, INganhNgheRepository nganhNgheRepository, IBlogRepository blogRepository, ITinUngTuyenRepository tinUngTuyenRepository, ApplicationDbContext context, UserManager<ApplicationUser> userManager, IEmailService emailService, IMapper mapper)
         {
             _logger = logger;
             _nhaTuyenDungRepository = nhaTuyenDungRepository;
@@ -36,6 +37,7 @@ namespace Unicareer.Controllers
             _truongDaiHocRepository = truongDaiHocRepository;
             _nganhNgheRepository = nganhNgheRepository;
             _blogRepository = blogRepository;
+            _tinUngTuyenRepository = tinUngTuyenRepository;
             _context = context;
             _userManager = userManager;
             _emailService = emailService;
@@ -1015,15 +1017,19 @@ namespace Unicareer.Controllers
             
             // Lấy thông tin ứng viên nếu đã đăng nhập và là ứng viên
             UngVien? ungVien = null;
+            TinUngTuyen? tinUngTuyenHienTai = null;
             if (User.Identity?.IsAuthenticated == true && User.IsInRole(SD.Role_UngVien))
             {
                 var currentUser = await _userManager.GetUserAsync(User);
                 if (currentUser != null)
                 {
                     ungVien = _ungVienRepository.LayUngVienTheoUserId(currentUser.Id);
+                    // Kiểm tra xem user đã ứng tuyển cho tin này chưa
+                    tinUngTuyenHienTai = _tinUngTuyenRepository.LayTinUngTuyenTheoUserIdVaJobId(currentUser.Id, id);
                 }
             }
             ViewBag.UngVien = ungVien;
+            ViewBag.TinUngTuyenHienTai = tinUngTuyenHienTai;
             
             return View(tinTuyenDung);
         }
@@ -1134,6 +1140,23 @@ namespace Unicareer.Controllers
                     return Json(new { success = false, message = "Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại." });
                 }
                 string userId = user.Id;
+
+                // Kiểm tra xem user đã ứng tuyển cho tin này chưa
+                var tinUngTuyenCu = _tinUngTuyenRepository.LayTinUngTuyenTheoUserIdVaJobId(userId, jobId);
+                if (tinUngTuyenCu != null)
+                {
+                    // Nếu trạng thái là "Từ chối" hoặc "Không phù hợp" thì cho phép ứng tuyển lại
+                    var trangThai = tinUngTuyenCu.TrangThaiXuLy?.Trim();
+                    var trangThaiEnum = TrangThaiXuLyHelper.FromString(trangThai);
+                    
+                    if (trangThaiEnum != TrangThaiXuLy.TuChoi && trangThaiEnum != TrangThaiXuLy.KhongPhuHop)
+                    {
+                        // Đã ứng tuyển và chưa bị từ chối, không cho phép ứng tuyển lại
+                        var trangThaiDisplay = trangThai ?? "Đang xem xét";
+                        return Json(new { success = false, message = $"Bạn đã ứng tuyển cho vị trí này. Trạng thái: {trangThaiDisplay}" });
+                    }
+                    // Nếu là "Từ chối" hoặc "Không phù hợp", cho phép ứng tuyển lại (sẽ tạo đơn mới)
+                }
 
                 // Lấy thông tin trường (nếu có) để lưu kèm
                 string? tenTruong = null;

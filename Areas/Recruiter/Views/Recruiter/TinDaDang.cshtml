@@ -476,7 +476,13 @@
                                     <td>@tin.NgayDang.ToString("dd/MM/yyyy")</td>
                                     <td>@tin.HanNop.ToString("dd/MM/yyyy")</td>
                                     <td>
-                                        <span class="badge bg-primary">@tin.SoLuongUngTuyen</span>
+                                        @{
+                                            var soLuongUngTuyenTheoTin = ViewBag.SoLuongUngTuyenTheoTin as Dictionary<int, int> ?? new Dictionary<int, int>();
+                                            var soLuong = soLuongUngTuyenTheoTin.ContainsKey(tin.MaTinTuyenDung) 
+                                                ? soLuongUngTuyenTheoTin[tin.MaTinTuyenDung] 
+                                                : 0;
+                                        }
+                                        <span class="badge bg-primary">@soLuong</span>
                                     </td>
                                     <td>
                                         <span class="badge @badgeClass trang-thai-badge">@trangThai</span>

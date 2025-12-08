@@ -1127,9 +1127,12 @@
                     <div class="info-item">
                         <span class="info-label">Lượt ứng tuyển:</span>
                         <span class="info-value">
-                            @if (Model.SoLuongUngTuyen > 0)
+                            @{
+                                var soLuongThucTe = ViewBag.TotalCountAll ?? 0;
+                            }
+                            @if (soLuongThucTe > 0)
                             {
-                                <span class="badge-custom badge-info">@Model.SoLuongUngTuyen</span>
+                                <span class="badge-custom badge-info">@soLuongThucTe</span>
                             }
                             else
                             {

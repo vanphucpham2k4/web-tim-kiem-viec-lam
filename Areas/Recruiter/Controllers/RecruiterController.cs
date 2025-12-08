@@ -335,12 +335,21 @@ namespace Unicareer.Areas.Recruiter.Controllers
             // Lấy tin tuyển dụng theo mã nhà tuyển dụng (foreign key)
             var danhSach = _tinTuyenDungRepository.LayDanhSachTheoMaNhaTuyenDung(nhaTuyenDung.MaNhaTuyenDung);
             
+            // Lấy danh sách mã tin tuyển dụng của công ty
+            var danhSachMaTin = danhSach.Select(t => t.MaTinTuyenDung.ToString()).ToList();
+            
+            // Lấy đơn ứng tuyển theo các tin tuyển dụng của công ty để đếm thực tế
+            var danhSachTinUngTuyen = _tinUngTuyenRepository.LayDanhSachTinUngTuyen()
+                .Where(t => danhSachMaTin.Contains(t.MaTinTuyenDung))
+                .ToList();
+            
             // Tính stats từ toàn bộ dữ liệu (trước khi lọc)
             var totalDangTuyen = danhSach.Count(t => 
                 t.TrangThai == "Dang tuyen" || (string.IsNullOrEmpty(t.TrangThai) && t.HanNop >= DateTime.Now));
             var totalHetHan = danhSach.Count(t => 
                 t.TrangThai == "Het han" || (string.IsNullOrEmpty(t.TrangThai) && t.HanNop < DateTime.Now) || t.TrangThai == "Da dong");
-            var totalUngTuyen = danhSach.Sum(t => t.SoLuongUngTuyen) ?? 0;
+            // Đếm thực tế số lượng ứng tuyển từ bảng TinUngTuyen
+            var totalUngTuyen = danhSachTinUngTuyen.Count;
             var totalChoDuyet = danhSach.Count(t => t.TrangThaiDuyet == "Cho duyet");
             var totalDaDuyet = danhSach.Count(t => t.TrangThaiDuyet == "Da duyet");
             var totalTuChoi = danhSach.Count(t => t.TrangThaiDuyet == "Tu choi");
@@ -372,6 +381,15 @@ namespace Unicareer.Areas.Recruiter.Controllers
             // Tính toán phân trang
             var totalCount = danhSach.Count;
             var pagedList = danhSach.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+            
+            // Tính số lượng ứng tuyển thực tế cho mỗi tin trong danh sách phân trang
+            var soLuongUngTuyenTheoTin = pagedList.ToDictionary(
+                t => t.MaTinTuyenDung,
+                t => danhSachTinUngTuyen.Count(u => u.MaTinTuyenDung == t.MaTinTuyenDung.ToString())
+            );
+            
+            // Lưu vào ViewBag để View có thể sử dụng
+            ViewBag.SoLuongUngTuyenTheoTin = soLuongUngTuyenTheoTin;
             
             var model = new TinDaDangViewModel
             {
@@ -426,18 +444,21 @@ namespace Unicareer.Areas.Recruiter.Controllers
                 return RedirectToAction("TinDaDang");
             }
             
-            // Lấy danh sách ứng tuyển theo mã tin
-            var danhSachUngTuyen = _tinUngTuyenRepository.LayDanhSachTinUngTuyen()
-                .Where(t => t.MaTinTuyenDung == id.ToString())
+            // Lấy danh sách ứng tuyển theo mã tin (đảm bảo so sánh đúng với string)
+            var danhSachUngTuyenBanDau = _tinUngTuyenRepository.LayDanhSachTinUngTuyen()
+                .Where(t => !string.IsNullOrEmpty(t.MaTinTuyenDung) && t.MaTinTuyenDung.Trim() == id.ToString())
                 .ToList();
             
             // Tính stats từ toàn bộ dữ liệu (trước khi lọc)
-            var totalDangXemXet = danhSachUngTuyen.Count(t => 
+            var totalDangXemXet = danhSachUngTuyenBanDau.Count(t => 
                 Models.Enums.TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy) == Models.Enums.TrangThaiXuLy.DangXemXet);
-            var totalChoPhongVan = danhSachUngTuyen.Count(t => 
+            var totalChoPhongVan = danhSachUngTuyenBanDau.Count(t => 
                 Models.Enums.TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy) == Models.Enums.TrangThaiXuLy.ChoPhongVan);
-            var totalTuyenDung = danhSachUngTuyen.Count(t => 
+            var totalTuyenDung = danhSachUngTuyenBanDau.Count(t => 
                 Models.Enums.TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy) == Models.Enums.TrangThaiXuLy.TuyenDung);
+            
+            // Tạo bản sao để lọc
+            var danhSachUngTuyen = danhSachUngTuyenBanDau.ToList();
             
             // Lọc theo tìm kiếm
             if (!string.IsNullOrEmpty(searchTerm))
@@ -490,7 +511,8 @@ namespace Unicareer.Areas.Recruiter.Controllers
             ViewBag.DanhSachChuyenNganh = danhSachChuyenNganh;
             ViewBag.PageNumber = pageNumber;
             ViewBag.PageSize = pageSize;
-            ViewBag.TotalCount = totalCount;
+            ViewBag.TotalCount = totalCount; // Số lượng sau khi lọc (cho phân trang)
+            ViewBag.TotalCountAll = danhSachUngTuyenBanDau.Count; // Tổng số thực tế (trước khi lọc)
             ViewBag.TotalPages = (int)Math.Ceiling((double)totalCount / pageSize);
             ViewBag.SearchTerm = searchTerm;
             ViewBag.TrangThaiFilter = trangThaiFilter;

@@ -47,6 +47,15 @@ namespace Unicareer.Repository
                 .FirstOrDefault(t => t.MaTinUngTuyen == id);
         }
 
+        public TinUngTuyen? LayTinUngTuyenTheoUserIdVaJobId(string userId, int jobId)
+        {
+            return _context.TinUngTuyens
+                .Include(t => t.TruongDaiHoc)
+                .Where(t => t.UserId == userId && t.MaTinTuyenDung == jobId.ToString())
+                .OrderByDescending(t => t.NgayUngTuyen)
+                .FirstOrDefault();
+        }
+
         public TinUngTuyen ThemTinUngTuyen(TinUngTuyen tinUngTuyen)
         {
             tinUngTuyen.NgayUngTuyen = DateTime.Now;
