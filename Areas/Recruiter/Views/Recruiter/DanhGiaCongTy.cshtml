@@ -1,0 +1,295 @@
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Đánh giá công ty";
+    var danhSachDanhGia = ViewBag.DanhSachDanhGia as List<Unicareer.Models.DanhGiaCongTy> ?? new List<Unicareer.Models.DanhGiaCongTy>();
+    var pageNumber = ViewBag.PageNumber as int? ?? 1;
+    var pageSize = ViewBag.PageSize as int? ?? 10;
+    var totalCount = ViewBag.TotalCount as int? ?? 0;
+    var totalPages = ViewBag.TotalPages as int? ?? 1;
+    var trustScore = ViewBag.TrustScore as double? ?? 0.0;
+}
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3);
+    }
+
+    .trust-score-card {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        text-align: center;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+    }
+
+    .trust-score-number {
+        font-size: 4rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 10px;
+    }
+
+    .review-card {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        border-left: 4px solid #e2e8f0;
+    }
+
+    .review-card.pending {
+        border-left-color: #f59e0b;
+    }
+
+    .review-card.approved {
+        border-left-color: #10b981;
+    }
+
+    .review-card.rejected {
+        border-left-color: #ef4444;
+    }
+
+    .reply-section {
+        background: #f0fdf4;
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 15px;
+        border-left: 3px solid #10b981;
+    }
+</style>
+
+<div class="page-header">
+    <h1><i class="bi bi-star-fill"></i> Đánh giá công ty</h1>
+    <p>Xem và phản hồi các đánh giá từ ứng viên</p>
+</div>
+
+<!-- Trust Score Card -->
+<div class="trust-score-card">
+    <h5 class="text-muted mb-3">Trust Score</h5>
+    <div class="trust-score-number">@trustScore.ToString("0.0")</div>
+    <p class="text-muted mb-0">/ 5.0 điểm</p>
+    <small class="text-muted">Dựa trên @totalCount đánh giá đã duyệt</small>
+</div>
+
+<!-- Danh sách Reviews -->
+<div class="card">
+    <div class="card-header bg-white">
+        <h5 class="mb-0"><i class="bi bi-chat-left-text"></i> Danh sách đánh giá (@totalCount)</h5>
+    </div>
+    <div class="card-body">
+        @if (danhSachDanhGia.Any())
+        {
+            @foreach (var review in danhSachDanhGia)
+            {
+                var tags = new List<string>();
+                if (!string.IsNullOrEmpty(review.Tags))
+                {
+                    try
+                    {
+                        tags = JsonSerializer.Deserialize<List<string>>(review.Tags) ?? new List<string>();
+                    }
+                    catch
+                    {
+                        tags = new List<string>();
+                    }
+                }
+                
+                var cardClass = review.TrangThai switch
+                {
+                    "Cho duyet" => "pending",
+                    "Da duyet" => "approved",
+                    "Tu choi" => "rejected",
+                    _ => ""
+                };
+
+                <div class="review-card @cardClass">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="review-avatar" style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                                @if (review.IsAnDanh)
+                                {
+                                    <span>🤖</span>
+                                }
+                                else
+                                {
+                                    <span>👤</span>
+                                }
+                            </div>
+                            <div>
+                                <strong style="color: #2d3748;">
+                                    @if (review.IsAnDanh)
+                                    {
+                                        <span>Ứng viên ẩn danh</span>
+                                    }
+                                    else
+                                    {
+                                        <span>@(review.User?.HoTen ?? "Ứng viên")</span>
+                                    }
+                                </strong>
+                                <div class="text-muted" style="font-size: 0.85rem;">
+                                    @review.NgayTao.ToString("dd/MM/yyyy HH:mm")
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="badge @(review.TrangThai == "Da duyet" ? "bg-success" : review.TrangThai == "Tu choi" ? "bg-danger" : "bg-warning")">
+                                @(review.TrangThai == "Da duyet" ? "Đã duyệt" : review.TrangThai == "Tu choi" ? "Từ chối" : "Chờ duyệt")
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex gap-4 mb-2">
+                            <span><strong>💰 Minh bạch lương:</strong> @review.DiemMinhBachLuong/5</span>
+                            <span><strong>⚡ Tốc độ phản hồi:</strong> @review.DiemTocDoPhanHoi/5</span>
+                            <span><strong>🤝 Tôn trọng:</strong> @review.DiemTonTrongUngVien/5</span>
+                        </div>
+                        
+                        @if (tags.Any())
+                        {
+                            <div class="mb-2">
+                                @foreach (var tag in tags)
+                                {
+                                    if (tag.Contains("🚩"))
+                                    {
+                                        <span class="badge bg-danger me-1 mb-1">@tag</span>
+                                    }
+                                    else if (tag.Contains("✅"))
+                                    {
+                                        <span class="badge bg-success me-1 mb-1">@tag</span>
+                                    }
+                                }
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(review.NoiDung))
+                        {
+                            <div class="review-content" style="color: #374151; line-height: 1.6; margin-top: 10px;">
+                                @review.NoiDung
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Phản hồi hiện tại -->
+                    @if (!string.IsNullOrEmpty(review.PhanHoi))
+                    {
+                        <div class="reply-section">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                                <strong style="color: #059669;">Phản hồi của bạn</strong>
+                                @if (review.NgayPhanHoi.HasValue)
+                                {
+                                    <span class="text-muted" style="font-size: 0.85rem;">@review.NgayPhanHoi.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                                }
+                            </div>
+                            <div style="color: #059669;">
+                                @review.PhanHoi
+                            </div>
+                        </div>
+                    }
+                    else if (review.TrangThai == "Da duyet")
+                    {
+                        <!-- Form phản hồi -->
+                        <div class="reply-section">
+                            <form class="reply-form" data-ma-danh-gia="@review.MaDanhGia">
+                                @Html.AntiForgeryToken()
+                                <div class="mb-2">
+                                    <label class="form-label fw-semibold">Phản hồi đánh giá:</label>
+                                    <textarea class="form-control" rows="3" name="phanHoi" placeholder="Viết phản hồi của bạn..." required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-success btn-sm">
+                                    <i class="bi bi-send"></i> Gửi phản hồi
+                                </button>
+                            </form>
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- Pagination -->
+            @if (totalPages > 1)
+            {
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        @if (pageNumber > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="?page=@(pageNumber - 1)">Trước</a>
+                            </li>
+                        }
+                        @for (int i = Math.Max(1, pageNumber - 2); i <= Math.Min(totalPages, pageNumber + 2); i++)
+                        {
+                            <li class="page-item @(i == pageNumber ? "active" : "")">
+                                <a class="page-link" href="?page=@i">@i</a>
+                            </li>
+                        }
+                        @if (pageNumber < totalPages)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="?page=@(pageNumber + 1)">Sau</a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            }
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-inbox" style="font-size: 3rem; color: #9ca3af;"></i>
+                <p class="mt-3 text-muted">Chưa có đánh giá nào</p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('.reply-form').on('submit', function(e) {
+                e.preventDefault();
+                var form = $(this);
+                var maDanhGia = form.data('ma-danh-gia');
+                var phanHoi = form.find('textarea[name="phanHoi"]').val();
+
+                if (!phanHoi.trim()) {
+                    alert('Vui lòng nhập nội dung phản hồi');
+                    return;
+                }
+
+                var formData = new FormData();
+                formData.append('maDanhGia', maDanhGia);
+                formData.append('phanHoi', phanHoi);
+                formData.append('__RequestVerificationToken', form.find('input[name="__RequestVerificationToken"]').val());
+
+                fetch('@Url.Action("PhanHoiDanhGia", "Recruiter", new { area = "Recruiter" })', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Có lỗi xảy ra khi gửi phản hồi');
+                });
+            });
+        });
+    </script>
+}

@@ -519,7 +519,8 @@
                         <th>Hình ảnh</th>
                         <th>Tiêu đề</th>
                         <th>Thể loại</th>
-                        <th>Tác giả & Nguồn</th>
+                        <th>Tác giả</th>
+                        <th>Nguồn</th>
                         <th>Ngày đăng</th>
                         <th>Lượt xem</th>
                         <th>Trạng thái</th>
@@ -571,14 +572,6 @@
                                 {
                                     <div>
                                         <strong><i class="bi bi-person-fill"></i> @blog.TacGia</strong>
-                                        @if (!string.IsNullOrEmpty(blog.NguonBaiViet))
-                                        {
-                                            <br />
-                                            <small class="text-muted" style="display: flex; align-items: center; gap: 4px;">
-                                                <i class="bi bi-globe2"></i>
-                                                <span style="font-weight: 600; color: #10b981;">@blog.NguonBaiViet</span>
-                                            </small>
-                                        }
                                         @if (!string.IsNullOrEmpty(blog.ApiArticleId))
                                         {
                                             <br />
@@ -605,6 +598,19 @@
                                 else
                                 {
                                     <span class="text-muted">Admin</span>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(blog.NguonBaiViet))
+                                {
+                                    <div style="display: flex; align-items: center; gap: 4px;">
+                                        <i class="bi bi-globe2" style="color: #10b981;"></i>
+                                        <span style="font-weight: 600; color: #10b981;">@blog.NguonBaiViet</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
                                 }
                             </td>
                             <td>@blog.NgayDang.ToString("dd/MM/yyyy")</td>
@@ -874,19 +880,19 @@
             if (result.success) {
                 button.innerHTML = '<i class="bi bi-check-circle"></i> Đã import!';
                 button.style.background = '#059669';
-                alert(result.message);
+                showNotification(result.message, 'success');
                 setTimeout(() => {
                     location.reload();
                 }, 1500);
             } else {
                 button.disabled = false;
                 button.innerHTML = '<i class="bi bi-download"></i> Import bài viết';
-                alert(result.message);
+                showNotification(result.message, 'error');
             }
         } catch (error) {
             button.disabled = false;
             button.innerHTML = '<i class="bi bi-download"></i> Import bài viết';
-            alert('Lỗi khi import: ' + error.message);
+            showNotification('Lỗi khi import: ' + error.message, 'error');
         }
     }
 
@@ -911,7 +917,7 @@
                 if (data.success) {
                     location.reload();
                 } else {
-                    alert(data.message || 'Có lỗi xảy ra!');
+                    showNotification(data.message || 'Có lỗi xảy ra!', 'error');
                 }
             });
         }
@@ -931,7 +937,7 @@
                 if (data.success) {
                     location.reload();
                 } else {
-                    alert(data.message || 'Có lỗi xảy ra!');
+                    showNotification(data.message || 'Có lỗi xảy ra!', 'error');
                 }
             });
         }
@@ -956,5 +962,45 @@
             form.submit();
         }
     }
+
+    // Show notification function
+    function showNotification(message, type) {
+        var bgColor = type === 'success' ? '#48bb78' : type === 'error' ? '#e53e3e' : '#4299e1';
+        var notification = $('<div>')
+            .css({
+                position: 'fixed',
+                top: '20px',
+                right: '20px',
+                background: bgColor,
+                color: 'white',
+                padding: '15px 25px',
+                borderRadius: '12px',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                zIndex: 9999,
+                fontWeight: '600',
+                animation: 'slideInRight 0.3s ease'
+            })
+            .text(message)
+            .appendTo('body');
+        
+        setTimeout(function() {
+            notification.fadeOut(400, function() {
+                $(this).remove();
+            });
+        }, 3000);
+    }
 </script>
+
+<style>
+    @@keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+</style>
 

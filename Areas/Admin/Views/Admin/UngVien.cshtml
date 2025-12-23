@@ -315,7 +315,7 @@
                         bindEvents();
                     },
                     error: function() {
-                        alert('Có lỗi xảy ra khi tải dữ liệu');
+                        showNotification('Có lỗi xảy ra khi tải dữ liệu', 'error');
                         $('#ungVienContent').css('opacity', '1');
                     }
                 });
@@ -325,7 +325,7 @@
                 $('.btn-xoa').off('click').on('click', function() {
                     var ma = $(this).data('ma');
                     if (confirm('Ban co chac chan muon xoa ung vien nay?')) {
-                        alert('Da xoa ung vien ma ' + ma);
+                        showNotification('Đã xóa ứng viên mã ' + ma, 'success');
                         $(this).closest('tr').fadeOut();
                     }
                 });
@@ -358,6 +358,46 @@
 
             bindEvents();
         });
+
+        // Show notification function
+        function showNotification(message, type) {
+            var bgColor = type === 'success' ? '#48bb78' : type === 'error' ? '#e53e3e' : '#4299e1';
+            var notification = $('<div>')
+                .css({
+                    position: 'fixed',
+                    top: '20px',
+                    right: '20px',
+                    background: bgColor,
+                    color: 'white',
+                    padding: '15px 25px',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                    zIndex: 9999,
+                    fontWeight: '600',
+                    animation: 'slideInRight 0.3s ease'
+                })
+                .text(message)
+                .appendTo('body');
+            
+            setTimeout(function() {
+                notification.fadeOut(400, function() {
+                    $(this).remove();
+                });
+            }, 3000);
+        }
     </script>
+
+    <style>
+        @@keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
 }
 

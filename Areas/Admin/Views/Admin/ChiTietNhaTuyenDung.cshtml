@@ -1690,7 +1690,7 @@
                 });
 
                 if (!isValid) {
-                    alert('Vui lòng điền đầy đủ các trường bắt buộc!');
+                    showNotification('Vui lòng điền đầy đủ các trường bắt buộc!', 'error');
                     return;
                 }
 
@@ -2165,7 +2165,7 @@
                         var city = $('#editTinhThanhPho').val();
                         
                         if (!address) {
-                            alert('Vui lòng nhập địa chỉ!');
+                            showNotification('Vui lòng nhập địa chỉ!', 'error');
                             return;
                         }
 
@@ -2192,11 +2192,11 @@
                                     
                                     editMarker.bindPopup('<strong>📍 Tìm thấy địa chỉ</strong><br>' + data[0].display_name).openPopup();
                                 } else {
-                                    alert('Không tìm thấy địa chỉ. Vui lòng thử lại!');
+                                    showNotification('Không tìm thấy địa chỉ. Vui lòng thử lại!', 'error');
                                 }
                             },
                             error: function() {
-                                alert('Có lỗi xảy ra khi tìm kiếm địa chỉ!');
+                                showNotification('Có lỗi xảy ra khi tìm kiếm địa chỉ!', 'error');
                             }
                         });
                     });

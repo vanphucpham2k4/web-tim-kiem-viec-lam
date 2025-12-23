@@ -628,7 +628,7 @@
                 var moTa = $('#moTaMoi').val().trim();
 
                 if (!tenTruong) {
-                    alert('Vui lòng nhập tên trường đại học!');
+                    showNotification('Vui lòng nhập tên trường đại học!', 'error');
                     return;
                 }
 
@@ -646,18 +646,18 @@
                     },
                     success: function(response) {
                         if (response.success) {
-                            alert(response.message);
+                            showNotification(response.message, 'success');
                             $('#themTruongDaiHocModal').modal('hide');
                             $('#formThemTruongDaiHoc')[0].reset();
                             // Reload trang để hiển thị dữ liệu mới
                             location.reload();
                         } else {
-                            alert(response.message || 'Có lỗi xảy ra khi thêm trường đại học!');
+                            showNotification(response.message || 'Có lỗi xảy ra khi thêm trường đại học!', 'error');
                             btn.prop('disabled', false).html('<i class="bi bi-check-circle me-2"></i>Lưu');
                         }
                     },
                     error: function() {
-                        alert('Có lỗi xảy ra khi kết nối đến server!');
+                        showNotification('Có lỗi xảy ra khi kết nối đến server!', 'error');
                         btn.prop('disabled', false).html('<i class="bi bi-check-circle me-2"></i>Lưu');
                     }
                 });
@@ -682,7 +682,7 @@
                 var moTa = $('#moTaSua').val().trim();
 
                 if (!ten) {
-                    alert('Vui lòng nhập tên trường đại học!');
+                    showNotification('Vui lòng nhập tên trường đại học!', 'error');
                     return;
                 }
 
@@ -701,17 +701,17 @@
                     },
                     success: function(response) {
                         if (response.success) {
-                            alert(response.message);
+                            showNotification(response.message, 'success');
                             $('#suaTruongDaiHocModal').modal('hide');
                             // Reload trang để hiển thị dữ liệu mới
                             location.reload();
                         } else {
-                            alert(response.message || 'Có lỗi xảy ra khi cập nhật trường đại học!');
+                            showNotification(response.message || 'Có lỗi xảy ra khi cập nhật trường đại học!', 'error');
                             btn.prop('disabled', false).html('<i class="bi bi-check-circle me-2"></i>Cập nhật');
                         }
                     },
                     error: function() {
-                        alert('Có lỗi xảy ra khi kết nối đến server!');
+                        showNotification('Có lỗi xảy ra khi kết nối đến server!', 'error');
                         btn.prop('disabled', false).html('<i class="bi bi-check-circle me-2"></i>Cập nhật');
                     }
                 });
@@ -738,21 +738,61 @@
                     },
                     success: function(response) {
                         if (response.success) {
-                            alert(response.message);
+                            showNotification(response.message, 'success');
                             // Reload trang để hiển thị dữ liệu mới
                             location.reload();
                         } else {
-                            alert(response.message || 'Có lỗi xảy ra khi xóa trường đại học!');
+                            showNotification(response.message || 'Có lỗi xảy ra khi xóa trường đại học!', 'error');
                             btn.prop('disabled', false);
                         }
                     },
                     error: function() {
-                        alert('Có lỗi xảy ra khi kết nối đến server!');
+                        showNotification('Có lỗi xảy ra khi kết nối đến server!', 'error');
                         btn.prop('disabled', false);
                     }
                 });
             });
         });
+
+        // Show notification function
+        function showNotification(message, type) {
+            var bgColor = type === 'success' ? '#48bb78' : type === 'error' ? '#e53e3e' : '#4299e1';
+            var notification = $('<div>')
+                .css({
+                    position: 'fixed',
+                    top: '20px',
+                    right: '20px',
+                    background: bgColor,
+                    color: 'white',
+                    padding: '15px 25px',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                    zIndex: 9999,
+                    fontWeight: '600',
+                    animation: 'slideInRight 0.3s ease'
+                })
+                .text(message)
+                .appendTo('body');
+            
+            setTimeout(function() {
+                notification.fadeOut(400, function() {
+                    $(this).remove();
+                });
+            }, 3000);
+        }
     </script>
+
+    <style>
+        @@keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
 }
 

@@ -1,0 +1,645 @@
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Quản lý đánh giá công ty";
+    var danhSachDanhGia = ViewBag.DanhSachDanhGia as List<Unicareer.Models.DanhGiaCongTy> ?? new List<Unicareer.Models.DanhGiaCongTy>();
+    var pageNumber = ViewBag.PageNumber as int? ?? 1;
+    var pageSize = ViewBag.PageSize as int? ?? 20;
+    var totalCount = ViewBag.TotalCount as int? ?? 0;
+    var totalPages = ViewBag.TotalPages as int? ?? 1;
+    var searchTerm = ViewBag.SearchTerm as string ?? "";
+}
+
+@Html.AntiForgeryToken()
+
+<style>
+    .danhgia-management-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 10px 40px rgba(37, 69, 184, 0.3);
+    }
+
+    .page-header h1 {
+        font-weight: 700;
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .page-header p {
+        font-size: 1.1rem;
+        opacity: 0.95;
+    }
+
+    .filter-section {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .filter-form {
+        display: grid;
+        grid-template-columns: 2fr auto;
+        gap: 15px;
+        align-items: end;
+    }
+
+    .filter-form input {
+        padding: 12px 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+
+    .filter-form input:focus {
+        outline: none;
+        border-color: #2545B8;
+        box-shadow: 0 0 0 3px rgba(37, 69, 184, 0.1);
+    }
+
+    .btn-filter {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-filter:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 69, 184, 0.4);
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        overflow-x: auto;
+    }
+
+    .danhgia-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .danhgia-table thead {
+        background: #f8f9fa;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .danhgia-table th {
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+        color: #2d3748;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .danhgia-table td {
+        padding: 15px;
+        border-bottom: 1px solid #e9ecef;
+        vertical-align: middle;
+    }
+
+    .danhgia-table tbody tr {
+        transition: all 0.2s ease;
+    }
+
+    .danhgia-table tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .badge-custom {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-primary-custom {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-delete {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .btn-delete:hover {
+        background: #fecaca;
+    }
+
+    .stats-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        text-align: center;
+    }
+
+    .stat-card h3 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2545B8;
+        margin: 0;
+    }
+
+    .stat-card p {
+        color: #718096;
+        margin: 10px 0 0 0;
+        font-size: 0.9rem;
+    }
+
+    .no-data {
+        text-align: center;
+        padding: 60px 20px;
+        color: #718096;
+    }
+
+    .no-data i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 30px;
+        flex-wrap: wrap;
+    }
+
+    .pagination .page-link {
+        border: 2px solid #e2e8f0;
+        color: #2545B8;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .pagination .page-link:hover {
+        background: #2545B8;
+        color: white;
+        border-color: #2545B8;
+        transform: translateY(-2px);
+    }
+
+    .pagination .page-item.active .page-link {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        border-color: #2545B8;
+        color: white;
+        box-shadow: 0 4px 15px rgba(37, 69, 184, 0.4);
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: #a0aec0;
+        border-color: #e2e8f0;
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    .pagination .page-item.disabled .page-link:hover {
+        background: transparent;
+        transform: none;
+    }
+
+    .pagination-info {
+        text-align: center;
+        margin-top: 15px;
+        color: #718096;
+        font-size: 0.9rem;
+    }
+
+    @@media (max-width: 768px) {
+        .filter-form {
+            grid-template-columns: 1fr;
+        }
+
+        .danhgia-table {
+            font-size: 0.85rem;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .page-header > div {
+            flex-direction: column !important;
+            gap: 20px;
+        }
+    }
+</style>
+
+<div class="danhgia-management-container">
+    <div class="page-header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1><i class="bi bi-star-fill"></i> Quản lý đánh giá công ty</h1>
+                <p>Theo dõi và quản lý các đánh giá từ ứng viên về nhà tuyển dụng</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="stats-section">
+        <div class="stat-card">
+            <h3>@totalCount</h3>
+            <p>Tổng đánh giá</p>
+        </div>
+        <div class="stat-card">
+            <h3>@danhSachDanhGia.Count(d => d.TrangThai == "Da duyet")</h3>
+            <p>Đã duyệt</p>
+        </div>
+        <div class="stat-card">
+            <h3>@danhSachDanhGia.Count(d => d.TrangThai == "Cho duyet")</h3>
+            <p>Chờ duyệt</p>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <form class="filter-form" method="get" action="@Url.Action("QuanLyDanhGiaCongTy", "Admin", new { area = "Admin" })" id="searchForm">
+            <input type="hidden" name="page" id="pageNumberInput" value="@pageNumber" />
+            <div>
+                <label for="timKiemInput" style="margin-bottom: 8px; display: block; font-weight: 600; color: #2d3748;">Tìm kiếm</label>
+                <input type="text" id="timKiemInput" name="searchTerm" value="@searchTerm" placeholder="Tìm kiếm theo công ty, ứng viên, nội dung..." />
+            </div>
+            <div>
+                <button type="submit" class="btn-filter">
+                    <i class="bi bi-search"></i> Tìm kiếm
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Table Section -->
+    <div class="table-container">
+        @if (danhSachDanhGia.Any())
+        {
+            <table class="danhgia-table" id="bangDanhGia">
+                <thead>
+                    <tr>
+                        <th>Mã</th>
+                        <th>Ứng viên</th>
+                        <th>Công ty</th>
+                        <th>Điểm đánh giá</th>
+                        <th>Tags</th>
+                        <th>Nội dung</th>
+                        <th>Ngày đánh giá</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var review in danhSachDanhGia)
+                    {
+                        var tags = new List<string>();
+                        if (!string.IsNullOrEmpty(review.Tags))
+                        {
+                            try
+                            {
+                                tags = JsonSerializer.Deserialize<List<string>>(review.Tags) ?? new List<string>();
+                            }
+                            catch
+                            {
+                                tags = new List<string>();
+                            }
+                        }
+
+                        <tr data-ma="@review.MaDanhGia">
+                            <td><strong>#@review.MaDanhGia</strong></td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; color: white;">
+                                        @if (review.IsAnDanh)
+                                        {
+                                            <span>🤖</span>
+                                        }
+                                        else
+                                        {
+                                            <span>👤</span>
+                                        }
+                                    </div>
+                                    <div>
+                                        <strong style="color: #2d3748;">
+                                            @if (review.IsAnDanh)
+                                            {
+                                                <span>Ứng viên ẩn danh</span>
+                                            }
+                                            else
+                                            {
+                                                <span>@(review.User?.HoTen ?? "Ứng viên")</span>
+                                            }
+                                        </strong>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><strong>@(review.NhaTuyenDung?.TenCongTy ?? "N/A")</strong></td>
+                            <td>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <span class="badge bg-info">💰 @review.DiemMinhBachLuong/5</span>
+                                    <span class="badge bg-warning text-dark">⚡ @review.DiemTocDoPhanHoi/5</span>
+                                    <span class="badge bg-success">🤝 @review.DiemTonTrongUngVien/5</span>
+                                </div>
+                            </td>
+                            <td>
+                                @if (tags.Any())
+                                {
+                                    <div class="d-flex flex-wrap gap-1">
+                                        @foreach (var tag in tags)
+                                        {
+                                            if (tag.Contains("🚩"))
+                                            {
+                                                <span class="badge bg-danger">@tag</span>
+                                            }
+                                            else if (tag.Contains("✅"))
+                                            {
+                                                <span class="badge bg-success">@tag</span>
+                                            }
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="text-muted">
+                                    @if (!string.IsNullOrEmpty(review.NoiDung))
+                                    {
+                                        @(review.NoiDung.Length > 60 ? review.NoiDung.Substring(0, 60) + "..." : review.NoiDung)
+                                    }
+                                    else
+                                    {
+                                        <span>-</span>
+                                    }
+                                </span>
+                            </td>
+                            <td>@review.NgayTao.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-action btn-delete btn-xoa-danhgia" data-ma="@review.MaDanhGia" title="Xóa">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            
+            <!-- Pagination -->
+            @if (totalPages > 1)
+            {
+                <nav aria-label="Phân trang">
+                    <ul class="pagination">
+                        @if (pageNumber > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">
+                                    <i class="bi bi-chevron-double-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(pageNumber - 1))">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-double-left"></i></span>
+                            </li>
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                            </li>
+                        }
+
+                        @{
+                            int startPage = Math.Max(1, pageNumber - 2);
+                            int endPage = Math.Min(totalPages, pageNumber + 2);
+                        }
+
+                        @if (startPage > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">1</a>
+                            </li>
+                            @if (startPage > 2)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                        }
+
+                        @for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == pageNumber ? "active" : "")">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@i)">@i</a>
+                            </li>
+                        }
+
+                        @if (endPage < totalPages)
+                        {
+                            @if (endPage < totalPages - 1)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@totalPages)">@totalPages</a>
+                            </li>
+                        }
+
+                        @if (pageNumber < totalPages)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(pageNumber + 1))">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@totalPages)">
+                                    <i class="bi bi-chevron-double-right"></i>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                            </li>
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-double-right"></i></span>
+                            </li>
+                        }
+                    </ul>
+                    <div class="pagination-info">
+                        Hiển thị <strong>@((pageNumber - 1) * pageSize + 1)</strong> - 
+                        <strong>@(Math.Min(pageNumber * pageSize, totalCount))</strong> 
+                        trong tổng số <strong>@totalCount</strong> đánh giá
+                    </div>
+                </nav>
+            }
+        }
+        else
+        {
+            <div class="no-data">
+                <i class="bi bi-star"></i>
+                <h3>Chưa có đánh giá nào</h3>
+                <p>Không tìm thấy đánh giá phù hợp với tiêu chí tìm kiếm</p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            var isPaginationClick = false;
+            
+            // Hàm điều hướng đến trang
+            window.goToPage = function(pageNumber) {
+                isPaginationClick = true;
+                $('#pageNumberInput').val(pageNumber);
+                $('#searchForm').submit();
+            };
+            
+            // Khi submit form tìm kiếm, reset về trang 1 (chỉ khi không phải là click phân trang)
+            $('#searchForm').on('submit', function(e) {
+                if (!isPaginationClick) {
+                    $('#pageNumberInput').val(1);
+                }
+                isPaginationClick = false; // Reset flag
+            });
+            
+            // Khi nhấn nút tìm kiếm, reset về trang 1
+            $('#searchForm button[type="submit"]').on('click', function() {
+                isPaginationClick = false;
+            });
+
+            // Xoa danh gia
+            $(document).on('click', '.btn-xoa-danhgia', function() {
+                var ma = $(this).data('ma');
+                var row = $(this).closest('tr');
+                
+                if (confirm('Bạn có chắc chắn muốn xóa đánh giá này? Hành động này không thể hoàn tác!')) {
+                    var formData = new FormData();
+                    formData.append('id', ma);
+                    formData.append('__RequestVerificationToken', $('input[name="__RequestVerificationToken"]').val());
+
+                    fetch('@Url.Action("XoaDanhGia", "Admin", new { area = "Admin" })', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showNotification(data.message, 'success');
+                            row.fadeOut(300, function() {
+                                $(this).remove();
+                                location.reload();
+                            });
+                        } else {
+                            showNotification(data.message, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showNotification('Có lỗi xảy ra khi xóa đánh giá!', 'error');
+                    });
+                }
+            });
+        });
+
+        // Show notification function
+        function showNotification(message, type) {
+            var bgColor = type === 'success' ? '#48bb78' : type === 'error' ? '#e53e3e' : '#4299e1';
+            var notification = $('<div>')
+                .css({
+                    position: 'fixed',
+                    top: '20px',
+                    right: '20px',
+                    background: bgColor,
+                    color: 'white',
+                    padding: '15px 25px',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                    zIndex: 9999,
+                    fontWeight: '600',
+                    animation: 'slideInRight 0.3s ease'
+                })
+                .text(message)
+                .appendTo('body');
+            
+            setTimeout(function() {
+                notification.fadeOut(400, function() {
+                    $(this).remove();
+                });
+            }, 3000);
+        }
+    </script>
+
+    <style>
+        @@keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+}

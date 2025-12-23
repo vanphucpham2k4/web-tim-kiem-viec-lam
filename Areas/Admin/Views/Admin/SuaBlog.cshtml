@@ -510,6 +510,8 @@
                 <input type="hidden" asp-for="LuotXem" />
                 <input type="hidden" asp-for="TieuDe" id="hiddenTieuDe" />
                 <input type="hidden" asp-for="TacGia" value="@Model.TacGia" />
+                <input type="hidden" asp-for="ApiArticleId" value="@Model.ApiArticleId" />
+                <input type="hidden" asp-for="NguonBaiViet" value="@Model.NguonBaiViet" />
                 @* Store content in a safer way - using data attribute with JSON encoding *@
                 <input type="hidden" asp-for="NoiDung" id="NoiDung" data-content="@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.NoiDung ?? ""))" />
                 <script type="text/javascript">
@@ -735,11 +737,6 @@
             }
         }
         
-        console.log('=== Loading content into Quill Editor ===');
-        console.log('Content length:', existingContent ? existingContent.length : 0);
-        console.log('Content preview (first 500 chars):', existingContent ? existingContent.substring(0, 500) : 'EMPTY');
-        console.log('Content preview (last 200 chars):', existingContent && existingContent.length > 200 ? '...' + existingContent.substring(existingContent.length - 200) : existingContent);
-        
         if (existingContent && existingContent.trim()) {
             try {
                 // Convert HTML to Delta và set với source 'silent' để KHÔNG trigger text-change event
@@ -749,24 +746,18 @@
                 
                 // Verify content was loaded
                 const loadedContent = quill.root.innerHTML;
-                console.log('✅ Content loaded into Quill');
-                console.log('Loaded content length:', loadedContent.length);
-                console.log('Loaded content preview (first 500 chars):', loadedContent.substring(0, Math.min(500, loadedContent.length)));
                 
                 // Nếu content bị mất quá nhiều (> 50%), thử cách khác
                 if (loadedContent.length < existingContent.length * 0.5) {
                     console.warn('⚠️ Content có vẻ bị mất một phần, thử load trực tiếp HTML');
                     // Thử set HTML trực tiếp
                     quill.root.innerHTML = existingContent;
-                    const reloadedContent = quill.root.innerHTML;
-                    console.log('After direct HTML set, length:', reloadedContent.length);
                 }
             } catch (error) {
                 console.error('❌ Error loading content into Quill:', error);
                 // Fallback: set HTML trực tiếp
                 try {
                     quill.root.innerHTML = existingContent;
-                    console.log('✅ Fallback: Set HTML directly');
                 } catch (fallbackError) {
                     console.error('❌ Fallback also failed:', fallbackError);
                 }
@@ -885,13 +876,9 @@
 
         // Initialize tags from existing data
         const existingTags = '@(Model.Tags ?? "")';
-        console.log('Existing Tags từ Model:', existingTags);
         if (existingTags && existingTags.trim() !== '') {
             tags = existingTags.split(',').map(t => t.trim()).filter(t => t);
-            console.log('Tags array sau khi split:', tags);
             updateTagsDisplay();
-        } else {
-            console.log('Không có tags trong Model hoặc tags rỗng');
         }
         
         // Set giá trị cho hidden input IsPermalinkAuto (giữ nguyên giá trị từ Model)
@@ -964,12 +951,10 @@
                 // Prevent default để đảm bảo set giá trị trước khi submit
                 e.preventDefault();
                 
-                console.log('=== BẮT ĐẦU FORM SUBMIT (SuaBlog) ===');
-                
                 // Validate tiêu đề
                 const blogTitle = document.getElementById('blogTitle').value.trim();
                 if (!blogTitle) {
-                    alert('Vui lòng nhập tiêu đề bài viết!');
+                    showNotification('Vui lòng nhập tiêu đề bài viết!', 'error');
                     document.getElementById('blogTitle').focus();
                     return;
                 }
@@ -980,10 +965,8 @@
                 if (hiddenAction) {
                     if (!isPublished) {
                         hiddenAction.value = 'dang';
-                        console.log('✅ Set action = "dang" (đang đăng blog)');
                     } else {
                         hiddenAction.value = '';
-                        console.log('✅ Set action = "" (cập nhật blog)');
                     }
                 }
                 
@@ -998,7 +981,6 @@
                 const tagsHidden = document.getElementById('tagsHidden');
                 if (tagsHidden) {
                     tagsHidden.value = tagsValue;
-                    console.log('Tags được set:', tagsValue);
                 }
                 
                 // Update permalink (sẽ giữ nguyên nếu là trang sửa)
@@ -1014,11 +996,6 @@
                     if (!hiddenIsPermalinkAuto.hasAttribute('name') || hiddenIsPermalinkAuto.getAttribute('name') !== 'IsPermalinkAuto') {
                         hiddenIsPermalinkAuto.setAttribute('name', 'IsPermalinkAuto');
                     }
-                    console.log('✅ IsPermalinkAuto được set:', isPermalinkAuto);
-                    console.log('✅ hiddenIsPermalinkAuto.value:', hiddenIsPermalinkAuto.value);
-                    console.log('✅ hiddenIsPermalinkAuto.name:', hiddenIsPermalinkAuto.getAttribute('name'));
-                } else {
-                    console.error('❌ KHÔNG TÌM THẤY hiddenIsPermalinkAuto!');
                 }
                 
                 // Copy tiêu đề từ input bên ngoài vào hidden input trong form
@@ -1034,40 +1011,6 @@
                     moTaNganHidden.value = moTaNganInput.value;
                 }
                 
-                // Verify tất cả giá trị trước khi submit
-                console.log('=== VERIFY TRƯỚC KHI SUBMIT ===');
-                const isPermalinkAutoFinal = document.getElementById('hiddenIsPermalinkAuto');
-                console.log('IsPermalinkAuto value:', isPermalinkAutoFinal ? isPermalinkAutoFinal.value : 'KHÔNG TÌM THẤY');
-                console.log('IsPermalinkAuto name:', isPermalinkAutoFinal ? isPermalinkAutoFinal.getAttribute('name') : 'N/A');
-                
-                // Tạo một FormData để kiểm tra tất cả giá trị sẽ được gửi
-                const formData = new FormData(form);
-                console.log('=== FORMDATA ENTRIES ===');
-                let foundIsPermalinkAuto = false;
-                let foundAction = false;
-                for (let [key, value] of formData.entries()) {
-                    if (key === 'NoiDung') {
-                        console.log(`  ${key}: [Content length: ${value.length}]`);
-                    } else {
-                        console.log(`  ${key}: ${value}`);
-                    }
-                    if (key === 'IsPermalinkAuto') {
-                        foundIsPermalinkAuto = true;
-                        console.log(`  ✅ Tìm thấy IsPermalinkAuto trong FormData: "${value}"`);
-                    }
-                    if (key === 'action') {
-                        foundAction = true;
-                        console.log(`  ✅ Tìm thấy action trong FormData: "${value}"`);
-                    }
-                }
-                if (!foundIsPermalinkAuto) {
-                    console.error('❌ KHÔNG TÌM THẤY IsPermalinkAuto trong FormData!');
-                }
-                if (!foundAction && !isPublished) {
-                    console.error('❌ KHÔNG TÌM THẤY action trong FormData (cần có "dang")!');
-                }
-                
-                console.log('=== SUBMIT FORM ===');
                 // Đánh dấu đang submit
                 isSubmitting = true;
                 
@@ -1084,11 +1027,10 @@
                 form.removeEventListener('submit', submitHandler);
                 
                 // Submit form trực tiếp (sẽ không trigger event listener nữa)
-                console.log('✅ Đang submit form...');
                 form.submit();
             } catch (error) {
                 console.error('❌ LỖI TRONG SUBMIT HANDLER:', error);
-                alert('Có lỗi xảy ra: ' + error.message + '\n\nForm sẽ được submit ngay.');
+                showNotification('Có lỗi xảy ra: ' + error.message + '. Form sẽ được submit ngay.', 'error');
                 
                 // Vẫn cố submit form dù có lỗi
                 isSubmitting = true;
@@ -1201,7 +1143,6 @@
         
         // Nếu không có radio button (blog đã đăng), giữ nguyên giá trị permalink hiện tại
         if (!permalinkAuto) {
-            console.log('⚠️ Blog đã đăng - giữ nguyên permalink:', permalinkValue ? permalinkValue.value : 'N/A');
             return;
         }
         
@@ -1300,7 +1241,7 @@
         // Validate tiêu đề
         const blogTitle = document.getElementById('blogTitle').value.trim();
         if (!blogTitle) {
-            alert('Vui lòng nhập tiêu đề bài viết trước khi xem trước!');
+            showNotification('Vui lòng nhập tiêu đề bài viết trước khi xem trước!', 'error');
             document.getElementById('blogTitle').focus();
             return;
         }
@@ -1490,7 +1431,6 @@
                     if (hiddenMaBlog) {
                         hiddenMaBlog.value = data.maBlog;
                     }
-                    console.log('✅ Đã cập nhật savedMaBlog và hiddenMaBlog với giá trị:', data.maBlog);
                     
                     // Nếu là blog mới (chưa có MaBlog trước đó), cập nhật URL để đảm bảo form luôn có MaBlog
                     const currentUrl = window.location.href;
@@ -1615,18 +1555,13 @@
     }
 
     function quayVeBanNhap() {
-        console.log('=== BẮT ĐẦU QUAY VỀ BẢN NHÁP ===');
-        
         // Đóng dropdown
         document.getElementById('previewDropdown').classList.remove('show');
         
         if (!savedMaBlog) {
-            console.error('❌ Không tìm thấy savedMaBlog!');
-            alert('Không tìm thấy blog để chuyển về bản nháp!');
+            showNotification('Không tìm thấy blog để chuyển về bản nháp!', 'error');
             return;
         }
-        
-        console.log('✅ savedMaBlog:', savedMaBlog);
         
         // Cập nhật tất cả dữ liệu vào form trước khi gửi
         document.getElementById('NoiDung').value = quill.root.innerHTML;
@@ -1649,19 +1584,13 @@
         const hiddenIsPermalinkAuto = document.getElementById('hiddenIsPermalinkAuto');
         if (hiddenIsPermalinkAuto) {
             hiddenIsPermalinkAuto.value = isPermalinkAuto ? 'true' : 'false';
-            console.log('✅ IsPermalinkAuto đã set:', hiddenIsPermalinkAuto.value);
-        } else {
-            console.warn('⚠️ Không tìm thấy hiddenIsPermalinkAuto');
         }
         
         updatePermalinkValue();
         
         if (!confirm('Bạn có chắc muốn chuyển blog này về bản nháp?\n(Sẽ hủy trạng thái đăng và hiển thị)')) {
-            console.log('❌ Người dùng hủy thao tác');
             return;
         }
-        
-        console.log('✅ Người dùng xác nhận chuyển về bản nháp');
         
         // Tạo FormData để gửi
         const form = document.getElementById('blogForm');
@@ -1676,19 +1605,6 @@
             formData.set('__RequestVerificationToken', token.value);
         }
         
-        // Debug: Log FormData
-        console.log('Sending FormData for MaBlog:', savedMaBlog);
-        for (let [key, value] of formData.entries()) {
-            if (key === 'NoiDung') {
-                console.log(key + ':', value.substring(0, 50) + '...');
-            } else {
-                console.log(key + ':', value);
-            }
-        }
-        
-        console.log('✅ Chuẩn bị gửi request đến server...');
-        console.log('URL:', '@Url.Action("QuayVeBanNhap", "Admin", new { area = "Admin" })');
-        
         // Gửi request chuyển về bản nháp
         fetch('@Url.Action("QuayVeBanNhap", "Admin", new { area = "Admin" })', {
             method: 'POST',
@@ -1696,12 +1612,8 @@
             credentials: 'same-origin'
         })
         .then(response => {
-            console.log('Response status:', response.status);
-            console.log('Response headers:', response.headers);
-            
             // Kiểm tra content type
             const contentType = response.headers.get('content-type');
-            console.log('Content-Type:', contentType);
             
             if (!response.ok) {
                 // Thử đọc response text để xem lỗi chi tiết
@@ -1722,7 +1634,6 @@
             }
         })
         .then(data => {
-            console.log('Response data:', data);
             if (data.success) {
                 // Cập nhật UI - chuyển về bản nháp
                 document.getElementById('hiddenDaDang').value = 'false';
@@ -1737,7 +1648,7 @@
                 }
                 
                 // Hiển thị thông báo thành công
-                alert('Đã chuyển blog về bản nháp thành công!');
+                showNotification('Đã chuyển blog về bản nháp thành công!', 'success');
                 
                 const saveStatus = document.querySelector('.save-status span');
                 if (saveStatus) {
@@ -1747,12 +1658,12 @@
                     }, 2000);
                 }
             } else {
-                alert('Có lỗi xảy ra: ' + (data.message || 'Không thể chuyển về bản nháp'));
+                showNotification('Có lỗi xảy ra: ' + (data.message || 'Không thể chuyển về bản nháp'), 'error');
             }
         })
         .catch(error => {
             console.error('Lỗi chi tiết:', error);
-            alert('Có lỗi xảy ra khi chuyển về bản nháp: ' + error.message);
+            showNotification('Có lỗi xảy ra khi chuyển về bản nháp: ' + error.message, 'error');
         });
     }
 
@@ -1784,4 +1695,44 @@
         // KHÔNG cập nhật UI ngay lập tức nữa - để người dùng gõ thoải mái
         // UI sẽ chỉ cập nhật khi thực sự bắt đầu lưu (sau 3 giây)
     }
+
+    // Show notification function
+    function showNotification(message, type) {
+        var bgColor = type === 'success' ? '#48bb78' : type === 'error' ? '#e53e3e' : '#4299e1';
+        var notification = $('<div>')
+            .css({
+                position: 'fixed',
+                top: '20px',
+                right: '20px',
+                background: bgColor,
+                color: 'white',
+                padding: '15px 25px',
+                borderRadius: '12px',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                zIndex: 9999,
+                fontWeight: '600',
+                animation: 'slideInRight 0.3s ease'
+            })
+            .text(message)
+            .appendTo('body');
+        
+        setTimeout(function() {
+            notification.fadeOut(400, function() {
+                $(this).remove();
+            });
+        }, 3000);
+    }
 </script>
+
+<style>
+    @@keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+</style>

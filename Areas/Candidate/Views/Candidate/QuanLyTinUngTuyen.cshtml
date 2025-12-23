@@ -3,6 +3,38 @@
 
 @{
     ViewData["Title"] = "Quản lý tin ứng tuyển";
+    
+    // Helper function để kiểm tra điều kiện hiển thị nút review
+    Func<Unicareer.Models.TinUngTuyen, bool> CanReview = (tin) =>
+    {
+        var trangThaiEnum = TrangThaiXuLyHelper.FromString(tin.TrangThaiXuLy);
+        
+        // Điều kiện 1: Trạng thái thuộc các nhóm cho phép
+        if (trangThaiEnum.HasValue)
+        {
+            var trangThai = trangThaiEnum.Value;
+            if (trangThai == TrangThaiXuLy.DaPhongVan ||
+                trangThai == TrangThaiXuLy.TuyenDung ||
+                trangThai == TrangThaiXuLy.TuChoi)
+            {
+                return true;
+            }
+        }
+        
+        // Điều kiện 2: Đơn đã nộp quá 14 ngày mà vẫn là "DangXemXet" (ghosting)
+        if (trangThaiEnum == TrangThaiXuLy.DangXemXet)
+        {
+            var soNgay = (DateTime.Now - tin.NgayUngTuyen).TotalDays;
+            if (soNgay >= 14)
+            {
+                return true;
+            }
+        }
+        
+        return false;
+    };
+    
+    var danhGiaDict = ViewBag.DanhGiaDict as Dictionary<int, Unicareer.Models.DanhGiaCongTy> ?? new Dictionary<int, Unicareer.Models.DanhGiaCongTy>();
 }
 
 <style>
@@ -327,9 +359,27 @@
                                         <span class="badge @badgeClass">@trangThaiDisplay</span>
                                     </td>
                                     <td>
-                                        <a href="@Url.Action("ChiTietTinUngTuyen", "Candidate", new { id = tin.MaTinUngTuyen })" class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
-                                            <i class="bi bi-eye"></i> Chi tiết
-                                        </a>
+                                        <div class="d-flex gap-2">
+                                            <a href="@Url.Action("ChiTietTinUngTuyen", "Candidate", new { id = tin.MaTinUngTuyen })" class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
+                                                <i class="bi bi-eye"></i> Chi tiết
+                                            </a>
+                                            @{
+                                                var daDanhGia = danhGiaDict.ContainsKey(tin.MaTinUngTuyen);
+                                                var coTheDanhGia = CanReview(tin);
+                                            }
+                                            @if (daDanhGia)
+                                            {
+                                                <button type="button" class="btn btn-sm btn-outline-success" onclick="xemDanhGiaCuaToi(@tin.MaTinUngTuyen)" title="Xem đánh giá của bạn">
+                                                    <i class="bi bi-star-fill"></i> Đã đánh giá
+                                                </button>
+                                            }
+                                            else if (coTheDanhGia)
+                                            {
+                                                <button type="button" class="btn btn-sm btn-warning text-white" onclick="moModalDanhGia(@tin.MaTinUngTuyen, '@tin.ViTriUngTuyen', '@tin.CongTy')" title="Đánh giá công ty">
+                                                    <i class="bi bi-star"></i> Đánh giá
+                                                </button>
+                                            }
+                                        </div>
                                     </td>
                                 </tr>
                                 stt++;
@@ -377,8 +427,337 @@
     </div>
 </div>
 
+<!-- Modal Đánh giá Công ty -->
+<div class="modal fade" id="modalDanhGia" tabindex="-1" aria-labelledby="modalDanhGiaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 20px 20px 0 0; border: none; padding: 25px 30px;">
+                <h5 class="modal-title text-white" id="modalDanhGiaLabel" style="font-weight: 700; font-size: 1.5rem;">
+                    <i class="bi bi-star-fill"></i> Đánh giá công ty
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 30px;">
+                <form id="formDanhGia">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="maTinUngTuyen" name="maTinUngTuyen" />
+                    <input type="hidden" id="maNhaTuyenDung" name="maNhaTuyenDung" />
+                    
+                    <!-- Khu vực 1: Định danh & An toàn -->
+                    <div class="mb-4 p-3" style="background: #f0fdf4; border-radius: 12px; border-left: 4px solid #10b981;">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="isAnDanh" checked style="width: 3rem; height: 1.5rem;">
+                            <label class="form-check-label fw-bold" for="isAnDanh" style="color: #059669;">
+                                <i class="bi bi-shield-check"></i> Chế độ ẩn danh (BẬT)
+                            </label>
+                        </div>
+                        <small class="text-muted d-block mt-2">
+                            <i class="bi bi-info-circle"></i> Danh tính của bạn được mã hóa. HR sẽ không biết bạn là ai.
+                        </small>
+                    </div>
+                    
+                    <!-- Khu vực 2: Thang đo cảm xúc -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3" style="color: #2d3748;">
+                            <i class="bi bi-emoji-smile"></i> Đánh giá cảm xúc
+                        </h6>
+                        
+                        <!-- Minh bạch lương -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                💸 Minh bạch lương & Phúc lợi
+                            </label>
+                            <div class="d-flex align-items-center gap-3">
+                                <span style="font-size: 1.5rem;">💸</span>
+                                <input type="range" class="form-range" id="diemMinhBachLuong" min="1" max="5" value="3" 
+                                       oninput="updateEmojiSlider(this, 'emojiMinhBachLuong')">
+                                <span style="font-size: 1.5rem;" id="emojiMinhBachLuong">💰</span>
+                                <span class="badge bg-primary" id="valueMinhBachLuong">3</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Tốc độ phản hồi -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                ⚡ Tốc độ phản hồi
+                            </label>
+                            <div class="d-flex align-items-center gap-3">
+                                <span style="font-size: 1.5rem;">🐌</span>
+                                <input type="range" class="form-range" id="diemTocDoPhanHoi" min="1" max="5" value="3"
+                                       oninput="updateEmojiSlider(this, 'emojiTocDoPhanHoi')">
+                                <span style="font-size: 1.5rem;" id="emojiTocDoPhanHoi">⚡</span>
+                                <span class="badge bg-primary" id="valueTocDoPhanHoi">3</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Tôn trọng ứng viên -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                🤝 Tôn trọng ứng viên
+                            </label>
+                            <div class="d-flex align-items-center gap-3">
+                                <span style="font-size: 1.5rem;">😡</span>
+                                <input type="range" class="form-range" id="diemTonTrongUngVien" min="1" max="5" value="3"
+                                       oninput="updateEmojiSlider(this, 'emojiTonTrongUngVien')">
+                                <span style="font-size: 1.5rem;" id="emojiTonTrongUngVien">🤝</span>
+                                <span class="badge bg-primary" id="valueTonTrongUngVien">3</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Khu vực 3: Hệ thống Tag -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3" style="color: #2d3748;">
+                            <i class="bi bi-tags"></i> Gắn nhãn (Chọn nhiều)
+                        </h6>
+                        
+                        <!-- Red Flags -->
+                        <div class="mb-3">
+                            <label class="form-label text-danger fw-semibold">🚩 Cờ đỏ (Red Flags)</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="button" class="btn btn-outline-danger btn-sm tag-btn" data-tag="Ghosting" onclick="toggleTag(this)">
+                                    🚩 Ghosting
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-sm tag-btn" data-tag="Lương không như JD" onclick="toggleTag(this)">
+                                    🚩 Lương không như JD
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-sm tag-btn" data-tag="Hỏi đời tư quá đà" onclick="toggleTag(this)">
+                                    🚩 Hỏi đời tư quá đà
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-sm tag-btn" data-tag="Bắt làm bài test free" onclick="toggleTag(this)">
+                                    🚩 Bắt làm bài test free
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-sm tag-btn" data-tag="OT không lương" onclick="toggleTag(this)">
+                                    🚩 OT không lương
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Green Flags -->
+                        <div class="mb-3">
+                            <label class="form-label text-success fw-semibold">✅ Cờ xanh (Green Flags)</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="button" class="btn btn-outline-success btn-sm tag-btn" data-tag="Phỏng vấn đúng giờ" onclick="toggleTag(this)">
+                                    ✅ Phỏng vấn đúng giờ
+                                </button>
+                                <button type="button" class="btn btn-outline-success btn-sm tag-btn" data-tag="Feedback có tâm" onclick="toggleTag(this)">
+                                    ✅ Feedback có tâm
+                                </button>
+                                <button type="button" class="btn btn-outline-success btn-sm tag-btn" data-tag="Văn phòng xịn sò" onclick="toggleTag(this)">
+                                    ✅ Văn phòng xịn sò
+                                </button>
+                                <button type="button" class="btn btn-outline-success btn-sm tag-btn" data-tag="HR thân thiện" onclick="toggleTag(this)">
+                                    ✅ HR thân thiện
+                                </button>
+                                <button type="button" class="btn btn-outline-success btn-sm tag-btn" data-tag="Quy trình nhanh gọn" onclick="toggleTag(this)">
+                                    ✅ Quy trình nhanh gọn
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Khu vực 4: Lời nhắn -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-chat-left-text"></i> Lời nhắn
+                        </label>
+                        <textarea class="form-control" id="noiDung" rows="4" 
+                                  placeholder="Kể thêm chút 'tea' (chuyện) về buổi phỏng vấn đi..." 
+                                  maxlength="500"></textarea>
+                        <small class="text-muted">
+                            <span id="charCount">0</span>/500 ký tự
+                        </small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid #e2e8f0; padding: 20px 30px;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-success" onclick="submitDanhGia()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;">
+                    <i class="bi bi-send"></i> Gửi đánh giá
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
+        var selectedTags = [];
+        var currentMaTinUngTuyen = 0;
+        
+        function updateEmojiSlider(slider, emojiId) {
+            var value = parseInt(slider.value);
+            var emoji = document.getElementById(emojiId);
+            var valueSpan = document.getElementById('value' + slider.id.replace('diem', ''));
+            
+            valueSpan.textContent = value;
+            
+            // Update emoji based on value
+            var emojis = {
+                'emojiMinhBachLuong': ['💸', '💸', '💰', '💰', '💰'],
+                'emojiTocDoPhanHoi': ['🐌', '🐌', '⚡', '⚡', '⚡'],
+                'emojiTonTrongUngVien': ['😡', '😡', '🤝', '🤝', '🤝']
+            };
+            
+            if (emojis[emojiId]) {
+                emoji.textContent = emojis[emojiId][value - 1];
+            }
+        }
+        
+        function toggleTag(btn) {
+            var tag = btn.getAttribute('data-tag');
+            if (btn.classList.contains('active')) {
+                btn.classList.remove('active');
+                selectedTags = selectedTags.filter(t => t !== tag);
+                if (btn.classList.contains('btn-outline-danger')) {
+                    btn.classList.remove('btn-danger');
+                    btn.classList.add('btn-outline-danger');
+                } else {
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-outline-success');
+                }
+            } else {
+                btn.classList.add('active');
+                selectedTags.push(tag);
+                if (btn.classList.contains('btn-outline-danger')) {
+                    btn.classList.remove('btn-outline-danger');
+                    btn.classList.add('btn-danger');
+                } else {
+                    btn.classList.remove('btn-outline-success');
+                    btn.classList.add('btn-success');
+                }
+            }
+        }
+        
+        function moModalDanhGia(maTinUngTuyen, viTriUngTuyen, congTy) {
+            currentMaTinUngTuyen = maTinUngTuyen;
+            selectedTags = [];
+            
+            // Reset form
+            document.getElementById('maTinUngTuyen').value = maTinUngTuyen;
+            document.getElementById('diemMinhBachLuong').value = 3;
+            document.getElementById('diemTocDoPhanHoi').value = 3;
+            document.getElementById('diemTonTrongUngVien').value = 3;
+            document.getElementById('noiDung').value = '';
+            document.getElementById('charCount').textContent = '0';
+            document.getElementById('isAnDanh').checked = true;
+            
+            // Reset tags
+            document.querySelectorAll('.tag-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.classList.contains('btn-danger')) {
+                    btn.classList.remove('btn-danger');
+                    btn.classList.add('btn-outline-danger');
+                } else if (btn.classList.contains('btn-success')) {
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-outline-success');
+                }
+            });
+            
+            // Update emoji sliders
+            updateEmojiSlider(document.getElementById('diemMinhBachLuong'), 'emojiMinhBachLuong');
+            updateEmojiSlider(document.getElementById('diemTocDoPhanHoi'), 'emojiTocDoPhanHoi');
+            updateEmojiSlider(document.getElementById('diemTonTrongUngVien'), 'emojiTonTrongUngVien');
+            
+            // Load thông tin đơn ứng tuyển
+            fetch('@Url.Action("LayThongTinDonUngTuyen", "DanhGiaCongTy", new { area = "Candidate" })?maTinUngTuyen=' + maTinUngTuyen)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('maNhaTuyenDung').value = data.maNhaTuyenDung;
+                    }
+                });
+            
+            // Show modal
+            var modal = new bootstrap.Modal(document.getElementById('modalDanhGia'));
+            modal.show();
+        }
+        
+        function submitDanhGia() {
+            var maTinUngTuyen = document.getElementById('maTinUngTuyen').value;
+            var maNhaTuyenDung = document.getElementById('maNhaTuyenDung').value;
+            var diemMinhBachLuong = document.getElementById('diemMinhBachLuong').value;
+            var diemTocDoPhanHoi = document.getElementById('diemTocDoPhanHoi').value;
+            var diemTonTrongUngVien = document.getElementById('diemTonTrongUngVien').value;
+            var noiDung = document.getElementById('noiDung').value;
+            var isAnDanh = document.getElementById('isAnDanh').checked;
+            var tags = JSON.stringify(selectedTags);
+            
+            var formData = new FormData();
+            formData.append('maTinUngTuyen', maTinUngTuyen);
+            formData.append('maNhaTuyenDung', maNhaTuyenDung);
+            formData.append('diemMinhBachLuong', diemMinhBachLuong);
+            formData.append('diemTocDoPhanHoi', diemTocDoPhanHoi);
+            formData.append('diemTonTrongUngVien', diemTonTrongUngVien);
+            formData.append('tags', tags);
+            formData.append('noiDung', noiDung);
+            formData.append('isAnDanh', isAnDanh);
+            var token = $('input[name="__RequestVerificationToken"]').val();
+            if (token) {
+                formData.append('__RequestVerificationToken', token);
+            }
+            
+            fetch('@Url.Action("TaoDanhGia", "DanhGiaCongTy", new { area = "Candidate" })', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi gửi đánh giá');
+            });
+        }
+        
+        function xemDanhGiaCuaToi(maTinUngTuyen) {
+            // Lấy thông tin đánh giá
+            fetch('@Url.Action("LayDanhGiaCuaToi", "DanhGiaCongTy", new { area = "Candidate" })?maTinUngTuyen=' + maTinUngTuyen)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Lấy thông tin công ty từ đánh giá
+                        fetch('@Url.Action("LayThongTinDonUngTuyen", "DanhGiaCongTy", new { area = "Candidate" })?maTinUngTuyen=' + maTinUngTuyen)
+                            .then(response => response.json())
+                            .then(companyData => {
+                                if (companyData.success && companyData.maNhaTuyenDung) {
+                                    // Redirect đến trang chi tiết công ty với tham số reviewId
+                                    var url = '/Home/ChiTietCongTy/' + companyData.maNhaTuyenDung + '?reviewId=' + data.maDanhGia;
+                                    window.location.href = url;
+                                } else {
+                                    alert('Không tìm thấy thông tin công ty');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                alert('Có lỗi xảy ra khi lấy thông tin công ty');
+                            });
+                    } else {
+                        alert('Không tìm thấy đánh giá của bạn');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Có lỗi xảy ra khi lấy thông tin đánh giá');
+                });
+        }
+        
+        // Character count
+        document.addEventListener('DOMContentLoaded', function() {
+            var noiDungTextarea = document.getElementById('noiDung');
+            if (noiDungTextarea) {
+                noiDungTextarea.addEventListener('input', function() {
+                    document.getElementById('charCount').textContent = this.value.length;
+                });
+            }
+        });
+        
         $(document).ready(function() {
             // Search and filter functionality
             function filterTable() {

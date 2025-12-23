@@ -794,6 +794,10 @@
                 <i class="bi bi-inbox"></i>
                 <span>Đơn ứng tuyển</span>
             </a>
+            <a href="@Url.Action("DanhGiaCongTy", "Recruiter")" class="menu-item">
+                <i class="bi bi-star-fill"></i>
+                <span>Đánh giá công ty</span>
+            </a>
             <a href="@Url.Action("TimUngVien", "Recruiter")" class="menu-item">
                 <i class="bi bi-search"></i>
                 <span>Tìm ứng viên</span>
@@ -839,13 +843,17 @@
             }
 
             // Set active menu item dựa trên URL hiện tại
-            const currentPath = window.location.pathname;
+            const currentPath = window.location.pathname.toLowerCase();
             const menuItems = document.querySelectorAll('.menu-item');
             
             menuItems.forEach(item => {
                 item.classList.remove('active');
-                if (item.getAttribute('href') === currentPath) {
-                    item.classList.add('active');
+                const href = item.getAttribute('href');
+                if (href) {
+                    const hrefPath = new URL(href, window.location.origin).pathname.toLowerCase();
+                    if (currentPath === hrefPath || currentPath.startsWith(hrefPath + '/')) {
+                        item.classList.add('active');
+                    }
                 }
             });
         });

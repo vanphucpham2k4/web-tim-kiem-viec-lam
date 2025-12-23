@@ -31,6 +31,7 @@ builder.Services.AddScoped<IChuyenNganhRepository, ChuyenNganhRepository>();
 builder.Services.AddScoped<ITruongDaiHocRepository, TruongDaiHocRepository>();
 builder.Services.AddScoped<IBlogRepository, BlogRepository>();
 builder.Services.AddScoped<ITheLoaiBlogRepository, TheLoaiBlogRepository>();
+builder.Services.AddScoped<IDanhGiaCongTyRepository, DanhGiaCongTyRepository>();
 
 // Đăng ký Background Service để tự động cập nhật trạng thái tin tuyển dụng hết hạn
 builder.Services.AddHostedService<UpdateTrangThaiBackgroundService>();

@@ -26,13 +26,14 @@ namespace Unicareer.Areas.Admin.Controllers
         private readonly ITruongDaiHocRepository _truongDaiHocRepository;
         private readonly IBlogRepository _blogRepository;
         private readonly ITheLoaiBlogRepository _theLoaiBlogRepository;
+        private readonly IDanhGiaCongTyRepository _danhGiaCongTyRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
         private readonly IExternalArticleService _externalArticleService;
         private readonly ILogger<AdminController> _logger;
 
-        public AdminController(INhaTuyenDungRepository nhaTuyenDungRepository, IUngVienRepository ungVienRepository, ITinTuyenDungRepository tinTuyenDungRepository, ITinUngTuyenRepository tinUngTuyenRepository, ILoaiCongViecRepository loaiCongViecRepository, INganhNgheRepository nganhNgheRepository, IChuyenNganhRepository chuyenNganhRepository, ITruongDaiHocRepository truongDaiHocRepository, IBlogRepository blogRepository, ITheLoaiBlogRepository theLoaiBlogRepository, UserManager<ApplicationUser> userManager, ApplicationDbContext context, IMapper mapper, IExternalArticleService externalArticleService, ILogger<AdminController> logger)
+        public AdminController(INhaTuyenDungRepository nhaTuyenDungRepository, IUngVienRepository ungVienRepository, ITinTuyenDungRepository tinTuyenDungRepository, ITinUngTuyenRepository tinUngTuyenRepository, ILoaiCongViecRepository loaiCongViecRepository, INganhNgheRepository nganhNgheRepository, IChuyenNganhRepository chuyenNganhRepository, ITruongDaiHocRepository truongDaiHocRepository, IBlogRepository blogRepository, ITheLoaiBlogRepository theLoaiBlogRepository, IDanhGiaCongTyRepository danhGiaCongTyRepository, UserManager<ApplicationUser> userManager, ApplicationDbContext context, IMapper mapper, IExternalArticleService externalArticleService, ILogger<AdminController> logger)
         {
             _nhaTuyenDungRepository = nhaTuyenDungRepository;
             _ungVienRepository = ungVienRepository;
@@ -44,6 +45,7 @@ namespace Unicareer.Areas.Admin.Controllers
             _truongDaiHocRepository = truongDaiHocRepository;
             _blogRepository = blogRepository;
             _theLoaiBlogRepository = theLoaiBlogRepository;
+            _danhGiaCongTyRepository = danhGiaCongTyRepository;
             _userManager = userManager;
             _context = context;
             _mapper = mapper;
@@ -1449,6 +1451,12 @@ namespace Unicareer.Areas.Admin.Controllers
                 .Where(t => t.MaTinTuyenDung == id.ToString())
                 .ToList();
             
+            // Tính tổng số lượt ứng tuyển (tất cả các đơn, không phân biệt trạng thái)
+            var totalSoLuongUngTuyen = danhSachUngTuyenAll.Count;
+            
+            // Cập nhật số lượng ứng tuyển vào model để hiển thị đúng
+            tinTuyenDung.SoLuongUngTuyen = totalSoLuongUngTuyen;
+            
             // Tính tổng số đơn ứng tuyển theo trạng thái (trước khi lọc)
             var totalDangXemXet = danhSachUngTuyenAll.Count(t => 
                 t.TrangThaiXuLy == "Đang xem xét" || t.TrangThaiXuLy == "Dang xem xet");
@@ -2534,9 +2542,23 @@ namespace Unicareer.Areas.Admin.Controllers
                 var blogHienTai = _blogRepository.LayBlogTheoId(blog.MaBlog);
                 if (blogHienTai != null)
                 {
+                    // ✅ Lưu ApiArticleId và NguonBaiViet trước khi mapping (quan trọng cho bài viết import từ API)
+                    var savedApiArticleId = blogHienTai.ApiArticleId;
+                    var savedNguonBaiViet = blogHienTai.NguonBaiViet;
+                    
                     // Cập nhật blog hiện có bằng AutoMapper
                     // AutoMapper sẽ tự động map các thuộc tính và set NgayCapNhat = DateTime.Now
                     _mapper.Map(blog, blogHienTai);
+                    
+                    // ✅ Khôi phục ApiArticleId và NguonBaiViet nếu không có trong form (giữ nguyên từ database)
+                    if (string.IsNullOrWhiteSpace(blog.ApiArticleId))
+                    {
+                        blogHienTai.ApiArticleId = savedApiArticleId;
+                    }
+                    if (string.IsNullOrWhiteSpace(blog.NguonBaiViet))
+                    {
+                        blogHienTai.NguonBaiViet = savedNguonBaiViet;
+                    }
                     
                     // Set các thuộc tính đặc biệt sau khi mapping
                     blogHienTai.HienThi = true;
@@ -2724,9 +2746,23 @@ namespace Unicareer.Areas.Admin.Controllers
                 var blogHienTai = _blogRepository.LayBlogTheoId(blog.MaBlog);
                 if (blogHienTai != null)
                 {
+                    // ✅ Lưu ApiArticleId và NguonBaiViet trước khi mapping (quan trọng cho bài viết import từ API)
+                    var savedApiArticleId = blogHienTai.ApiArticleId;
+                    var savedNguonBaiViet = blogHienTai.NguonBaiViet;
+                    
                     // ✅ Cập nhật tất cả các trường từ blog mới vào blog hiện có bằng AutoMapper
                     // AutoMapper sẽ tự động map các thuộc tính và set NgayCapNhat = DateTime.Now
                     _mapper.Map(blog, blogHienTai);
+                    
+                    // ✅ Khôi phục ApiArticleId và NguonBaiViet nếu không có trong form (giữ nguyên từ database)
+                    if (string.IsNullOrWhiteSpace(blog.ApiArticleId))
+                    {
+                        blogHienTai.ApiArticleId = savedApiArticleId;
+                    }
+                    if (string.IsNullOrWhiteSpace(blog.NguonBaiViet))
+                    {
+                        blogHienTai.NguonBaiViet = savedNguonBaiViet;
+                    }
                     
                     // Set các thuộc tính đặc biệt sau khi mapping
                     blogHienTai.HienThi = false;
@@ -3158,6 +3194,16 @@ namespace Unicareer.Areas.Admin.Controllers
                     if (string.IsNullOrWhiteSpace(blog.TacGia))
                     {
                         blog.TacGia = blogHienTai.TacGia;
+                    }
+                    
+                    // ✅ Giữ nguyên ApiArticleId và NguonBaiViet từ database (quan trọng cho bài viết import từ API)
+                    if (string.IsNullOrWhiteSpace(blog.ApiArticleId))
+                    {
+                        blog.ApiArticleId = blogHienTai.ApiArticleId;
+                    }
+                    if (string.IsNullOrWhiteSpace(blog.NguonBaiViet))
+                    {
+                        blog.NguonBaiViet = blogHienTai.NguonBaiViet;
                     }
                 }
             }
@@ -4084,6 +4130,129 @@ namespace Unicareer.Areas.Admin.Controllers
                 };
 
                 return Json(new { success = true, data = viewModel });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
+        // ========== DANH GIA CONG TY MANAGEMENT ==========
+        public IActionResult QuanLyDanhGiaCongTy(
+            string? searchTerm = null,
+            int page = 1,
+            int pageSize = 20)
+        {
+            ViewData["Title"] = "Quản lý đánh giá công ty";
+            
+            // Lấy tất cả reviews
+            var allReviews = _context.DanhGiaCongTys
+                .Include(d => d.User)
+                .Include(d => d.NhaTuyenDung)
+                .Include(d => d.TinUngTuyen)
+                .OrderByDescending(d => d.NgayTao)
+                .AsQueryable();
+
+            // Tìm kiếm
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                var searchLower = searchTerm.ToLower();
+                allReviews = allReviews.Where(d =>
+                    (d.NhaTuyenDung != null && d.NhaTuyenDung.TenCongTy != null && d.NhaTuyenDung.TenCongTy.ToLower().Contains(searchLower)) ||
+                    (d.User != null && d.User.HoTen != null && d.User.HoTen.ToLower().Contains(searchLower)) ||
+                    (d.NoiDung != null && d.NoiDung.ToLower().Contains(searchLower))
+                );
+            }
+
+            // Phân trang
+            var totalCount = allReviews.Count();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            var pagedReviews = allReviews.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+            ViewBag.DanhSachDanhGia = pagedReviews;
+            ViewBag.PageNumber = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalCount = totalCount;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.SearchTerm = searchTerm;
+
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult SuaDanhGia(
+            int maDanhGia,
+            int diemMinhBachLuong,
+            int diemTocDoPhanHoi,
+            int diemTonTrongUngVien,
+            string? tags,
+            string? noiDung,
+            bool isAnDanh = true)
+        {
+            try
+            {
+                var danhGia = _danhGiaCongTyRepository.LayDanhGiaTheoId(maDanhGia);
+                if (danhGia == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy đánh giá!" });
+                }
+
+                // Validate
+                if (diemMinhBachLuong < 1 || diemMinhBachLuong > 5 ||
+                    diemTocDoPhanHoi < 1 || diemTocDoPhanHoi > 5 ||
+                    diemTonTrongUngVien < 1 || diemTonTrongUngVien > 5)
+                {
+                    return Json(new { success = false, message = "Điểm đánh giá phải từ 1-5" });
+                }
+
+                // Cập nhật thông tin
+                danhGia.DiemMinhBachLuong = diemMinhBachLuong;
+                danhGia.DiemTocDoPhanHoi = diemTocDoPhanHoi;
+                danhGia.DiemTonTrongUngVien = diemTonTrongUngVien;
+                danhGia.Tags = tags;
+                danhGia.NoiDung = noiDung;
+                danhGia.IsAnDanh = isAnDanh;
+                danhGia.NgayCapNhat = DateTime.Now;
+
+                _context.SaveChanges();
+
+                // Xóa cache Trust Score
+                var cache = HttpContext.RequestServices.GetRequiredService<Microsoft.Extensions.Caching.Memory.IMemoryCache>();
+                var cacheKey = $"TrustScore_{danhGia.MaNhaTuyenDung}";
+                cache.Remove(cacheKey);
+
+                return Json(new { success = true, message = "Đã cập nhật đánh giá thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult XoaDanhGia(int id)
+        {
+            try
+            {
+                var danhGia = _danhGiaCongTyRepository.LayDanhGiaTheoId(id);
+                if (danhGia == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy đánh giá!" });
+                }
+
+                var maNhaTuyenDung = danhGia.MaNhaTuyenDung;
+                
+                _context.DanhGiaCongTys.Remove(danhGia);
+                _context.SaveChanges();
+
+                // Xóa cache Trust Score
+                var cache = HttpContext.RequestServices.GetRequiredService<Microsoft.Extensions.Caching.Memory.IMemoryCache>();
+                var cacheKey = $"TrustScore_{maNhaTuyenDung}";
+                cache.Remove(cacheKey);
+
+                return Json(new { success = true, message = "Đã xóa đánh giá thành công!" });
             }
             catch (Exception ex)
             {

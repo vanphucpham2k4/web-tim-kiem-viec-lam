@@ -778,7 +778,7 @@
                 var tenNganhNghe = $('#nganhNgheMoi option:selected').text();
 
                 if (!maNganhNghe) {
-                    alert('Vui lòng chọn ngành nghề!');
+                    showNotification('Vui lòng chọn ngành nghề!', 'error');
                     return;
                 }
 
@@ -833,7 +833,7 @@
             // Xóa dòng chuyên ngành
             $(document).on('click', '.btn-xoa-dong', function() {
                 if ($('.chuyennganh-row').length <= 1) {
-                    alert('Phải có ít nhất một dòng chuyên ngành!');
+                    showNotification('Phải có ít nhất một dòng chuyên ngành!', 'error');
                     return;
                 }
                 $(this).closest('.chuyennganh-row').fadeOut(300, function() {
@@ -869,7 +869,7 @@
                 });
 
                 if (danhSachChuyenNganh.length === 0) {
-                    alert('Vui lòng nhập ít nhất một chuyên ngành!');
+                    showNotification('Vui lòng nhập ít nhất một chuyên ngành!', 'error');
                     return;
                 }
 
@@ -902,15 +902,15 @@
                     },
                     success: function(response) {
                         if (response.success) {
-                            alert(response.message);
+                            showNotification(response.message, 'success');
                             $('#themChuyenNganhModal').modal('hide');
                             location.reload();
                         } else {
-                            alert(response.message);
+                            showNotification(response.message, 'error');
                         }
                     },
                     error: function() {
-                        alert('Có lỗi xảy ra khi thêm chuyên ngành!');
+                        showNotification('Có lỗi xảy ra khi thêm chuyên ngành!', 'error');
                     }
                 });
             });
@@ -937,7 +937,7 @@
                 var maNganhNghe = $('#nganhNgheSua').val();
 
                 if (!ten || !maNganhNghe) {
-                    alert('Vui lòng nhập đầy đủ thông tin bắt buộc!');
+                    showNotification('Vui lòng nhập đầy đủ thông tin bắt buộc!', 'error');
                     return;
                 }
 
@@ -953,14 +953,14 @@
                     },
                     success: function(response) {
                         if (response.success) {
-                            alert(response.message);
+                            showNotification(response.message, 'success');
                             location.reload();
                         } else {
-                            alert(response.message);
+                            showNotification(response.message, 'error');
                         }
                     },
                     error: function() {
-                        alert('Có lỗi xảy ra khi cập nhật chuyên ngành!');
+                        showNotification('Có lỗi xảy ra khi cập nhật chuyên ngành!', 'error');
                     }
                 });
             });
@@ -978,19 +978,59 @@
                         },
                         success: function(response) {
                             if (response.success) {
-                                alert(response.message);
+                                showNotification(response.message, 'success');
                                 location.reload();
                             } else {
-                                alert(response.message);
+                                showNotification(response.message, 'error');
                             }
                         },
                         error: function() {
-                            alert('Có lỗi xảy ra khi xóa chuyên ngành!');
+                            showNotification('Có lỗi xảy ra khi xóa chuyên ngành!', 'error');
                         }
                     });
                 }
             });
         });
+
+        // Show notification function
+        function showNotification(message, type) {
+            var bgColor = type === 'success' ? '#48bb78' : type === 'error' ? '#e53e3e' : '#4299e1';
+            var notification = $('<div>')
+                .css({
+                    position: 'fixed',
+                    top: '20px',
+                    right: '20px',
+                    background: bgColor,
+                    color: 'white',
+                    padding: '15px 25px',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                    zIndex: 9999,
+                    fontWeight: '600',
+                    animation: 'slideInRight 0.3s ease'
+                })
+                .text(message)
+                .appendTo('body');
+            
+            setTimeout(function() {
+                notification.fadeOut(400, function() {
+                    $(this).remove();
+                });
+            }, 3000);
+        }
     </script>
+
+    <style>
+        @@keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
 }
 

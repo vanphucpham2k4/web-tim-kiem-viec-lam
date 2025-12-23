@@ -29,6 +29,8 @@ namespace Unicareer.Data
         public DbSet<TruongDaiHoc> TruongDaiHocs { get; set; }
         public DbSet<Blog> Blogs { get; set; }
         public DbSet<TheLoaiBlog> TheLoaiBlogs { get; set; }
+        public DbSet<DanhGiaCongTy> DanhGiaCongTys { get; set; }
+        public DbSet<DanhGiaCongTyLike> DanhGiaCongTyLikes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -302,6 +304,81 @@ namespace Unicareer.Data
             builder.Entity<TheLoaiBlog>()
                 .Property(t => t.MaTheLoai)
                 .ValueGeneratedOnAdd();
+
+            // Cấu hình primary key và quan hệ cho DanhGiaCongTy
+            builder.Entity<DanhGiaCongTy>()
+                .HasKey(d => d.MaDanhGia);
+
+            builder.Entity<DanhGiaCongTy>()
+                .Property(d => d.MaDanhGia)
+                .ValueGeneratedOnAdd();
+
+            // DanhGiaCongTy -> ApplicationUser
+            builder.Entity<DanhGiaCongTy>()
+                .HasOne(d => d.User)
+                .WithMany()
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // DanhGiaCongTy -> NhaTuyenDung
+            // Dùng NoAction thay vì Cascade để tránh multiple cascade paths
+            // Không cho phép xóa NhaTuyenDung nếu còn đánh giá
+            builder.Entity<DanhGiaCongTy>()
+                .HasOne(d => d.NhaTuyenDung)
+                .WithMany()
+                .HasForeignKey(d => d.MaNhaTuyenDung)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // DanhGiaCongTy -> TinUngTuyen
+            // Dùng NoAction thay vì Cascade để tránh multiple cascade paths
+            // Không cho phép xóa TinUngTuyen nếu còn đánh giá
+            builder.Entity<DanhGiaCongTy>()
+                .HasOne(d => d.TinUngTuyen)
+                .WithMany()
+                .HasForeignKey(d => d.MaTinUngTuyen)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Tạo unique constraint để đảm bảo mỗi đơn chỉ được đánh giá 1 lần
+            builder.Entity<DanhGiaCongTy>()
+                .HasIndex(d => d.MaTinUngTuyen)
+                .IsUnique()
+                .HasDatabaseName("idx_danhgiacongty_matinungtuyen");
+
+            builder.Entity<DanhGiaCongTy>()
+                .HasIndex(d => d.MaNhaTuyenDung)
+                .HasDatabaseName("idx_danhgiacongty_nhatuyendung");
+
+            builder.Entity<DanhGiaCongTy>()
+                .HasIndex(d => d.UserId)
+                .HasDatabaseName("idx_danhgiacongty_userid");
+
+            // Cấu hình primary key và quan hệ cho DanhGiaCongTyLike
+            builder.Entity<DanhGiaCongTyLike>()
+                .HasKey(d => d.MaLike);
+
+            builder.Entity<DanhGiaCongTyLike>()
+                .Property(d => d.MaLike)
+                .ValueGeneratedOnAdd();
+
+            // DanhGiaCongTyLike -> DanhGiaCongTy
+            builder.Entity<DanhGiaCongTyLike>()
+                .HasOne(d => d.DanhGiaCongTy)
+                .WithMany()
+                .HasForeignKey(d => d.MaDanhGia)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // DanhGiaCongTyLike -> ApplicationUser
+            builder.Entity<DanhGiaCongTyLike>()
+                .HasOne(d => d.User)
+                .WithMany()
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Unique constraint: mỗi user chỉ like 1 lần cho mỗi review
+            builder.Entity<DanhGiaCongTyLike>()
+                .HasIndex(d => new { d.MaDanhGia, d.UserId })
+                .IsUnique()
+                .HasDatabaseName("idx_danhgiacongtylike_unique");
         }
     }
 }

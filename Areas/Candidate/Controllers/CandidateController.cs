@@ -22,6 +22,7 @@ namespace Unicareer.Areas.Candidate.Controllers
         private readonly IChuyenNganhRepository _chuyenNganhRepository;
         private readonly INganhNgheRepository _nganhNgheRepository;
         private readonly IViecLamDaLuuRepository _viecLamDaLuuRepository;
+        private readonly IDanhGiaCongTyRepository _danhGiaCongTyRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
@@ -33,6 +34,7 @@ namespace Unicareer.Areas.Candidate.Controllers
             IChuyenNganhRepository chuyenNganhRepository,
             INganhNgheRepository nganhNgheRepository,
             IViecLamDaLuuRepository viecLamDaLuuRepository,
+            IDanhGiaCongTyRepository danhGiaCongTyRepository,
             UserManager<ApplicationUser> userManager,
             ApplicationDbContext context,
             IMapper mapper)
@@ -43,6 +45,7 @@ namespace Unicareer.Areas.Candidate.Controllers
             _chuyenNganhRepository = chuyenNganhRepository;
             _nganhNgheRepository = nganhNgheRepository;
             _viecLamDaLuuRepository = viecLamDaLuuRepository;
+            _danhGiaCongTyRepository = danhGiaCongTyRepository;
             _userManager = userManager;
             _context = context;
             _mapper = mapper;
@@ -95,6 +98,13 @@ namespace Unicareer.Areas.Candidate.Controllers
 
             // Lấy tin ứng tuyển theo UserId
             var danhSach = _tinUngTuyenRepository.LayDanhSachTinUngTuyenTheoUserId(user.Id);
+            
+            // Lấy danh sách đánh giá đã có (để hiển thị nút "Xem đánh giá" thay vì "Đánh giá")
+            var danhSachDanhGia = _danhGiaCongTyRepository.LayDanhSachDanhGiaTheoUserId(user.Id);
+            var danhGiaDict = danhSachDanhGia.ToDictionary(d => d.MaTinUngTuyen);
+            
+            ViewBag.DanhGiaDict = danhGiaDict;
+            
             return View(danhSach);
         }
 

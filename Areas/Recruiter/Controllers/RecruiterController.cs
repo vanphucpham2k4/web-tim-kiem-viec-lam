@@ -22,6 +22,7 @@ namespace Unicareer.Areas.Recruiter.Controllers
         private readonly IChuyenNganhRepository _chuyenNganhRepository;
         private readonly ILoaiCongViecRepository _loaiCongViecRepository;
         private readonly INhaTuyenDungRepository _nhaTuyenDungRepository;
+        private readonly IDanhGiaCongTyRepository _danhGiaCongTyRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
         private readonly IEmailService _emailService;
@@ -34,6 +35,7 @@ namespace Unicareer.Areas.Recruiter.Controllers
             IChuyenNganhRepository chuyenNganhRepository,
             ILoaiCongViecRepository loaiCongViecRepository,
             INhaTuyenDungRepository nhaTuyenDungRepository,
+            IDanhGiaCongTyRepository danhGiaCongTyRepository,
             UserManager<ApplicationUser> userManager,
             ApplicationDbContext context,
             IEmailService emailService,
@@ -45,6 +47,7 @@ namespace Unicareer.Areas.Recruiter.Controllers
             _chuyenNganhRepository = chuyenNganhRepository;
             _loaiCongViecRepository = loaiCongViecRepository;
             _nhaTuyenDungRepository = nhaTuyenDungRepository;
+            _danhGiaCongTyRepository = danhGiaCongTyRepository;
             _userManager = userManager;
             _context = context;
             _emailService = emailService;
@@ -2034,6 +2037,78 @@ namespace Unicareer.Areas.Recruiter.Controllers
             ViewBag.GioiTinhOptions = new List<string> { "Nam", "Nữ" };
 
             return View(ketQuaTimKiem);
+        }
+
+        // GET: Xem danh sách đánh giá của công ty
+        public async Task<IActionResult> DanhGiaCongTy(int page = 1, int pageSize = 10)
+        {
+            ViewData["Title"] = "Đánh giá công ty";
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            var nhaTuyenDung = _nhaTuyenDungRepository.LayNhaTuyenDungTheoUserId(user.Id);
+            if (nhaTuyenDung == null)
+            {
+                return NotFound();
+            }
+
+            // Lấy tất cả reviews (cả chờ duyệt và đã duyệt)
+            var danhSachDanhGia = _danhGiaCongTyRepository.LayDanhSachDanhGiaTheoNhaTuyenDung(nhaTuyenDung.MaNhaTuyenDung, chiLayDaDuyet: false);
+            
+            // Phân trang
+            var totalCount = danhSachDanhGia.Count;
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            var pagedReviews = danhSachDanhGia.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+            ViewBag.DanhSachDanhGia = pagedReviews;
+            ViewBag.PageNumber = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalCount = totalCount;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TrustScore = _danhGiaCongTyRepository.TinhTrustScore(nhaTuyenDung.MaNhaTuyenDung);
+
+            return View();
+        }
+
+        // POST: Phản hồi review
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> PhanHoiDanhGia(int maDanhGia, string phanHoi)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Vui lòng đăng nhập" });
+            }
+
+            var danhGia = _danhGiaCongTyRepository.LayDanhGiaTheoId(maDanhGia);
+            if (danhGia == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy đánh giá" });
+            }
+
+            // Kiểm tra quyền: chỉ công ty được đánh giá mới có thể phản hồi
+            var nhaTuyenDung = _nhaTuyenDungRepository.LayNhaTuyenDungTheoUserId(user.Id);
+            if (nhaTuyenDung == null || danhGia.MaNhaTuyenDung != nhaTuyenDung.MaNhaTuyenDung)
+            {
+                return Json(new { success = false, message = "Bạn không có quyền phản hồi đánh giá này" });
+            }
+
+            if (string.IsNullOrWhiteSpace(phanHoi))
+            {
+                return Json(new { success = false, message = "Vui lòng nhập nội dung phản hồi" });
+            }
+
+            var result = _danhGiaCongTyRepository.ThemPhanHoi(maDanhGia, phanHoi.Trim());
+            if (result)
+            {
+                return Json(new { success = true, message = "Đã gửi phản hồi thành công!" });
+            }
+
+            return Json(new { success = false, message = "Có lỗi xảy ra khi gửi phản hồi" });
         }
     }
 }

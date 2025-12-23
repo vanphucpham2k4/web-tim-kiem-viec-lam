@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Unicareer.Data;
 
@@ -11,9 +12,11 @@ using Unicareer.Data;
 namespace Unicareer.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251219140606_AddDanhGiaCongTy")]
+    partial class AddDanhGiaCongTy
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -480,35 +483,6 @@ namespace Unicareer.Migrations
                         .HasDatabaseName("idx_danhgiacongty_userid");
 
                     b.ToTable("DanhGiaCongTys");
-                });
-
-            modelBuilder.Entity("Unicareer.Models.DanhGiaCongTyLike", b =>
-                {
-                    b.Property<int>("MaLike")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaLike"));
-
-                    b.Property<int>("MaDanhGia")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("NgayLike")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("MaLike");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("MaDanhGia", "UserId")
-                        .IsUnique()
-                        .HasDatabaseName("idx_danhgiacongtylike_unique");
-
-                    b.ToTable("DanhGiaCongTyLikes");
                 });
 
             modelBuilder.Entity("Unicareer.Models.LoaiCongViec", b =>
@@ -1218,25 +1192,6 @@ namespace Unicareer.Migrations
                     b.Navigation("NhaTuyenDung");
 
                     b.Navigation("TinUngTuyen");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Unicareer.Models.DanhGiaCongTyLike", b =>
-                {
-                    b.HasOne("Unicareer.Models.DanhGiaCongTy", "DanhGiaCongTy")
-                        .WithMany()
-                        .HasForeignKey("MaDanhGia")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Unicareer.Models.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("DanhGiaCongTy");
 
                     b.Navigation("User");
                 });

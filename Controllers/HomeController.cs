@@ -927,7 +927,7 @@ namespace Unicareer.Controllers
             return View(ketQuaTimKiem);
         }
 
-        public IActionResult ChiTietCongTy(int id)
+        public async Task<IActionResult> ChiTietCongTy(int id)
         {
             var congTy = _nhaTuyenDungRepository.LayNhaTuyenDungTheoId(id);
             if (congTy == null)
@@ -955,10 +955,76 @@ namespace Unicareer.Controllers
                 ? Math.Max(1, (DateTime.Now - congTy.NgayDangKy).Days / 30) 
                 : 0;
             
+            // Lấy danh sách đánh giá (chỉ hiển thị đã duyệt) với pagination
+            var danhGiaRepository = HttpContext.RequestServices.GetRequiredService<IDanhGiaCongTyRepository>();
+            var allReviews = danhGiaRepository.LayDanhSachDanhGiaTheoNhaTuyenDung(id, chiLayDaDuyet: true);
+            
+            // Pagination settings
+            int reviewPageSize = 10;
+            
+            // Kiểm tra reviewId từ query string và tìm trang chứa đánh giá đó
+            int? reviewId = null;
+            if (Request.Query.ContainsKey("reviewId") && int.TryParse(Request.Query["reviewId"], out int parsedReviewId))
+            {
+                reviewId = parsedReviewId;
+                // Tìm vị trí của đánh giá trong danh sách
+                var reviewIndex = allReviews.FindIndex(r => r.MaDanhGia == parsedReviewId);
+                if (reviewIndex >= 0)
+                {
+                    // Tính trang chứa đánh giá này
+                    int targetPage = (reviewIndex / reviewPageSize) + 1;
+                    // Nếu đang ở trang khác, redirect đến trang đúng
+                    if (!Request.Query.ContainsKey("reviewPage") || 
+                        !int.TryParse(Request.Query["reviewPage"], out int currentPage) || 
+                        currentPage != targetPage)
+                    {
+                        return RedirectToAction("ChiTietCongTy", new { id = id, reviewPage = targetPage, reviewId = parsedReviewId });
+                    }
+                }
+            }
+            
+            // Pagination
+            int reviewPage = 1;
+            if (Request.Query.ContainsKey("reviewPage") && int.TryParse(Request.Query["reviewPage"], out int parsedPage))
+            {
+                reviewPage = parsedPage;
+            }
+            
+            var totalReviews = allReviews.Count;
+            var totalReviewPages = (int)Math.Ceiling(totalReviews / (double)reviewPageSize);
+            var pagedReviews = allReviews.Skip((reviewPage - 1) * reviewPageSize).Take(reviewPageSize).ToList();
+            
+            var trustScore = danhGiaRepository.TinhTrustScore(id);
+            
+            // Lấy danh sách review đã like của user hiện tại (nếu đã đăng nhập)
+            HashSet<int> danhSachDaLike = new HashSet<int>();
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var currentUser = await _userManager.GetUserAsync(User);
+                if (currentUser != null)
+                {
+                    var reviewIds = pagedReviews.Select(r => r.MaDanhGia).ToList();
+                    danhSachDaLike = _context.DanhGiaCongTyLikes
+                        .Where(l => l.UserId == currentUser.Id && reviewIds.Contains(l.MaDanhGia))
+                        .Select(l => l.MaDanhGia)
+                        .ToHashSet();
+                }
+            }
+            
             ViewBag.DanhSachViecLam = danhSachViecLam;
             ViewBag.SoTinDaDang = soTinDaDang;
             ViewBag.SoUngVienNhan = soUngVienNhan;
             ViewBag.SoThangThamGia = soThangThamGia;
+            ViewBag.DanhSachDanhGia = pagedReviews;
+            ViewBag.TrustScore = trustScore;
+            ViewBag.ReviewPage = reviewPage;
+            ViewBag.ReviewPageSize = reviewPageSize;
+            ViewBag.TotalReviews = totalReviews;
+            ViewBag.TotalReviewPages = totalReviewPages;
+            ViewBag.DanhSachDaLike = danhSachDaLike;
+            ViewBag.CurrentUserId = User.Identity?.IsAuthenticated == true ? (await _userManager.GetUserAsync(User))?.Id : null;
+            ViewBag.ReviewId = reviewId;
+            
             return View(congTy);
         }
 

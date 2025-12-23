@@ -641,7 +641,7 @@
                 var moTa = $('#moTaMoi').val();
 
                 if (!tenNganhNghe) {
-                    alert('Vui lòng nhập tên ngành nghề!');
+                    showNotification('Vui lòng nhập tên ngành nghề!', 'error');
                     return;
                 }
 
@@ -655,16 +655,16 @@
                     },
                     success: function(response) {
                         if (response.success) {
-                            alert(response.message);
+                            showNotification(response.message, 'success');
                             $('#themNganhNgheModal').modal('hide');
                             $('#formThemNganhNghe')[0].reset();
                             location.reload();
                         } else {
-                            alert(response.message);
+                            showNotification(response.message, 'error');
                         }
                     },
                     error: function() {
-                        alert('Có lỗi xảy ra khi thêm ngành nghề!');
+                        showNotification('Có lỗi xảy ra khi thêm ngành nghề!', 'error');
                     }
                 });
             });
@@ -688,7 +688,7 @@
                 var moTa = $('#moTaSua').val();
 
                 if (!ten) {
-                    alert('Vui lòng nhập tên ngành nghề!');
+                    showNotification('Vui lòng nhập tên ngành nghề!', 'error');
                     return;
                 }
 
@@ -703,15 +703,15 @@
                     },
                     success: function(response) {
                         if (response.success) {
-                            alert(response.message);
+                            showNotification(response.message, 'success');
                             $('#suaNganhNgheModal').modal('hide');
                             location.reload();
                         } else {
-                            alert(response.message);
+                            showNotification(response.message, 'error');
                         }
                     },
                     error: function() {
-                        alert('Có lỗi xảy ra khi cập nhật ngành nghề!');
+                        showNotification('Có lỗi xảy ra khi cập nhật ngành nghề!', 'error');
                     }
                 });
             });
@@ -731,21 +731,61 @@
                         },
                         success: function(response) {
                             if (response.success) {
-                                alert(response.message);
+                                showNotification(response.message, 'success');
                                 row.fadeOut(300, function() {
                                     $(this).remove();
                                     location.reload();
                                 });
                             } else {
-                                alert(response.message);
+                                showNotification(response.message, 'error');
                             }
                         },
                         error: function() {
-                            alert('Có lỗi xảy ra khi xóa ngành nghề!');
+                            showNotification('Có lỗi xảy ra khi xóa ngành nghề!', 'error');
                         }
                     });
                 }
             });
         });
+
+        // Show notification function
+        function showNotification(message, type) {
+            var bgColor = type === 'success' ? '#48bb78' : type === 'error' ? '#e53e3e' : '#4299e1';
+            var notification = $('<div>')
+                .css({
+                    position: 'fixed',
+                    top: '20px',
+                    right: '20px',
+                    background: bgColor,
+                    color: 'white',
+                    padding: '15px 25px',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                    zIndex: 9999,
+                    fontWeight: '600',
+                    animation: 'slideInRight 0.3s ease'
+                })
+                .text(message)
+                .appendTo('body');
+            
+            setTimeout(function() {
+                notification.fadeOut(400, function() {
+                    $(this).remove();
+                });
+            }, 3000);
+        }
     </script>
+
+    <style>
+        @@keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
 }

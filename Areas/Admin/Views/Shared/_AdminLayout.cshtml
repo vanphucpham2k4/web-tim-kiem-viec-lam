@@ -797,6 +797,10 @@
                 <i class="bi bi-journal-text"></i>
                 <span>Quản lý blog</span>
             </a>
+            <a href="@Url.Action("QuanLyDanhGiaCongTy", "Admin")" class="menu-item">
+                <i class="bi bi-star-fill"></i>
+                <span>Quản lý đánh giá công ty</span>
+            </a>
             <a href="@Url.Action("NganhNghe", "Admin")" class="menu-item">
                 <i class="bi bi-briefcase-fill"></i>
                 <span>Ngành nghề</span>
@@ -857,13 +861,17 @@
             }
 
             // Set active menu item dựa trên URL hiện tại
-            const currentPath = window.location.pathname;
+            const currentPath = window.location.pathname.toLowerCase();
             const menuItems = document.querySelectorAll('.menu-item');
             
             menuItems.forEach(item => {
                 item.classList.remove('active');
-                if (item.getAttribute('href') === currentPath) {
-                    item.classList.add('active');
+                const href = item.getAttribute('href');
+                if (href) {
+                    const hrefPath = new URL(href, window.location.origin).pathname.toLowerCase();
+                    if (currentPath === hrefPath || currentPath.startsWith(hrefPath + '/')) {
+                        item.classList.add('active');
+                    }
                 }
             });
         });
