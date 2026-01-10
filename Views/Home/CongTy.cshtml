@@ -1,0 +1,557 @@
+@model List<Unicareer.Models.NhaTuyenDung>
+@{
+    ViewData["Title"] = "Danh sách công ty";
+    var thongKeCongTy = ViewBag.ThongKeCongTy as Dictionary<int, (int SoTinDaDang, int SoUngVienNhan)> ?? new Dictionary<int, (int, int)>();
+}
+
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        --secondary-gradient: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+        --success-gradient: linear-gradient(135deg, #6ee7b7 0%, #10b981 100%);
+        --accent-color: #10b981;
+        --accent-dark: #059669;
+        --text-primary: #2d3748;
+        --text-secondary: #718096;
+    }
+    
+    body {
+        background: #f7fafc;
+    }
+    
+    .hero-section {
+        background: var(--primary-gradient);
+        padding: 80px 0 60px;
+        margin-bottom: 40px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        opacity: 0.3;
+    }
+    
+    .hero-content {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        color: white;
+    }
+    
+    .hero-content h1 {
+        font-size: 48px;
+        font-weight: 800;
+        margin-bottom: 16px;
+        text-shadow: 0 2px 20px rgba(0,0,0,0.1);
+    }
+    
+    .hero-content p {
+        font-size: 18px;
+        opacity: 0.95;
+    }
+    
+    .search-box {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 20px 25px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        position: relative;
+        z-index: 1;
+        margin-top: 30px;
+    }
+    
+    .search-box .input-group-text {
+        border: 2px solid #e2e8f0;
+        border-right: 0;
+        border-radius: 10px 0 0 10px;
+        background: white;
+    }
+    
+    .search-box .form-control {
+        border: 2px solid #e2e8f0;
+        border-left: 0;
+        padding: 14px 20px;
+        font-size: 15px;
+        border-radius: 0;
+    }
+    
+    .search-box .btn-search {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        padding: 14px 20px;
+        border-radius: 0 10px 10px 0;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+    
+    .search-box .btn-search:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(16, 185, 129, 0.5);
+    }
+    
+    .filter-bar {
+        background: white;
+        padding: 20px 25px;
+        border-radius: 16px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        border: 1px solid #e2e8f0;
+    }
+    
+    .filter-bar select {
+        border: 2px solid #e2e8f0;
+        padding: 10px 15px;
+        border-radius: 10px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        background: white;
+    }
+    
+    .filter-bar select:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        outline: none;
+    }
+    
+    .company-card {
+        background: white;
+        border: 2px solid transparent;
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 25px;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+    }
+    
+    .company-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: var(--primary-gradient);
+        opacity: 0.03;
+        transition: all 0.4s ease;
+    }
+    
+    .company-card:hover::before {
+        left: 0;
+    }
+    
+    .company-card:hover {
+        border-color: var(--accent-color);
+        box-shadow: 0 12px 40px rgba(16, 185, 129, 0.15);
+        transform: translateY(-8px);
+    }
+    
+    .company-logo {
+        width: 100px;
+        height: 100px;
+        min-width: 100px;
+        max-width: 100px;
+        min-height: 100px;
+        max-height: 100px;
+        background: #ffffff;
+        border: 1px solid #e0e0e0;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: var(--accent-color);
+        font-size: 36px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+        overflow: hidden;
+        flex-shrink: 0;
+        position: relative;
+    }
+    
+    .company-logo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 20px;
+        display: block;
+        flex-shrink: 0;
+    }
+    
+    .company-card:hover .company-logo {
+        transform: scale(1.05);
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2);
+    }
+    
+    .company-name {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 10px;
+        transition: color 0.3s ease;
+    }
+    
+    .company-card:hover .company-name {
+        color: var(--accent-color);
+    }
+    
+    .company-info {
+        color: var(--text-secondary);
+        font-size: 14px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .company-info i {
+        color: var(--accent-color);
+        font-size: 16px;
+        width: 20px;
+    }
+    
+    .company-stats {
+        display: flex;
+        gap: 20px;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #e2e8f0;
+    }
+    
+    .stat-item {
+        flex: 1;
+        text-align: center;
+    }
+    
+    .stat-number {
+        font-size: 24px;
+        font-weight: 800;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        font-size: 12px;
+        color: var(--text-secondary);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .badge-industry {
+        display: inline-block;
+        padding: 6px 14px;
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--accent-color);
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+    
+    .page-title {
+        font-size: 32px;
+        font-weight: 800;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 10px;
+    }
+    
+    .company-count {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 4px 14px;
+        border-radius: 20px;
+        font-weight: 700;
+        display: inline-block;
+        box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
+    }
+    
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .company-card {
+        animation: fadeInUp 0.6s ease backwards;
+    }
+    
+    .company-card:nth-child(1) { animation-delay: 0.05s; }
+    .company-card:nth-child(2) { animation-delay: 0.1s; }
+    .company-card:nth-child(3) { animation-delay: 0.15s; }
+    .company-card:nth-child(4) { animation-delay: 0.2s; }
+    .company-card:nth-child(5) { animation-delay: 0.25s; }
+    .company-card:nth-child(6) { animation-delay: 0.3s; }
+</style>
+
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container-fluid px-5">
+        <div class="hero-content">
+            <h1>Khám Phá Các Công Ty Hàng Đầu</h1>
+            <p>Tìm hiểu về các nhà tuyển dụng uy tín và cơ hội nghề nghiệp tại các công ty hàng đầu Việt Nam</p>
+        </div>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="search-box">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white">
+                            <i class="bi bi-search text-muted"></i>
+                        </span>
+                        <input type="text" class="form-control" 
+                               placeholder="Tìm kiếm công ty theo tên, lĩnh vực..."
+                               id="searchInput">
+                        <button class="btn btn-search" type="button">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container-fluid px-5">
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <div class="row g-3 align-items-center">
+            <div class="col-auto">
+                <strong style="color: var(--text-primary);">Lọc theo:</strong>
+            </div>
+            <div class="col-md-5">
+                <select class="form-select form-select-sm" id="filterTinhThanh">
+                    <option value="">Tỉnh/Thành Phố</option>
+                    @{
+                        var danhSachTinhThanh = ViewBag.DanhSachTinhThanh as List<Unicareer.Models.Province> ?? new List<Unicareer.Models.Province>();
+                    }
+                    @foreach (var tinh in danhSachTinhThanh)
+                    {
+                        <option value="@tinh.Code" data-fullname="@tinh.FullName">@tinh.FullName</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-5">
+                <select class="form-select form-select-sm" id="filterQuanHuyen">
+                    <option value="">Quận/Huyện</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Unicareer</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Công ty</li>
+        </ol>
+    </nav>
+    
+    <!-- Company List -->
+    <div class="mb-4">
+        <h4 class="page-title">DANH SÁCH CÔNG TY</h4>
+        <p class="text-muted" style="font-size: 15px;">Có <span class="company-count" id="companyCount">@Model.Count</span> công ty đang tuyển dụng trên Unicareer</p>
+    </div>
+    
+    <div class="row" id="companyList">
+        @foreach (var company in Model)
+        {
+            <div class="col-md-6 col-lg-4" data-tinhthanh="@company.TinhThanhPho" data-quanhuyen="@company.QuanHuyen">
+                <a href="/Home/ChiTietCongTy/@company.MaNhaTuyenDung" class="text-decoration-none" style="color: inherit;">
+                    <div class="company-card">
+                        @if (!string.IsNullOrEmpty(company.Logo))
+                        {
+                            <div class="company-logo">
+                                <img src="@company.Logo" alt="@company.TenCongTy">
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="company-logo">
+                                @company.TenCongTy.Substring(0, 1)
+                            </div>
+                        }
+                        <h5 class="company-name">@company.TenCongTy</h5>
+                        <div class="company-info">
+                            <i class="bi bi-briefcase"></i>
+                            <span>@company.LinhVuc</span>
+                        </div>
+                        <div class="company-info">
+                            <i class="bi bi-geo-alt"></i>
+                            <span>@company.TinhThanhPho, @company.QuanHuyen</span>
+                        </div>
+                        
+                        <span class="badge-industry">@company.LinhVuc</span>
+                        
+                        <div class="company-stats">
+                            @{
+                                var thongKe = thongKeCongTy.ContainsKey(company.MaNhaTuyenDung) 
+                                    ? thongKeCongTy[company.MaNhaTuyenDung] 
+                                    : (SoTinDaDang: 0, SoUngVienNhan: 0);
+                            }
+                            <div class="stat-item">
+                                <div class="stat-number">@thongKe.SoTinDaDang</div>
+                                <div class="stat-label">Vị trí tuyển dụng</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">@thongKe.SoUngVienNhan</div>
+                                <div class="stat-label">Đơn ứng tuyển</div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Function to load wards by province
+            function loadWardsByProvince(provinceCode) {
+                const $filterQuanHuyen = $('#filterQuanHuyen');
+                
+                // Reset quận/huyện dropdown
+                $filterQuanHuyen.html('<option value="">Quận/Huyện</option>');
+                
+                if (provinceCode) {
+                    // Show loading state
+                    $filterQuanHuyen.prop('disabled', true);
+                    $filterQuanHuyen.html('<option value="">Đang tải...</option>');
+                    
+                    // Fetch wards from API
+                    fetch(`/Home/GetWardsByProvince?provinceCode=${encodeURIComponent(provinceCode)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            $filterQuanHuyen.html('<option value="">Quận/Huyện</option>');
+                            
+                            if (data && data.length > 0) {
+                                data.forEach(ward => {
+                                    const option = $('<option></option>')
+                                        .attr('value', ward.code)
+                                        .attr('data-fullname', ward.fullName)
+                                        .text(ward.fullName);
+                                    $filterQuanHuyen.append(option);
+                                });
+                            } else {
+                                $filterQuanHuyen.html('<option value="">Không có dữ liệu</option>');
+                            }
+                            
+                            $filterQuanHuyen.prop('disabled', false);
+                        })
+                        .catch(error => {
+                            console.error('Error loading wards:', error);
+                            $filterQuanHuyen.html('<option value="">Lỗi tải dữ liệu</option>');
+                            $filterQuanHuyen.prop('disabled', false);
+                        });
+                } else {
+                    $filterQuanHuyen.prop('disabled', false);
+                }
+            }
+            
+            // Load wards when province is selected
+            $('#filterTinhThanh').on('change', function() {
+                loadWardsByProvince($(this).val());
+            });
+            
+            // Kiểm tra và load quận/huyện nếu tỉnh đã được chọn (khi quay lại bằng back button)
+            const selectedProvinceCode = $('#filterTinhThanh').val();
+            if (selectedProvinceCode) {
+                loadWardsByProvince(selectedProvinceCode);
+            }
+            
+            // Search functionality
+            $('#searchInput').on('keyup', function() {
+                filterCompanies();
+            });
+            
+            // Filter functionality
+            $('#filterTinhThanh, #filterQuanHuyen').on('change', function() {
+                filterCompanies();
+            });
+            
+            function filterCompanies() {
+                var searchText = $('#searchInput').val().toLowerCase();
+                var filterTinhThanhName = $('#filterTinhThanh option:selected').text();
+                var filterQuanHuyenName = $('#filterQuanHuyen option:selected').text();
+                
+                var visibleCount = 0;
+                
+                $('#companyList > div').each(function() {
+                    var card = $(this);
+                    var cardTinhThanh = card.data('tinhthanh') || '';
+                    var cardQuanHuyen = card.data('quanhuyen') || '';
+                    var cardText = card.text().toLowerCase();
+                    
+                    var matchSearch = searchText === '' || cardText.includes(searchText);
+                    
+                    // Tìm kiếm tỉnh/thành phố - so sánh với tên tỉnh từ dropdown
+                    var matchTinhThanh = true;
+                    if (filterTinhThanhName && filterTinhThanhName !== '' && filterTinhThanhName !== 'Tỉnh/Thành Phố') {
+                        var tinhThanhLower = filterTinhThanhName.toLowerCase();
+                        var cardTinhThanhLower = cardTinhThanh.toLowerCase();
+                        
+                        // Tìm kiếm linh hoạt
+                        matchTinhThanh = cardTinhThanhLower.includes(tinhThanhLower) || 
+                                        cardTinhThanhLower === tinhThanhLower ||
+                                        tinhThanhLower.includes(cardTinhThanhLower);
+                    }
+                    
+                    // Tìm kiếm quận/huyện - so sánh với tên quận/huyện từ dropdown
+                    var matchQuanHuyen = true;
+                    if (filterQuanHuyenName && filterQuanHuyenName !== '' && filterQuanHuyenName !== 'Quận/Huyện' && filterQuanHuyenName !== 'Đang tải...' && filterQuanHuyenName !== 'Không có dữ liệu' && filterQuanHuyenName !== 'Lỗi tải dữ liệu') {
+                        var quanHuyenLower = filterQuanHuyenName.toLowerCase();
+                        var cardQuanHuyenLower = cardQuanHuyen.toLowerCase();
+                        matchQuanHuyen = cardQuanHuyenLower.includes(quanHuyenLower) || 
+                                        cardQuanHuyenLower === quanHuyenLower ||
+                                        quanHuyenLower.includes(cardQuanHuyenLower);
+                    }
+                    
+                    if (matchSearch && matchTinhThanh && matchQuanHuyen) {
+                        card.show();
+                        visibleCount++;
+                    } else {
+                        card.hide();
+                    }
+                });
+                
+                $('#companyCount').text(visibleCount);
+            }
+        });
+    </script>
+}
+

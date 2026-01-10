@@ -1,0 +1,820 @@
+@model Unicareer.Models.ViewModels.TinTuyenDungAdminViewModel
+
+@{
+    ViewData["Title"] = "Quản lý Tin tuyển dụng";
+}
+
+<div class="container-fluid">
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="dashboard-card special-card">
+                <div class="hero-title d-flex align-items-center justify-content-between flex-wrap gap-3">
+                    <div>
+                        <h5 class="mb-1 text-white">Quản lý tin tuyển dụng</h5>
+                        <p class="mb-0 text-white-75">Duyệt, theo dõi và cập nhật toàn bộ tin tuyển dụng trên nền tảng.</p>
+                    </div>
+                    <i class="bi bi-newspaper icon-large text-white"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row stats-grid g-4 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card primary dashboard-card">
+                <h6 class="card-title"><i class="bi bi-file-earmark-text"></i> Tổng tin đăng</h6>
+                <h2 class="text-primary">@Model.TotalCount</h2>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card success dashboard-card">
+                <h6 class="card-title"><i class="bi bi-check-circle"></i> Đang tuyển</h6>
+                <h2 class="text-success">@Model.TotalDangTuyen</h2>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card secondary dashboard-card">
+                <h6 class="card-title"><i class="bi bi-x-circle"></i> Hết hạn</h6>
+                <h2 class="text-secondary">@Model.TotalHetHan</h2>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card info dashboard-card">
+                <h6 class="card-title"><i class="bi bi-person-check"></i> Tổng ứng tuyển</h6>
+                <h2 class="text-info">@Model.TotalUngTuyen</h2>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card warning dashboard-card">
+                <h6 class="card-title"><i class="bi bi-exclamation-triangle"></i> Sắp hết hạn</h6>
+                <h2 class="text-warning">@Model.TotalSapHetHan</h2>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card warning dashboard-card">
+                <h6 class="card-title"><i class="bi bi-hourglass-split"></i> Chờ duyệt</h6>
+                <h2 class="text-warning">@Model.TotalChoDuyet</h2>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card success dashboard-card">
+                <h6 class="card-title"><i class="bi bi-shield-check"></i> Đã duyệt</h6>
+                <h2 class="text-success">@Model.TotalDaDuyet</h2>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card danger dashboard-card">
+                <h6 class="card-title"><i class="bi bi-x-circle"></i> Từ chối</h6>
+                <h2 class="text-danger">@Model.TotalTuChoi</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="filter-card">
+                <form method="get" action="@Url.Action("TinTuyenDung", "Admin")" id="searchForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="pageNumber" id="pageNumberInput" value="@Model.PageNumber" />
+                    <div class="row g-3 align-items-end">
+                        <div class="col-lg-4 col-md-6">
+                            <label class="form-label">Tìm kiếm</label>
+                            <div class="search-wrapper">
+                                <i class="bi bi-search search-icon"></i>
+                                <div class="input-group">
+                                    <input type="text" class="form-control search-input" id="timKiemInput" name="searchTerm"
+                                           placeholder="Tiêu đề, công ty..." value="@Model.SearchTerm">
+                                    <button class="btn btn-outline-secondary btn-search" type="submit">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label">Trạng thái</label>
+                            <div class="filter-select-wrapper">
+                                <i class="bi bi-toggle-on filter-icon"></i>
+                                <select class="form-select filter-select" id="locTrangThai" name="trangThaiFilter">
+                                    <option value="">Tất cả trạng thái</option>
+                                    <option value="Dang tuyen" selected="@(Model.TrangThaiFilter == "Dang tuyen")">Đang tuyển</option>
+                                    <option value="Het han" selected="@(Model.TrangThaiFilter == "Het han")">Hết hạn</option>
+                                    <option value="Da dong" selected="@(Model.TrangThaiFilter == "Da dong")">Đã đóng</option>
+                                    <option value="Cho duyet" selected="@(Model.TrangThaiFilter == "Cho duyet")">Chờ duyệt</option>
+                                    <option value="Da duyet" selected="@(Model.TrangThaiFilter == "Da duyet")">Đã duyệt</option>
+                                    <option value="Tu choi" selected="@(Model.TrangThaiFilter == "Tu choi")">Từ chối</option>
+                                    <option value="Bi khoa" selected="@(Model.TrangThaiFilter == "Bi khoa")">Bị khóa</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label">Ngành nghề</label>
+                            <div class="filter-select-wrapper">
+                                <i class="bi bi-briefcase filter-icon"></i>
+                                <select class="form-select filter-select" id="locNganhNghe" name="nganhNgheFilter">
+                                    <option value="">Tất cả ngành nghề</option>
+                                    <option value="Cong nghe thong tin" selected="@(Model.NganhNgheFilter == "Cong nghe thong tin")">Công nghệ thông tin</option>
+                                    <option value="Kinh doanh" selected="@(Model.NganhNgheFilter == "Kinh doanh")">Kinh doanh</option>
+                                    <option value="Ke toan - Tai chinh" selected="@(Model.NganhNgheFilter == "Ke toan - Tai chinh")">Kế toán - Tài chính</option>
+                                    <option value="Nhan su" selected="@(Model.NganhNgheFilter == "Nhan su")">Nhân sự</option>
+                                    <option value="Thiet ke do hoa" selected="@(Model.NganhNgheFilter == "Thiet ke do hoa")">Thiết kế đồ họa</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <button class="btn btn-primary w-100 filter-btn" type="submit">
+                                <i class="bi bi-funnel-fill me-1"></i> Lọc
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="data-table-card">
+                <div class="table-responsive">
+                    <table class="table table-hover modern-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>
+                                    <input type="checkbox" id="chonTatCa" title="Chọn tất cả">
+                                </th>
+                                <th><i class="bi bi-hash"></i> Mã</th>
+                                <th><i class="bi bi-briefcase"></i> Tiêu đề</th>
+                                <th><i class="bi bi-building"></i> Công ty</th>
+                                <th><i class="bi bi-award"></i> Vị trí</th>
+                                <th><i class="bi bi-calendar-plus"></i> Ngày đăng</th>
+                                <th><i class="bi bi-calendar-x"></i> Hạn nộp</th>
+                                <th><i class="bi bi-people"></i> Lượt UT</th>
+                                <th><i class="bi bi-toggle-on"></i> Trạng thái</th>
+                                <th><i class="bi bi-shield-check"></i> Trạng thái duyệt</th>
+                                <th><i class="bi bi-gear"></i> Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.TinTuyenDungs != null && Model.TinTuyenDungs.Any())
+                            {
+                                @foreach (var tin in Model.TinTuyenDungs)
+                                {
+                                    var trangThai = tin.HanNop >= DateTime.Now ? "Đang tuyển" : "Hết hạn";
+                                    var badgeClass = trangThai == "Đang tuyển" ? "bg-success" : "bg-secondary";
+                                    var soNgayConLai = (tin.HanNop - DateTime.Now).Days;
+                                    var trangThaiDuyet = !string.IsNullOrEmpty(tin.TrangThaiDuyet) ? tin.TrangThaiDuyet : "Cho duyet";
+                                    var badgeClassDuyet = trangThaiDuyet switch
+                                    {
+                                        "Da duyet" => "bg-success",
+                                        "Tu choi" => "bg-danger",
+                                        _ => "bg-warning"
+                                    };
+                                    var labelDuyet = trangThaiDuyet switch
+                                    {
+                                        "Da duyet" => "Đã duyệt",
+                                        "Tu choi" => "Đã từ chối",
+                                        _ => "Chờ duyệt"
+                                    };
+
+                                    <tr data-ma="@tin.MaTinTuyenDung" data-nganh="@(tin.NganhNghe ?? "")" data-trangthai="@trangThai">
+                                        <td><input type="checkbox" class="chonTin" value="@tin.MaTinTuyenDung"></td>
+                                        <td><span class="text-muted">#@tin.MaTinTuyenDung</span></td>
+                                        <td>
+                                            <strong class="text-dark">@tin.TenViecLam</strong><br />
+                                            <small class="text-muted"><i class="bi bi-clock"></i> @tin.LoaiCongViec</small>
+                                        </td>
+                                        <td><span class="badge bg-light text-dark">@tin.CongTy</span></td>
+                                        <td><span class="badge bg-light text-dark">@tin.ViTri</span></td>
+                                        <td>@tin.NgayDang.ToString("dd/MM/yyyy")</td>
+                                        <td>
+                                            @tin.HanNop.ToString("dd/MM/yyyy")
+                                            @if (soNgayConLai >= 0 && soNgayConLai <= 7)
+                                            {
+                                                <br /><small class="text-danger">(@soNgayConLai ngày)</small>
+                                            }
+                                        </td>
+                                        <td><span class="badge bg-primary">@tin.SoLuongUngTuyen</span></td>
+                                        <td><span class="badge @badgeClass">@trangThai</span></td>
+                                        <td>
+                                            <span class="badge @badgeClassDuyet">@labelDuyet</span>
+                                            @if (!string.IsNullOrEmpty(tin.LyDoTuChoi) && trangThaiDuyet == "Tu choi")
+                                            {
+                                                <small class="d-block text-danger mt-1">Lý do: @tin.LyDoTuChoi</small>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                @if (trangThaiDuyet != "Da duyet")
+                                                {
+                                                    <button type="button" class="btn btn-sm btn-outline-success btn-duyet" data-ma="@tin.MaTinTuyenDung" title="Duyệt tin">
+                                                        <i class="bi bi-shield-check"></i>
+                                                    </button>
+                                                }
+                                                <a href="@Url.Action("ChiTietTinTuyenDung", "Admin", new { id = tin.MaTinTuyenDung })" class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <button class="btn btn-sm btn-outline-danger btn-xoa" data-ma="@tin.MaTinTuyenDung" title="Xóa">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="11" class="text-center py-5">
+                                        <i class="bi bi-inbox" style="font-size: 3rem; color: #cbd5e0;"></i>
+                                        <p class="mt-3 text-muted">Không có tin tuyển dụng nào</p>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                @if (Model.TotalPages > 1)
+                {
+                    <nav aria-label="Phân trang">
+                        <ul class="pagination">
+                            @if (Model.PageNumber > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">
+                                        <i class="bi bi-chevron-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(Model.PageNumber - 1))">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="bi bi-chevron-double-left"></i></span>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                                </li>
+                            }
+
+                            @{
+                                int startPage = Math.Max(1, Model.PageNumber - 2);
+                                int endPage = Math.Min(Model.TotalPages, Model.PageNumber + 2);
+                            }
+
+                            @if (startPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">1</a>
+                                </li>
+                                @if (startPage > 2)
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                }
+                            }
+
+                            @for (int i = startPage; i <= endPage; i++)
+                            {
+                                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(@i)">@i</a>
+                                </li>
+                            }
+
+                            @if (endPage < Model.TotalPages)
+                            {
+                                @if (endPage < Model.TotalPages - 1)
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                }
+                                <li class="page-item">
+                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(@Model.TotalPages)">@Model.TotalPages</a>
+                                </li>
+                            }
+
+                            @if (Model.PageNumber < Model.TotalPages)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(Model.PageNumber + 1))">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(@Model.TotalPages)">
+                                        <i class="bi bi-chevron-double-right"></i>
+                                    </a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="bi bi-chevron-double-right"></i></span>
+                                </li>
+                            }
+                        </ul>
+                        <div class="pagination-info">
+                            Hiển thị <strong>@((Model.PageNumber - 1) * Model.PageSize + 1)</strong> -
+                            <strong>@(Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount))</strong>
+                            trong tổng số <strong>@Model.TotalCount</strong> tin tuyển dụng
+                        </div>
+                    </nav>
+                }
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    .dashboard-card {
+        background: white;
+        border-radius: 20px;
+        padding: 32px 28px;
+        text-align: left;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 30px rgba(37, 69, 184, 0.08);
+        position: relative;
+        min-height: 160px;
+        overflow: hidden;
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .dashboard-card i {
+        font-size: 2.5rem;
+        color: #2545B8;
+        transition: transform 0.3s ease;
+    }
+
+    .dashboard-card h5 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 4px;
+        color: #2c3e50;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 40px rgba(37, 69, 184, 0.15);
+    }
+
+    .special-card {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        color: white;
+        box-shadow: 0 15px 35px rgba(37, 69, 184, 0.35);
+    }
+
+    .special-card .dashboard-card i {
+        color: white;
+    }
+
+    .special-card:hover {
+        box-shadow: 0 25px 45px rgba(37, 69, 184, 0.45);
+    }
+
+    .hero-title h5 {
+        font-size: 2.3rem;
+        letter-spacing: 0.5px;
+    }
+
+    .hero-title p {
+        font-size: 1.1rem;
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .icon-large {
+        font-size: 4rem;
+    }
+
+    .stat-value {
+        font-size: 2.25rem;
+        font-weight: 700;
+        color: #172b4d;
+    }
+
+    .filter-card {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 15px 35px rgba(15, 23, 42, 0.08);
+    }
+
+    .filter-card .form-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #5a5f7d;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .search-wrapper {
+        position: relative;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #667eea;
+        font-size: 1rem;
+        z-index: 2;
+    }
+
+    .input-group {
+        display: flex;
+        align-items: stretch;
+        width: 100%;
+    }
+
+    .form-control {
+        border-radius: 12px 0 0 12px;
+        border: 1px solid #e6e9ef;
+        padding-left: 40px;
+        height: 48px;
+    }
+
+    .btn-search {
+        border-radius: 0 12px 12px 0;
+        border: 1px solid #e6e9ef;
+        background: white;
+        color: #667eea;
+        transition: all 0.3s ease;
+    }
+
+    .btn-search:hover {
+        background: #f1f5ff;
+    }
+
+    .filter-select-wrapper {
+        position: relative;
+    }
+
+    .filter-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 1rem;
+        color: #667eea;
+        pointer-events: none;
+    }
+
+    .filter-select {
+        width: 100%;
+        padding-left: 40px;
+        height: 48px;
+        border-radius: 12px;
+        border: 1px solid #e6e9ef;
+    }
+
+    .filter-btn {
+        height: 48px;
+        border-radius: 12px;
+        font-weight: 600;
+        background: linear-gradient(135deg, #2545B8 0%, #4B6CE7 100%);
+        border: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .filter-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(37, 69, 184, 0.3);
+    }
+
+    .data-table-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .modern-table {
+        margin-bottom: 0;
+    }
+
+    .modern-table thead th {
+        border: none;
+        padding: 18px 14px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #495057;
+    }
+
+    .modern-table tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #f1f3f5;
+    }
+
+    .modern-table tbody tr:hover {
+        background: linear-gradient(90deg, rgba(37, 69, 184, 0.05) 0%, transparent 100%);
+        transform: translateX(4px);
+        box-shadow: 0 2px 8px rgba(37, 69, 184, 0.08);
+    }
+
+    .modern-table tbody td {
+        padding: 18px 14px;
+        vertical-align: middle;
+        border: none;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .stats-card {
+        background: white;
+        border-radius: 18px;
+        padding: 24px;
+        text-align: left;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease, border 0.3s ease;
+        min-height: 160px;
+        border: 1px solid transparent;
+    }
+
+    .stats-card.dashboard-card {
+        padding: 22px 26px;
+    }
+
+    .stats-card .card-title {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-bottom: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stats-card h2 {
+        font-size: 2.25rem;
+        font-weight: 700;
+        margin: 0;
+        line-height: 1.1;
+    }
+
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+        border-color: #2545B8;
+    }
+
+    .stats-card.primary {
+        border-left: none;
+    }
+
+    .stats-card.success {
+        border-left: none;
+    }
+
+    .stats-card.secondary {
+        border-left: none;
+    }
+
+    .stats-card.info {
+        border-left: none;
+    }
+
+    .stats-card.warning {
+        border-left: none;
+    }
+
+    .stats-card.danger {
+        border-left: none;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 30px;
+        flex-wrap: wrap;
+    }
+
+    .pagination .page-link {
+        border: 2px solid #e2e8f0;
+        color: #667eea;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .pagination .page-link:hover {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+        transform: translateY(-2px);
+    }
+
+    .pagination .page-item.active .page-link {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: #667eea;
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: #a0aec0;
+        border-color: #e2e8f0;
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    .pagination-info {
+        text-align: center;
+        margin-top: 15px;
+        color: #4c566a;
+        font-size: 0.9rem;
+    }
+
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .filter-card .row {
+            flex-direction: column;
+        }
+
+        .actions .input-group {
+            flex-direction: column;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            var isPaginationClick = false;
+
+            window.goToPage = function(pageNumber) {
+                isPaginationClick = true;
+                $('#pageNumberInput').val(pageNumber);
+                $('#searchForm').submit();
+            };
+
+            $('#locTrangThai, #locNganhNghe').on('change', function() {
+                $('#pageNumberInput').val(1);
+                $('#searchForm').submit();
+            });
+
+            $('#searchForm').on('submit', function() {
+                if (!isPaginationClick) {
+                    $('#pageNumberInput').val(1);
+                }
+                isPaginationClick = false;
+            });
+
+            $('#searchForm button[type="submit"]').on('click', function() {
+                isPaginationClick = false;
+            });
+
+            $('#chonTatCa').on('change', function() {
+                $('.chonTin').prop('checked', $(this).prop('checked'));
+            });
+
+            var approveUrl = '@Url.Action("DuyetTinTuyenDung", "Admin")';
+
+            $('.btn-duyet').on('click', function() {
+                var button = $(this);
+                var tinId = button.data('ma');
+                if (!tinId) {
+                    showNotification('Không xác định được tin tuyển dụng cần duyệt.', 'error');
+                    return;
+                }
+
+                var token = $('input[name="__RequestVerificationToken"]').first().val();
+                button.prop('disabled', true);
+
+                $.ajax({
+                    url: approveUrl,
+                    type: 'POST',
+                    headers: { 'RequestVerificationToken': token || '' },
+                    data: { id: tinId },
+                    success: function(response) {
+                        if (response.success) {
+                            showNotification(response.message || 'Đã duyệt tin tuyển dụng!', 'success');
+                            setTimeout(function() {
+                                window.location.reload();
+                            }, 1000);
+                        } else {
+                            showNotification(response.message || 'Không thể duyệt tin ngay lúc này.', 'error');
+                        }
+                    },
+                    error: function() {
+                        showNotification('Có lỗi xảy ra khi duyệt tin tuyển dụng', 'error');
+                    },
+                    complete: function() {
+                        button.prop('disabled', false);
+                    }
+                });
+            });
+
+            $('.btn-xoa').on('click', function(e) {
+                e.preventDefault();
+                var row = $(this).closest('tr');
+                var jobTitle = row.find('td:eq(2) strong').text();
+                var ma = $(this).data('ma');
+                var token = $('input[name="__RequestVerificationToken"]').first().val();
+
+                if (confirm('Bạn có chắc chắn muốn xóa tin tuyển dụng "' + jobTitle + '" không?')) {
+                    $.ajax({
+                        url: '@Url.Action("XoaTinTuyenDung", "Admin")',
+                        type: 'POST',
+                        headers: { 'RequestVerificationToken': token || '' },
+                        data: { id: ma },
+                        success: function(response) {
+                            if (response.success) {
+                                row.fadeOut(400, function() {
+                                    $(this).remove();
+                                    showNotification('Đã xóa tin tuyển dụng thành công!', 'success');
+                                });
+                            } else {
+                                showNotification(response.message || 'Có lỗi xảy ra!', 'error');
+                            }
+                        },
+                        error: function(xhr) {
+                            var errorMsg = 'Có lỗi xảy ra khi xóa tin!';
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMsg = xhr.responseJSON.message;
+                            }
+                            showNotification(errorMsg, 'error');
+                        }
+                    });
+                }
+            });
+
+            function showNotification(message, type) {
+                var bgColor = type === 'success' ? '#48bb78' : '#f56565';
+                var notification = $('<div>')
+                    .css({
+                        position: 'fixed',
+                        top: '20px',
+                        right: '20px',
+                        background: bgColor,
+                        color: 'white',
+                        padding: '15px 25px',
+                        borderRadius: '12px',
+                        boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                        zIndex: 9999,
+                        fontWeight: '600'
+                    })
+                    .text(message)
+                    .appendTo('body');
+
+                setTimeout(function() {
+                    notification.fadeOut(400, function() {
+                        $(this).remove();
+                    });
+                }, 3000);
+            }
+
+            $('.stats-card h2').each(function() {
+                var $this = $(this);
+                var countTo = parseInt($this.text());
+
+                $({ countNum: 0 }).animate({
+                    countNum: countTo
+                }, {
+                    duration: 1500,
+                    easing: 'swing',
+                    step: function() {
+                        $this.text(Math.floor(this.countNum));
+                    },
+                    complete: function() {
+                        $this.text(this.countNum);
+                    }
+                });
+            });
+        });
+    </script>
+}
+

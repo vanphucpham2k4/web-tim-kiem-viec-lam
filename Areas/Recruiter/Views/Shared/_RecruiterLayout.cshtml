@@ -1,0 +1,1080 @@
+@using Microsoft.AspNetCore.Identity
+@using Unicareer.Data
+@using Microsoft.EntityFrameworkCore
+@inject SignInManager<Unicareer.Models.ApplicationUser> SignInManager
+@inject UserManager<Unicareer.Models.ApplicationUser> UserManager
+@inject ApplicationDbContext DbContext
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Nhà Tuyển Dụng</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #e8edf2;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* ============ SIDEBAR ============ */
+        .recruiter-sidebar {
+            position: fixed;
+            left: 0;
+            top: 70px;
+            bottom: 0;
+            width: 90px;
+            background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .recruiter-sidebar.expanded {
+            width: 260px;
+        }
+
+        /* Toggle Button */
+        .sidebar-toggle {
+            position: absolute;
+            right: -15px;
+            top: 15px;
+            width: 30px;
+            height: 30px;
+            background: white;
+            border: 2px solid #10b981;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+
+        .sidebar-toggle:hover {
+            background: #f0f0f0;
+            transform: scale(1.1);
+        }
+
+        .sidebar-toggle i {
+            color: #10b981;
+            font-size: 0.9rem;
+            transition: transform 0.3s ease;
+        }
+
+        .recruiter-sidebar.expanded .sidebar-toggle i {
+            transform: rotate(180deg);
+        }
+
+        /* Menu Items */
+        .sidebar-menu {
+            width: 100%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding: 0 10px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .menu-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: white;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .menu-item i {
+            font-size: 1.3rem;
+            min-width: 26px;
+            text-align: center;
+        }
+
+        .menu-item span {
+            margin-left: 20px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .recruiter-sidebar.expanded .menu-item span {
+            opacity: 1;
+            width: auto;
+        }
+
+        /* ============ TOP HEADER ============ */
+        .recruiter-top-header {
+            position: fixed;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: 70px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            z-index: 1050;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .header-logo img {
+            width: 45px;
+            height: 45px;
+            border-radius: 10px;
+        }
+
+        .header-logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f5f5f5;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .header-icon-btn:hover {
+            background: #e0e0e0;
+            transform: scale(1.1);
+        }
+
+        .header-icon-btn i {
+            font-size: 1.2rem;
+            color: #2c3e50;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 18px;
+            height: 18px;
+            background: #ff4757;
+            border-radius: 50%;
+            border: 2px solid white;
+            font-size: 0.65rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .notification-badge.hidden {
+            display: none;
+        }
+
+        .notification-dropdown {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            width: 380px;
+            max-height: 500px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            display: none;
+            overflow: hidden;
+        }
+
+        .notification-dropdown.show {
+            display: block;
+        }
+
+        .notification-header {
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-header h6 {
+            margin: 0;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .notification-body {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f5f5f5;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            gap: 12px;
+            position: relative;
+        }
+
+        .notification-item:hover {
+            background: #f8f9fa;
+        }
+
+        .notification-item.read {
+            background: #fafafa;
+            opacity: 0.7;
+        }
+
+        .notification-item.read:hover {
+            background: #f0f0f0;
+        }
+
+        .notification-item.read .notification-title {
+            font-weight: 400;
+        }
+
+        .notification-item.read .notification-icon {
+            opacity: 0.6;
+        }
+
+        .notification-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: #10b981;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .notification-item:not(.read)::before {
+            opacity: 1;
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .notification-icon.primary {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .notification-icon.warning {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .notification-icon.danger {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+
+        .notification-icon.info {
+            background: #e0f2f1;
+            color: #00796b;
+        }
+
+        .notification-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+
+        .notification-message {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            line-height: 1.4;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .notification-time {
+            font-size: 0.75rem;
+            color: #b0b0b0;
+            margin-top: 4px;
+        }
+
+        .notification-empty {
+            padding: 40px 20px;
+            text-align: center;
+            color: #7f8c8d;
+        }
+
+        .notification-empty i {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            opacity: 0.3;
+        }
+
+        .notification-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+        }
+
+        .notification-footer a {
+            color: #10b981;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .notification-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .user-profile {
+            position: relative;
+        }
+
+        .user-profile > a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .user-profile > a:hover {
+            background: #f5f5f5;
+        }
+
+        .user-profile .dropdown-menu {
+            margin-top: 10px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            border: none;
+        }
+
+        .user-profile .dropdown-item {
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+        }
+
+        .user-profile .dropdown-item:hover {
+            background: #f5f5f5;
+            padding-left: 25px;
+        }
+
+        .user-profile .dropdown-item i {
+            margin-right: 10px;
+            width: 20px;
+        }
+
+        .user-profile .dropdown-item.text-danger:hover {
+            background: #ffe5e5;
+            color: #dc3545 !important;
+        }
+
+        .user-profile form button {
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            display: block;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.95rem;
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+        }
+
+        /* ============ MAIN CONTENT ============ */
+        .recruiter-main-content {
+            margin-left: 90px;
+            margin-top: 70px;
+            padding: 30px;
+            min-height: calc(100vh - 70px);
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .recruiter-sidebar.expanded ~ .recruiter-main-content {
+            margin-left: 260px;
+        }
+
+        /* ============ DASHBOARD CARDS ============ */
+        .dashboard-card {
+            background: white;
+            border-radius: 20px;
+            padding: 35px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+            cursor: pointer;
+            border: 2px solid transparent;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.15);
+            border-color: #10b981;
+        }
+
+        .dashboard-card i {
+            font-size: 3.5rem;
+            color: #10b981;
+            margin-bottom: 20px;
+        }
+
+        .dashboard-card h5 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .special-card {
+            background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            color: white;
+        }
+
+        .special-card i {
+            color: white;
+        }
+
+        .special-card h5 {
+            color: white;
+        }
+
+        /* ============ ANIMATIONS ============ */
+        @@keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .menu-item {
+            animation: slideIn 0.3s ease-out backwards;
+        }
+
+        .menu-item:nth-child(1) { animation-delay: 0.05s; }
+        .menu-item:nth-child(2) { animation-delay: 0.1s; }
+        .menu-item:nth-child(3) { animation-delay: 0.15s; }
+        .menu-item:nth-child(4) { animation-delay: 0.2s; }
+        .menu-item:nth-child(5) { animation-delay: 0.25s; }
+        .menu-item:nth-child(6) { animation-delay: 0.3s; }
+        .menu-item:nth-child(7) { animation-delay: 0.35s; }
+
+        /* ============ RESPONSIVE ============ */
+        @@media (max-width: 768px) {
+            .recruiter-sidebar {
+                width: 0;
+                padding: 20px 0;
+                left: -90px;
+            }
+
+            .recruiter-sidebar.expanded {
+                width: 260px;
+                left: 0;
+            }
+
+            .recruiter-main-content {
+                margin-left: 0;
+            }
+
+            .recruiter-sidebar.expanded ~ .recruiter-main-content {
+                margin-left: 0;
+            }
+
+            .sidebar-toggle {
+                left: 15px;
+                right: auto;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .header-logo-text {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Header -->
+    <header class="recruiter-top-header">
+        <div class="header-left">
+            <a href="/" class="header-logo">
+                <img src="~/images/logoUnicareer.png" alt="Unicareer Logo" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2245%22 height=%2245%22%3E%3Crect width=%2245%22 height=%2245%22 fill=%22%23E85D04%22 rx=%2210%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2220%22 font-weight=%22bold%22%3EU%3C/text%3E%3C/svg%3E';">
+                <span class="header-logo-text">Unicareer</span>
+            </a>
+        </div>
+        
+        <div class="header-actions">
+            <div class="notification-wrapper" style="position: relative;">
+                <button class="header-icon-btn" id="notificationBtn" onclick="toggleNotificationDropdown()">
+                    <i class="bi bi-bell"></i>
+                    <span class="notification-badge hidden" id="notificationBadge">0</span>
+                </button>
+                <div class="notification-dropdown" id="notificationDropdown">
+                    <div class="notification-header">
+                        <h6>Thông báo</h6>
+                        <button type="button" class="btn-close" onclick="closeNotificationDropdown()" style="font-size: 0.7rem;"></button>
+                    </div>
+                    <div class="notification-body" id="notificationBody">
+                        <div class="notification-empty">
+                            <i class="bi bi-bell-slash"></i>
+                            <p>Không có thông báo mới</p>
+                        </div>
+                    </div>
+                    <div class="notification-footer">
+                        <a href="@Url.Action("DonUngTuyen", "Recruiter")">Xem tất cả đơn ứng tuyển</a>
+                    </div>
+                </div>
+            </div>
+
+            @if (SignInManager.IsSignedIn(User))
+            {
+                var currentUser = await UserManager.GetUserAsync(User);
+                var roles = await UserManager.GetRolesAsync(currentUser);
+                var roleName = roles.FirstOrDefault() ?? "User";
+                
+                // Đối với nhà tuyển dụng, ưu tiên lấy logo công ty
+                string? displayImage = null;
+                if (roleName == "NhaTuyenDung")
+                {
+                    var nhaTuyenDung = await DbContext.NhaTuyenDungs
+                        .FirstOrDefaultAsync(n => n.UserId == currentUser.Id);
+                    if (nhaTuyenDung != null && !string.IsNullOrEmpty(nhaTuyenDung.Logo))
+                    {
+                        displayImage = nhaTuyenDung.Logo;
+                    }
+                }
+                
+                // Nếu không có logo công ty, dùng avatar user
+                if (string.IsNullOrEmpty(displayImage) && !string.IsNullOrEmpty(currentUser?.Avatar))
+                {
+                    displayImage = currentUser.Avatar;
+                }
+                
+                // Nếu vẫn không có, dùng avatar mặc định
+                var avatarUrl = !string.IsNullOrEmpty(displayImage) 
+                    ? displayImage 
+                    : "/images/default-avatar.png";
+                
+                // Lấy chữ cái đầu của tên để làm fallback
+                var initials = "NT";
+                if (!string.IsNullOrEmpty(currentUser?.HoTen))
+                {
+                    var nameParts = currentUser.HoTen.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    if (nameParts.Length >= 2)
+                    {
+                        // Lấy chữ cái đầu của họ và tên
+                        initials = $"{nameParts[0][0]}{nameParts[^1][0]}".ToUpper();
+                    }
+                    else if (nameParts.Length == 1)
+                    {
+                        initials = nameParts[0].Substring(0, Math.Min(2, nameParts[0].Length)).ToUpper();
+                    }
+                }
+
+                // Chuyển đổi role sang tiếng Việt
+                var roleDisplay = roleName switch
+                {
+                    "Admin" => "Quản trị viên",
+                    "NhaTuyenDung" => "Nhà tuyển dụng",
+                    "UngVien" => "Ứng viên",
+                    _ => roleName
+                };
+
+                <div class="user-profile dropdown">
+                    <a href="#" class="d-flex align-items-center gap-2" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none;">
+                        <div class="user-avatar">
+                            @if (!string.IsNullOrEmpty(displayImage))
+                            {
+                                <img src="@displayImage?v=@DateTime.Now.Ticks" alt="Logo/Avatar" />
+                            }
+                            else
+                            {
+                                <img src="@avatarUrl" alt="Avatar mặc định" style="opacity: 0.7;" />
+                                <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; font-size: 0.9rem;">@initials</span>
+                            }
+                        </div>
+                        <div class="user-info">
+                            <div class="user-name">@currentUser?.HoTen</div>
+                            <div class="user-role">@roleDisplay</div>
+                        </div>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="@Url.Action("CaiDat", "Recruiter")"><i class="bi bi-person"></i> Thông tin tài khoản</a></li>
+                        <li><a class="dropdown-item" href="@Url.Action("CaiDat", "Recruiter")"><i class="bi bi-gear"></i> Cài đặt</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/"><i class="bi bi-house"></i> Về trang chủ</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                <button type="submit" class="dropdown-item text-danger">
+                                    <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            }
+            else
+            {
+                <div class="user-profile">
+                    <div class="user-avatar">?</div>
+                    <div class="user-info">
+                        <div class="user-name">Guest</div>
+                        <div class="user-role">Visitor</div>
+                    </div>
+                </div>
+            }
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <div class="recruiter-sidebar" id="recruiterSidebar">
+        <!-- Toggle Button -->
+        <div class="sidebar-toggle" onclick="toggleSidebar()">
+            <i class="bi bi-chevron-right"></i>
+        </div>
+
+        <!-- Menu -->
+        <nav class="sidebar-menu">
+            <a href="@Url.Action("Index", "Recruiter")" class="menu-item active">
+                <i class="bi bi-house-door"></i>
+                <span>Trang chủ</span>
+            </a>
+            <a href="@Url.Action("DangTinTuyenDung", "Recruiter")" class="menu-item">
+                <i class="bi bi-plus-circle"></i>
+                <span>Đăng tin tuyển dụng</span>
+            </a>
+            <a href="@Url.Action("TinDaDang", "Recruiter")" class="menu-item">
+                <i class="bi bi-list-task"></i>
+                <span>Tin đã đăng</span>
+            </a>
+            <a href="@Url.Action("DonUngTuyen", "Recruiter")" class="menu-item">
+                <i class="bi bi-inbox"></i>
+                <span>Đơn ứng tuyển</span>
+            </a>
+            <a href="@Url.Action("DanhGiaCongTy", "Recruiter")" class="menu-item">
+                <i class="bi bi-star-fill"></i>
+                <span>Đánh giá công ty</span>
+            </a>
+            <a href="@Url.Action("TimUngVien", "Recruiter")" class="menu-item">
+                <i class="bi bi-search"></i>
+                <span>Tìm ứng viên</span>
+            </a>
+            <a href="@Url.Action("ThongKe", "Recruiter")" class="menu-item">
+                <i class="bi bi-graph-up"></i>
+                <span>Thống kê</span>
+            </a>
+            <a href="@Url.Action("CaiDat", "Recruiter")" class="menu-item">
+                <i class="bi bi-gear"></i>
+                <span>Cài đặt</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <main class="recruiter-main-content">
+        @RenderBody()
+    </main>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('recruiterSidebar');
+            sidebar.classList.toggle('expanded');
+            
+            // Lưu trạng thái vào localStorage
+            const isExpanded = sidebar.classList.contains('expanded');
+            localStorage.setItem('recruiterSidebarExpanded', isExpanded);
+        }
+
+        // Khôi phục trạng thái sidebar khi tải trang
+        window.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('recruiterSidebar');
+            const isExpanded = localStorage.getItem('recruiterSidebarExpanded') === 'true';
+            
+            if (isExpanded) {
+                sidebar.classList.add('expanded');
+            }
+
+            // Set active menu item dựa trên URL hiện tại
+            const currentPath = window.location.pathname.toLowerCase();
+            const menuItems = document.querySelectorAll('.menu-item');
+            
+            menuItems.forEach(item => {
+                item.classList.remove('active');
+                const href = item.getAttribute('href');
+                if (href) {
+                    const hrefPath = new URL(href, window.location.origin).pathname.toLowerCase();
+                    if (currentPath === hrefPath || currentPath.startsWith(hrefPath + '/')) {
+                        item.classList.add('active');
+                    }
+                }
+            });
+        });
+
+        // Xử lý click vào menu item
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // ============ NOTIFICATION SYSTEM ============
+        let notificationDropdown = null;
+        let notificationBadge = null;
+        let notificationBody = null;
+
+        function initNotifications() {
+            notificationDropdown = document.getElementById('notificationDropdown');
+            notificationBadge = document.getElementById('notificationBadge');
+            notificationBody = document.getElementById('notificationBody');
+            
+            // Load notifications on page load
+            loadNotifications();
+            
+            // Auto-refresh notifications every 2 minutes
+            setInterval(loadNotifications, 120000);
+        }
+
+        function toggleNotificationDropdown() {
+            if (!notificationDropdown) return;
+            
+            const isShowing = notificationDropdown.classList.contains('show');
+            if (isShowing) {
+                closeNotificationDropdown();
+            } else {
+                openNotificationDropdown();
+            }
+        }
+
+        function openNotificationDropdown() {
+            if (!notificationDropdown) return;
+            notificationDropdown.classList.add('show');
+            loadNotifications(); // Refresh when opening
+        }
+
+        function closeNotificationDropdown() {
+            if (!notificationDropdown) return;
+            notificationDropdown.classList.remove('show');
+        }
+
+        function loadNotifications() {
+            const url = '/Recruiter/Recruiter/GetNotifications';
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.data) {
+                        renderNotifications(data.data.notifications);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading notifications:', error);
+                });
+        }
+
+        function getReadNotifications() {
+            const read = localStorage.getItem('recruiter_read_notifications');
+            return read ? JSON.parse(read) : [];
+        }
+
+        function setReadNotifications(keys) {
+            localStorage.setItem('recruiter_read_notifications', JSON.stringify(keys));
+        }
+
+        function markNotificationAsRead(notificationKey) {
+            const read = getReadNotifications();
+            if (!read.includes(notificationKey)) {
+                read.push(notificationKey);
+                setReadNotifications(read);
+            }
+        }
+
+        function isNotificationRead(notificationKey) {
+            const read = getReadNotifications();
+            return read.includes(notificationKey);
+        }
+
+        function updateNotificationBadge(notifications) {
+            if (!notificationBadge) return;
+            
+            // Chỉ đếm các notification chưa đọc
+            const unreadCount = notifications.filter(n => !isNotificationRead(n.notificationKey)).length;
+            
+            if (unreadCount > 0) {
+                notificationBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                notificationBadge.classList.remove('hidden');
+            } else {
+                notificationBadge.classList.add('hidden');
+            }
+        }
+
+        function renderNotifications(notifications) {
+            if (!notificationBody) return;
+            
+            if (notifications.length === 0) {
+                notificationBody.innerHTML = `
+                    <div class="notification-empty">
+                        <i class="bi bi-bell-slash"></i>
+                        <p>Không có thông báo mới</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Cập nhật badge với danh sách notifications
+            updateNotificationBadge(notifications);
+
+            let html = '';
+            notifications.forEach(notif => {
+                const timeAgo = getTimeAgo(notif.createdAt);
+                const iconClass = getIconClass(notif.type);
+                const iconColor = getIconColor(notif.type);
+                const isRead = isNotificationRead(notif.notificationKey);
+                const readClass = isRead ? 'read' : '';
+                
+                html += `
+                    <div class="notification-item ${readClass}" data-notification-key="${escapeHtml(notif.notificationKey)}" onclick="handleNotificationClick('${escapeHtml(notif.url)}', '${escapeHtml(notif.notificationKey)}')">
+                        <div class="notification-icon ${iconColor}">
+                            <i class="bi ${notif.icon}"></i>
+                        </div>
+                        <div class="notification-content">
+                            <div class="notification-title">${escapeHtml(notif.title)}</div>
+                            <div class="notification-message">${escapeHtml(notif.message)}</div>
+                            <div class="notification-time">${timeAgo}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            notificationBody.innerHTML = html;
+        }
+
+        function getIconClass(type) {
+            const iconMap = {
+                'NewApplication': 'primary',
+                'ExpiringSoon': 'warning',
+                'Expired': 'danger',
+                'PendingReview': 'info'
+            };
+            return iconMap[type] || 'primary';
+        }
+
+        function getIconColor(type) {
+            const colorMap = {
+                'NewApplication': 'primary',
+                'ExpiringSoon': 'warning',
+                'Expired': 'danger',
+                'PendingReview': 'info'
+            };
+            return colorMap[type] || 'primary';
+        }
+
+        function getTimeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+
+            if (diffMins < 1) return 'Vừa xong';
+            if (diffMins < 60) return `${diffMins} phút trước`;
+            if (diffHours < 24) return `${diffHours} giờ trước`;
+            if (diffDays < 7) return `${diffDays} ngày trước`;
+            return date.toLocaleDateString('vi-VN');
+        }
+
+        function handleNotificationClick(url, notificationKey) {
+            // Đánh dấu thông báo là đã đọc
+            if (notificationKey) {
+                markNotificationAsRead(notificationKey);
+                // Tìm và cập nhật UI ngay lập tức
+                const notificationItem = document.querySelector(`[data-notification-key="${notificationKey}"]`);
+                if (notificationItem) {
+                    notificationItem.classList.add('read');
+                }
+                // Cập nhật badge bằng cách đếm các notification chưa đọc
+                const unreadItems = document.querySelectorAll('.notification-item:not(.read)');
+                const unreadCount = unreadItems.length;
+                if (unreadCount > 0) {
+                    notificationBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                    notificationBadge.classList.remove('hidden');
+                } else {
+                    notificationBadge.classList.add('hidden');
+                }
+            }
+            
+            // Điều hướng đến URL
+            if (url) {
+                window.location.href = url;
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const notificationWrapper = document.querySelector('.notification-wrapper');
+            if (notificationWrapper && !notificationWrapper.contains(event.target)) {
+                closeNotificationDropdown();
+            }
+        });
+
+        // Initialize notifications when DOM is ready
+        window.addEventListener('DOMContentLoaded', initNotifications);
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

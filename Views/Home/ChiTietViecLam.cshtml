@@ -1,0 +1,2306 @@
+@model Unicareer.Models.TinTuyenDung
+@using Microsoft.AspNetCore.Identity
+@using Unicareer.Models
+@using Unicareer.Models.Enums
+@inject SignInManager<Unicareer.Models.ApplicationUser> SignInManager
+@inject UserManager<Unicareer.Models.ApplicationUser> UserManager
+
+@{
+    ViewData["Title"] = Model.TenViecLam;
+    var mucLuongDisplay = Model.MucLuongThapNhat == 0 && Model.MucLuongCaoNhat == 0 
+        ? "Thỏa thuận" 
+        : $"{Model.MucLuongThapNhat} - {Model.MucLuongCaoNhat} triệu VNĐ";
+    var isNhaTuyenDung = User.IsInRole(Unicareer.Models.SD.Role_NhaTuyenDung);
+    var isDaDong = !string.IsNullOrEmpty(Model.TrangThai) && Model.TrangThai == "Da dong";
+    // Kiểm tra hết hạn: cả trạng thái "Het han" trong database và HanNop
+    var isHetHan = (!string.IsNullOrEmpty(Model.TrangThai) && Model.TrangThai == "Het han") || Model.HanNop < DateTime.Now.Date;
+    
+    // Kiểm tra trạng thái ứng tuyển
+    var tinUngTuyenHienTai = ViewBag.TinUngTuyenHienTai as TinUngTuyen;
+    var daUngTuyen = tinUngTuyenHienTai != null;
+    var trangThaiUngTuyen = tinUngTuyenHienTai?.TrangThaiXuLy ?? "";
+    var trangThaiEnum = TrangThaiXuLyHelper.FromString(trangThaiUngTuyen);
+    var trangThaiDisplay = trangThaiEnum.HasValue 
+        ? TrangThaiXuLyHelper.ToString(trangThaiEnum.Value) 
+        : trangThaiUngTuyen;
+    var coTheUngTuyenLai = !daUngTuyen || trangThaiEnum == TrangThaiXuLy.TuChoi || trangThaiEnum == TrangThaiXuLy.KhongPhuHop;
+    var coTheUngTuyen = !isNhaTuyenDung && !isDaDong && !isHetHan && coTheUngTuyenLai;
+}
+
+<style>
+    :root {
+        --primary-color: #10b981;
+        --primary-dark: #059669;
+        --text-primary: #2d3748;
+        --text-secondary: #718096;
+        --border-color: #e2e8f0;
+        --bg-light: #f7fafc;
+    }
+
+    body {
+        background: var(--bg-light);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .breadcrumb-custom {
+        background: transparent;
+        padding: 20px 0 10px;
+        font-size: 14px;
+    }
+
+    .breadcrumb-custom a {
+        color: var(--text-secondary);
+        text-decoration: none;
+        transition: color 0.3s;
+    }
+
+    .breadcrumb-custom a:hover {
+        color: var(--primary-color);
+    }
+
+    .breadcrumb-custom .separator {
+        margin: 0 10px;
+        color: var(--text-secondary);
+    }
+
+    .job-header {
+        background: white;
+        border-radius: 20px;
+        padding: 35px;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        border: 1px solid var(--border-color);
+    }
+
+    .company-logo {
+        width: 100px;
+        height: 100px;
+        min-width: 100px;
+        max-width: 100px;
+        min-height: 100px;
+        max-height: 100px;
+        background: #ffffff;
+        border: 1px solid #e0e0e0;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 42px;
+        font-weight: bold;
+        color: var(--accent-color);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        flex-shrink: 0;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .company-logo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 20px;
+        display: block;
+        flex-shrink: 0;
+    }
+
+    .job-header h1 {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 12px;
+        line-height: 1.3;
+    }
+
+    .company-name {
+        font-size: 17px;
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-bottom: 8px;
+    }
+
+    .company-name a {
+        color: var(--primary-color);
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .company-name a:hover {
+        color: var(--primary-dark);
+        text-decoration: underline;
+        transform: translateX(3px);
+    }
+
+    .job-meta-header {
+        display: flex;
+        gap: 25px;
+        flex-wrap: wrap;
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-top: 15px;
+    }
+
+    .job-meta-header span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 500;
+    }
+
+    .job-meta-header i {
+        color: var(--primary-color);
+        font-size: 16px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        margin-top: 25px;
+    }
+
+    .btn-apply {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border: none;
+        padding: 14px 40px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-apply:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+        color: white;
+    }
+
+    .btn-save {
+        background: white;
+        color: var(--primary-color);
+        border: 2px solid var(--primary-color);
+        padding: 14px 30px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-save:hover {
+        background: var(--primary-color);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .tabs-container {
+        background: white;
+        border-radius: 16px 16px 0 0;
+        margin-bottom: 0;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        border: 1px solid var(--border-color);
+        border-bottom: none;
+    }
+
+    .nav-tabs {
+        border: none;
+        padding: 0 25px;
+    }
+
+    .nav-tabs .nav-link {
+        border: none;
+        color: var(--text-secondary);
+        font-weight: 600;
+        padding: 18px 25px;
+        transition: all 0.3s ease;
+        position: relative;
+        text-transform: uppercase;
+        font-size: 13px;
+        letter-spacing: 0.5px;
+    }
+
+    .nav-tabs .nav-link:hover {
+        color: var(--primary-color);
+        background: transparent;
+    }
+
+    .nav-tabs .nav-link.active {
+        color: var(--primary-color);
+        background: transparent;
+    }
+
+    .nav-tabs .nav-link.active::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
+        border-radius: 3px 3px 0 0;
+    }
+
+    .tab-content-container {
+        background: white;
+        border-radius: 0 0 16px 16px;
+        padding: 35px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        border: 1px solid var(--border-color);
+        border-top: none;
+    }
+
+    .content-section {
+        margin-bottom: 35px;
+    }
+
+    .content-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .section-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section-title i {
+        color: var(--primary-color);
+        font-size: 24px;
+    }
+
+    .content-text {
+        color: var(--text-secondary);
+        line-height: 1.8;
+        font-size: 15px;
+    }
+
+    .content-text ul,
+    .content-text ol {
+        padding-left: 25px;
+        margin-top: 12px;
+    }
+
+    .content-text li {
+        margin-bottom: 10px;
+        padding-left: 5px;
+    }
+
+    .content-text a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .content-text a:hover {
+        color: var(--primary-dark);
+        text-decoration: underline;
+    }
+
+    .info-value a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .info-value a:hover {
+        color: var(--primary-dark);
+        text-decoration: underline;
+    }
+
+    .sidebar-info {
+        position: sticky;
+        top: 20px;
+    }
+
+    .info-card {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        border: 1px solid var(--border-color);
+    }
+
+    .info-item {
+        padding: 15px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .info-item:first-child {
+        padding-top: 0;
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .info-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .info-label i {
+        font-size: 18px;
+        color: var(--primary-color);
+    }
+
+    .info-value {
+        font-size: 15px;
+        color: var(--text-primary);
+        font-weight: 600;
+        padding-left: 28px;
+    }
+
+    .map-container {
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border: 2px solid var(--border-color);
+        margin-top: 20px;
+    }
+
+    #jobMap {
+        height: 350px;
+        width: 100%;
+    }
+
+    .share-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .share-btn {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid var(--border-color);
+        background: white;
+        color: var(--text-secondary);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .share-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .share-btn.facebook:hover {
+        background: #3b5998;
+        border-color: #3b5998;
+        color: white;
+    }
+
+    .share-btn.linkedin:hover {
+        background: #0077b5;
+        border-color: #0077b5;
+        color: white;
+    }
+
+    .share-btn.twitter:hover {
+        background: #1da1f2;
+        border-color: #1da1f2;
+        color: white;
+    }
+
+    .salary-badge {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-weight: 700;
+        font-size: 16px;
+        display: inline-block;
+        box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
+    }
+
+    .deadline-badge {
+        background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 14px;
+        display: inline-block;
+        box-shadow: 0 4px 12px rgba(245, 101, 101, 0.3);
+    }
+
+    .deadline-badge i {
+        color: white;
+    }
+
+    @@media (max-width: 768px) {
+        .job-header {
+            padding: 25px;
+        }
+
+        .job-header h1 {
+            font-size: 22px;
+        }
+
+        .company-logo {
+            width: 80px;
+            height: 80px;
+            font-size: 32px;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .btn-apply,
+        .btn-save {
+            width: 100%;
+        }
+    }
+
+    .related-jobs {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        margin-top: 30px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        border: 1px solid var(--border-color);
+    }
+
+    .related-job-item {
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        transition: all 0.3s ease;
+        border: 1px solid transparent;
+    }
+
+    .related-job-item:hover {
+        background: var(--bg-light);
+        border-color: var(--primary-color);
+        transform: translateX(5px);
+    }
+
+    .related-job-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 5px;
+    }
+
+    .related-job-company {
+        font-size: 13px;
+        color: var(--text-secondary);
+    }
+
+    /* Modal Apply Form Styles */
+    .apply-modal .modal-dialog {
+        max-width: 700px;
+    }
+
+    .apply-modal .modal-content {
+        border-radius: 16px;
+        border: none;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    }
+
+    .apply-modal .modal-header {
+        border-bottom: 1px solid var(--border-color);
+        padding: 25px 30px;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border-radius: 16px 16px 0 0;
+    }
+
+    .apply-modal .modal-title {
+        color: white;
+        font-weight: 700;
+        font-size: 22px;
+    }
+
+    .apply-modal .btn-close {
+        filter: brightness(0) invert(1);
+        opacity: 0.9;
+    }
+
+    .apply-modal .btn-close:hover {
+        opacity: 1;
+    }
+
+    .apply-modal .modal-body {
+        padding: 30px;
+    }
+
+    .apply-form-group {
+        margin-bottom: 20px;
+    }
+
+    .apply-form-group label {
+        display: block;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    .apply-form-group label .required {
+        color: #e53e3e;
+        margin-left: 3px;
+    }
+
+    .apply-form-group input,
+    .apply-form-group select,
+    .apply-form-group textarea {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        font-family: inherit;
+    }
+
+    .apply-form-group input:focus,
+    .apply-form-group select:focus,
+    .apply-form-group textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+
+    .apply-form-group .select2-container {
+        width: 100% !important;
+    }
+
+    .apply-form-group .select2-container--bootstrap-5 .select2-selection {
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        min-height: 45px;
+        padding: 2px 8px;
+    }
+
+    .apply-form-group .select2-container--bootstrap-5 .select2-selection:focus,
+    .apply-form-group .select2-container--bootstrap-5.select2-container--focus .select2-selection {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+
+    .apply-form-group .select2-container--bootstrap-5 .select2-selection__rendered {
+        padding-left: 0;
+        line-height: 40px;
+    }
+
+    .apply-form-group .select2-container--bootstrap-5 .select2-selection__arrow {
+        height: 43px;
+    }
+
+    .apply-form-group .select2-dropdown {
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .apply-form-group .select2-search--dropdown .select2-search__field {
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 8px 12px;
+    }
+
+    .apply-form-group .select2-search--dropdown .select2-search__field:focus {
+        border-color: var(--primary-color);
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
+    }
+
+    .apply-form-group textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .file-upload-section {
+        margin-top: 15px;
+    }
+
+    .file-upload-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--text-secondary);
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    .file-upload-label i {
+        color: var(--primary-color);
+        font-size: 18px;
+    }
+
+    .file-upload-input {
+        display: none;
+    }
+
+    .file-upload-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: white;
+        border: 2px dashed var(--border-color);
+        border-radius: 8px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 14px;
+    }
+
+    .file-upload-button:hover {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+        background: var(--bg-light);
+    }
+
+    .file-info {
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin-top: 8px;
+    }
+
+    .file-selected {
+        margin-top: 10px;
+        padding: 10px;
+        background: var(--bg-light);
+        border-radius: 8px;
+        font-size: 13px;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .file-selected .remove-file {
+        color: #e53e3e;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .apply-info-box {
+        background: #fff4e6;
+        border-left: 4px solid #ff9800;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 15px;
+        font-size: 13px;
+        color: #856404;
+        line-height: 1.6;
+    }
+
+    .apply-modal .modal-footer {
+        border-top: 1px solid var(--border-color);
+        padding: 20px 30px;
+        background: var(--bg-light);
+        border-radius: 0 0 16px 16px;
+    }
+
+    .btn-send-apply {
+        background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        color: white;
+        border: none;
+        padding: 12px 35px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+    }
+
+    .btn-send-apply:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+        color: white;
+    }
+
+    .btn-close-apply {
+        background: white;
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        padding: 12px 35px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-close-apply:hover {
+        background: var(--bg-light);
+        border-color: var(--text-secondary);
+    }
+
+    .form-error {
+        color: #e53e3e;
+        font-size: 12px;
+        margin-top: 5px;
+        display: none;
+    }
+
+    .apply-form-group.has-error input,
+    .apply-form-group.has-error select,
+    .apply-form-group.has-error textarea {
+        border-color: #e53e3e;
+    }
+
+    .apply-form-group.has-error .form-error {
+        display: block;
+    }
+
+    /* Image Gallery Styles */
+    .image-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 25px;
+        margin-top: 20px;
+    }
+
+    .gallery-item {
+        position: relative;
+        overflow: hidden;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        aspect-ratio: 4/3;
+        background: #f7fafc;
+    }
+
+    @@media (max-width: 768px) {
+        .image-gallery {
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+    }
+
+    .gallery-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    }
+
+    .gallery-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .gallery-item:hover img {
+        transform: scale(1.1);
+    }
+
+    .gallery-item::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.3) 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .gallery-item:hover::after {
+        opacity: 1;
+    }
+
+    .gallery-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 2rem;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 10;
+    }
+
+    .gallery-item:hover .gallery-overlay {
+        opacity: 1;
+    }
+
+    .empty-gallery {
+        text-align: center;
+        padding: 40px 20px;
+        color: #a0aec0;
+    }
+
+    .empty-gallery i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        opacity: 0.5;
+    }
+
+    .empty-gallery p {
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    /* Lightbox Styles */
+    .lightbox {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 10000;
+        justify-content: center;
+        align-items: center;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .lightbox.active {
+        display: flex;
+    }
+
+    .lightbox-content {
+        position: relative;
+        max-width: 90%;
+        max-height: 90%;
+        animation: zoomIn 0.3s ease;
+    }
+
+    .lightbox-content img {
+        max-width: 100%;
+        max-height: 90vh;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+
+    .lightbox-close {
+        position: absolute;
+        top: -40px;
+        right: 0;
+        color: white;
+        font-size: 2rem;
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.2);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .lightbox-close:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: rotate(90deg);
+    }
+
+    .lightbox-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        color: white;
+        font-size: 2rem;
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.2);
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .lightbox-nav:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .lightbox-prev {
+        left: 20px;
+    }
+
+    .lightbox-next {
+        right: 20px;
+    }
+
+    .lightbox-counter {
+        position: absolute;
+        bottom: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: white;
+        font-size: 1rem;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 8px 16px;
+        border-radius: 20px;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @@keyframes zoomIn {
+        from {
+            transform: scale(0.8);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+</style>
+
+<div class="container-fluid px-4 px-lg-5 py-4">
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb-custom">
+        <a href="/">Unicareer</a>
+        <span class="separator">›</span>
+        <a href="/Home/TimViec">Việc làm</a>
+        <span class="separator">›</span>
+        <span style="color: var(--text-primary);">@Model.NganhNghe</span>
+    </nav>
+
+    @if (isDaDong || isHetHan)
+    {
+        <div class="alert @(isDaDong ? "alert-warning" : "alert-danger") alert-dismissible fade show" role="alert" style="border-radius: 12px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px;">
+            <i class="bi @(isDaDong ? "bi-lock-fill" : "bi-clock-history") me-2"></i>
+            <strong>@(isDaDong ? "Tin tuyển dụng đã được đóng" : "Tin tuyển dụng đã hết hạn")</strong>
+            <p class="mb-0 mt-2">@(isDaDong ? "Tin tuyển dụng này đã được nhà tuyển dụng đóng. Không thể ứng tuyển nữa." : "Hạn nộp hồ sơ đã qua. Không thể ứng tuyển cho tin này.")</p>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    
+    @if (daUngTuyen && !coTheUngTuyenLai && !isNhaTuyenDung)
+    {
+        <div class="alert alert-info alert-dismissible fade show" role="alert" style="border-radius: 12px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px;">
+            <i class="bi bi-hourglass-split me-2"></i>
+            <strong>Bạn đã ứng tuyển cho vị trí này</strong>
+            <p class="mb-0 mt-2">Trạng thái đơn ứng tuyển của bạn: <strong>@trangThaiDisplay</strong>. Vui lòng chờ nhà tuyển dụng xem xét.</p>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (daUngTuyen && coTheUngTuyenLai && !isNhaTuyenDung)
+    {
+        <div class="alert alert-warning alert-dismissible fade show" role="alert" style="border-radius: 12px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px;">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>Bạn có thể nộp lại hồ sơ</strong>
+            <p class="mb-0 mt-2">Trạng thái đơn ứng tuyển trước đó: <strong>@trangThaiDisplay</strong>. Bạn có thể nộp lại hồ sơ cho vị trí này.</p>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Job Header -->
+            <div class="job-header">
+                <div class="d-flex gap-4 align-items-start">
+                        @if (!string.IsNullOrEmpty(ViewBag.CompanyLogo as string))
+                        {
+                            <div class="company-logo">
+                                <img src="@ViewBag.CompanyLogo" alt="@Model.CongTy">
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="company-logo">
+                                @Model.CongTy.Substring(0, 1)
+                            </div>
+                        }
+                    <div class="flex-grow-1">
+                        <h1>@Model.TenViecLam</h1>
+                        <div class="company-name">
+                            @if (Model.MaNhaTuyenDung.HasValue && Model.MaNhaTuyenDung.Value > 0)
+                            {
+                                <a href="/Home/ChiTietCongTy/@Model.MaNhaTuyenDung.Value">
+                                    <i class="bi bi-building"></i> @Model.CongTy
+                                </a>
+                            }
+                            else
+                            {
+                                <i class="bi bi-building"></i> @Model.CongTy
+                            }
+                        </div>
+                        <div class="job-meta-header">
+                            <span><i class="bi bi-geo-alt-fill"></i> @Model.DiaChiLamViec</span>
+                            <span class="deadline-badge">
+                                <i class="bi bi-calendar-x"></i> Hết hạn: @Model.HanNop.ToString("dd/MM/yyyy")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    @if (!isNhaTuyenDung)
+                    {
+                        @Html.AntiForgeryToken()
+                        @if (isDaDong)
+                        {
+                            <button class="btn btn-apply" disabled style="opacity: 0.6; cursor: not-allowed;">
+                                <i class="bi bi-lock-fill me-2"></i>TIN ĐÃ ĐÓNG
+                            </button>
+                        }
+                        else if (isHetHan)
+                        {
+                            <button class="btn btn-apply" disabled style="opacity: 0.6; cursor: not-allowed;">
+                                <i class="bi bi-clock-history me-2"></i>ĐÃ HẾT HẠN
+                            </button>
+                        }
+                        else if (daUngTuyen && !coTheUngTuyenLai)
+                        {
+                            // Xác định text và style dựa trên trạng thái - sử dụng helper để đảm bảo nhất quán
+                            string buttonText = trangThaiDisplay.ToUpper();
+                            string buttonIcon = "bi-hourglass-split";
+                            string buttonStyle = "background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);";
+                            
+                            if (trangThaiEnum.HasValue)
+                            {
+                                switch (trangThaiEnum.Value)
+                                {
+                                    case TrangThaiXuLy.DangXemXet:
+                                        buttonIcon = "bi-hourglass-split";
+                                        buttonStyle = "background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);";
+                                        break;
+                                    case TrangThaiXuLy.ChoPhongVan:
+                                        buttonIcon = "bi-calendar-check";
+                                        buttonStyle = "background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);";
+                                        break;
+                                    case TrangThaiXuLy.DaPhongVan:
+                                        buttonIcon = "bi-check-circle";
+                                        buttonStyle = "background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);";
+                                        break;
+                                    case TrangThaiXuLy.TuyenDung:
+                                        buttonIcon = "bi-check-circle-fill";
+                                        buttonStyle = "background: linear-gradient(135deg, #10b981 0%, #059669 100%);";
+                                        break;
+                                    case TrangThaiXuLy.TuChoi:
+                                        buttonIcon = "bi-x-circle";
+                                        buttonStyle = "background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);";
+                                        break;
+                                    case TrangThaiXuLy.KhongPhuHop:
+                                        buttonIcon = "bi-x-circle";
+                                        buttonStyle = "background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);";
+                                        break;
+                                }
+                            }
+                            <button class="btn btn-apply" disabled style="opacity: 0.6; cursor: not-allowed; @buttonStyle">
+                                <i class="bi @buttonIcon me-2"></i>@buttonText
+                            </button>
+                        }
+                        else if (daUngTuyen && coTheUngTuyenLai)
+                        {
+                            // Hiển thị trạng thái nhưng cho phép nộp lại - sử dụng helper để đảm bảo nhất quán
+                            string buttonText = $"NỘP LẠI HỒ SƠ ({trangThaiDisplay.ToUpper()})";
+                            string buttonIcon = "bi-arrow-clockwise";
+                            string buttonStyle = "";
+                            <button class="btn btn-apply" style="@buttonStyle">
+                                <i class="bi @buttonIcon me-2"></i>@buttonText
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-apply">
+                                <i class="bi bi-send-fill me-2"></i>ỨNG TUYỂN NGAY
+                            </button>
+                        }
+                        <button class="btn btn-save">
+                            <i class="bi bi-bookmark me-2"></i>LƯU TIN
+                        </button>
+                    }
+                    <div class="share-buttons @(isNhaTuyenDung ? "" : "ms-auto")">
+                        <div class="share-btn facebook" title="Share on Facebook">
+                            <i class="bi bi-facebook"></i>
+                        </div>
+                        <div class="share-btn linkedin" title="Share on LinkedIn">
+                            <i class="bi bi-linkedin"></i>
+                        </div>
+                        <div class="share-btn twitter" title="Share on Twitter">
+                            <i class="bi bi-twitter"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs-container">
+                <ul class="nav nav-tabs" id="jobTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="info-tab" data-bs-toggle="tab" 
+                                data-bs-target="#info" type="button" role="tab">
+                            Thông tin
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="company-tab" data-bs-toggle="tab" 
+                                data-bs-target="#company" type="button" role="tab">
+                            Công ty
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="other-jobs-tab" data-bs-toggle="tab" 
+                                data-bs-target="#other-jobs" type="button" role="tab">
+                            Việc làm khác từ công ty
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="tab-content-container">
+                <div class="tab-content" id="jobTabsContent">
+                    <!-- Tab Thông tin -->
+                    <div class="tab-pane fade show active" id="info" role="tabpanel">
+                        <!-- Mô tả công việc -->
+                        <div class="content-section">
+                            <h3 class="section-title">
+                                <i class="bi bi-file-text"></i>
+                                Mô tả công việc
+                            </h3>
+                            <div class="content-text">
+                                @Html.Raw(Model.MoTa ?? "<p>Thông tin mô tả công việc sẽ được cập nhật sau.</p>")
+                            </div>
+                        </div>
+
+                        <!-- Yêu cầu công việc -->
+                        <div class="content-section">
+                            <h3 class="section-title">
+                                <i class="bi bi-clipboard-check"></i>
+                                Yêu cầu công việc
+                            </h3>
+                            <div class="content-text">
+                                @Html.Raw(Model.YeuCau ?? "<p>Thông tin yêu cầu công việc sẽ được cập nhật sau.</p>")
+                            </div>
+                        </div>
+
+                        <!-- Quyền lợi -->
+                        <div class="content-section">
+                            <h3 class="section-title">
+                                <i class="bi bi-gift"></i>
+                                Quyền lợi
+                            </h3>
+                            <div class="mb-3">
+                                <span class="salary-badge">
+                                    <i class="bi bi-cash-stack me-2"></i>@mucLuongDisplay
+                                </span>
+                            </div>
+                            <div class="content-text">
+                                @Html.Raw(Model.QuyenLoi ?? "<p>Thông tin quyền lợi sẽ được cập nhật sau.</p>")
+                            </div>
+                        </div>
+
+                        <!-- Hình thức -->
+                        <div class="content-section">
+                            <h3 class="section-title">
+                                <i class="bi bi-briefcase"></i>
+                                Hình thức
+                            </h3>
+                            <div class="content-text">
+                                <p><strong>Loại công việc:</strong> @Model.LoaiCongViec</p>
+                                <p><strong>Vị trí:</strong> @Model.ViTri</p>
+                                @if (!string.IsNullOrEmpty(Model.KinhNghiem))
+                                {
+                                    <p><strong>Kinh nghiệm:</strong> @Model.KinhNghiem</p>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.NgoaiNgu))
+                                {
+                                    <p><strong>Ngoại ngữ:</strong> @Model.NgoaiNgu</p>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab Công ty -->
+                    <div class="tab-pane fade" id="company" role="tabpanel">
+                        <div class="content-section">
+                            <h3 class="section-title">
+                                <i class="bi bi-building"></i>
+                                Về @Model.CongTy
+                            </h3>
+                            <div class="content-text">
+                                <p><strong>Tên công ty:</strong> 
+                                    @if (Model.MaNhaTuyenDung.HasValue && Model.MaNhaTuyenDung.Value > 0)
+                                    {
+                                        <a href="/Home/ChiTietCongTy/@Model.MaNhaTuyenDung.Value">
+                                            @Model.CongTy
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        @Model.CongTy
+                                    }
+                                </p>
+                                <p><strong>Địa chỉ:</strong> @Model.DiaChiLamViec, @Model.TinhThanhPho</p>
+                                @if (!string.IsNullOrEmpty(Model.EmailLienHe))
+                                {
+                                    <p><strong>Email liên hệ:</strong> @Model.EmailLienHe</p>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.SDTLienHe))
+                                {
+                                    <p><strong>Số điện thoại:</strong> @Model.SDTLienHe</p>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Anh van phong/cua hang -->
+                        @if (!string.IsNullOrEmpty(Model.AnhVanPhong))
+                        {
+                            <div class="content-section">
+                                <h3 class="section-title">
+                                    <i class="bi bi-images"></i>
+                                    Ảnh văn phòng/cửa hàng
+                                </h3>
+                                @{
+                                    // Parse ảnh từ string (JSON array hoặc comma-separated)
+                                    var anhVanPhongList = new List<string>();
+                                    try
+                                    {
+                                        var anhVanPhongValue = Model.AnhVanPhong?.Trim();
+                                        if (string.IsNullOrEmpty(anhVanPhongValue))
+                                        {
+                                            anhVanPhongList = new List<string>();
+                                        }
+                                        else
+                                        {
+                                            // Thử parse JSON array trước (format mới)
+                                            if (anhVanPhongValue.StartsWith("["))
+                                            {
+                                                try
+                                                {
+                                                    var jsonArray = System.Text.Json.JsonSerializer.Deserialize<string[]>(anhVanPhongValue);
+                                                    if (jsonArray != null && jsonArray.Length > 0)
+                                                    {
+                                                        anhVanPhongList = jsonArray.ToList();
+                                                    }
+                                                }
+                                                catch
+                                                {
+                                                    // Nếu parse JSON thất bại, xử lý như chuỗi thông thường
+                                                    anhVanPhongList = anhVanPhongValue
+                                                        .Trim('[', ']')
+                                                        .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                                        .Select(s => s.Trim().Trim('"', '\'', ' '))
+                                                        .Where(s => !string.IsNullOrEmpty(s))
+                                                        .ToList();
+                                                }
+                                            }
+                                            else
+                                            {
+                                                // Split bằng dấu phẩy cho chuỗi thông thường (format cũ)
+                                                anhVanPhongList = anhVanPhongValue
+                                                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                                    .Select(s => s.Trim())
+                                                    .Where(s => !string.IsNullOrEmpty(s))
+                                                    .ToList();
+                                            }
+                                        }
+                                    }
+                                    catch
+                                    {
+                                        // Nếu có lỗi, thử split đơn giản nhất
+                                        try
+                                        {
+                                            anhVanPhongList = Model.AnhVanPhong?
+                                                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                                .Select(s => s.Trim())
+                                                .Where(s => !string.IsNullOrEmpty(s))
+                                                .ToList() ?? new List<string>();
+                                        }
+                                        catch
+                                        {
+                                            anhVanPhongList = new List<string>();
+                                        }
+                                    }
+                                }
+
+                                @if (anhVanPhongList != null && anhVanPhongList.Count > 0)
+                                {
+                                    <div class="image-gallery" id="officeImagesGallery">
+                                        @foreach (var imagePath in anhVanPhongList)
+                                        {
+                                            <div class="gallery-item" data-image="@imagePath">
+                                                <img src="@imagePath" alt="Ảnh văn phòng/cửa hàng" loading="lazy" 
+                                                     onerror="this.src='/images/placeholder.png'; this.onerror=null;">
+                                                <div class="gallery-overlay">
+                                                    <i class="bi bi-zoom-in"></i>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="empty-gallery">
+                                        <i class="bi bi-image"></i>
+                                        <p>Chưa có ảnh văn phòng/cửa hàng</p>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Tab Việc làm khác -->
+                    <div class="tab-pane fade" id="other-jobs" role="tabpanel">
+                        <div class="content-section">
+                            <h3 class="section-title">
+                                <i class="bi bi-list-ul"></i>
+                                Các vị trí tuyển dụng khác từ @Model.CongTy
+                            </h3>
+                            @if (ViewBag.DanhSachViecLamKhac != null && ((List<TinTuyenDung>)ViewBag.DanhSachViecLamKhac).Count > 0)
+                            {
+                                <div class="related-jobs">
+                                    @foreach (var job in (List<TinTuyenDung>)ViewBag.DanhSachViecLamKhac)
+                                    {
+                                        var jobMucLuongDisplay = job.MucLuongThapNhat == 0 && job.MucLuongCaoNhat == 0 
+                                            ? "Thỏa thuận" 
+                                            : $"{job.MucLuongThapNhat}-{job.MucLuongCaoNhat} triệu";
+                                        var jobIsHetHan = (!string.IsNullOrEmpty(job.TrangThai) && job.TrangThai == "Het han") || job.HanNop < DateTime.Now.Date;
+                                        <a href="/Home/ChiTietViecLam/@job.MaTinTuyenDung" class="text-decoration-none" style="color: inherit;">
+                                            <div class="related-job-item">
+                                                <div class="related-job-title">@job.TenViecLam</div>
+                                                <div class="related-job-company">
+                                                    <i class="bi bi-geo-alt-fill"></i> @job.TinhThanhPho
+                                                    <span class="ms-3"><i class="bi bi-cash-stack"></i> @jobMucLuongDisplay</span>
+                                                    <span class="ms-3"><i class="bi bi-clock"></i> @job.LoaiCongViec</span>
+                                                    @if (jobIsHetHan)
+                                                    {
+                                                        <span class="ms-3 text-danger"><i class="bi bi-clock-history"></i> Đã hết hạn</span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </a>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="text-muted">Hiện tại chưa có vị trí tuyển dụng khác từ công ty này.</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="sidebar-info">
+                <!-- Thông tin chính -->
+                <div class="info-card">
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="bi bi-geo-alt-fill"></i>
+                            Địa chỉ làm việc
+                        </div>
+                        <div class="info-value">
+                            @Model.DiaChiLamViec<br />
+                            @if (!string.IsNullOrEmpty(Model.PhuongXa))
+                            {
+                                @Model.PhuongXa<text>, </text>
+                            }
+                            @Model.TinhThanhPho
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="bi bi-calendar-plus"></i>
+                            Ngày đăng tuyển
+                        </div>
+                        <div class="info-value">
+                            @Model.NgayDang.ToString("dd/MM/yyyy")
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="bi bi-award"></i>
+                            Vị trí
+                        </div>
+                        <div class="info-value">
+                            @Model.ViTri
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="bi bi-diagram-3"></i>
+                            Ngành nghề
+                        </div>
+                        <div class="info-value">
+                            @Model.NganhNghe
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="bi bi-clock"></i>
+                            Loại công việc
+                        </div>
+                        <div class="info-value">
+                            @Model.LoaiCongViec
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="bi bi-building"></i>
+                            Nhà tuyển dụng
+                        </div>
+                        <div class="info-value">
+                            @if (Model.MaNhaTuyenDung.HasValue && Model.MaNhaTuyenDung.Value > 0)
+                            {
+                                <a href="/Home/ChiTietCongTy/@Model.MaNhaTuyenDung.Value">
+                                    @Model.CongTy
+                                </a>
+                            }
+                            else
+                            {
+                                @Model.CongTy
+                            }
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="bi bi-person-badge"></i>
+                            Liên hệ
+                        </div>
+                        <div class="info-value">
+                            @if (!string.IsNullOrEmpty(Model.EmailLienHe))
+                            {
+                                <div>Email: <a href="mailto:@Model.EmailLienHe">@Model.EmailLienHe</a></div>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.SDTLienHe))
+                            {
+                                <div>SĐT: @Model.SDTLienHe</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bản đồ -->
+                <div class="map-container">
+                    <div id="jobMap"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Form Ứng tuyển -->
+<div class="modal fade apply-modal" id="applyModal" tabindex="-1" aria-labelledby="applyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="applyModalLabel">Ứng tuyển</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="applyForm" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="jobId" value="@Model.MaTinTuyenDung" />
+                    
+                    <div class="apply-form-group">
+                        <label for="fullName">
+                            Họ và tên <span class="required">*</span>
+                        </label>
+                        <input type="text" id="fullName" name="fullName" required />
+                        <div class="form-error">Vui lòng nhập họ và tên</div>
+                    </div>
+
+                    <div class="apply-form-group">
+                        <label for="email">
+                            Email <span class="required">*</span>
+                        </label>
+                        <input type="email" id="email" name="email" required />
+                        <div class="form-error">Vui lòng nhập email hợp lệ</div>
+                    </div>
+
+                    <div class="apply-form-group">
+                        <label for="phone">
+                            SĐT <span class="required">*</span>
+                        </label>
+                        <input type="tel" id="phone" name="phone" required />
+                        <div class="form-error">Vui lòng nhập số điện thoại</div>
+                    </div>
+
+                    <div class="apply-form-group">
+                        <label for="maTruong">Trường đại học</label>
+                        <select id="maTruong" name="maTruong">
+                            <option value="">–</option>
+                            @if (ViewBag.DanhSachTruongDaiHoc != null)
+                            {
+                                @foreach (var truong in ViewBag.DanhSachTruongDaiHoc as List<TruongDaiHoc>)
+                                {
+                                    <option value="@truong.MaTruong">@truong.TenTruong</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="apply-form-group">
+                        <label for="major">Ngành nghề</label>
+                        <select id="major" name="major">
+                            <option value="">–</option>
+                            @if (ViewBag.DanhSachNganhNghe != null)
+                            {
+                                @foreach (var nganhNghe in ViewBag.DanhSachNganhNghe as List<NganhNghe>)
+                                {
+                                    <option value="@nganhNghe.TenNganhNghe">@nganhNghe.TenNganhNghe</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="apply-form-group">
+                        <label for="content">
+                            Nội dung <span class="required">*</span>
+                        </label>
+                        <textarea id="content" name="content" placeholder="Tôi muốn ứng tuyển vị trí này." required></textarea>
+                        <div class="form-error">Vui lòng nhập nội dung ứng tuyển</div>
+                    </div>
+
+                    <div class="apply-form-group">
+                        <div class="file-upload-section">
+                            <label class="file-upload-label">
+                                <i class="bi bi-paperclip"></i>
+                                Hồ sơ ứng viên (CV)
+                            </label>
+                            <input type="file" id="cvFile" name="cvFile" class="file-upload-input" 
+                                   accept=".doc,.docx,.pdf,.png,.jpeg,.jpg" />
+                            <label for="cvFile" class="file-upload-button">
+                                <i class="bi bi-paperclip"></i>
+                                Đính kèm file
+                            </label>
+                            <div class="file-info">
+                                Hỗ trợ định dạng doc, docx, pdf, png, jpeg nhỏ hơn 2048KB.
+                            </div>
+                            <div id="fileSelected" class="file-selected" style="display: none;">
+                                <span id="fileName"></span>
+                                <span class="remove-file" onclick="removeFile()">Xóa</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="apply-info-box">
+                        Gửi kèm hồ sơ (CV) giúp bạn tăng cơ hội được tuyển dụng. Tạo tài khoản và hồ sơ trên hệ thống giúp bạn nhận được nhiều thông tin việc làm từ Nhà tuyển dụng
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-send-apply" onclick="submitApplyForm()">
+                    Gửi
+                </button>
+                <button type="button" class="btn btn-close-apply" data-bs-dismiss="modal">
+                    Đóng
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            // Kiểm tra tham số apply=true trong URL để tự động mở modal ứng tuyển
+            // (Sau khi đăng nhập thành công và được redirect về trang này)
+            var urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('apply') === 'true') {
+                // Chỉ mở modal nếu người dùng đã đăng nhập và không phải nhà tuyển dụng
+                @if (SignInManager.IsSignedIn(User) && !isNhaTuyenDung && coTheUngTuyen)
+                {
+                    <text>
+                    // Đợi một chút để đảm bảo trang đã load xong
+                    setTimeout(function() {
+                        var applyModal = new bootstrap.Modal(document.getElementById('applyModal'));
+                        applyModal.show();
+                        // Xóa tham số apply khỏi URL để tránh mở lại khi refresh
+                        var newUrl = window.location.pathname;
+                        window.history.replaceState({}, document.title, newUrl);
+                    }, 300);
+                    </text>
+                }
+            }
+            // Initialize map
+            var lat = @(Model.Latitude?.ToString().Replace(",", ".") ?? "21.028511");
+            var lng = @(Model.Longitude?.ToString().Replace(",", ".") ?? "105.804817");
+            
+            var map = L.map('jobMap').setView([lat, lng], 15);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                maxZoom: 19
+            }).addTo(map);
+            
+            // Fix Leaflet default marker icon path
+            delete L.Icon.Default.prototype._getIconUrl;
+            L.Icon.Default.mergeOptions({
+                iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+                iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+                shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png'
+            });
+            
+            // Add marker
+            var marker = L.marker([lat, lng]).addTo(map);
+            marker.bindPopup('<strong>@Model.CongTy</strong><br>@Model.DiaChiLamViec').openPopup();
+
+            // Apply button action - Show modal (only if button exists and not disabled)
+            $('.btn-apply').on('click', function() {
+                var button = $(this);
+                // Kiểm tra nếu nút bị disabled thì không làm gì
+                if (button.prop('disabled')) {
+                    return;
+                }
+                
+                // Kiểm tra đăng nhập
+                @if (!SignInManager.IsSignedIn(User))
+                {
+                    <text>
+                    // Chuyển hướng đến trang đăng nhập với returnUrl
+                    var returnUrl = window.location.pathname + window.location.search;
+                    window.location.href = '/Account/Login?ReturnUrl=' + encodeURIComponent(returnUrl);
+                    return;
+                    </text>
+                }
+                
+                @if (isDaDong)
+                {
+                    <text>
+                    showNotification('Tin tuyển dụng này đã được đóng. Không thể ứng tuyển nữa.', 'error');
+                    return;
+                    </text>
+                }
+                else if (isHetHan)
+                {
+                    <text>
+                    showNotification('Tin tuyển dụng đã hết hạn nộp hồ sơ.', 'error');
+                    return;
+                    </text>
+                }
+                
+                var applyModal = new bootstrap.Modal(document.getElementById('applyModal'));
+                applyModal.show();
+            });
+
+            // Initialize Select2 for searchable dropdowns when modal is shown
+            $('#applyModal').on('shown.bs.modal', function() {
+                if (!$('#maTruong').hasClass('select2-hidden-accessible')) {
+                    $('#maTruong').select2({
+                        theme: 'bootstrap-5',
+                        dropdownParent: $('#applyModal'),
+                        placeholder: 'Chọn hoặc tìm kiếm trường học',
+                        allowClear: true,
+                        language: {
+                            noResults: function() {
+                                return 'Không tìm thấy kết quả';
+                            },
+                            searching: function() {
+                                return 'Đang tìm kiếm...';
+                            }
+                        }
+                    });
+                }
+                
+                if (!$('#major').hasClass('select2-hidden-accessible')) {
+                    $('#major').select2({
+                        theme: 'bootstrap-5',
+                        dropdownParent: $('#applyModal'),
+                        placeholder: 'Chọn hoặc tìm kiếm ngành nghề',
+                        allowClear: true,
+                        language: {
+                            noResults: function() {
+                                return 'Không tìm thấy kết quả';
+                            },
+                            searching: function() {
+                                return 'Đang tìm kiếm...';
+                            }
+                        }
+                    });
+                }
+                
+                // Tự động điền thông tin ứng viên nếu có
+                @if (ViewBag.UngVien != null)
+                {
+                    var ungVien = ViewBag.UngVien as UngVien;
+                    <text>
+                    // Tự động điền thông tin từ hồ sơ ứng viên
+                    @if (!string.IsNullOrEmpty(ungVien.HoTen))
+                    {
+                        <text>
+                        $('#fullName').val(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ungVien.HoTen)));
+                        </text>
+                    }
+                    @if (!string.IsNullOrEmpty(ungVien.Email))
+                    {
+                        <text>
+                        $('#email').val(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ungVien.Email)));
+                        </text>
+                    }
+                    @if (!string.IsNullOrEmpty(ungVien.SoDienThoai))
+                    {
+                        <text>
+                        // Loại bỏ dấu "-" và các ký tự không phải số khi điền số điện thoại
+                        var phoneValue = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ungVien.SoDienThoai));
+                        $('#phone').val(phoneValue.replace(/[^0-9]/g, ''));
+                        </text>
+                    }
+                    
+                    // Điền ngành nghề nếu có
+                    @if (!string.IsNullOrEmpty(ungVien.NganhNghe))
+                    {
+                        <text>
+                        setTimeout(function() {
+                            var majorValue = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ungVien.NganhNghe));
+                            var majorOption = $('#major option').filter(function() {
+                                return $(this).text().trim() === majorValue || $(this).val() === majorValue;
+                            }).first();
+                            if (majorOption.length > 0) {
+                                $('#major').val(majorOption.val()).trigger('change');
+                            }
+                        }, 100);
+                        </text>
+                    }
+                    else if (ungVien.ChuyenNganh != null && ungVien.ChuyenNganh.NganhNghe != null && !string.IsNullOrEmpty(ungVien.ChuyenNganh.NganhNghe.TenNganhNghe))
+                    {
+                        <text>
+                        setTimeout(function() {
+                            var majorValue = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ungVien.ChuyenNganh.NganhNghe.TenNganhNghe));
+                            var majorOption = $('#major option').filter(function() {
+                                return $(this).text().trim() === majorValue || $(this).val() === majorValue;
+                            }).first();
+                            if (majorOption.length > 0) {
+                                $('#major').val(majorOption.val()).trigger('change');
+                            }
+                        }, 100);
+                        </text>
+                    }
+                    </text>
+                }
+            });
+
+            // Check if job is saved on page load
+            var jobId = @Model.MaTinTuyenDung;
+            var isJobSaved = false;
+            
+            // Check saved status if user is logged in
+            @if (SignInManager.IsSignedIn(User) && !isNhaTuyenDung)
+            {
+                <text>
+                $.ajax({
+                    url: '@Url.Action("KiemTraDaLuu", "Candidate", new { area = "Candidate" })',
+                    type: 'GET',
+                    data: { id: jobId },
+                    success: function(response) {
+                        if (response.isSaved) {
+                            isJobSaved = true;
+                            $('.btn-save').addClass('saved');
+                            $('.btn-save').html('<i class="bi bi-bookmark-fill me-2"></i>ĐÃ LƯU');
+                        }
+                    },
+                    error: function() {
+                        // Silently fail if user is not logged in or error occurs
+                    }
+                });
+                </text>
+            }
+
+            // Save button action (only if button exists)
+            $('.btn-save').on('click', function() {
+                var btn = $(this);
+                var jobId = @Model.MaTinTuyenDung;
+                
+                // Get anti-forgery token
+                var token = $('input[name="__RequestVerificationToken"]').val();
+                if (!token) {
+                    // Try to get from form
+                    token = $('form input[name="__RequestVerificationToken"]').val();
+                }
+                
+                if (btn.hasClass('saved')) {
+                    // Unsave job
+                    $.ajax({
+                        url: '@Url.Action("BoLuuViecLam", "Candidate", new { area = "Candidate" })',
+                        type: 'POST',
+                        data: {
+                            id: jobId,
+                            __RequestVerificationToken: token
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                btn.removeClass('saved');
+                                btn.html('<i class="bi bi-bookmark me-2"></i>LƯU TIN');
+                                isJobSaved = false;
+                                showNotification(response.message || 'Đã bỏ lưu tin tuyển dụng', 'info');
+                            } else {
+                                showNotification(response.message || 'Có lỗi xảy ra khi bỏ lưu', 'error');
+                            }
+                        },
+                        error: function(xhr) {
+                            if (xhr.status === 401 || xhr.status === 403) {
+                                showNotification('Vui lòng đăng nhập để sử dụng chức năng này', 'error');
+                            } else {
+                                showNotification('Có lỗi xảy ra khi bỏ lưu tin tuyển dụng', 'error');
+                            }
+                        }
+                    });
+                } else {
+                    // Save job
+                    $.ajax({
+                        url: '@Url.Action("LuuViecLam", "Candidate", new { area = "Candidate" })',
+                        type: 'POST',
+                        data: {
+                            id: jobId,
+                            __RequestVerificationToken: token
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                btn.addClass('saved');
+                                btn.html('<i class="bi bi-bookmark-fill me-2"></i>ĐÃ LƯU');
+                                isJobSaved = true;
+                                showNotification(response.message || 'Đã lưu tin tuyển dụng thành công!', 'success');
+                            } else {
+                                showNotification(response.message || 'Có lỗi xảy ra khi lưu tin', 'error');
+                            }
+                        },
+                        error: function(xhr) {
+                            if (xhr.status === 401 || xhr.status === 403) {
+                                showNotification('Vui lòng đăng nhập để sử dụng chức năng này', 'error');
+                            } else {
+                                showNotification('Có lỗi xảy ra khi lưu tin tuyển dụng', 'error');
+                            }
+                        }
+                    });
+                }
+            });
+
+            // Share buttons
+            $('.share-btn.facebook').on('click', function() {
+                var url = window.location.href;
+                window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url), '_blank', 'width=600,height=400');
+            });
+
+            $('.share-btn.linkedin').on('click', function() {
+                var url = window.location.href;
+                window.open('https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(url), '_blank', 'width=600,height=400');
+            });
+
+            $('.share-btn.twitter').on('click', function() {
+                var url = window.location.href;
+                var text = '@Html.Raw(Model.TenViecLam) - @Html.Raw(Model.CongTy)';
+                window.open('https://twitter.com/intent/tweet?url=' + encodeURIComponent(url) + '&text=' + encodeURIComponent(text), '_blank', 'width=600,height=400');
+            });
+
+            // Show notification function
+            function showNotification(message, type) {
+                var bgColor = type === 'success' ? '#48bb78' : type === 'error' ? '#e53e3e' : '#4299e1';
+                var notification = $('<div>')
+                    .css({
+                        position: 'fixed',
+                        top: '20px',
+                        right: '20px',
+                        background: bgColor,
+                        color: 'white',
+                        padding: '15px 25px',
+                        borderRadius: '12px',
+                        boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                        zIndex: 9999,
+                        fontWeight: '600',
+                        animation: 'slideInRight 0.3s ease'
+                    })
+                    .text(message)
+                    .appendTo('body');
+                
+                setTimeout(function() {
+                    notification.fadeOut(400, function() {
+                        $(this).remove();
+                    });
+                }, 3000);
+            }
+
+            // File upload handler
+            $('#cvFile').on('change', function(e) {
+                var file = e.target.files[0];
+                if (file) {
+                    // Check file size (2048KB = 2MB)
+                    var maxSize = 2048 * 1024; // 2MB in bytes
+                    if (file.size > maxSize) {
+                        showNotification('File vượt quá 2048KB. Vui lòng chọn file nhỏ hơn.', 'error');
+                        $(this).val('');
+                        return;
+                    }
+
+                    // Check file type
+                    var allowedTypes = ['application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
+                                       'application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
+                    if (!allowedTypes.includes(file.type)) {
+                        showNotification('Định dạng file không được hỗ trợ. Vui lòng chọn file doc, docx, pdf, png, jpeg.', 'error');
+                        $(this).val('');
+                        return;
+                    }
+
+                    $('#fileName').text(file.name);
+                    $('#fileSelected').show();
+                }
+            });
+
+            // Remove file
+            window.removeFile = function() {
+                $('#cvFile').val('');
+                $('#fileSelected').hide();
+            };
+
+            // Form validation
+            function validateApplyForm() {
+                var isValid = true;
+                $('.apply-form-group').removeClass('has-error');
+
+                // Validate full name
+                if (!$('#fullName').val().trim()) {
+                    $('#fullName').closest('.apply-form-group').addClass('has-error');
+                    isValid = false;
+                }
+
+                // Validate email
+                var email = $('#email').val().trim();
+                var emailPattern = '^[^\\s@@]+@@[^\\s@@]+\\.[^\\s@@]+$';
+                var emailRegex = new RegExp(emailPattern);
+                if (!email || !emailRegex.test(email)) {
+                    $('#email').closest('.apply-form-group').addClass('has-error');
+                    isValid = false;
+                }
+
+                // Validate phone
+                var phone = $('#phone').val().trim();
+                // Loại bỏ tất cả ký tự không phải số (dấu -, khoảng trắng, v.v.)
+                var phoneClean = phone.replace(/[^0-9]/g, '');
+                var phoneRegex = /^[0-9]{10,11}$/;
+                if (!phoneClean || !phoneRegex.test(phoneClean)) {
+                    $('#phone').closest('.apply-form-group').addClass('has-error');
+                    isValid = false;
+                }
+
+                // Validate content
+                if (!$('#content').val().trim()) {
+                    $('#content').closest('.apply-form-group').addClass('has-error');
+                    isValid = false;
+                }
+
+                return isValid;
+            }
+
+            // Submit apply form
+            window.submitApplyForm = function() {
+                if (!validateApplyForm()) {
+                    showNotification('Vui lòng điền đầy đủ các trường bắt buộc', 'error');
+                    return;
+                }
+
+                // Get anti-forgery token
+                var token = $('input[name="__RequestVerificationToken"]').val();
+                if (!token) {
+                    token = $('form input[name="__RequestVerificationToken"]').val();
+                }
+
+                // Create FormData for file upload
+                var formData = new FormData();
+                formData.append('jobId', $('#jobId').val());
+                formData.append('fullName', $('#fullName').val().trim());
+                formData.append('email', $('#email').val().trim());
+                // Loại bỏ tất cả ký tự không phải số (dấu -, khoảng trắng, v.v.) từ số điện thoại
+                var phoneValue = $('#phone').val().trim().replace(/[^0-9]/g, '');
+                formData.append('phone', phoneValue);
+                formData.append('maTruong', $('#maTruong').val() || '');
+                formData.append('major', $('#major').val() || '');
+                formData.append('content', $('#content').val().trim());
+                
+                // Add CV file if selected
+                var cvFile = $('#cvFile')[0].files[0];
+                if (cvFile) {
+                    formData.append('cvFile', cvFile);
+                }
+                
+                // Add anti-forgery token
+                if (token) {
+                    formData.append('__RequestVerificationToken', token);
+                }
+
+                // Disable submit button to prevent double submission
+                var submitBtn = $('.btn-send-apply');
+                submitBtn.prop('disabled', true);
+                submitBtn.html('<i class="bi bi-hourglass-split me-2"></i>Đang gửi...');
+
+                // Send AJAX request
+                $.ajax({
+                    url: '@Url.Action("UngTuyen", "Home")',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.success) {
+                            // Close modal
+                            var applyModal = bootstrap.Modal.getInstance(document.getElementById('applyModal'));
+                            applyModal.hide();
+
+                            // Reset form
+                            $('#applyForm')[0].reset();
+                            $('#fileSelected').hide();
+                            $('.apply-form-group').removeClass('has-error');
+
+                            // Show success message
+                            showNotification(response.message || 'Đã gửi đơn ứng tuyển thành công!', 'success');
+                        } else {
+                            showNotification(response.message || 'Có lỗi xảy ra khi gửi đơn ứng tuyển', 'error');
+                            submitBtn.prop('disabled', false);
+                            submitBtn.html('Gửi');
+                        }
+                    },
+                    error: function(xhr) {
+                        var errorMessage = 'Có lỗi xảy ra khi gửi đơn ứng tuyển';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        } else if (xhr.status === 401 || xhr.status === 403) {
+                            // Khi chưa đăng nhập, redirect đến trang login với returnUrl là trang tin tuyển dụng hiện tại
+                            // Thêm tham số apply=true để tự động mở modal ứng tuyển sau khi đăng nhập
+                            var currentJobId = @Model.MaTinTuyenDung;
+                            var returnUrl = '/Home/ChiTietViecLam/' + currentJobId + '?apply=true';
+                            window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(returnUrl);
+                            return; // Dừng xử lý tiếp
+                        } else if (xhr.status === 400) {
+                            errorMessage = 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.';
+                        }
+                        showNotification(errorMessage, 'error');
+                        submitBtn.prop('disabled', false);
+                        submitBtn.html('Gửi');
+                    }
+                });
+            };
+
+            // Reset form when modal is closed
+            $('#applyModal').on('hidden.bs.modal', function() {
+                // Destroy Select2 instances to avoid conflicts
+                if ($('#maTruong').hasClass('select2-hidden-accessible')) {
+                    $('#maTruong').select2('destroy');
+                }
+                if ($('#major').hasClass('select2-hidden-accessible')) {
+                    $('#major').select2('destroy');
+                }
+                
+                $('#applyForm')[0].reset();
+                $('.apply-form-group').removeClass('has-error');
+                $('#fileSelected').hide();
+            });
+
+            // Lightbox functionality for image gallery
+            // Create lightbox HTML if it doesn't exist
+            if ($('#imageLightbox').length === 0) {
+                $('body').append(`
+                    <div id="imageLightbox" class="lightbox">
+                        <div class="lightbox-content">
+                            <span class="lightbox-close">&times;</span>
+                            <div class="lightbox-nav lightbox-prev">
+                                <i class="bi bi-chevron-left"></i>
+                            </div>
+                            <div class="lightbox-nav lightbox-next">
+                                <i class="bi bi-chevron-right"></i>
+                            </div>
+                            <img id="lightboxImage" src="" alt="Ảnh văn phòng/cửa hàng">
+                            <div class="lightbox-counter">
+                                <span id="lightboxCurrent">1</span> / <span id="lightboxTotal">1</span>
+                            </div>
+                        </div>
+                    </div>
+                `);
+            }
+
+            var currentImageIndex = 0;
+            var images = [];
+
+            // Initialize images array from gallery
+            function initImages() {
+                images = [];
+                $('.gallery-item').each(function() {
+                    var imageSrc = $(this).data('image') || $(this).find('img').attr('src');
+                    if (imageSrc) {
+                        images.push(imageSrc);
+                    }
+                });
+                $('#lightboxTotal').text(images.length);
+            }
+
+            // Open lightbox
+            function openLightbox(index) {
+                if (images.length === 0) return;
+                currentImageIndex = index;
+                updateLightboxImage();
+                $('#imageLightbox').addClass('active');
+                $('body').css('overflow', 'hidden');
+            }
+
+            // Close lightbox
+            function closeLightbox() {
+                $('#imageLightbox').removeClass('active');
+                $('body').css('overflow', '');
+            }
+
+            // Update lightbox image
+            function updateLightboxImage() {
+                if (images.length === 0) return;
+                var imageSrc = images[currentImageIndex];
+                $('#lightboxImage').attr('src', imageSrc);
+                $('#lightboxCurrent').text(currentImageIndex + 1);
+            }
+
+            // Next image
+            function nextImage() {
+                if (images.length === 0) return;
+                currentImageIndex = (currentImageIndex + 1) % images.length;
+                updateLightboxImage();
+            }
+
+            // Previous image
+            function prevImage() {
+                if (images.length === 0) return;
+                currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
+                updateLightboxImage();
+            }
+
+            // Initialize images on page load
+            initImages();
+
+            // Click on gallery item to open lightbox
+            $(document).on('click', '.gallery-item', function() {
+                var imageSrc = $(this).data('image') || $(this).find('img').attr('src');
+                if (imageSrc) {
+                    initImages(); // Re-initialize in case images changed
+                    var index = images.indexOf(imageSrc);
+                    if (index !== -1) {
+                        openLightbox(index);
+                    } else {
+                        // If image not found in array, add it and open
+                        images = [imageSrc];
+                        openLightbox(0);
+                    }
+                }
+            });
+
+            // Close lightbox on close button click
+            $(document).on('click', '.lightbox-close', function(e) {
+                e.stopPropagation();
+                closeLightbox();
+            });
+
+            // Close lightbox on background click
+            $(document).on('click', '#imageLightbox', function(e) {
+                if ($(e.target).is('#imageLightbox')) {
+                    closeLightbox();
+                }
+            });
+
+            // Next image on next button click
+            $(document).on('click', '.lightbox-next', function(e) {
+                e.stopPropagation();
+                nextImage();
+            });
+
+            // Previous image on prev button click
+            $(document).on('click', '.lightbox-prev', function(e) {
+                e.stopPropagation();
+                prevImage();
+            });
+
+            // Keyboard navigation
+            $(document).on('keydown', function(e) {
+                if ($('#imageLightbox').hasClass('active')) {
+                    if (e.key === 'Escape') {
+                        closeLightbox();
+                    } else if (e.key === 'ArrowRight') {
+                        nextImage();
+                    } else if (e.key === 'ArrowLeft') {
+                        prevImage();
+                    }
+                }
+            });
+
+            // Prevent lightbox content click from closing
+            $(document).on('click', '.lightbox-content', function(e) {
+                e.stopPropagation();
+            });
+
+            // Touch/swipe support for mobile
+            var touchStartX = 0;
+            var touchEndX = 0;
+
+            $(document).on('touchstart', '#lightboxImage', function(e) {
+                touchStartX = e.originalEvent.touches[0].clientX;
+            });
+
+            $(document).on('touchend', '#lightboxImage', function(e) {
+                touchEndX = e.originalEvent.changedTouches[0].clientX;
+                handleSwipe();
+            });
+
+            function handleSwipe() {
+                if (touchEndX < touchStartX - 50) {
+                    // Swipe left - next image
+                    nextImage();
+                }
+                if (touchEndX > touchStartX + 50) {
+                    // Swipe right - previous image
+                    prevImage();
+                }
+            }
+        });
+    </script>
+    
+    <style>
+        @@keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+}
+

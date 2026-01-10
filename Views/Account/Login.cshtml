@@ -1,0 +1,254 @@
+@model Unicareer.Models.ViewModels.LoginViewModel
+
+@{
+    ViewData["Title"] = "Đăng nhập";
+}
+
+<style>
+    .auth-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        background-image: url('https://haycafe.vn/wp-content/uploads/2022/03/Hinh-bat-tay-hop-tac.jpg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        padding: 40px 0;
+        position: relative;
+    }
+
+    .auth-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.85) 0%, rgba(5, 150, 105, 0.85) 100%);
+        z-index: 0;
+    }
+
+    .auth-container .container {
+        position: relative;
+        z-index: 1;
+    }
+
+    .auth-card {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        border: none;
+    }
+
+    .auth-card .card-body {
+        padding: 50px 40px;
+    }
+
+    .auth-title {
+        color: #333;
+        font-weight: 700;
+        font-size: 28px;
+        margin-bottom: 30px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 8px;
+    }
+
+    .form-control {
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 15px;
+        transition: all 0.3s;
+    }
+
+    .form-control:focus {
+        border-color: #10b981;
+        box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.15);
+    }
+
+    .btn-auth {
+        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+        border: none;
+        border-radius: 10px;
+        padding: 14px;
+        font-size: 16px;
+        font-weight: 700;
+        color: #fff;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-auth:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    }
+
+    .auth-link {
+        color: #10b981;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .auth-link:hover {
+        color: #059669;
+        text-decoration: underline;
+    }
+
+    .form-check-input:checked {
+        background-color: #10b981;
+        border-color: #10b981;
+    }
+</style>
+
+<div class="auth-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="card auth-card">
+                    <div class="card-body">
+                        <h2 class="text-center auth-title">
+                            <i class="bi bi-box-arrow-in-right text-primary"></i> Đăng nhập
+                        </h2>
+                    
+                    <form asp-action="Login" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        
+                        @if (ViewData["ErrorMessage"] != null)
+                        {
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="bi bi-exclamation-triangle"></i> @ViewData["ErrorMessage"]
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        }
+                        
+                        <input type="hidden" asp-for="ReturnUrl" />
+
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label"></label>
+                            <input asp-for="Email" class="form-control" placeholder="Nhập email" autofocus />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="MatKhau" class="form-label"></label>
+                            <input asp-for="MatKhau" class="form-control" placeholder="Nhập mật khẩu" />
+                            <span asp-validation-for="MatKhau" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3 d-flex justify-content-between align-items-center">
+                            <div class="form-check">
+                                <input asp-for="GhiNho" class="form-check-input" />
+                                <label asp-for="GhiNho" class="form-check-label"></label>
+                            </div>
+                            <a asp-action="ForgotPassword" class="auth-link" style="font-size: 14px;">Quên mật khẩu?</a>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="CaptchaCode" class="form-label"></label>
+                            <div class="d-flex align-items-center gap-2">
+                                <input asp-for="CaptchaCode" class="form-control" placeholder="Nhập mã CAPTCHA" style="flex: 1;" />
+                                <div style="position: relative;">
+                                    <img id="captchaImage" src="/Captcha/GetCaptchaImage" alt="CAPTCHA" 
+                                         style="height: 50px; border: 2px solid #e0e0e0; border-radius: 5px; cursor: pointer;" 
+                                         onclick="refreshCaptcha()" title="Click để làm mới CAPTCHA" />
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" 
+                                            onclick="refreshCaptcha()" 
+                                            style="position: absolute; top: -25px; right: 0; font-size: 12px; padding: 2px 6px;">
+                                        <i class="bi bi-arrow-clockwise"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <span asp-validation-for="CaptchaCode" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid gap-2 mb-3">
+                            <button type="submit" class="btn btn-auth">
+                                <i class="bi bi-box-arrow-in-right"></i> Đăng nhập
+                            </button>
+                        </div>
+
+                        <div class="divider-wrapper mb-3" style="display: flex; align-items: center; margin: 20px 0;">
+                            <div style="flex: 1; height: 1px; background: #e0e0e0;"></div>
+                            <span style="padding: 0 15px; color: #999; font-size: 14px;">hoặc</span>
+                            <div style="flex: 1; height: 1px; background: #e0e0e0;"></div>
+                        </div>
+
+                        <div class="d-grid gap-2 mb-3">
+                            @{
+                                var returnUrl = ViewData["ReturnUrl"]?.ToString() ?? Context.Request.Query["returnUrl"].ToString();
+                            }
+                            <a asp-action="ExternalLogin" asp-route-provider="Google" asp-route-returnUrl="@returnUrl" class="btn" 
+                               style="background: #fff; border: 2px solid #e0e0e0; border-radius: 10px; padding: 12px; 
+                                      color: #333; font-weight: 600; text-decoration: none; display: flex; 
+                                      align-items: center; justify-content: center; gap: 10px; transition: all 0.3s;">
+                                <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+                                    <g fill="#000" fill-rule="evenodd">
+                                        <path d="M9 3.48c1.69 0 2.83.73 3.48 1.34l2.54-2.48C13.46.89 11.43 0 9 0 5.48 0 2.42 2.02.96 4.96l2.91 2.26C4.6 6.17 6.62 3.48 9 3.48z" fill="#EA4335"/>
+                                        <path d="M17.64 9.2c0-.74-.06-1.28-.19-1.84H9v3.34h4.96c-.21 1.18-.84 2.18-1.79 2.86l2.75 2.13c1.72-1.58 2.72-3.9 2.72-6.49z" fill="#4285F4"/>
+                                        <path d="M3.88 10.78A5.54 5.54 0 0 1 3.58 9c0-.62.11-1.22.29-1.78L.96 4.96A9.008 9.008 0 0 0 0 9c0 1.45.35 2.82.96 4.04l2.92-2.26z" fill="#FBBC05"/>
+                                        <path d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.75-2.13c-.76.53-1.78.9-3.21.9-2.38 0-4.4-1.57-5.12-3.74L.96 13.04C2.45 15.98 5.48 18 9 18z" fill="#34A853"/>
+                                    </g>
+                                </svg>
+                                Đăng nhập với Google
+                            </a>
+                        </div>
+
+                        <div class="text-center">
+                            <p class="mb-0">Chưa có tài khoản? <a asp-action="Register" class="auth-link">Đăng ký ngay</a></p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // Hàm refresh CAPTCHA
+        function refreshCaptcha() {
+            const captchaImage = document.getElementById('captchaImage');
+            const timestamp = new Date().getTime();
+            captchaImage.src = '/Captcha/GetCaptchaImage?t=' + timestamp;
+            // Xóa giá trị input
+            document.getElementById('CaptchaCode').value = '';
+        }
+
+        // Kiểm tra xem ảnh có load được không
+        (function() {
+            const imageUrl = 'https://haycafe.vn/wp-content/uploads/2022/03/Hinh-bat-tay-hop-tac.jpg';
+            const authContainer = document.querySelector('.auth-container');
+            const img = new Image();
+            
+            img.onload = function() {
+                // Ảnh load thành công, hiển thị ảnh với overlay mờ
+                authContainer.style.backgroundImage = `url('${imageUrl}')`;
+                // Giữ nguyên overlay (::before) để text vẫn đọc được
+            };
+            
+            img.onerror = function() {
+                // Ảnh không load được, chỉ dùng nền tím, ẩn overlay
+                authContainer.style.backgroundImage = 'none';
+                authContainer.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+                // Ẩn overlay bằng cách set opacity = 0
+                const style = document.createElement('style');
+                style.textContent = '.auth-container::before { opacity: 0 !important; }';
+                document.head.appendChild(style);
+            };
+            
+            // Thử load ảnh
+            img.src = imageUrl;
+        })();
+    </script>
+}
+

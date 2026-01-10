@@ -1,0 +1,360 @@
+@model List<Unicareer.Models.TheLoaiBlog>
+
+@{
+    ViewData["Title"] = "Quản lý Thể loại Blog";
+    var search = ViewBag.Search as string ?? "";
+}
+
+<style>
+    .theloaiblog-management-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 10px 40px rgba(37, 69, 184, 0.3);
+    }
+
+    .page-header h1 {
+        font-weight: 700;
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .filter-section {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .filter-form {
+        display: grid;
+        grid-template-columns: 2fr auto;
+        gap: 15px;
+        align-items: end;
+    }
+
+    .filter-form input {
+        padding: 12px 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        width: 100%;
+    }
+
+    .btn-filter {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        overflow-x: auto;
+    }
+
+    .theloaiblog-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .theloaiblog-table thead {
+        background: #f8f9fa;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .theloaiblog-table th {
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+        color: #2d3748;
+        font-size: 14px;
+    }
+
+    .theloaiblog-table td {
+        padding: 15px;
+        border-bottom: 1px solid #e9ecef;
+        vertical-align: middle;
+    }
+
+    .theloaiblog-table tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-success {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .badge-danger {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-edit {
+        background: #f3e8ff;
+        color: #6b21a8;
+    }
+
+    .btn-delete {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .modal-content {
+        border-radius: 16px;
+        border: none;
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        color: white;
+        border-radius: 16px 16px 0 0;
+        padding: 20px 30px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+</style>
+
+@Html.AntiForgeryToken()
+
+<div class="theloaiblog-management-container">
+    <div class="page-header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1><i class="bi bi-tags-fill"></i> Quản lý Thể loại Blog</h1>
+                <p>Quản lý các thể loại blog trong hệ thống</p>
+            </div>
+            <button class="btn" style="background: white; color: #2545B8; padding: 12px 30px; border-radius: 10px; font-weight: 600; text-decoration: none;" data-bs-toggle="modal" data-bs-target="#themTheLoaiModal">
+                <i class="bi bi-plus-circle"></i> Thêm mới
+            </button>
+        </div>
+    </div>
+
+    @if (TempData["ThanhCong"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["ThanhCong"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Loi"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Loi"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <form class="filter-form" method="get" action="@Url.Action("TheLoaiBlog", "Admin", new { area = "Admin" })">
+            <div>
+                <input type="text" name="search" value="@search" placeholder="Tìm kiếm theo tên thể loại..." />
+            </div>
+            <div>
+                <button type="submit" class="btn-filter">
+                    <i class="bi bi-search"></i> Tìm kiếm
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Table Section -->
+    <div class="table-container">
+        @if (Model != null && Model.Any())
+        {
+            <table class="theloaiblog-table">
+                <thead>
+                    <tr>
+                        <th>Mã</th>
+                        <th>Tên thể loại</th>
+                        <th>Thứ tự</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var theLoai in Model)
+                    {
+                        <tr>
+                            <td><strong>#@theLoai.MaTheLoai</strong></td>
+                            <td><strong>@theLoai.TenTheLoai</strong></td>
+                            <td><span class="badge badge-success">@theLoai.ThuTu</span></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-action btn-edit btn-sua" 
+                                            data-ma="@theLoai.MaTheLoai"
+                                            data-ten="@theLoai.TenTheLoai"
+                                            title="Sửa">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn-action btn-delete btn-xoa" 
+                                            data-ma="@theLoai.MaTheLoai" 
+                                            data-ten="@theLoai.TenTheLoai"
+                                            title="Xóa">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div style="text-align: center; padding: 60px 20px; color: #718096;">
+                <i class="bi bi-tags" style="font-size: 4rem; margin-bottom: 20px; opacity: 0.5;"></i>
+                <p>Chưa có thể loại nào. Hãy thêm thể loại mới!</p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Modal Thêm Thể loại -->
+<div class="modal fade" id="themTheLoaiModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Thêm Thể loại Blog</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="@Url.Action("ThemTheLoaiBlog", "Admin", new { area = "Admin" })">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Tên thể loại *</label>
+                        <input type="text" name="TenTheLoai" class="form-control" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Thêm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Sửa Thể loại -->
+<div class="modal fade" id="suaTheLoaiModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-pencil"></i> Sửa Thể loại Blog</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="@Url.Action("SuaTheLoaiBlog", "Admin", new { area = "Admin" })">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="MaTheLoai" id="suaMaTheLoai" />
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Tên thể loại *</label>
+                        <input type="text" name="TenTheLoai" id="suaTenTheLoai" class="form-control" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Cập nhật</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Xử lý sửa thể loại
+    document.querySelectorAll('.btn-sua').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.getElementById('suaMaTheLoai').value = this.dataset.ma;
+            document.getElementById('suaTenTheLoai').value = this.dataset.ten || '';
+            
+            new bootstrap.Modal(document.getElementById('suaTheLoaiModal')).show();
+        });
+    });
+
+    // Xử lý xóa thể loại
+    document.querySelectorAll('.btn-xoa').forEach(btn => {
+        btn.addEventListener('click', function() {
+            var tenTheLoai = this.dataset.ten || 'thể loại này';
+            if (confirm('Bạn có chắc muốn xóa thể loại "' + tenTheLoai + '"? Hành động này không thể hoàn tác!')) {
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '@Url.Action("XoaTheLoaiBlog", "Admin", new { area = "Admin" })?id=' + this.dataset.ma;
+                
+                var token = document.querySelector('input[name="__RequestVerificationToken"]');
+                if (token) {
+                    var tokenInput = document.createElement('input');
+                    tokenInput.type = 'hidden';
+                    tokenInput.name = '__RequestVerificationToken';
+                    tokenInput.value = token.value;
+                    form.appendChild(tokenInput);
+                }
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    });
+
+</script>
+

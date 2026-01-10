@@ -1,0 +1,1466 @@
+@model Unicareer.Models.ViewModels.UserManagementViewModel
+@{
+    ViewData["Title"] = "Quản lý người dùng";
+}
+
+<style>
+    .user-management-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 10px 40px rgba(37, 69, 184, 0.3);
+    }
+
+    .page-header h1 {
+        font-weight: 700;
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .page-header p {
+        font-size: 1.1rem;
+        opacity: 0.95;
+    }
+
+    .filter-section {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .filter-form {
+        display: grid;
+        grid-template-columns: 2fr 1fr auto;
+        gap: 15px;
+        align-items: end;
+    }
+
+    .filter-form input,
+    .filter-form select {
+        padding: 12px 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .filter-form input:focus,
+    .filter-form select:focus {
+        outline: none;
+        border-color: #2545B8;
+        box-shadow: 0 0 0 3px rgba(37, 69, 184, 0.1);
+    }
+
+    .btn-filter {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-filter:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 69, 184, 0.4);
+    }
+
+    .users-table-container {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        overflow-x: auto;
+    }
+
+    .users-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .users-table thead {
+        background: #f8f9fa;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .users-table th {
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+        color: #2d3748;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .users-table td {
+        padding: 15px;
+        border-bottom: 1px solid #e9ecef;
+        vertical-align: middle;
+    }
+
+    .users-table tbody tr {
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .users-table tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .users-table tbody tr.clickable-row {
+        cursor: pointer;
+    }
+
+    .users-table tbody tr .no-click,
+    .users-table tbody tr .no-click * {
+        cursor: default;
+        pointer-events: auto;
+    }
+
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin-right: 10px;
+    }
+
+    .user-info-cell {
+        display: flex;
+        align-items: center;
+    }
+
+    .user-details {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .user-email {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 3px;
+    }
+
+    .user-name {
+        font-size: 0.85rem;
+        color: #718096;
+    }
+
+    .role-badge {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-right: 5px;
+        margin-bottom: 5px;
+    }
+
+    .role-admin {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .role-nhatuyendung {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .role-ungvien {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .status-active {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-locked {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .status-unconfirmed {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-reset-password {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .btn-reset-password:hover {
+        background: #fde68a;
+    }
+
+    .btn-assign-role {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .btn-assign-role:hover {
+        background: #bfdbfe;
+    }
+
+    .btn-lock {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .btn-lock:hover {
+        background: #fecaca;
+    }
+
+    .btn-unlock {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .btn-unlock:hover {
+        background: #bbf7d0;
+    }
+
+    .btn-details {
+        background: #e0e7ff;
+        color: #3730a3;
+    }
+
+    .btn-details:hover {
+        background: #c7d2fe;
+    }
+
+    .btn-edit {
+        background: #f3e8ff;
+        color: #6b21a8;
+    }
+
+    .btn-edit:hover {
+        background: #e9d5ff;
+    }
+
+    .alert {
+        border-radius: 10px;
+        padding: 15px 20px;
+        margin-bottom: 20px;
+    }
+
+    .alert-success {
+        background: #f0fdf4;
+        border: 1px solid #86efac;
+        color: #166534;
+    }
+
+    .alert-danger {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #991b1b;
+    }
+
+    .no-users {
+        text-align: center;
+        padding: 60px 20px;
+        color: #718096;
+    }
+
+    .no-users i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .stats-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        text-align: center;
+    }
+
+    .stat-card h3 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2545B8;
+        margin: 0;
+    }
+
+    .stat-card p {
+        color: #718096;
+        margin: 10px 0 0 0;
+        font-size: 0.9rem;
+    }
+
+    .modal-content {
+        border-radius: 16px;
+        border: none;
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        color: white;
+        border-radius: 16px 16px 0 0;
+        padding: 20px 30px;
+    }
+
+    .modal-body {
+        padding: 30px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-group select {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 69, 184, 0.4);
+    }
+
+    .table-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        border-radius: 16px 16px 0 0;
+        margin-bottom: 0;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .toolbar-left {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .toolbar-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #718096;
+        font-size: 0.9rem;
+    }
+
+    .select-all-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .select-all-btn {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 8px 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+        color: #2d3748;
+        transition: all 0.2s ease;
+    }
+
+    .select-all-btn:hover {
+        background: #f7fafc;
+        border-color: #cbd5e0;
+    }
+
+    .select-all-dropdown-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        min-width: 200px;
+        z-index: 1000;
+        margin-top: 5px;
+        overflow: hidden;
+    }
+
+    .select-all-dropdown-menu.show {
+        display: block;
+    }
+
+    .select-all-dropdown-item {
+        padding: 10px 15px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        color: #2d3748;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .select-all-dropdown-item:hover {
+        background: #f7fafc;
+    }
+
+    .select-all-dropdown-item i {
+        width: 16px;
+        text-align: center;
+    }
+
+    .refresh-btn {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 8px 12px;
+        cursor: pointer;
+        color: #2d3748;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+    }
+
+    .refresh-btn:hover {
+        background: #f7fafc;
+        border-color: #cbd5e0;
+    }
+
+    .bulk-actions-toolbar {
+        display: none;
+        align-items: center;
+        gap: 10px;
+        margin-left: 10px;
+    }
+
+    .bulk-actions-toolbar.active {
+        display: flex;
+    }
+
+    .bulk-action-btn {
+        padding: 8px;
+        border: none;
+        border-radius: 6px;
+        background: transparent;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+    }
+
+    .bulk-action-btn i {
+        font-size: 1.3rem;
+        color: #2d3748;
+    }
+
+    .bulk-lock-btn i {
+        color: #991b1b;
+    }
+
+    .bulk-lock-btn:hover i {
+        color: #dc2626;
+        transform: scale(1.1);
+    }
+
+    .bulk-unlock-btn i {
+        color: #166534;
+    }
+
+    .bulk-unlock-btn:hover i {
+        color: #059669;
+        transform: scale(1.1);
+    }
+
+    .bulk-assign-role-btn i {
+        color: #1e40af;
+    }
+
+    .bulk-assign-role-btn:hover i {
+        color: #2563eb;
+        transform: scale(1.1);
+    }
+
+    .selected-count {
+        font-weight: 600;
+        color: #2545B8;
+        margin-right: 10px;
+    }
+
+    .users-table th:first-child,
+    .users-table td:first-child {
+        width: 50px;
+        text-align: center;
+        padding: 15px 10px;
+    }
+
+    .users-table tbody tr.selected {
+        background: #e0e7ff !important;
+    }
+
+    .users-table tbody tr.selected:hover {
+        background: #c7d2fe !important;
+    }
+
+    .user-checkbox:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    .user-checkbox:disabled:hover {
+        cursor: not-allowed;
+    }
+
+    .pagination-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        background: #f8f9fa;
+        border-top: 1px solid #e9ecef;
+        border-radius: 0 0 16px 16px;
+    }
+
+    .pagination-info {
+        color: #718096;
+        font-size: 0.9rem;
+    }
+
+    .pagination-controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .pagination-btn {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 8px 12px;
+        cursor: pointer;
+        color: #2d3748;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        text-decoration: none;
+    }
+
+    .pagination-btn:hover:not(:disabled) {
+        background: #f7fafc;
+        border-color: #cbd5e0;
+    }
+
+    .pagination-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    @@media (max-width: 768px) {
+        .filter-form {
+            grid-template-columns: 1fr;
+        }
+
+        .users-table {
+            font-size: 0.85rem;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .page-header > div {
+            flex-direction: column !important;
+            gap: 20px;
+        }
+
+        .page-header .btn {
+            width: 100%;
+            text-align: center;
+        }
+
+        .table-toolbar {
+            flex-direction: column;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .pagination-container {
+            flex-direction: column;
+            gap: 15px;
+        }
+    }
+</style>
+
+<div class="user-management-container">
+    <div class="page-header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1><i class="bi bi-people"></i> Quản lý người dùng</h1>
+                <p>Quản lý tất cả người dùng, roles, và quyền truy cập hệ thống</p>
+            </div>
+            <a asp-action="CreateUser" class="btn" style="background: white; color: #2545B8; padding: 12px 30px; border-radius: 10px; font-weight: 600; text-decoration: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: all 0.3s;">
+                <i class="bi bi-person-plus"></i> Tạo tài khoản mới
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Stats Section -->
+    <div class="stats-section">
+        <div class="stat-card">
+            <h3>@Model.Users.Count</h3>
+            <p>Tổng số người dùng</p>
+        </div>
+        <div class="stat-card">
+            <h3>@Model.Users.Count(u => u.Roles.Contains("Admin"))</h3>
+            <p>Quản trị viên</p>
+        </div>
+        <div class="stat-card">
+            <h3>@Model.Users.Count(u => u.Roles.Contains("NhaTuyenDung"))</h3>
+            <p>Nhà tuyển dụng</p>
+        </div>
+        <div class="stat-card">
+            <h3>@Model.Users.Count(u => u.Roles.Contains("UngVien"))</h3>
+            <p>Ứng viên</p>
+        </div>
+        <div class="stat-card">
+            <h3>@Model.Users.Count(u => u.IsLockedOut)</h3>
+            <p>Tài khoản bị khóa</p>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <form method="get" asp-action="UserManagement" class="filter-form">
+            <input type="hidden" name="pageNumber" value="1" />
+            <input type="hidden" name="pageSize" value="@Model.PageSize" />
+            <div>
+                <label for="searchTerm" style="margin-bottom: 8px; display: block; font-weight: 600; color: #2d3748;">Tìm kiếm</label>
+                <input type="text" id="searchTerm" name="searchTerm" value="@Model.SearchTerm" placeholder="Email, tên, số điện thoại..." />
+            </div>
+            <div>
+                <label for="roleFilter" style="margin-bottom: 8px; display: block; font-weight: 600; color: #2d3748;">Lọc theo role</label>
+                <select id="roleFilter" name="roleFilter">
+                    <option value="">Tất cả roles</option>
+                    @foreach (var role in Model.AvailableRoles)
+                    {
+                        <option value="@role" selected="@(Model.RoleFilter == role)">@role</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <button type="submit" class="btn-filter">
+                    <i class="bi bi-search"></i> Tìm kiếm
+                </button>
+                @if (!string.IsNullOrEmpty(Model.SearchTerm) || !string.IsNullOrEmpty(Model.RoleFilter))
+                {
+                    <a href="@Url.Action("UserManagement")" class="btn btn-secondary" style="margin-top: 10px; display: block; text-align: center; padding: 12px; border-radius: 8px; text-decoration: none; background: #e2e8f0; color: #2d3748;">
+                        <i class="bi bi-x-circle"></i> Xóa bộ lọc
+                    </a>
+                }
+            </div>
+        </form>
+    </div>
+
+    <!-- Users Table -->
+    <div class="users-table-container">
+        @if (Model.Users.Any())
+        {
+            <!-- Table Toolbar -->
+            <div class="table-toolbar">
+                <div class="toolbar-left">
+                    <div class="select-all-dropdown">
+                        <div style="display: flex; align-items: center; gap: 0;">
+                            <button type="button" class="select-all-btn" id="selectAllBtn" style="border-radius: 6px 0 0 6px; border-right: none;" onclick="toggleSelectAll()">
+                                <i class="bi bi-square" id="selectAllIcon"></i>
+                            </button>
+                            <button type="button" class="select-all-btn" style="border-radius: 0 6px 6px 0; padding: 8px 8px;" onclick="toggleDropdown(event)">
+                                <i class="bi bi-chevron-down" style="font-size: 0.7rem;"></i>
+                            </button>
+                        </div>
+                        <div class="select-all-dropdown-menu" id="selectAllDropdown" onclick="event.stopPropagation();">
+                            <div class="select-all-dropdown-item" onclick="event.stopPropagation(); selectAllUsers();">
+                                <i class="bi bi-square"></i>
+                                <span>Tất cả</span>
+                            </div>
+                            <div class="select-all-dropdown-item" onclick="event.stopPropagation(); deselectAllUsers();">
+                                <i class="bi bi-square"></i>
+                                <span>Bỏ chọn tất cả</span>
+                            </div>
+                            <div class="select-all-dropdown-item" onclick="event.stopPropagation(); selectLockedUsers();">
+                                <i class="bi bi-square"></i>
+                                <span>Tài khoản bị khóa</span>
+                            </div>
+                            <div class="select-all-dropdown-item" onclick="event.stopPropagation(); selectActiveUsers();">
+                                <i class="bi bi-square"></i>
+                                <span>Tài khoản hoạt động</span>
+                            </div>
+                            <div class="select-all-dropdown-item" onclick="event.stopPropagation(); selectEmailConfirmedUsers();">
+                                <i class="bi bi-square"></i>
+                                <span>Tài khoản đã xác nhận email</span>
+                            </div>
+                            <div class="select-all-dropdown-item" onclick="event.stopPropagation(); selectEmailUnconfirmedUsers();">
+                                <i class="bi bi-square"></i>
+                                <span>Tài khoản chưa xác nhận email</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Bulk Actions (hidden by default) -->
+                    <div class="bulk-actions-toolbar" id="bulkActionsToolbar">
+                        <span class="selected-count" id="selectedCount">0 đã chọn</span>
+                        <form asp-action="BulkLockUnlockUsers" method="post" id="bulkLockForm" style="display: inline;">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="userIds" id="bulkLockUserIds" />
+                            <input type="hidden" name="lockUser" value="true" />
+                            <button type="submit" class="bulk-action-btn bulk-lock-btn" title="Khóa tài khoản" onclick="return confirm('Bạn có chắc muốn khóa các tài khoản đã chọn?');">
+                                <i class="bi bi-lock-fill"></i>
+                            </button>
+                        </form>
+                        <form asp-action="BulkLockUnlockUsers" method="post" id="bulkUnlockForm" style="display: inline;">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="userIds" id="bulkUnlockUserIds" />
+                            <input type="hidden" name="lockUser" value="false" />
+                            <button type="submit" class="bulk-action-btn bulk-unlock-btn" title="Mở khóa tài khoản" onclick="return confirm('Bạn có chắc muốn mở khóa các tài khoản đã chọn?');">
+                                <i class="bi bi-unlock-fill"></i>
+                            </button>
+                        </form>
+                        <button type="button" class="bulk-action-btn bulk-assign-role-btn" title="Gán role" onclick="showBulkAssignRoleModal()">
+                            <i class="bi bi-person-badge-fill"></i>
+                        </button>
+                    </div>
+                    <button type="button" class="refresh-btn" onclick="location.reload()" title="Làm mới">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
+                <div class="toolbar-right">
+                    @{
+                        var startIndex = (Model.PageNumber - 1) * Model.PageSize + 1;
+                        var endIndex = Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount);
+                        var prevPage = Model.PageNumber > 1 ? Model.PageNumber - 1 : 1;
+                        var nextPage = Model.PageNumber < Model.TotalPages ? Model.PageNumber + 1 : Model.TotalPages;
+                        var canGoPrev = Model.PageNumber > 1;
+                        var canGoNext = Model.PageNumber < Model.TotalPages;
+                    }
+                    <span>@startIndex-@endIndex trong số @Model.TotalCount</span>
+                    @if (canGoPrev)
+                    {
+                        <a href="@Url.Action("UserManagement", new { searchTerm = Model.SearchTerm, roleFilter = Model.RoleFilter, pageNumber = prevPage, pageSize = Model.PageSize })" 
+                           class="pagination-btn" title="Cũ hơn">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="pagination-btn" style="opacity: 0.5; cursor: not-allowed; pointer-events: none;" title="Cũ hơn">
+                            <i class="bi bi-chevron-left"></i>
+                        </span>
+                    }
+                    @if (canGoNext)
+                    {
+                        <a href="@Url.Action("UserManagement", new { searchTerm = Model.SearchTerm, roleFilter = Model.RoleFilter, pageNumber = nextPage, pageSize = Model.PageSize })" 
+                           class="pagination-btn" title="Mới hơn">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="pagination-btn" style="opacity: 0.5; cursor: not-allowed; pointer-events: none;" title="Mới hơn">
+                            <i class="bi bi-chevron-right"></i>
+                        </span>
+                    }
+                </div>
+            </div>
+
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Người dùng</th>
+                        <th>Số điện thoại</th>
+                        <th>Role</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày đăng ký</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model.Users)
+                    {
+                        <tr data-user-id="@user.Id" 
+                            data-is-locked="@user.IsLockedOut.ToString().ToLower()" 
+                            data-is-active="@((!user.IsLockedOut && user.EmailConfirmed).ToString().ToLower())"
+                            data-email-confirmed="@user.EmailConfirmed.ToString().ToLower()"
+                            data-is-primary-admin="@user.IsPrimaryAdmin.ToString().ToLower()"
+                            class="clickable-row" 
+                            onclick="handleRowClick(event, '@user.Id')">
+                            <td class="no-click">
+                                @if (user.IsPrimaryAdmin)
+                                {
+                                    <input type="checkbox" class="user-checkbox" value="@user.Id" disabled title="Không thể chọn tài khoản admin chính" onclick="event.stopPropagation();" />
+                                }
+                                else
+                                {
+                                    <input type="checkbox" class="user-checkbox" value="@user.Id" onchange="updateSelection()" onclick="event.stopPropagation();" />
+                                }
+                            </td>
+                            <td>
+                                <div class="user-info-cell">
+                                    <div class="user-avatar">
+                                        @if (!string.IsNullOrEmpty(user.HoTen))
+                                        {
+                                            var nameParts = user.HoTen.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                                            if (nameParts.Length >= 2)
+                                            {
+                                                @($"{nameParts[0][0]}{nameParts[^1][0]}".ToUpper())
+                                            }
+                                            else if (nameParts.Length == 1)
+                                            {
+                                                @nameParts[0].Substring(0, Math.Min(2, nameParts[0].Length)).ToUpper()
+                                            }
+                                            else
+                                            {
+                                                @user.Email.Substring(0, 2).ToUpper()
+                                            }
+                                        }
+                                        else
+                                        {
+                                            @user.Email.Substring(0, 2).ToUpper()
+                                        }
+                                    </div>
+                                    <div class="user-details">
+                                        <div class="user-email">@user.Email</div>
+                                        @if (!string.IsNullOrEmpty(user.HoTen))
+                                        {
+                                            <div class="user-name">@user.HoTen</div>
+                                        }
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(user.PhoneNumber))
+                                {
+                                    <span style="color: #2d3748; font-weight: 500;">
+                                        <i class="bi bi-telephone"></i> @user.PhoneNumber
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span style="color: #cbd5e0; font-style: italic;">Chưa cập nhật</span>
+                                }
+                            </td>
+                            <td>
+                                @foreach (var role in user.Roles)
+                                {
+                                    var roleClass = role switch
+                                    {
+                                        "Admin" => "role-admin",
+                                        "NhaTuyenDung" => "role-nhatuyendung",
+                                        "UngVien" => "role-ungvien",
+                                        _ => ""
+                                    };
+                                    var roleDisplay = role switch
+                                    {
+                                        "Admin" => "Quản trị viên",
+                                        "NhaTuyenDung" => "Nhà tuyển dụng",
+                                        "UngVien" => "Ứng viên",
+                                        _ => role
+                                    };
+                                    <span class="role-badge @roleClass" title="@role">@roleDisplay</span>
+                                }
+                            </td>
+                            <td>
+                                @if (user.IsLockedOut)
+                                {
+                                    <span class="status-badge status-locked">
+                                        <i class="bi bi-lock"></i> Đã khóa
+                                    </span>
+                                }
+                                else if (!user.EmailConfirmed)
+                                {
+                                    <span class="status-badge status-unconfirmed">
+                                        <i class="bi bi-envelope"></i> Chưa xác nhận email
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="status-badge status-active">
+                                        <i class="bi bi-check-circle"></i> Hoạt động
+                                    </span>
+                                }
+                                @if (user.IsPrimaryAdmin)
+                                {
+                                    <br />
+                                    <small style="color: #991b1b; font-weight: 600;">⚠️ Admin chính</small>
+                                }
+                            </td>
+                            <td>@user.NgayDangKy.ToString("dd/MM/yyyy")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="no-users">
+                <i class="bi bi-people"></i>
+                <h3>Không tìm thấy người dùng nào</h3>
+                <p>Thử thay đổi bộ lọc tìm kiếm</p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Assign Role Modal -->
+<div class="modal fade" id="assignRoleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-person-badge"></i> Gán Role</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="AssignRole" method="post" id="assignRoleForm">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Người dùng</label>
+                        <input type="text" id="modalUserEmail" class="form-control" readonly style="background-color: #f7fafc;" />
+                        <input type="hidden" name="userId" id="modalUserId" />
+                    </div>
+                    <div class="form-group">
+                        <label for="roleName">Role <span style="color: red;">*</span></label>
+                        <select name="roleName" id="roleName" class="form-control" required>
+                            <option value="">-- Chọn role --</option>
+                            @foreach (var role in Model.AvailableRoles)
+                            {
+                                var roleDisplay = role switch
+                                {
+                                    "Admin" => "Quản trị viên",
+                                    "NhaTuyenDung" => "Nhà tuyển dụng",
+                                    "UngVien" => "Ứng viên",
+                                    _ => role
+                                };
+                                <option value="@role">@roleDisplay</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="alert alert-warning" style="margin-top: 15px;">
+                        <i class="bi bi-exclamation-triangle"></i> <strong>Lưu ý:</strong> Gán role mới sẽ thay thế tất cả role hiện tại của người dùng.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Gán Role</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Assign Role Modal -->
+<div class="modal fade" id="bulkAssignRoleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-person-badge"></i> Gán Role Hàng Loạt</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="BulkAssignRole" method="post" id="bulkAssignRoleForm">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Số lượng người dùng đã chọn</label>
+                        <input type="text" id="bulkModalUserCount" class="form-control" readonly style="background-color: #f7fafc;" />
+                        <input type="hidden" name="userIds" id="bulkModalUserIds" />
+                    </div>
+                    <div class="form-group">
+                        <label for="bulkRoleName">Role <span style="color: red;">*</span></label>
+                        <select name="roleName" id="bulkRoleName" class="form-control" required>
+                            <option value="">-- Chọn role --</option>
+                            @foreach (var role in Model.AvailableRoles)
+                            {
+                                var roleDisplay = role switch
+                                {
+                                    "Admin" => "Quản trị viên",
+                                    "NhaTuyenDung" => "Nhà tuyển dụng",
+                                    "UngVien" => "Ứng viên",
+                                    _ => role
+                                };
+                                <option value="@role">@roleDisplay</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="alert alert-warning" style="margin-top: 15px;">
+                        <i class="bi bi-exclamation-triangle"></i> <strong>Lưu ý:</strong> Gán role mới sẽ thay thế tất cả role hiện tại của các người dùng đã chọn. Tài khoản quản trị viên chính sẽ được bỏ qua.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Gán Role</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function showAssignRoleModal(userId, userEmail, currentRoles) {
+            document.getElementById('modalUserId').value = userId;
+            document.getElementById('modalUserEmail').value = userEmail;
+            document.getElementById('roleName').value = '';
+            
+            const modal = new bootstrap.Modal(document.getElementById('assignRoleModal'));
+            modal.show();
+        }
+
+        function showBulkAssignRoleModal() {
+            const checkboxes = document.querySelectorAll('.user-checkbox:checked');
+            const userIds = Array.from(checkboxes).map(cb => cb.value);
+            
+            if (userIds.length === 0) {
+                alert('Vui lòng chọn ít nhất một người dùng!');
+                return;
+            }
+            
+            document.getElementById('bulkModalUserIds').value = userIds.join(',');
+            document.getElementById('bulkModalUserCount').value = userIds.length + ' người dùng';
+            document.getElementById('bulkRoleName').value = '';
+            
+            const modal = new bootstrap.Modal(document.getElementById('bulkAssignRoleModal'));
+            modal.show();
+        }
+
+        function handleRowClick(event, userId) {
+            // Kiểm tra nếu click vào các phần tử không nên trigger navigation
+            if (event.target.closest('.no-click') || 
+                event.target.closest('button') || 
+                event.target.closest('a') || 
+                event.target.closest('form') ||
+                event.target.closest('input[type="checkbox"]')) {
+                return;
+            }
+            
+            // Chuyển đến trang chi tiết
+            const baseUrl = '@Url.Action("UserDetails", "AdminUser")';
+            window.location.href = baseUrl + '?userId=' + encodeURIComponent(userId);
+        }
+
+        // Dropdown management
+        function toggleDropdown(event) {
+            event.stopPropagation();
+            const dropdown = document.getElementById('selectAllDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Đóng dropdown khi click ra ngoài
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('selectAllDropdown');
+            const selectAllDropdown = document.querySelector('.select-all-dropdown');
+            if (!selectAllDropdown.contains(event.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+
+        // Selection management
+        let allSelected = false;
+
+        function toggleSelectAll() {
+            allSelected = !allSelected;
+            const checkboxes = document.querySelectorAll('.user-checkbox:not(:disabled)');
+            const selectAllIcon = document.getElementById('selectAllIcon');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = allSelected;
+            });
+            
+            // Highlight/bỏ highlight các hàng (chỉ hàng không disabled)
+            document.querySelectorAll('tbody tr').forEach(row => {
+                const checkbox = row.querySelector('.user-checkbox');
+                if (checkbox && !checkbox.disabled) {
+                    if (allSelected) {
+                        row.classList.add('selected');
+                    } else {
+                        row.classList.remove('selected');
+                    }
+                }
+            });
+            
+            if (allSelected) {
+                selectAllIcon.className = 'bi bi-check-square';
+            } else {
+                selectAllIcon.className = 'bi bi-square';
+            }
+            
+            updateSelection();
+        }
+
+        function selectAllUsers() {
+            const checkboxes = document.querySelectorAll('.user-checkbox:not(:disabled)');
+            const selectAllIcon = document.getElementById('selectAllIcon');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = true;
+            });
+            
+            selectAllIcon.className = 'bi bi-check-square';
+            allSelected = true;
+            
+            // Highlight tất cả các hàng (trừ admin chính)
+            document.querySelectorAll('tbody tr').forEach(row => {
+                const checkbox = row.querySelector('.user-checkbox');
+                if (checkbox && !checkbox.disabled) {
+                    row.classList.add('selected');
+                }
+            });
+            
+            updateSelection();
+            document.getElementById('selectAllDropdown').classList.remove('show');
+        }
+
+        function deselectAllUsers() {
+            const checkboxes = document.querySelectorAll('.user-checkbox:not(:disabled)');
+            const selectAllIcon = document.getElementById('selectAllIcon');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            selectAllIcon.className = 'bi bi-square';
+            allSelected = false;
+            
+            // Bỏ highlight tất cả các hàng
+            document.querySelectorAll('tbody tr').forEach(row => {
+                row.classList.remove('selected');
+            });
+            
+            updateSelection();
+            document.getElementById('selectAllDropdown').classList.remove('show');
+        }
+
+        function selectLockedUsers() {
+            const rows = document.querySelectorAll('tbody tr');
+            const selectAllIcon = document.getElementById('selectAllIcon');
+            
+            // Bỏ chọn tất cả trước
+            document.querySelectorAll('.user-checkbox:not(:disabled)').forEach(cb => cb.checked = false);
+            rows.forEach(row => row.classList.remove('selected'));
+            
+            // Chọn các hàng bị khóa (trừ admin chính)
+            rows.forEach(row => {
+                const isLocked = row.getAttribute('data-is-locked') === 'true';
+                const checkbox = row.querySelector('.user-checkbox');
+                if (isLocked && checkbox && !checkbox.disabled) {
+                    checkbox.checked = true;
+                    row.classList.add('selected');
+                }
+            });
+            
+            // Cập nhật icon
+            const checkedCount = document.querySelectorAll('.user-checkbox:checked').length;
+            const totalCount = document.querySelectorAll('.user-checkbox:not(:disabled)').length;
+            if (checkedCount === totalCount && totalCount > 0) {
+                selectAllIcon.className = 'bi bi-check-square';
+                allSelected = true;
+            } else if (checkedCount > 0) {
+                selectAllIcon.className = 'bi bi-dash-square';
+                allSelected = false;
+            } else {
+                selectAllIcon.className = 'bi bi-square';
+                allSelected = false;
+            }
+            
+            updateSelection();
+            document.getElementById('selectAllDropdown').classList.remove('show');
+        }
+
+        function selectActiveUsers() {
+            const rows = document.querySelectorAll('tbody tr');
+            const selectAllIcon = document.getElementById('selectAllIcon');
+            
+            // Bỏ chọn tất cả trước
+            document.querySelectorAll('.user-checkbox:not(:disabled)').forEach(cb => cb.checked = false);
+            rows.forEach(row => row.classList.remove('selected'));
+            
+            // Chọn các hàng hoạt động (trừ admin chính)
+            rows.forEach(row => {
+                const isActive = row.getAttribute('data-is-active') === 'true';
+                const checkbox = row.querySelector('.user-checkbox');
+                if (isActive && checkbox && !checkbox.disabled) {
+                    checkbox.checked = true;
+                    row.classList.add('selected');
+                }
+            });
+            
+            // Cập nhật icon
+            const checkedCount = document.querySelectorAll('.user-checkbox:checked').length;
+            const totalCount = document.querySelectorAll('.user-checkbox:not(:disabled)').length;
+            if (checkedCount === totalCount && totalCount > 0) {
+                selectAllIcon.className = 'bi bi-check-square';
+                allSelected = true;
+            } else if (checkedCount > 0) {
+                selectAllIcon.className = 'bi bi-dash-square';
+                allSelected = false;
+            } else {
+                selectAllIcon.className = 'bi bi-square';
+                allSelected = false;
+            }
+            
+            updateSelection();
+            document.getElementById('selectAllDropdown').classList.remove('show');
+        }
+
+        function selectEmailConfirmedUsers() {
+            const rows = document.querySelectorAll('tbody tr');
+            const selectAllIcon = document.getElementById('selectAllIcon');
+            
+            // Bỏ chọn tất cả trước
+            document.querySelectorAll('.user-checkbox:not(:disabled)').forEach(cb => cb.checked = false);
+            rows.forEach(row => row.classList.remove('selected'));
+            
+            // Chọn các hàng đã xác nhận email (trừ admin chính)
+            rows.forEach(row => {
+                const emailConfirmed = row.getAttribute('data-email-confirmed') === 'true';
+                const checkbox = row.querySelector('.user-checkbox');
+                if (emailConfirmed && checkbox && !checkbox.disabled) {
+                    checkbox.checked = true;
+                    row.classList.add('selected');
+                }
+            });
+            
+            // Cập nhật icon
+            const checkedCount = document.querySelectorAll('.user-checkbox:checked').length;
+            const totalCount = document.querySelectorAll('.user-checkbox:not(:disabled)').length;
+            if (checkedCount === totalCount && totalCount > 0) {
+                selectAllIcon.className = 'bi bi-check-square';
+                allSelected = true;
+            } else if (checkedCount > 0) {
+                selectAllIcon.className = 'bi bi-dash-square';
+                allSelected = false;
+            } else {
+                selectAllIcon.className = 'bi bi-square';
+                allSelected = false;
+            }
+            
+            updateSelection();
+            document.getElementById('selectAllDropdown').classList.remove('show');
+        }
+
+        function selectEmailUnconfirmedUsers() {
+            const rows = document.querySelectorAll('tbody tr');
+            const selectAllIcon = document.getElementById('selectAllIcon');
+            
+            // Bỏ chọn tất cả trước
+            document.querySelectorAll('.user-checkbox:not(:disabled)').forEach(cb => cb.checked = false);
+            rows.forEach(row => row.classList.remove('selected'));
+            
+            // Chọn các hàng chưa xác nhận email (trừ admin chính)
+            rows.forEach(row => {
+                const emailConfirmed = row.getAttribute('data-email-confirmed') === 'false';
+                const checkbox = row.querySelector('.user-checkbox');
+                if (emailConfirmed && checkbox && !checkbox.disabled) {
+                    checkbox.checked = true;
+                    row.classList.add('selected');
+                }
+            });
+            
+            // Cập nhật icon
+            const checkedCount = document.querySelectorAll('.user-checkbox:checked').length;
+            const totalCount = document.querySelectorAll('.user-checkbox:not(:disabled)').length;
+            if (checkedCount === totalCount && totalCount > 0) {
+                selectAllIcon.className = 'bi bi-check-square';
+                allSelected = true;
+            } else if (checkedCount > 0) {
+                selectAllIcon.className = 'bi bi-dash-square';
+                allSelected = false;
+            } else {
+                selectAllIcon.className = 'bi bi-square';
+                allSelected = false;
+            }
+            
+            updateSelection();
+            document.getElementById('selectAllDropdown').classList.remove('show');
+        }
+
+        function updateSelection() {
+            const checkboxes = document.querySelectorAll('.user-checkbox:checked');
+            const selectedCount = checkboxes.length;
+            const selectedCountEl = document.getElementById('selectedCount');
+            const bulkToolbar = document.getElementById('bulkActionsToolbar');
+            const selectAllIcon = document.getElementById('selectAllIcon');
+            
+            // Update count
+            selectedCountEl.textContent = selectedCount + ' đã chọn';
+            
+            // Show/hide toolbar
+            if (selectedCount > 0) {
+                bulkToolbar.classList.add('active');
+            } else {
+                bulkToolbar.classList.remove('active');
+            }
+            
+            // Update select all icon (only count enabled checkboxes)
+            const allCheckboxes = document.querySelectorAll('.user-checkbox:not(:disabled)');
+            if (selectedCount === 0) {
+                selectAllIcon.className = 'bi bi-square';
+                allSelected = false;
+            } else if (selectedCount === allCheckboxes.length && allCheckboxes.length > 0) {
+                selectAllIcon.className = 'bi bi-check-square';
+                allSelected = true;
+            } else {
+                selectAllIcon.className = 'bi bi-dash-square';
+                allSelected = false;
+            }
+            
+            // Update row highlighting
+            document.querySelectorAll('tbody tr').forEach(row => {
+                const checkbox = row.querySelector('.user-checkbox');
+                if (checkbox && checkbox.checked && !checkbox.disabled) {
+                    row.classList.add('selected');
+                } else {
+                    row.classList.remove('selected');
+                }
+            });
+        }
+
+        // Update form with selected user IDs before submit
+        const bulkLockForm = document.getElementById('bulkLockForm');
+        const bulkUnlockForm = document.getElementById('bulkUnlockForm');
+        
+        if (bulkLockForm) {
+            bulkLockForm.addEventListener('submit', function(e) {
+                const checkboxes = document.querySelectorAll('.user-checkbox:checked');
+                const userIds = Array.from(checkboxes).map(cb => cb.value);
+                const userIdsInput = document.getElementById('bulkLockUserIds');
+                if (userIdsInput) {
+                    userIdsInput.value = userIds.join(',');
+                }
+                if (userIds.length === 0) {
+                    e.preventDefault();
+                    alert('Vui lòng chọn ít nhất một người dùng!');
+                    return false;
+                }
+            });
+        }
+
+        if (bulkUnlockForm) {
+            bulkUnlockForm.addEventListener('submit', function(e) {
+                const checkboxes = document.querySelectorAll('.user-checkbox:checked');
+                const userIds = Array.from(checkboxes).map(cb => cb.value);
+                const userIdsInput = document.getElementById('bulkUnlockUserIds');
+                if (userIdsInput) {
+                    userIdsInput.value = userIds.join(',');
+                }
+                if (userIds.length === 0) {
+                    e.preventDefault();
+                    alert('Vui lòng chọn ít nhất một người dùng!');
+                    return false;
+                }
+            });
+        }
+
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    </script>
+}
+

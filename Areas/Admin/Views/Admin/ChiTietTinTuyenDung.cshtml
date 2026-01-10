@@ -1,0 +1,3575 @@
+@model Unicareer.Models.TinTuyenDung
+
+@{
+    ViewData["Title"] = "Chi tiết tin tuyển dụng";
+    var danhSachUngTuyen = ViewBag.DanhSachUngTuyen as List<Unicareer.Models.TinUngTuyen> ?? new List<Unicareer.Models.TinUngTuyen>();
+}
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 10px 40px rgba(37, 69, 184, 0.3);
+    }
+
+    .page-header h1 {
+        font-weight: 700;
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+
+    .page-header .breadcrumb {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 10px 20px;
+        border-radius: 10px;
+        margin: 0;
+    }
+
+    .page-header .breadcrumb-item a {
+        color: white;
+        text-decoration: none;
+    }
+
+    .page-header .breadcrumb-item.active {
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .info-card {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        margin-bottom: 25px;
+    }
+
+    .info-card h5 {
+        color: #2d3748;
+        font-weight: 600;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .info-card h5 i {
+        color: #2545B8;
+        font-size: 1.3rem;
+    }
+
+    .info-item {
+        display: flex;
+        padding: 12px 0;
+        border-bottom: 1px solid #f7fafc;
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #718096;
+        min-width: 180px;
+        flex-shrink: 0;
+    }
+
+    .info-value {
+        color: #2d3748;
+        flex: 1;
+    }
+
+    .badge-custom {
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .badge-success {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        color: white;
+    }
+
+    .badge-secondary {
+        background: linear-gradient(135deg, #a0aec0 0%, #718096 100%);
+        color: white;
+    }
+
+    .badge-primary {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        color: white;
+    }
+
+    .badge-info {
+        background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+        color: white;
+    }
+
+    /* Tab Styles */
+    .nav-tabs {
+        border-bottom: 3px solid #e2e8f0;
+        margin-bottom: 25px;
+    }
+
+    .nav-tabs .nav-link {
+        border: none;
+        border-bottom: 3px solid transparent;
+        color: #718096;
+        font-weight: 600;
+        padding: 15px 25px;
+        transition: all 0.3s ease;
+        background: transparent;
+    }
+
+    .nav-tabs .nav-link:hover {
+        border-bottom-color: #cbd5e0;
+        color: #2d3748;
+    }
+
+    .nav-tabs .nav-link.active {
+        color: #2545B8;
+        border-bottom-color: #2545B8;
+        background: transparent;
+    }
+
+    .tab-content {
+        padding: 20px 0;
+    }
+
+    .content-section {
+        margin-bottom: 30px;
+    }
+
+    .content-section h4 {
+        color: #2d3748;
+        font-weight: 600;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .content-section ul {
+        padding-left: 20px;
+    }
+
+    .content-section li {
+        margin-bottom: 10px;
+        color: #4a5568;
+        line-height: 1.6;
+    }
+
+    /* Table Styles */
+    .table-responsive {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table thead {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+
+    .table thead th {
+        border: none;
+        color: #2d3748;
+        font-weight: 600;
+        padding: 18px 15px;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f7fafc;
+        transform: scale(1.01);
+    }
+
+    .table tbody td {
+        padding: 18px 15px;
+        vertical-align: middle;
+        border: none;
+    }
+
+    .btn-action {
+        padding: 6px 12px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        margin: 0 2px;
+        border: 2px solid;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .btn-view {
+        border-color: #4299e1;
+        color: #4299e1;
+        background: transparent;
+    }
+
+    .btn-view:hover {
+        background: #4299e1;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .btn-download {
+        border-color: #48bb78;
+        color: #48bb78;
+        background: transparent;
+    }
+
+    .btn-download:hover {
+        background: #48bb78;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #a0aec0;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .empty-state h5 {
+        color: #718096;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .empty-state p {
+        color: #a0aec0;
+        margin: 0;
+    }
+
+    .back-button {
+        background: white;
+        border: 2px solid #2545B8;
+        color: #2545B8;
+        padding: 10px 20px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .back-button:hover {
+        background: #2545B8;
+        color: white;
+        transform: translateX(-5px);
+    }
+
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    /* Map Styles */
+    .map-container {
+        position: relative;
+        margin-top: 15px;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        border: 2px solid #e2e8f0;
+        background: #f7fafc;
+    }
+
+    #map {
+        height: 400px;
+        border-radius: 16px;
+    }
+
+    .map-info {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+        padding: 12px 18px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        z-index: 1000;
+        font-size: 0.9rem;
+        font-weight: 600;
+        border: 2px solid #e2e8f0;
+    }
+
+    .map-info i {
+        font-size: 1.2rem;
+        margin-right: 5px;
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @@keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+
+    /* Custom marker popup */
+    .leaflet-popup-content-wrapper {
+        border-radius: 12px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        border: 2px solid #2545B8;
+    }
+
+    .leaflet-popup-content {
+        margin: 15px;
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+
+    /* Custom marker styling */
+    .custom-marker {
+        background: none;
+        border: none;
+    }
+
+    .marker-pin {
+        width: 35px;
+        height: 35px;
+        border-radius: 50% 50% 50% 0;
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        position: absolute;
+        transform: rotate(-45deg);
+        left: 50%;
+        top: 50%;
+        margin: -17.5px 0 0 -17.5px;
+        box-shadow: 0 4px 15px rgba(37, 69, 184, 0.6);
+    }
+
+    .marker-pin::after {
+        content: '';
+        width: 16px;
+        height: 16px;
+        margin: 9.5px 0 0 9.5px;
+        background: #fff;
+        position: absolute;
+        border-radius: 50%;
+    }
+
+    /* Pulse animation */
+    .marker-pulse-ring {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: rgba(37, 69, 184, 0.3);
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        margin: -25px 0 0 -25px;
+        animation: pulsate 1.5s ease-out infinite;
+    }
+
+    @@keyframes pulsate {
+        0% {
+            transform: scale(0.5, 0.5);
+            opacity: 0;
+        }
+        50% {
+            opacity: 1;
+        }
+        100% {
+            transform: scale(1.5, 1.5);
+            opacity: 0;
+        }
+    }
+
+    /* Edit Mode Styles */
+    .edit-controls {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .btn-edit {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        border: none;
+        color: white;
+        padding: 12px 25px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-edit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 69, 184, 0.4);
+    }
+
+    .btn-cancel {
+        background: white;
+        border: 2px solid #a0aec0;
+        color: #718096;
+        padding: 12px 25px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-cancel:hover {
+        background: #f7fafc;
+        border-color: #718096;
+        color: #2d3748;
+        transform: translateY(-2px);
+    }
+
+    .btn-save {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        border: none;
+        color: white;
+        padding: 12px 25px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(72, 187, 120, 0.4);
+    }
+
+    .edit-mode .view-content {
+        display: none;
+    }
+
+    .edit-mode .edit-content {
+        display: block;
+    }
+
+    .view-mode .view-content {
+        display: block;
+    }
+
+    .view-mode .edit-content {
+        display: none;
+    }
+
+    .edit-content {
+        display: none;
+    }
+
+    .form-control-edit, .form-select-edit {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        font-family: inherit;
+    }
+
+    .form-control-edit:focus, .form-select-edit:focus {
+        border-color: #2545B8;
+        box-shadow: 0 0 0 4px rgba(37, 69, 184, 0.1);
+        outline: none;
+    }
+
+    textarea.form-control-edit {
+        min-height: 150px;
+        resize: vertical;
+    }
+
+    .input-group {
+        display: flex;
+    }
+
+    .input-group .form-control-edit {
+        border-radius: 10px 0 0 10px;
+        border-right: none;
+        flex: 1;
+    }
+
+    .input-group .form-control-edit:focus {
+        border-right: none;
+    }
+
+    .input-group .btn {
+        border-radius: 0 10px 10px 0;
+        border-left: 2px solid #e2e8f0;
+        padding: 12px 20px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .input-group .btn-outline-primary {
+        border: 2px solid #e2e8f0;
+        border-left: 2px solid #e2e8f0;
+        color: #2545B8;
+        background: white;
+    }
+
+    .input-group .btn-outline-primary:hover {
+        background: #2545B8;
+        color: white;
+        border-color: #2545B8;
+    }
+
+    .edit-field-group {
+        margin-bottom: 20px;
+    }
+
+    .edit-field-group label {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .edit-content .form-section {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 25px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        border: 1px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+
+    .edit-content .form-section:hover {
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        transform: translateY(-2px);
+    }
+
+    .edit-content .form-section h4 {
+        color: #2d3748;
+        font-weight: 600;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid #2545B8;
+        display: inline-block;
+    }
+
+    .edit-content .form-section h4 i {
+        color: #2545B8;
+        margin-right: 10px;
+        font-size: 1.3rem;
+    }
+
+    /* CKEditor 5 Styles */
+    .ck-editor__editable {
+        min-height: 250px;
+        border-radius: 0 0 10px 10px;
+    }
+
+    .ck.ck-toolbar {
+        border-radius: 10px 10px 0 0;
+        border: 2px solid #e2e8f0;
+        border-bottom: none;
+    }
+
+    .ck.ck-editor__main > .ck-editor__editable {
+        border: 2px solid #e2e8f0;
+        border-top: none;
+    }
+
+    .ck.ck-toolbar.ck-toolbar_grouping > .ck-toolbar__items {
+        flex-wrap: wrap;
+    }
+
+    .edit-content .map-container {
+        z-index: 1;
+        position: relative;
+    }
+
+    #mapEdit {
+        height: 500px;
+        border-radius: 16px;
+        width: 100%;
+        z-index: 1;
+    }
+
+    .required-label::after {
+        content: " *";
+        color: #f56565;
+    }
+
+    /* Image Gallery Styles */
+    .image-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .gallery-item {
+        position: relative;
+        overflow: hidden;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        aspect-ratio: 4/3;
+        background: #f7fafc;
+    }
+
+    .gallery-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    }
+
+    .gallery-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .gallery-item:hover img {
+        transform: scale(1.1);
+    }
+
+    .gallery-item::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.3) 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .gallery-item:hover::after {
+        opacity: 1;
+    }
+
+    .gallery-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 2rem;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 10;
+    }
+
+    .gallery-item:hover .gallery-overlay {
+        opacity: 1;
+    }
+
+    /* Lightbox Styles */
+    .lightbox {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 10000;
+        justify-content: center;
+        align-items: center;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .lightbox.active {
+        display: flex;
+    }
+
+    .lightbox-content {
+        position: relative;
+        max-width: 90%;
+        max-height: 90%;
+        animation: zoomIn 0.3s ease;
+    }
+
+    .lightbox-content img {
+        max-width: 100%;
+        max-height: 90vh;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+
+    .lightbox-close {
+        position: absolute;
+        top: -40px;
+        right: 0;
+        color: white;
+        font-size: 2rem;
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.2);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .lightbox-close:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: rotate(90deg);
+    }
+
+    .lightbox-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        color: white;
+        font-size: 2rem;
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.2);
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .lightbox-nav:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .lightbox-prev {
+        left: 20px;
+    }
+
+    .lightbox-next {
+        right: 20px;
+    }
+
+    .lightbox-counter {
+        position: absolute;
+        bottom: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: white;
+        font-size: 1rem;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 8px 16px;
+        border-radius: 20px;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @@keyframes zoomIn {
+        from {
+            transform: scale(0.8);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .empty-gallery {
+        text-align: center;
+        padding: 40px 20px;
+        color: #a0aec0;
+    }
+
+    .empty-gallery i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        opacity: 0.5;
+    }
+
+    .empty-gallery p {
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    /* Image Preview Styles for Edit Mode */
+    .image-preview-container {
+        margin-top: 20px;
+        padding: 20px;
+        background: #f7fafc;
+        border-radius: 12px;
+        border: 2px dashed #cbd5e0;
+    }
+
+    .image-preview-container.has-images {
+        border: 2px solid #2545B8;
+        background: #ffffff;
+    }
+
+    .preview-section {
+        margin-bottom: 25px;
+    }
+
+    .preview-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .preview-section-title {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 15px;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .preview-section-title i {
+        color: #2545B8;
+    }
+
+    .preview-images-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+    }
+
+    .preview-image-item {
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        aspect-ratio: 4/3;
+        background: #ffffff;
+        border: 2px solid #e2e8f0;
+        transition: all 0.3s ease;
+    }
+
+    .preview-image-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .preview-image-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .preview-image-item .remove-btn {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: rgba(245, 101, 101, 0.9);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 1.2rem;
+        transition: all 0.3s ease;
+        z-index: 10;
+    }
+
+    .preview-image-item .remove-btn:hover {
+        background: rgba(229, 62, 62, 1);
+        transform: scale(1.1);
+    }
+
+    .preview-image-item .image-label {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.7) 100%);
+        color: white;
+        padding: 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .preview-image-item.existing .image-label {
+        background: linear-gradient(180deg, transparent 0%, rgba(37, 69, 184, 0.8) 100%);
+    }
+
+    .preview-image-item.new .image-label {
+        background: linear-gradient(180deg, transparent 0%, rgba(72, 187, 120, 0.8) 100%);
+    }
+
+    .no-preview {
+        text-align: center;
+        padding: 30px;
+        color: #a0aec0;
+    }
+
+    .no-preview i {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        opacity: 0.5;
+    }
+
+    .no-preview p {
+        margin: 0;
+        font-size: 0.9rem;
+    }
+</style>
+
+<!-- Hidden element for success message -->
+@if (TempData["ThanhCong"] != null)
+{
+    <div id="successMessage" style="display: none;">@TempData["ThanhCong"]</div>
+}
+
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="bi bi-shield-check"></i> Chi tiết tin tuyển dụng</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard", "Admin")">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a href="@Url.Action("TinTuyenDung", "Admin")">Quản lý tin tuyển dụng</a></li>
+                    <li class="breadcrumb-item active">Chi tiết</li>
+                </ol>
+            </nav>
+        </div>
+        <a href="@Url.Action("TinTuyenDung", "Admin")" class="back-button">
+            <i class="bi bi-arrow-left"></i> Quay lại
+        </a>
+    </div>
+</div>
+
+@{
+    var trangThaiDuyet = !string.IsNullOrEmpty(Model.TrangThaiDuyet) ? Model.TrangThaiDuyet : "Cho duyet";
+    var badgeClassDuyet = trangThaiDuyet switch
+    {
+        "Da duyet" => "badge bg-success",
+        "Tu choi" => "badge bg-danger",
+        _ => "badge bg-warning"
+    };
+    var labelDuyet = trangThaiDuyet switch
+    {
+        "Da duyet" => "Đã duyệt",
+        "Tu choi" => "Đã từ chối",
+        _ => "Chờ duyệt"
+    };
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <span class="@badgeClassDuyet">@labelDuyet</span>
+                @if (!string.IsNullOrEmpty(Model.LyDoTuChoi) && trangThaiDuyet == "Tu choi")
+                {
+                    <p class="mb-0 small text-danger mt-2">
+                        <strong>Lý do:</strong> @Model.LyDoTuChoi
+                    </p>
+                }
+                else
+                {
+                    <p class="mb-0 small text-muted mt-2">
+                        @(trangThaiDuyet == "Cho duyet"
+                            ? "Tin đang chờ admin kiểm tra trước khi hiển thị cho người tìm việc."
+                            : "Tin đã được duyệt và đang khả dụng.")
+                    </p>
+                }
+            </div>
+            @if (trangThaiDuyet != "Da duyet")
+            {
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="button" class="btn btn-success" id="btnApprove">
+                        <i class="bi bi-check-circle"></i> Duyệt tin
+                    </button>
+                    <button type="button" class="btn btn-outline-danger" id="btnReject" data-bs-toggle="modal" data-bs-target="#tuChoiModal">
+                        <i class="bi bi-x-circle"></i> Từ chối
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Thông tin cơ bản -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="info-card">
+            <h5><i class="bi bi-info-circle"></i> Thông tin cơ bản</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="info-item">
+                        <span class="info-label">Mã tin:</span>
+                        <span class="info-value"><strong>#@Model.MaTinTuyenDung</strong></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Tên việc làm:</span>
+                        <span class="info-value"><strong>@Model.TenViecLam</strong></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Công ty:</span>
+                        <span class="info-value">@Model.CongTy</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Ngành nghề:</span>
+                        <span class="info-value">@Model.NganhNghe</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.NganhNgheChiTiet))
+                    {
+                        <div class="info-item">
+                            <span class="info-label">Ngành nghề chi tiết:</span>
+                            <span class="info-value">@Model.NganhNgheChiTiet</span>
+                        </div>
+                    }
+                    <div class="info-item">
+                        <span class="info-label">Loại công việc:</span>
+                        <span class="info-value">
+                            <span class="badge-custom badge-primary">@Model.LoaiCongViec</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-item">
+                        <span class="info-label">Vị trí:</span>
+                        <span class="info-value">@Model.ViTri</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.KinhNghiem))
+                    {
+                        <div class="info-item">
+                            <span class="info-label">Kinh nghiệm:</span>
+                            <span class="info-value">@Model.KinhNghiem</span>
+                        </div>
+                    }
+                    <div class="info-item">
+                        <span class="info-label">Ngày đăng:</span>
+                        <span class="info-value">@Model.NgayDang.ToString("dd/MM/yyyy")</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Hạn nộp:</span>
+                        <span class="info-value">
+                            @Model.HanNop.ToString("dd/MM/yyyy")
+                            @if (Model.HanNop >= DateTime.Now)
+                            {
+                                <span class="badge-custom badge-success ms-2">Đang tuyển</span>
+                            }
+                            else
+                            {
+                                <span class="badge-custom badge-secondary ms-2">Hết hạn</span>
+                            }
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Lượt ứng tuyển:</span>
+                        <span class="info-value">
+                            <span class="badge-custom badge-info">@Model.SoLuongUngTuyen</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="row">
+    <div class="col-12">
+        <div class="info-card">
+            <ul class="nav nav-tabs" id="detailTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="content-tab" data-bs-toggle="tab" data-bs-target="#content" type="button" role="tab">
+                        <i class="bi bi-file-text"></i> Nội dung tin
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="applications-tab" data-bs-toggle="tab" data-bs-target="#applications" type="button" role="tab">
+                        <i class="bi bi-people"></i> Danh sách ứng tuyển (@danhSachUngTuyen.Count)
+                    </button>
+                </li>
+            </ul>
+            <div class="tab-content" id="detailTabsContent">
+                <!-- Tab 1: Nội dung tin -->
+                <div class="tab-pane fade show active view-mode" id="content" role="tabpanel">
+                    <!-- Edit Controls -->
+                    <div class="edit-controls">
+                        <button type="button" class="btn-edit" id="btnEdit">
+                            <i class="bi bi-pencil"></i> Sửa
+                        </button>
+                        <button type="button" class="btn-cancel" id="btnCancel" style="display: none;">
+                            <i class="bi bi-x-circle"></i> Hủy thay đổi
+                        </button>
+                        <button type="button" class="btn-save" id="btnSave" style="display: none;">
+                            <i class="bi bi-check-circle"></i> Lưu
+                        </button>
+                    </div>
+
+                    <form id="editForm" method="post" action="@Url.Action("CapNhatTinTuyenDung", "Admin", new { id = Model.MaTinTuyenDung })" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="MaTinTuyenDung" value="@Model.MaTinTuyenDung" />
+
+                        <!-- View Mode Content -->
+                        <div class="view-content">
+                            <!-- Thong tin co ban -->
+                            <div class="content-section">
+                        <h4><i class="bi bi-briefcase-fill"></i> Thông tin cơ bản</h4>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <p><strong>Ngành nghề:</strong> @Model.NganhNghe</p>
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.NganhNgheChiTiet))
+                            {
+                                <div class="col-md-6 mb-3">
+                                    <p><strong>Ngành nghề chi tiết:</strong> @Model.NganhNgheChiTiet</p>
+                                </div>
+                            }
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <p><strong>Hình thức làm việc:</strong> <span class="badge-custom badge-primary">@Model.LoaiCongViec</span></p>
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.KinhNghiem))
+                            {
+                                <div class="col-md-6 mb-3">
+                                    <p><strong>Kinh nghiệm:</strong> @Model.KinhNghiem</p>
+                                </div>
+                            }
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <p><strong>Vị trí:</strong> @Model.ViTri</p>
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.NgoaiNgu))
+                            {
+                                <div class="col-md-6 mb-3">
+                                    <p><strong>Ngoại ngữ:</strong> @Model.NgoaiNgu</p>
+                                </div>
+                            }
+                        </div>
+                        @if (!string.IsNullOrEmpty(Model.KyNang))
+                        {
+                            <div class="mb-3">
+                                <p><strong>Kỹ năng:</strong> @Model.KyNang</p>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="content-section">
+                        <h4><i class="bi bi-briefcase"></i> Mô tả công việc</h4>
+                        <div>@Html.Raw(Model.MoTa ?? "")</div>
+                    </div>
+
+                    <div class="content-section">
+                        <h4><i class="bi bi-check-circle"></i> Yêu cầu ứng viên</h4>
+                        <div>@Html.Raw(Model.YeuCau ?? "")</div>
+                    </div>
+
+                    <div class="content-section">
+                        <h4><i class="bi bi-gift"></i> Quyền lợi</h4>
+                        <div>@Html.Raw(Model.QuyenLoi ?? "")</div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="content-section">
+                                <h4><i class="bi bi-cash-stack"></i> Mức lương</h4>
+                                <p style="font-size: 1.2rem; font-weight: 600; color: #2545B8;">
+                                    @if (Model.MucLuongThapNhat.HasValue && Model.MucLuongCaoNhat.HasValue)
+                                    {
+                                        <text>@Model.MucLuongThapNhat.Value.ToString("N0") - @Model.MucLuongCaoNhat.Value.ToString("N0") triệu VNĐ</text>
+                                    }
+                                    else if (Model.MucLuongThapNhat.HasValue)
+                                    {
+                                        <text>Từ @Model.MucLuongThapNhat.Value.ToString("N0") triệu VNĐ</text>
+                                    }
+                                    else
+                                    {
+                                        <text>Thỏa thuận</text>
+                                    }
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="content-section">
+                                <h4><i class="bi bi-geo-alt"></i> Địa điểm làm việc</h4>
+                                <p>
+                                    <strong>@Model.DiaChiLamViec</strong><br/>
+                                    <span class="text-muted">@Model.PhuongXa, @Model.TinhThanhPho</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <h4><i class="bi bi-person-lines-fill"></i> Thông tin liên hệ</h4>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <p><strong>Người liên hệ:</strong> @Model.NguoiLienHe</p>
+                            </div>
+                            <div class="col-md-4">
+                                <p><strong>Email:</strong> <a href="mailto:@Model.EmailLienHe">@Model.EmailLienHe</a></p>
+                            </div>
+                            <div class="col-md-4">
+                                <p><strong>SĐT:</strong> <a href="tel:@Model.SDTLienHe">@Model.SDTLienHe</a></p>
+                            </div>
+                        </div>
+                        
+                        @if (!string.IsNullOrEmpty(Model.DiaChiLamViec))
+                        {
+                            <div class="mb-3">
+                                <p><strong>Địa chỉ:</strong> @Model.DiaChiLamViec</p>
+                                @if (!string.IsNullOrEmpty(Model.PhuongXa) || !string.IsNullOrEmpty(Model.TinhThanhPho))
+                                {
+                                    <p class="text-muted">@Model.PhuongXa@(!string.IsNullOrEmpty(Model.PhuongXa) && !string.IsNullOrEmpty(Model.TinhThanhPho) ? ", " : "")@Model.TinhThanhPho</p>
+                                }
+                            </div>
+                        }
+
+                        @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
+                        {
+                            <!-- Map Container -->
+                            <div class="map-container">
+                                <div id="map"></div>
+                                <div class="map-info">
+                                    <i class="bi bi-geo-alt-fill text-danger"></i>
+                                    <span id="currentCoords">@Model.Latitude.Value.ToString("F6"), @Model.Longitude.Value.ToString("F6")</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Anh van phong/cua hang -->
+                    @if (!string.IsNullOrEmpty(Model.AnhVanPhong))
+                    {
+                        <div class="content-section">
+                            <h4><i class="bi bi-images"></i> Ảnh văn phòng/cửa hàng</h4>
+                            @{
+                                // Parse ảnh từ string (JSON array hoặc comma-separated)
+                                var anhVanPhongList = new List<string>();
+                                try
+                                {
+                                    var anhVanPhongValue = Model.AnhVanPhong?.Trim();
+                                    if (string.IsNullOrEmpty(anhVanPhongValue))
+                                    {
+                                        anhVanPhongList = new List<string>();
+                                    }
+                                    else
+                                    {
+                                        // Thử parse JSON array trước (format mới)
+                                        if (anhVanPhongValue.StartsWith("["))
+                                        {
+                                            try
+                                            {
+                                                var jsonArray = System.Text.Json.JsonSerializer.Deserialize<string[]>(anhVanPhongValue);
+                                                if (jsonArray != null && jsonArray.Length > 0)
+                                                {
+                                                    anhVanPhongList = jsonArray.ToList();
+                                                }
+                                            }
+                                            catch
+                                            {
+                                                // Nếu parse JSON thất bại, xử lý như chuỗi thông thường
+                                                anhVanPhongList = anhVanPhongValue
+                                                    .Trim('[', ']')
+                                                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                                    .Select(s => s.Trim().Trim('"', '\'', ' '))
+                                                    .Where(s => !string.IsNullOrEmpty(s))
+                                                    .ToList();
+                                            }
+                                        }
+                                        else
+                                        {
+                                            // Split bằng dấu phẩy cho chuỗi thông thường (format cũ)
+                                            anhVanPhongList = anhVanPhongValue
+                                                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                                .Select(s => s.Trim())
+                                                .Where(s => !string.IsNullOrEmpty(s))
+                                                .ToList();
+                                        }
+                                    }
+                                }
+                                catch
+                                {
+                                    // Nếu có lỗi, thử split đơn giản nhất
+                                    try
+                                    {
+                                        anhVanPhongList = Model.AnhVanPhong?
+                                            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                            .Select(s => s.Trim())
+                                            .Where(s => !string.IsNullOrEmpty(s))
+                                            .ToList() ?? new List<string>();
+                                    }
+                                    catch
+                                    {
+                                        anhVanPhongList = new List<string>();
+                                    }
+                                }
+                            }
+
+                            @if (anhVanPhongList != null && anhVanPhongList.Count > 0)
+                            {
+                                <div class="image-gallery" id="officeImagesGallery">
+                                    @foreach (var imagePath in anhVanPhongList)
+                                    {
+                                        <div class="gallery-item" data-image="@imagePath">
+                                            <img src="@imagePath" alt="Ảnh văn phòng/cửa hàng" loading="lazy" 
+                                                 onerror="this.src='/images/placeholder.png'; this.onerror=null;">
+                                            <div class="gallery-overlay">
+                                                <i class="bi bi-zoom-in"></i>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="empty-gallery">
+                                    <i class="bi bi-image"></i>
+                                    <p>Chưa có ảnh văn phòng/cửa hàng</p>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.TuKhoa))
+                    {
+                        <div class="content-section">
+                            <h4><i class="bi bi-tags"></i> Từ khóa</h4>
+                            <div>
+                                @foreach (var keyword in Model.TuKhoa.Split(','))
+                                {
+                                    <span class="badge-custom badge-primary me-2">@keyword.Trim()</span>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Han tuyen dung -->
+                    <div class="content-section">
+                        <h4><i class="bi bi-calendar-event"></i> Hạn tuyển dụng</h4>
+                        <p>
+                            <strong>Ngày hết hạn nộp hồ sơ:</strong> @Model.HanNop.ToString("dd/MM/yyyy")
+                            @if (Model.HanNop >= DateTime.Now)
+                            {
+                                <span class="badge-custom badge-success ms-2">Đang tuyển</span>
+                            }
+                            else
+                            {
+                                <span class="badge-custom badge-secondary ms-2">Hết hạn</span>
+                            }
+                        </p>
+                    </div>
+                        </div>
+
+                        <!-- Edit Mode Content -->
+                        <div class="edit-content">
+                            <!-- Ten viec lam -->
+                            <div class="form-section">
+                                <h4><i class="bi bi-briefcase-fill"></i> Thông tin cơ bản</h4>
+                                <div class="mb-4">
+                                    <label class="form-label required-label">Tên vị trí tuyển dụng</label>
+                                    <input type="text" class="form-control" name="TenViecLam" 
+                                           id="editTenViecLam" value="@Model.TenViecLam" required
+                                           placeholder="Ví dụ: Senior Full-stack Developer">
+                                    <span class="text-danger field-validation-valid" data-valmsg-for="TenViecLam" data-valmsg-replace="true"></span>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label required-label">Ngành nghề</label>
+                                        <select class="form-select" name="NganhNghe" id="editNganhNghe" required>
+                                            <option value="">Chọn ngành nghề</option>
+                                            @{
+                                                var danhSachNganhNghe = ViewBag.DanhSachNganhNghe as List<Unicareer.Models.NganhNghe> ?? new List<Unicareer.Models.NganhNghe>();
+                                            }
+                                            @foreach (var nganhNghe in danhSachNganhNghe)
+                                            {
+                                                @if (Model.NganhNghe == nganhNghe.TenNganhNghe)
+                                                {
+                                                    <option value="@nganhNghe.TenNganhNghe" selected data-ma-nganh-nghe="@nganhNghe.MaNganhNghe">@nganhNghe.TenNganhNghe</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@nganhNghe.TenNganhNghe" data-ma-nganh-nghe="@nganhNghe.MaNganhNghe">@nganhNghe.TenNganhNghe</option>
+                                                }
+                                            }
+                                        </select>
+                                        <span class="text-danger field-validation-valid" data-valmsg-for="NganhNghe" data-valmsg-replace="true"></span>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Ngành nghề chi tiết</label>
+                                        <select class="form-select" name="NganhNgheChiTiet" id="editNganhNgheChiTiet">
+                                            <option value="">Chọn ngành nghề chi tiết</option>
+                                            @{
+                                                var danhSachChuyenNganh = ViewBag.DanhSachChuyenNganh as List<Unicareer.Models.ChuyenNganh> ?? new List<Unicareer.Models.ChuyenNganh>();
+                                                var danhSachNganhNgheForChuyenNganh = ViewBag.DanhSachNganhNghe as List<Unicareer.Models.NganhNghe> ?? new List<Unicareer.Models.NganhNghe>();
+                                                var selectedNganhNghe = danhSachNganhNgheForChuyenNganh.FirstOrDefault(n => n.TenNganhNghe == Model.NganhNghe);
+                                                var chuyenNganhTheoNganhNghe = selectedNganhNghe != null 
+                                                    ? danhSachChuyenNganh.Where(c => c.MaNganhNghe == selectedNganhNghe.MaNganhNghe).ToList()
+                                                    : new List<Unicareer.Models.ChuyenNganh>();
+                                            }
+                                            @foreach (var chuyenNganh in chuyenNganhTheoNganhNghe)
+                                            {
+                                                @if (Model.NganhNgheChiTiet == chuyenNganh.TenChuyenNganh)
+                                                {
+                                                    <option value="@chuyenNganh.TenChuyenNganh" selected data-ma-nganh-nghe="@chuyenNganh.MaNganhNghe">@chuyenNganh.TenChuyenNganh</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@chuyenNganh.TenChuyenNganh" data-ma-nganh-nghe="@chuyenNganh.MaNganhNghe">@chuyenNganh.TenChuyenNganh</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label required-label">Hình thức làm việc</label>
+                                        <select class="form-select" name="LoaiCongViec" id="editLoaiCongViec" required>
+                                            <option value="">Chọn hình thức</option>
+                                            @{
+                                                var danhSachLoaiCongViec = ViewBag.DanhSachLoaiCongViec as List<Unicareer.Models.LoaiCongViec> ?? new List<Unicareer.Models.LoaiCongViec>();
+                                            }
+                                            @foreach (var loaiCongViec in danhSachLoaiCongViec)
+                                            {
+                                                @if (Model.LoaiCongViec == loaiCongViec.TenLoaiCongViec)
+                                                {
+                                                    <option value="@loaiCongViec.TenLoaiCongViec" selected>@loaiCongViec.TenLoaiCongViec</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@loaiCongViec.TenLoaiCongViec">@loaiCongViec.TenLoaiCongViec</option>
+                                                }
+                                            }
+                                        </select>
+                                        <span class="text-danger field-validation-valid" data-valmsg-for="LoaiCongViec" data-valmsg-replace="true"></span>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Kinh nghiệm làm việc</label>
+                                        <select class="form-select" name="KinhNghiem" id="editKinhNghiem">
+                                            <option value="">Chọn kinh nghiệm</option>
+                                            @foreach (var kn in Unicareer.Models.DropdownOptions.KinhNghiem)
+                                            {
+                                                @if (Model.KinhNghiem == kn)
+                                                {
+                                                    <option value="@kn" selected>@kn</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@kn">@kn</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label required-label">Vị trí</label>
+                                        <select class="form-select" name="ViTri" id="editViTri" required>
+                                            <option value="">Chọn vị trí</option>
+                                            @foreach (var vt in Unicareer.Models.DropdownOptions.ViTri)
+                                            {
+                                                @if (Model.ViTri == vt)
+                                                {
+                                                    <option value="@vt" selected>@vt</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@vt">@vt</option>
+                                                }
+                                            }
+                                        </select>
+                                        <span class="text-danger field-validation-valid" data-valmsg-for="ViTri" data-valmsg-replace="true"></span>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Ngoại ngữ</label>
+                                        <select class="form-select" name="NgoaiNgu" id="editNgoaiNgu">
+                                            <option value="">Chọn ngoại ngữ</option>
+                                            @foreach (var nn in Unicareer.Models.DropdownOptions.NgoaiNgu)
+                                            {
+                                                @if (Model.NgoaiNgu == nn)
+                                                {
+                                                    <option value="@nn" selected>@nn</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@nn">@nn</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Từ khóa</label>
+                                        <input type="text" class="form-control" name="TuKhoa" 
+                                               id="editTuKhoa" value="@Model.TuKhoa"
+                                               placeholder="Nhập từ khóa liên quan đến công việc">
+                                        <small class="text-muted"><i class="bi bi-lightbulb"></i> Ví dụ: ReactJS, NodeJS, .NET Core</small>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Kỹ năng</label>
+                                        <input type="text" class="form-control" name="KyNang" 
+                                               id="editKyNang" value="@Model.KyNang"
+                                               placeholder="Nhập kỹ năng cần thiết">
+                                        <small class="text-muted"><i class="bi bi-lightbulb"></i> Ví dụ: Teamwork, Communication, Problem Solving</small>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label required-label">Mô tả công việc chi tiết</label>
+                                    <textarea name="MoTa" class="form-control ckeditor" rows="5" required 
+                                              id="editMoTa" placeholder="Nhập mô tả chi tiết về công việc, trách nhiệm, nhiệm vụ...">@Html.Raw(Model.MoTa)</textarea>
+                                    <span class="text-danger field-validation-valid" data-valmsg-for="MoTa" data-valmsg-replace="true"></span>
+                                </div>
+                            </div>
+
+                            <!-- Yeu cau cong viec -->
+                            <div class="form-section">
+                                <h4><i class="bi bi-clipboard-check"></i> Yêu cầu công việc</h4>
+                                <div class="mb-3">
+                                    <label class="form-label">Các yêu cầu đối với ứng viên</label>
+                                    <textarea name="YeuCau" class="form-control ckeditor" rows="5" required
+                                              id="editYeuCau" placeholder="Nhập các yêu cầu về học vấn, kinh nghiệm, kỹ năng cần thiết...">@Html.Raw(Model.YeuCau)</textarea>
+                                    <span class="text-danger field-validation-valid" data-valmsg-for="YeuCau" data-valmsg-replace="true"></span>
+                                </div>
+                            </div>
+
+                            <!-- Quyen loi -->
+                            <div class="form-section">
+                                <h4><i class="bi bi-gift"></i> Quyền lợi</h4>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Mức lương thấp nhất (Triệu đồng)</label>
+                                        <input type="number" class="form-control" name="MucLuongThapNhat" 
+                                               id="editMucLuongThapNhat" min="0" value="@(Model.MucLuongThapNhat ?? 0)"
+                                               placeholder="VD: 10">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Mức lương cao nhất (Triệu đồng)</label>
+                                        <input type="number" class="form-control" name="MucLuongCaoNhat" 
+                                               id="editMucLuongCaoNhat" min="0" value="@(Model.MucLuongCaoNhat ?? 0)"
+                                               placeholder="VD: 20">
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Thông tin thêm về quyền lợi</label>
+                                    <textarea class="form-control ckeditor" name="QuyenLoi" rows="4"
+                                              id="editQuyenLoi" placeholder="Mô tả các quyền lợi khác như bảo hiểm, thưởng, du lịch...">@Html.Raw(Model.QuyenLoi)</textarea>
+                                    <small class="text-muted"><i class="bi bi-info-circle"></i> Các quyền lợi khác như: bảo hiểm, thưởng, du lịch...</small>
+                                </div>
+                            </div>
+
+                            <!-- Thong Tin Lien He -->
+                            <div class="form-section">
+                                <h4><i class="bi bi-telephone"></i> Thông tin liên hệ</h4>
+                                
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Người liên hệ</label>
+                                        <input type="text" class="form-control" name="NguoiLienHe" 
+                                               id="editNguoiLienHe" value="@Model.NguoiLienHe"
+                                               placeholder="Nguyễn Văn A">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label required-label">Email liên hệ</label>
+                                        <input type="email" class="form-control" name="EmailLienHe" 
+                                               id="editEmailLienHe" value="@Model.EmailLienHe" required
+                                               placeholder="tuyendung@company.com">
+                                        <span class="text-danger field-validation-valid" data-valmsg-for="EmailLienHe" data-valmsg-replace="true"></span>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Điện thoại liên hệ</label>
+                                        <input type="tel" class="form-control" name="SDTLienHe" 
+                                               id="editSDTLienHe" value="@Model.SDTLienHe"
+                                               placeholder="0312345656">
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label required-label">Làm việc tại Tỉnh/Thành phố</label>
+                                        <select class="form-select" name="TinhThanhPho" id="editTinhThanhPho" required>
+                                            <option value="">Chọn tỉnh/thành phố</option>
+                                            @{
+                                                var danhSachTinhThanh = ViewBag.DanhSachTinhThanh as List<Unicareer.Models.Province> ?? new List<Unicareer.Models.Province>();
+                                            }
+                                            @foreach (var tinh in danhSachTinhThanh)
+                                            {
+                                                @if (Model.TinhThanhPho == tinh.FullName)
+                                                {
+                                                    <option value="@tinh.FullName" data-code="@tinh.Code" data-fullname="@tinh.FullName" selected>@tinh.FullName</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@tinh.FullName" data-code="@tinh.Code" data-fullname="@tinh.FullName">@tinh.FullName</option>
+                                                }
+                                            }
+                                        </select>
+                                        <span class="text-danger field-validation-valid" data-valmsg-for="TinhThanhPho" data-valmsg-replace="true"></span>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Quận/Huyện</label>
+                                        <select class="form-select" name="PhuongXa" id="editPhuongXa">
+                                            <option value="">Chọn quận/huyện</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label required-label">Địa chỉ làm việc</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" name="DiaChiLamViec" 
+                                               id="editDiaChiLamViec" value="@Model.DiaChiLamViec" required
+                                               placeholder="123 Nguyễn Huệ, Quận 1">
+                                        <button type="button" class="btn btn-outline-primary" id="btnSearchAddressEdit">
+                                            <i class="bi bi-search"></i> Tìm trên bản đồ
+                                        </button>
+                                    </div>
+                                    <span class="text-danger field-validation-valid" data-valmsg-for="DiaChiLamViec" data-valmsg-replace="true"></span>
+                                    <small class="text-muted">
+                                        <i class="bi bi-info-circle"></i> Kéo marker 📍 trên bản đồ để chọn vị trí chính xác hoặc click vào bản đồ
+                                    </small>
+                                </div>
+
+                                <!-- Hidden fields for coordinates -->
+                                <input type="hidden" name="Latitude" id="editLatitude" value="@(Model.Latitude ?? 21.028511)">
+                                <input type="hidden" name="Longitude" id="editLongitude" value="@(Model.Longitude ?? 105.804817)">
+
+                                <!-- Map Container -->
+                                <div class="map-container">
+                                    <div id="mapEdit"></div>
+                                    <div class="map-info">
+                                        <i class="bi bi-geo-alt-fill text-danger"></i>
+                                        <span id="currentCoordsEdit">@(Model.Latitude?.ToString("F6") ?? "21.028511"), @(Model.Longitude?.ToString("F6") ?? "105.804817")</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Anh van phong/cua hang -->
+                            <div class="form-section">
+                                <h4><i class="bi bi-images"></i> Ảnh văn phòng/cửa hàng</h4>
+                                <div class="mb-3">
+                                    <label class="form-label">Tải lên hình ảnh</label>
+                                    <input type="file" class="form-control" name="AnhVanPhong" 
+                                           id="editAnhVanPhong" accept="image/*" multiple>
+                                    <small class="text-muted"><i class="bi bi-info-circle"></i> Có thể chọn nhiều ảnh. Định dạng: JPG, PNG, GIF</small>
+                                </div>
+                                
+                                <!-- Preview Area -->
+                                <div id="imagePreviewContainer" class="image-preview-container" style="display: none;">
+                                    <!-- Hidden input to store remaining existing images after deletion -->
+                                    <input type="hidden" id="remainingExistingImages" name="RemainingExistingImages" value="">
+                                    
+                                    <!-- Existing Images -->
+                                    <div id="existingImagesSection" class="preview-section" style="display: none;">
+                                        <div class="preview-section-title">
+                                            <i class="bi bi-image"></i> Ảnh hiện có
+                                        </div>
+                                        <div id="existingImagesGrid" class="preview-images-grid"></div>
+                                    </div>
+                                    
+                                    <!-- New Images Preview -->
+                                    <div id="newImagesSection" class="preview-section" style="display: none;">
+                                        <div class="preview-section-title">
+                                            <i class="bi bi-plus-circle"></i> Ảnh mới đã chọn
+                                        </div>
+                                        <div id="newImagesGrid" class="preview-images-grid"></div>
+                                    </div>
+                                    
+                                    <!-- No Preview Message -->
+                                    <div id="noPreviewMessage" class="no-preview">
+                                        <i class="bi bi-image"></i>
+                                        <p>Chưa có ảnh để xem trước</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Han tuyen dung -->
+                            <div class="form-section">
+                                <h4><i class="bi bi-calendar-event"></i> Hạn tuyển dụng</h4>
+                                <div class="mb-3">
+                                    <label class="form-label required-label">Ngày hết hạn nộp hồ sơ</label>
+                                    <input type="date" class="form-control" name="HanNop" 
+                                           id="editHanNop" value="@Model.HanNop.ToString("yyyy-MM-dd")" required
+                                           min="@DateTime.Now.ToString("yyyy-MM-dd")">
+                                    <span class="text-danger field-validation-valid" data-valmsg-for="HanNop" data-valmsg-replace="true"></span>
+                                    <small class="text-muted"><i class="bi bi-clock-history"></i> Chọn ngày cuối cùng nhận hồ sơ ứng tuyển</small>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Tab 2: Danh sách ứng tuyển -->
+                <div class="tab-pane fade" id="applications" role="tabpanel">
+                    @{
+                        var danhSachUngTuyenPaged = ViewBag.DanhSachUngTuyen as List<Unicareer.Models.TinUngTuyen> ?? new List<Unicareer.Models.TinUngTuyen>();
+                        var pageNumber = ViewBag.PageNumber ?? 1;
+                        var pageSize = ViewBag.PageSize ?? 10;
+                        var totalCount = ViewBag.TotalCount ?? 0;
+                        var totalPages = ViewBag.TotalPages ?? 1;
+                        var searchTerm = ViewBag.SearchTerm as string ?? "";
+                        var trangThaiFilter = ViewBag.TrangThaiFilter as string ?? "";
+                    }
+                    
+                    <!-- Bộ lọc -->
+                    <form method="get" action="@Url.Action("ChiTietTinTuyenDung", "Admin", new { id = Model.MaTinTuyenDung })" id="filterForm">
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="searchInput" name="searchTerm" 
+                                           placeholder="Tìm kiếm theo tên, email, SĐT..." value="@searchTerm">
+                                    <button class="btn btn-outline-primary" type="submit">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select" id="trangThaiFilter" name="trangThaiFilter">
+                                    <option value="">Tất cả trạng thái</option>
+                                    @if (trangThaiFilter == "Đang xem xét")
+                                    {
+                                        <option value="Đang xem xét" selected>Đang xem xét</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="Đang xem xét">Đang xem xét</option>
+                                    }
+                                    @if (trangThaiFilter == "Chờ phỏng vấn")
+                                    {
+                                        <option value="Chờ phỏng vấn" selected>Chờ phỏng vấn</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="Chờ phỏng vấn">Chờ phỏng vấn</option>
+                                    }
+                                    @if (trangThaiFilter == "Đã phỏng vấn")
+                                    {
+                                        <option value="Đã phỏng vấn" selected>Đã phỏng vấn</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="Đã phỏng vấn">Đã phỏng vấn</option>
+                                    }
+                                    @if (trangThaiFilter == "Tuyển dụng")
+                                    {
+                                        <option value="Tuyển dụng" selected>Tuyển dụng</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="Tuyển dụng">Tuyển dụng</option>
+                                    }
+                                    @if (trangThaiFilter == "Từ chối")
+                                    {
+                                        <option value="Từ chối" selected>Từ chối</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="Từ chối">Từ chối</option>
+                                    }
+                                    @if (trangThaiFilter == "Không phù hợp")
+                                    {
+                                        <option value="Không phù hợp" selected>Không phù hợp</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="Không phù hợp">Không phù hợp</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="d-flex gap-2 align-items-center">
+                                    <span class="text-muted">Tổng: <strong>@totalCount</strong> đơn ứng tuyển</span>
+                                    @if (ViewBag.TotalDangXemXet != null && (int)ViewBag.TotalDangXemXet > 0)
+                                    {
+                                        <span class="badge bg-info">Đang xem xét: @ViewBag.TotalDangXemXet</span>
+                                    }
+                                    @if (ViewBag.TotalChoPhongVan != null && (int)ViewBag.TotalChoPhongVan > 0)
+                                    {
+                                        <span class="badge bg-warning">Chờ phỏng vấn: @ViewBag.TotalChoPhongVan</span>
+                                    }
+                                    @if (ViewBag.TotalTuyenDung != null && (int)ViewBag.TotalTuyenDung > 0)
+                                    {
+                                        <span class="badge bg-success">Tuyển dụng: @ViewBag.TotalTuyenDung</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="pageNumber" id="pageNumberInput" value="@pageNumber" />
+                        <input type="hidden" name="tab" value="applications" />
+                    </form>
+
+                    @if (danhSachUngTuyenPaged.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th><i class="bi bi-hash"></i> Mã</th>
+                                        <th><i class="bi bi-person"></i> Họ tên</th>
+                                        <th><i class="bi bi-envelope"></i> Email</th>
+                                        <th><i class="bi bi-telephone"></i> SĐT</th>
+                                        <th><i class="bi bi-calendar"></i> Ngày ứng tuyển</th>
+                                        <th><i class="bi bi-info-circle"></i> Trạng thái</th>
+                                        <th><i class="bi bi-gear"></i> Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var ungTuyen in danhSachUngTuyenPaged)
+                                    {
+                                        var trangThaiEnum = Unicareer.Models.Enums.TrangThaiXuLyHelper.FromString(ungTuyen.TrangThaiXuLy);
+                                        var trangThaiDisplay = trangThaiEnum.HasValue 
+                                            ? Unicareer.Models.Enums.TrangThaiXuLyHelper.ToString(trangThaiEnum.Value) 
+                                            : ungTuyen.TrangThaiXuLy ?? "Chưa xử lý";
+                                        
+                                        var trangThaiClass = trangThaiEnum.HasValue switch
+                                        {
+                                            true when trangThaiEnum.Value == Unicareer.Models.Enums.TrangThaiXuLy.DangXemXet => "badge-secondary",
+                                            true when trangThaiEnum.Value == Unicareer.Models.Enums.TrangThaiXuLy.ChoPhongVan => "badge-warning",
+                                            true when trangThaiEnum.Value == Unicareer.Models.Enums.TrangThaiXuLy.DaPhongVan => "badge-info",
+                                            true when trangThaiEnum.Value == Unicareer.Models.Enums.TrangThaiXuLy.TuyenDung => "badge-success",
+                                            true when trangThaiEnum.Value == Unicareer.Models.Enums.TrangThaiXuLy.TuChoi || 
+                                                      trangThaiEnum.Value == Unicareer.Models.Enums.TrangThaiXuLy.KhongPhuHop => "badge-danger",
+                                            _ => "badge-secondary"
+                                        };
+
+                                        <tr>
+                                            <td><span class="text-muted">#@ungTuyen.MaTinUngTuyen</span></td>
+                                            <td><strong>@ungTuyen.HoTen</strong></td>
+                                            <td>@ungTuyen.Email</td>
+                                            <td>@ungTuyen.SoDienThoai</td>
+                                            <td>@ungTuyen.NgayUngTuyen.ToString("dd/MM/yyyy")</td>
+                                            <td>
+                                                <span class="badge-custom @trangThaiClass">@trangThaiDisplay</span>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-action btn-view" title="Xem chi tiết" onclick="xemChiTietDonUngTuyen(@ungTuyen.MaTinUngTuyen)">
+                                                    <i class="bi bi-eye"></i> Xem
+                                                </button>
+                                                <button class="btn btn-action btn-success" title="Cập nhật trạng thái" onclick="capNhatTrangThaiDonUngTuyen(@ungTuyen.MaTinUngTuyen)" style="border-color: #48bb78; color: #48bb78;">
+                                                    <i class="bi bi-check-circle"></i> Cập nhật
+                                                </button>
+                                                @if (!string.IsNullOrEmpty(ungTuyen.LinkCV))
+                                                {
+                                                    <a href="@ungTuyen.LinkCV" target="_blank" class="btn btn-action btn-download" title="Tải CV">
+                                                        <i class="bi bi-download"></i> CV
+                                                    </a>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Phân trang -->
+                        @if (totalPages > 1)
+                        {
+                            <nav aria-label="Phân trang" class="mt-4">
+                                <ul class="pagination justify-content-center">
+                                    @if (pageNumber > 1)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">
+                                                <i class="bi bi-chevron-double-left"></i>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(pageNumber - 1))">
+                                                <i class="bi bi-chevron-left"></i>
+                                            </a>
+                                        </li>
+                                    }
+                                    else
+                                    {
+                                        <li class="page-item disabled">
+                                            <span class="page-link"><i class="bi bi-chevron-double-left"></i></span>
+                                        </li>
+                                        <li class="page-item disabled">
+                                            <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                                        </li>
+                                    }
+
+                                    @{
+                                        var startPage = Math.Max(1, pageNumber - 2);
+                                        var endPage = Math.Min(totalPages, pageNumber + 2);
+                                    }
+
+                                    @if (startPage > 1)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">1</a>
+                                        </li>
+                                        @if (startPage > 2)
+                                        {
+                                            <li class="page-item disabled">
+                                                <span class="page-link">...</span>
+                                            </li>
+                                        }
+                                    }
+
+                                    @for (int i = startPage; i <= endPage; i++)
+                                    {
+                                        <li class="page-item @(i == pageNumber ? "active" : "")">
+                                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(@i)">@i</a>
+                                        </li>
+                                    }
+
+                                    @if (endPage < totalPages)
+                                    {
+                                        @if (endPage < totalPages - 1)
+                                        {
+                                            <li class="page-item disabled">
+                                                <span class="page-link">...</span>
+                                            </li>
+                                        }
+                                        <li class="page-item">
+                                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(@totalPages)">@totalPages</a>
+                                        </li>
+                                    }
+
+                                    @if (pageNumber < totalPages)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(pageNumber + 1))">
+                                                <i class="bi bi-chevron-right"></i>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(@totalPages)">
+                                                <i class="bi bi-chevron-double-right"></i>
+                                            </a>
+                                        </li>
+                                    }
+                                    else
+                                    {
+                                        <li class="page-item disabled">
+                                            <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                                        </li>
+                                        <li class="page-item disabled">
+                                            <span class="page-link"><i class="bi bi-chevron-double-right"></i></span>
+                                        </li>
+                                    }
+                                </ul>
+                                <div class="text-center text-muted mt-2">
+                                    Hiển thị <strong>@((pageNumber - 1) * pageSize + 1)</strong> - 
+                                    <strong>@(Math.Min(pageNumber * pageSize, totalCount))</strong> 
+                                    trong tổng số <strong>@totalCount</strong> đơn ứng tuyển
+                                </div>
+                            </nav>
+                        }
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <h5>Chưa có ứng viên nào ứng tuyển</h5>
+                            <p>Tin tuyển dụng này chưa nhận được đơn ứng tuyển nào.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sidebar với thao tác quản lý -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="info-card">
+            <h5><i class="bi bi-gear"></i> Thao tác quản lý</h5>
+            <div class="action-buttons">
+                <button class="btn btn-danger w-100 mb-2 btn-xoa" data-ma="@Model.MaTinTuyenDung">
+                    <i class="bi bi-trash"></i> Xóa tin
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="tuChoiModal" tabindex="-1" aria-labelledby="tuChoiModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tuChoiModalLabel">Lý do từ chối</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="lyDoTuChoi" class="form-label">Ghi rõ lý do</label>
+                    <textarea id="lyDoTuChoi" class="form-control" rows="3" placeholder="Ví dụ: Bài viết thiếu thông tin lương, không đúng quy định..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" id="confirmReject">Gửi từ chối</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal cập nhật trạng thái -->
+<div class="modal fade" id="trangThaiModal" tabindex="-1" aria-labelledby="trangThaiModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="trangThaiModalLabel">Cập nhật trạng thái</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formCapNhatTrangThai">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="maDonUngTuyen" name="maDonUngTuyen" />
+                    <div class="mb-3">
+                        <label for="trangThaiMoi" class="form-label">Trạng thái mới</label>
+                        <select class="form-select" id="trangThaiMoi" name="trangThaiMoi" required>
+                            <option value="">-- Chọn trạng thái --</option>
+                            <option value="@Unicareer.Models.Enums.TrangThaiXuLyHelper.ToString(Unicareer.Models.Enums.TrangThaiXuLy.DangXemXet)">Đang xem xét</option>
+                            <option value="@Unicareer.Models.Enums.TrangThaiXuLyHelper.ToString(Unicareer.Models.Enums.TrangThaiXuLy.ChoPhongVan)">Chờ phỏng vấn</option>
+                            <option value="@Unicareer.Models.Enums.TrangThaiXuLyHelper.ToString(Unicareer.Models.Enums.TrangThaiXuLy.DaPhongVan)">Đã phỏng vấn</option>
+                            <option value="@Unicareer.Models.Enums.TrangThaiXuLyHelper.ToString(Unicareer.Models.Enums.TrangThaiXuLy.TuyenDung)">Tuyển dụng</option>
+                            <option value="@Unicareer.Models.Enums.TrangThaiXuLyHelper.ToString(Unicareer.Models.Enums.TrangThaiXuLy.TuChoi)">Từ chối</option>
+                            <option value="@Unicareer.Models.Enums.TrangThaiXuLyHelper.ToString(Unicareer.Models.Enums.TrangThaiXuLy.KhongPhuHop)">Không phù hợp</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="ghiChu" class="form-label">Ghi chú (nếu có)</label>
+                        <textarea class="form-control" id="ghiChu" name="ghiChu" rows="4" placeholder="Nhập ghi chú (nếu có)"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="luuTrangThaiDonUngTuyen()">Lưu thay đổi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            // Xóa tin
+            $('.btn-xoa').on('click', function() {
+                var ma = $(this).data('ma');
+                var token = $('input[name="__RequestVerificationToken"]').first().val();
+                if (confirm('Bạn có chắc chắn muốn xóa tin này không?')) {
+                    $.ajax({
+                        url: '@Url.Action("XoaTinTuyenDung", "Admin")',
+                        type: 'POST',
+                        headers: { 'RequestVerificationToken': token || '' },
+                        data: { id: ma },
+                        success: function(response) {
+                            if (response.success) {
+                                showNotification('Đã xóa tin thành công!', 'success');
+                                setTimeout(function() {
+                                    window.location.href = '@Url.Action("TinTuyenDung", "Admin")';
+                                }, 1000);
+                            } else {
+                                showNotification(response.message || 'Có lỗi xảy ra!', 'error');
+                            }
+                        },
+                        error: function(xhr) {
+                            var errorMsg = 'Có lỗi xảy ra khi xóa tin!';
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMsg = xhr.responseJSON.message;
+                            }
+                            showNotification(errorMsg, 'error');
+                        }
+                    });
+                }
+            });
+
+            var tinId = @Model.MaTinTuyenDung;
+            var approveUrl = '@Url.Action("DuyetTinTuyenDung", "Admin")';
+            var rejectUrl = '@Url.Action("TuChoiTinTuyenDung", "Admin")';
+            var token = $('input[name="__RequestVerificationToken"]').first().val();
+
+            $('#btnApprove').on('click', function() {
+                var button = $(this);
+                if (!confirm('Bạn có chắc chắn muốn duyệt tin tuyển dụng này không?')) {
+                    return;
+                }
+
+                button.prop('disabled', true);
+
+                $.ajax({
+                    url: approveUrl,
+                    type: 'POST',
+                    headers: { 'RequestVerificationToken': token || '' },
+                    data: { id: tinId },
+                    success: function(response) {
+                        if (response.success) {
+                            showNotification(response.message || 'Đã duyệt tin tuyển dụng thành công!', 'success');
+                            setTimeout(function() {
+                                window.location.reload();
+                            }, 1000);
+                        } else {
+                            showNotification(response.message || 'Không thể duyệt tin ngay lúc này.', 'error');
+                            button.prop('disabled', false);
+                        }
+                    },
+                    error: function() {
+                        showNotification('Có lỗi xảy ra khi duyệt tin tuyển dụng', 'error');
+                        button.prop('disabled', false);
+                    }
+                });
+            });
+
+            $('#confirmReject').on('click', function() {
+                var button = $(this);
+                var lyDoTuChoi = $('#lyDoTuChoi').val().trim();
+
+                if (!lyDoTuChoi) {
+                    showNotification('Vui lòng nhập lý do từ chối!', 'error');
+                    return;
+                }
+
+                button.prop('disabled', true);
+
+                $.ajax({
+                    url: rejectUrl,
+                    type: 'POST',
+                    headers: { 'RequestVerificationToken': token || '' },
+                    data: { id: tinId, lyDoTuChoi: lyDoTuChoi },
+                    success: function(response) {
+                        if (response.success) {
+                            var modal = bootstrap.Modal.getInstance(document.getElementById('tuChoiModal'));
+                            if (modal) {
+                                modal.hide();
+                            }
+                            $('#lyDoTuChoi').val('');
+                            showNotification(response.message || 'Đã từ chối tin tuyển dụng!', 'success');
+                            setTimeout(function() {
+                                window.location.reload();
+                            }, 1000);
+                        } else {
+                            showNotification(response.message || 'Không thể từ chối tin ngay lúc này.', 'error');
+                            button.prop('disabled', false);
+                        }
+                    },
+                    error: function() {
+                        showNotification('Có lỗi xảy ra khi từ chối tin tuyển dụng', 'error');
+                        button.prop('disabled', false);
+                    }
+                });
+            });
+
+            // Hàm hiển thị thông báo
+            function showNotification(message, type) {
+                var bgColor = type === 'success' ? '#48bb78' : '#f56565';
+                var notification = $('<div>')
+                    .css({
+                        position: 'fixed',
+                        top: '20px',
+                        right: '20px',
+                        background: bgColor,
+                        color: 'white',
+                        padding: '15px 25px',
+                        borderRadius: '12px',
+                        boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                        zIndex: 9999,
+                        fontWeight: '600',
+                        maxWidth: '400px'
+                    })
+                    .text(message)
+                    .appendTo('body');
+                
+                setTimeout(function() {
+                    notification.fadeOut(400, function() {
+                        $(this).remove();
+                    });
+                }, 3000);
+            }
+
+            // Initialize Leaflet Map nếu có tọa độ
+            @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
+            {
+                <text>
+                var mapLat = @Model.Latitude.Value;
+                var mapLng = @Model.Longitude.Value;
+                var addressText = '@Html.Raw(!string.IsNullOrEmpty(Model.DiaChiLamViec) ? Model.DiaChiLamViec.Replace("'", "\\'").Replace("\"", "\\\"") : "Địa chỉ làm việc")';
+                
+                // Hàm khởi tạo map
+                function initMap() {
+                    if (typeof L === 'undefined') {
+                        console.log('Leaflet chưa được load, đợi thêm...');
+                        setTimeout(initMap, 500);
+                        return;
+                    }
+
+                    try {
+                        // Initialize Leaflet Map
+                        var map = L.map('map').setView([mapLat, mapLng], 15);
+                        
+                        // Add tile layer
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                            maxZoom: 19
+                        }).addTo(map);
+
+                        // Fix Leaflet default marker icon path
+                        delete L.Icon.Default.prototype._getIconUrl;
+                        L.Icon.Default.mergeOptions({
+                            iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+                            iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+                            shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png'
+                        });
+
+                        // Create custom marker icon with pulse effect
+                        var customIcon = L.divIcon({
+                            className: 'custom-marker',
+                            html: '<div class="marker-pulse-ring"></div><div class="marker-pin"></div>',
+                            iconSize: [40, 40],
+                            iconAnchor: [20, 40],
+                            popupAnchor: [0, -40]
+                        });
+
+                        // Create marker (không draggable vì chỉ xem)
+                        var marker = L.marker([mapLat, mapLng], {
+                            icon: customIcon,
+                            title: 'Vị trí làm việc'
+                        }).addTo(map);
+
+                        // Add popup to marker
+                        marker.bindPopup('<strong>📍 Vị trí làm việc</strong><br>' + addressText).openPopup();
+                    } catch (error) {
+                        console.error('Lỗi khi khởi tạo map:', error);
+                    }
+                }
+
+                // Khởi tạo map sau khi document ready
+                initMap();
+                </text>
+            }
+
+            // CKEditor 5 và Edit Mode
+            let editors = {};
+            var editorsInitialized = false;
+
+            var initEditors = function() {
+                if (typeof ClassicEditor === 'undefined') {
+                    console.error('CKEditor ClassicEditor is not loaded. Please check CDN link.');
+                    return;
+                }
+
+                // Khởi tạo editor cho Mô tả công việc
+                ClassicEditor
+                    .create(document.querySelector('#editMoTa'), {
+                        toolbar: {
+                            items: [
+                                'heading', '|',
+                                'bold', 'italic', 'underline', '|',
+                                'link', 'blockQuote', '|',
+                                'bulletedList', 'numberedList', '|',
+                                'undo', 'redo'
+                            ],
+                            shouldNotGroupWhenFull: true
+                        },
+                        heading: {
+                            options: [
+                                { model: 'paragraph', title: 'Đoạn văn', class: 'ck-heading_paragraph' },
+                                { model: 'heading1', view: 'h1', title: 'Tiêu đề 1', class: 'ck-heading_heading1' },
+                                { model: 'heading2', view: 'h2', title: 'Tiêu đề 2', class: 'ck-heading_heading2' },
+                                { model: 'heading3', view: 'h3', title: 'Tiêu đề 3', class: 'ck-heading_heading3' }
+                            ]
+                        },
+                        language: 'vi',
+                        placeholder: 'Nhập mô tả công việc...'
+                    })
+                    .then(editor => {
+                        editors['MoTa'] = editor;
+                        console.log('CKEditor initialized for: MoTa');
+                    })
+                    .catch(error => {
+                        console.error('CKEditor initialization error for MoTa:', error);
+                    });
+
+                // Khởi tạo editor cho Yêu cầu ứng viên
+                ClassicEditor
+                    .create(document.querySelector('#editYeuCau'), {
+                        toolbar: {
+                            items: [
+                                'heading', '|',
+                                'bold', 'italic', 'underline', '|',
+                                'link', 'blockQuote', '|',
+                                'bulletedList', 'numberedList', '|',
+                                'undo', 'redo'
+                            ],
+                            shouldNotGroupWhenFull: true
+                        },
+                        heading: {
+                            options: [
+                                { model: 'paragraph', title: 'Đoạn văn', class: 'ck-heading_paragraph' },
+                                { model: 'heading1', view: 'h1', title: 'Tiêu đề 1', class: 'ck-heading_heading1' },
+                                { model: 'heading2', view: 'h2', title: 'Tiêu đề 2', class: 'ck-heading_heading2' },
+                                { model: 'heading3', view: 'h3', title: 'Tiêu đề 3', class: 'ck-heading_heading3' }
+                            ]
+                        },
+                        language: 'vi',
+                        placeholder: 'Nhập yêu cầu ứng viên...'
+                    })
+                    .then(editor => {
+                        editors['YeuCau'] = editor;
+                        console.log('CKEditor initialized for: YeuCau');
+                    })
+                    .catch(error => {
+                        console.error('CKEditor initialization error for YeuCau:', error);
+                    });
+
+                // Khởi tạo editor cho Quyền lợi
+                ClassicEditor
+                    .create(document.querySelector('#editQuyenLoi'), {
+                        toolbar: {
+                            items: [
+                                'heading', '|',
+                                'bold', 'italic', 'underline', '|',
+                                'link', 'blockQuote', '|',
+                                'bulletedList', 'numberedList', '|',
+                                'undo', 'redo'
+                            ],
+                            shouldNotGroupWhenFull: true
+                        },
+                        heading: {
+                            options: [
+                                { model: 'paragraph', title: 'Đoạn văn', class: 'ck-heading_paragraph' },
+                                { model: 'heading1', view: 'h1', title: 'Tiêu đề 1', class: 'ck-heading_heading1' },
+                                { model: 'heading2', view: 'h2', title: 'Tiêu đề 2', class: 'ck-heading_heading2' },
+                                { model: 'heading3', view: 'h3', title: 'Tiêu đề 3', class: 'ck-heading_heading3' }
+                            ]
+                        },
+                        language: 'vi',
+                        placeholder: 'Nhập quyền lợi...'
+                    })
+                    .then(editor => {
+                        editors['QuyenLoi'] = editor;
+                        console.log('CKEditor initialized for: QuyenLoi');
+                    })
+                    .catch(error => {
+                        console.error('CKEditor initialization error for QuyenLoi:', error);
+                    });
+            };
+
+            // Lưu giá trị ban đầu để có thể hủy
+            var originalValues = {
+                TenViecLam: $('#editTenViecLam').val() || '',
+                NganhNghe: $('#editNganhNghe').val() || '',
+                NganhNgheChiTiet: $('#editNganhNgheChiTiet').val() || '',
+                LoaiCongViec: $('#editLoaiCongViec').val() || '',
+                KinhNghiem: $('#editKinhNghiem').val() || '',
+                ViTri: $('#editViTri').val() || '',
+                NgoaiNgu: $('#editNgoaiNgu').val() || '',
+                KyNang: $('#editKyNang').val() || '',
+                MoTa: $('#editMoTa').val() || '',
+                YeuCau: $('#editYeuCau').val() || '',
+                QuyenLoi: $('#editQuyenLoi').val() || '',
+                MucLuongThapNhat: $('#editMucLuongThapNhat').val(),
+                MucLuongCaoNhat: $('#editMucLuongCaoNhat').val(),
+                DiaChiLamViec: $('#editDiaChiLamViec').val(),
+                PhuongXa: $('#editPhuongXa').val(),
+                TinhThanhPho: $('#editTinhThanhPho').val(),
+                NguoiLienHe: $('#editNguoiLienHe').val(),
+                EmailLienHe: $('#editEmailLienHe').val(),
+                SDTLienHe: $('#editSDTLienHe').val(),
+                TuKhoa: $('#editTuKhoa').val(),
+                HanNop: $('#editHanNop').val() || '',
+                Latitude: $('#editLatitude').val(),
+                Longitude: $('#editLongitude').val()
+            };
+
+            // Biến lưu map và marker cho edit mode
+            var editMap = null;
+            var editMarker = null;
+            var editMapInitialized = false;
+
+            // Function to load wards by province (moved outside initEditMap for reuse)
+            function loadWardsByProvince(provinceCode, selectedWardName = null) {
+                const $editPhuongXa = $('#editPhuongXa');
+                
+                console.log('loadWardsByProvince called with:', { provinceCode, selectedWardName });
+                
+                // Kiểm tra xem dropdown có tồn tại không
+                if ($editPhuongXa.length === 0) {
+                    console.error('editPhuongXa dropdown not found');
+                    return;
+                }
+                
+                // Reset quận/huyện dropdown
+                $editPhuongXa.html('<option value="">Chọn quận/huyện</option>');
+                
+                if (provinceCode) {
+                    // Show loading state
+                    $editPhuongXa.prop('disabled', true);
+                    $editPhuongXa.html('<option value="">Đang tải...</option>');
+                    
+                    const apiUrl = `/Admin/Admin/GetWardsByProvince?provinceCode=${encodeURIComponent(provinceCode)}`;
+                    console.log('Fetching wards from:', apiUrl);
+                    
+                    // Fetch wards from API
+                    fetch(apiUrl)
+                        .then(response => {
+                            console.log('Response status:', response.status);
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log('Wards data received:', data);
+                            $editPhuongXa.html('<option value="">Chọn quận/huyện</option>');
+                            
+                            if (data && data.length > 0) {
+                                let foundSelected = false;
+                                
+                                // Decode HTML entities và normalize selectedWardName
+                                let normalizedSelectedWard = '';
+                                if (selectedWardName) {
+                                    // Decode HTML entities
+                                    const tempDiv = document.createElement('div');
+                                    tempDiv.innerHTML = selectedWardName;
+                                    normalizedSelectedWard = tempDiv.textContent || tempDiv.innerText || '';
+                                    // Normalize: trim và lowercase để so sánh
+                                    normalizedSelectedWard = normalizedSelectedWard.trim().toLowerCase();
+                                    console.log('Normalized selected ward:', normalizedSelectedWard);
+                                }
+                                
+                                data.forEach(ward => {
+                                    const option = $('<option></option>')
+                                        .attr('value', ward.fullName)
+                                        .text(ward.fullName);
+                                    
+                                    // So sánh với normalized selected ward
+                                    if (selectedWardName) {
+                                        const normalizedWardName = ward.fullName.trim().toLowerCase();
+                                        if (normalizedWardName === normalizedSelectedWard || ward.fullName === selectedWardName) {
+                                            option.attr('selected', 'selected');
+                                            foundSelected = true;
+                                        }
+                                    }
+                                    
+                                    $editPhuongXa.append(option);
+                                });
+                                
+                                if (selectedWardName && !foundSelected) {
+                                    console.warn('Selected ward not found in list:', selectedWardName);
+                                    console.log('Available wards (first 5):', data.slice(0, 5).map(w => w.fullName));
+                                }
+                            } else {
+                                $editPhuongXa.html('<option value="">Không có dữ liệu</option>');
+                                console.warn('No wards data received');
+                            }
+                            
+                            $editPhuongXa.prop('disabled', false);
+                        })
+                        .catch(error => {
+                            console.error('Error loading wards:', error);
+                            $editPhuongXa.html('<option value="">Lỗi tải dữ liệu</option>');
+                            $editPhuongXa.prop('disabled', false);
+                        });
+                } else {
+                    $editPhuongXa.prop('disabled', false);
+                }
+            }
+
+            // Hàm khởi tạo map cho edit mode
+            function initEditMap() {
+                if (typeof L === 'undefined') {
+                    setTimeout(initEditMap, 500);
+                    return;
+                }
+
+                var mapElement = document.getElementById('mapEdit');
+                if (!mapElement) {
+                    setTimeout(initEditMap, 300);
+                    return;
+                }
+
+                if (mapElement._leaflet_id) {
+                    if (editMap) {
+                        setTimeout(function() {
+                            editMap.invalidateSize();
+                        }, 100);
+                    }
+                    return;
+                }
+
+                try {
+                    var mapLat = parseFloat($('#editLatitude').val()) || 21.028511;
+                    var mapLng = parseFloat($('#editLongitude').val()) || 105.804817;
+
+                    editMap = L.map('mapEdit', {
+                        preferCanvas: false
+                    }).setView([mapLat, mapLng], 15);
+                    
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                        maxZoom: 19
+                    }).addTo(editMap);
+
+                    setTimeout(function() {
+                        if (editMap) {
+                            editMap.invalidateSize();
+                        }
+                    }, 200);
+
+                    delete L.Icon.Default.prototype._getIconUrl;
+                    L.Icon.Default.mergeOptions({
+                        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+                        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+                        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png'
+                    });
+
+                    var customIcon = L.divIcon({
+                        className: 'custom-marker',
+                        html: '<div class="marker-pulse-ring"></div><div class="marker-pin"></div>',
+                        iconSize: [40, 40],
+                        iconAnchor: [20, 40],
+                        popupAnchor: [0, -40]
+                    });
+
+                    editMarker = L.marker([mapLat, mapLng], {
+                        draggable: true,
+                        icon: customIcon,
+                        title: 'Kéo tôi để chọn vị trí'
+                    }).addTo(editMap);
+
+                    editMarker.bindPopup('<strong>📍 Vị trí làm việc</strong><br>Kéo marker để điều chỉnh vị trí chính xác').openPopup();
+
+                    function updateEditCoordinates(lat, lng) {
+                        $('#editLatitude').val(lat.toFixed(6));
+                        $('#editLongitude').val(lng.toFixed(6));
+                        $('#currentCoordsEdit').text(lat.toFixed(6) + ', ' + lng.toFixed(6));
+                    }
+
+                    editMarker.on('dragend', function(e) {
+                        var position = editMarker.getLatLng();
+                        updateEditCoordinates(position.lat, position.lng);
+                        editMarker.bindPopup('<strong>✓ Vị trí đã cập nhật</strong><br>Lat: ' + position.lat.toFixed(6) + '<br>Lng: ' + position.lng.toFixed(6)).openPopup();
+                    });
+
+                    editMap.on('click', function(e) {
+                        editMarker.setLatLng(e.latlng);
+                        updateEditCoordinates(e.latlng.lat, e.latlng.lng);
+                        editMarker.bindPopup('<strong>✓ Vị trí đã cập nhật</strong><br>Lat: ' + e.latlng.lat.toFixed(6) + '<br>Lng: ' + e.latlng.lng.toFixed(6)).openPopup();
+                    });
+
+                    $('#btnSearchAddressEdit').click(function() {
+                        var address = $('#editDiaChiLamViec').val();
+                        var city = $('#editTinhThanhPho').val();
+                        
+                        if (!address) {
+                            showNotification('Vui lòng nhập địa chỉ!', 'error');
+                            return;
+                        }
+
+                        var searchQuery = address + (city ? ', ' + city : '') + ', Vietnam';
+                        
+                        $.ajax({
+                            url: 'https://nominatim.openstreetmap.org/search',
+                            data: {
+                                q: searchQuery,
+                                format: 'json',
+                                limit: 1
+                            },
+                            success: function(data) {
+                                if (data && data.length > 0) {
+                                    var lat = parseFloat(data[0].lat);
+                                    var lon = parseFloat(data[0].lon);
+                                    
+                                    editMap.setView([lat, lon], 16);
+                                    editMarker.setLatLng([lat, lon]);
+                                    updateEditCoordinates(lat, lon);
+                                    
+                                    editMarker.bindPopup('<strong>📍 Tìm thấy địa chỉ</strong><br>' + data[0].display_name).openPopup();
+                                } else {
+                                    showNotification('Không tìm thấy địa chỉ. Vui lòng thử lại!', 'error');
+                                }
+                            },
+                            error: function() {
+                                showNotification('Có lỗi xảy ra khi tìm kiếm địa chỉ!', 'error');
+                            }
+                        });
+                    });
+
+                    // Event handler for province change is registered outside initEditMap
+
+                    $('#editDiaChiLamViec').keypress(function(e) {
+                        if (e.which === 13) {
+                            e.preventDefault();
+                            $('#btnSearchAddressEdit').click();
+                        }
+                    });
+
+                    editMapInitialized = true;
+                } catch (error) {
+                    console.error('Lỗi khi khởi tạo edit map:', error);
+                }
+            }
+
+            // Event handler for province change - register outside initEditMap
+            $(document).on('change', '#editTinhThanhPho', function() {
+                var selectedOption = $(this).find('option:selected');
+                var cityName = $(this).val();
+                var provinceCode = selectedOption.data('code');
+                
+                // Load wards for selected province
+                if (provinceCode) {
+                    loadWardsByProvince(provinceCode);
+                } else {
+                    $('#editPhuongXa').html('<option value="">Chọn quận/huyện</option>');
+                }
+                
+                // Update map coordinates if map is initialized
+                if (editMap && editMarker) {
+                    var coordinates = {
+                        'Hà Nội': [21.028511, 105.804817],
+                        'Thành phố Hà Nội': [21.028511, 105.804817],
+                        'TP Hồ Chí Minh': [10.762622, 106.660172],
+                        'Thành phố Hồ Chí Minh': [10.762622, 106.660172],
+                        'Đà Nẵng': [16.047079, 108.206230],
+                        'Thành phố Đà Nẵng': [16.047079, 108.206230],
+                        'Hải Phòng': [20.844892, 106.687973],
+                        'Thành phố Hải Phòng': [20.844892, 106.687973],
+                        'Cần Thơ': [10.045162, 105.746857],
+                        'Thành phố Cần Thơ': [10.045162, 105.746857]
+                    };
+                    
+                    // Try to find matching coordinates
+                    var coords = null;
+                    for (var key in coordinates) {
+                        if (cityName && (cityName.includes(key) || key.includes(cityName))) {
+                            coords = coordinates[key];
+                            break;
+                        }
+                    }
+                    
+                    if (coords) {
+                        editMap.setView(coords, 13);
+                        editMarker.setLatLng(coords);
+                        updateEditCoordinates(coords[0], coords[1]);
+                    }
+                }
+            });
+
+            // Image Preview Variables
+            var existingImages = [];
+            var newImageFiles = [];
+            var newImagePreviews = [];
+
+            // Load existing images from model
+            function loadExistingImages() {
+                existingImages = [];
+                try {
+                    @{
+                        // Parse ảnh từ model trong Razor
+                        var anhVanPhongListForJS = new List<string>();
+                        if (!string.IsNullOrEmpty(Model.AnhVanPhong))
+                        {
+                            try
+                            {
+                                var anhVanPhongValue = Model.AnhVanPhong.Trim();
+                                if (anhVanPhongValue.StartsWith("["))
+                                {
+                                    var jsonArray = System.Text.Json.JsonSerializer.Deserialize<string[]>(anhVanPhongValue);
+                                    if (jsonArray != null)
+                                    {
+                                        anhVanPhongListForJS = jsonArray.ToList();
+                                    }
+                                }
+                                else
+                                {
+                                    anhVanPhongListForJS = anhVanPhongValue
+                                        .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                        .Select(s => s.Trim())
+                                        .Where(s => !string.IsNullOrEmpty(s))
+                                        .ToList();
+                                }
+                            }
+                            catch
+                            {
+                                anhVanPhongListForJS = Model.AnhVanPhong
+                                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                    .Select(s => s.Trim())
+                                    .Where(s => !string.IsNullOrEmpty(s))
+                                    .ToList();
+                            }
+                        }
+                    }
+                    
+                    @if (anhVanPhongListForJS != null && anhVanPhongListForJS.Count > 0)
+                    {
+                        <text>
+                        existingImages = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(anhVanPhongListForJS));
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                        existingImages = [];
+                        </text>
+                    }
+                } catch (e) {
+                    console.error('Error loading existing images:', e);
+                    existingImages = [];
+                }
+                renderExistingImages();
+                updateRemainingImagesInput();
+            }
+
+            // Render existing images
+            function renderExistingImages() {
+                var $grid = $('#existingImagesGrid');
+                $grid.empty();
+                
+                if (existingImages.length > 0) {
+                    $('#existingImagesSection').show();
+                    existingImages.forEach(function(imagePath, index) {
+                        var $item = $('<div class="preview-image-item existing" data-index="' + index + '">' +
+                            '<img src="' + imagePath + '" alt="Ảnh hiện có" onerror="this.src=\'/images/placeholder.png\'; this.onerror=null;">' +
+                            '<button type="button" class="remove-btn" data-index="' + index + '" title="Xóa ảnh">×</button>' +
+                            '<div class="image-label">Ảnh hiện có</div>' +
+                            '</div>');
+                        $grid.append($item);
+                    });
+                    
+                    $('.preview-image-item.existing .remove-btn').off('click').on('click', function(e) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        var index = parseInt($(this).data('index'));
+                        removeExistingImage(index);
+                    });
+                } else {
+                    $('#existingImagesSection').hide();
+                }
+                updatePreviewContainer();
+                updateRemainingImagesInput();
+            }
+
+            // Remove existing image
+            function removeExistingImage(index) {
+                if (confirm('Bạn có chắc chắn muốn xóa ảnh này không?')) {
+                    existingImages.splice(index, 1);
+                    renderExistingImages();
+                }
+            }
+
+            // Update hidden input with remaining existing images
+            function updateRemainingImagesInput() {
+                var $input = $('#remainingExistingImages');
+                if (!$input || $input.length === 0) {
+                    return;
+                }
+                
+                if (existingImages.length > 0) {
+                    try {
+                        $input.val(JSON.stringify(existingImages));
+                    } catch (e) {
+                        console.error('Error serializing existing images:', e);
+                        $input.val('');
+                    }
+                } else {
+                    $input.val('');
+                }
+            }
+
+            // Handle file input change
+            $('#editAnhVanPhong').on('change', function(e) {
+                var files = e.target.files;
+                if (!files || files.length === 0) {
+                    return;
+                }
+                
+                var imageFiles = Array.from(files).filter(function(file) {
+                    return file.type && file.type.startsWith('image/');
+                });
+                
+                if (imageFiles.length === 0) {
+                    showNotification('Vui lòng chọn file ảnh hợp lệ (JPG, PNG, GIF)', 'error');
+                    return;
+                }
+                
+                var filesToAdd = [];
+                imageFiles.forEach(function(file) {
+                    var exists = newImageFiles.some(function(existingFile) {
+                        return existingFile.name === file.name && existingFile.size === file.size;
+                    });
+                    if (!exists) {
+                        filesToAdd.push(file);
+                        newImageFiles.push(file);
+                    }
+                });
+                
+                if (filesToAdd.length > 0) {
+                    var readCount = 0;
+                    var totalToRead = filesToAdd.length;
+                    
+                    filesToAdd.forEach(function(file) {
+                        var reader = new FileReader();
+                        reader.onload = function(e) {
+                            newImagePreviews.push({
+                                file: file,
+                                url: e.target.result,
+                                index: newImagePreviews.length
+                            });
+                            readCount++;
+                            
+                            newImagePreviews.forEach(function(p, i) {
+                                p.index = i;
+                            });
+                            
+                            if (readCount === totalToRead) {
+                                renderNewImages();
+                            }
+                        };
+                        reader.onerror = function() {
+                            readCount++;
+                            console.error('Error reading file:', file.name);
+                            if (readCount === totalToRead) {
+                                renderNewImages();
+                            }
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                } else {
+                    renderNewImages();
+                }
+            });
+
+            // Render new images preview
+            function renderNewImages() {
+                var $grid = $('#newImagesGrid');
+                $grid.empty();
+                
+                if (newImagePreviews.length > 0) {
+                    $('#newImagesSection').show();
+                    newImagePreviews.forEach(function(preview, index) {
+                        var $item = $('<div class="preview-image-item new" data-index="' + index + '">' +
+                            '<img src="' + preview.url + '" alt="Ảnh mới">' +
+                            '<button type="button" class="remove-btn" data-index="' + index + '" title="Xóa ảnh">×</button>' +
+                            '<div class="image-label">Ảnh mới</div>' +
+                            '</div>');
+                        $grid.append($item);
+                    });
+                    
+                    $('.preview-image-item.new .remove-btn').off('click').on('click', function(e) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        var index = parseInt($(this).data('index'));
+                        removeNewImage(index);
+                    });
+                } else {
+                    $('#newImagesSection').hide();
+                }
+                updatePreviewContainer();
+            }
+
+            // Remove new image
+            function removeNewImage(index) {
+                newImageFiles.splice(index, 1);
+                newImagePreviews.splice(index, 1);
+                newImagePreviews.forEach(function(p, i) {
+                    p.index = i;
+                });
+                
+                updateFileInput();
+                renderNewImages();
+            }
+
+            // Update file input with remaining files
+            function updateFileInput() {
+                var $input = $('#editAnhVanPhong');
+                if ($input.length > 0 && typeof DataTransfer !== 'undefined') {
+                    try {
+                        var dt = new DataTransfer();
+                        newImageFiles.forEach(function(file) {
+                            dt.items.add(file);
+                        });
+                        $input[0].files = dt.files;
+                    } catch (e) {
+                        console.log('DataTransfer not supported, using fallback');
+                    }
+                }
+            }
+
+            // Update preview container visibility
+            function updatePreviewContainer() {
+                var hasExisting = existingImages.length > 0;
+                var hasNew = newImagePreviews.length > 0;
+                var hasAny = hasExisting || hasNew;
+                
+                if (hasAny) {
+                    $('#imagePreviewContainer').show().addClass('has-images');
+                    $('#noPreviewMessage').hide();
+                } else {
+                    $('#imagePreviewContainer').show().removeClass('has-images');
+                    $('#noPreviewMessage').show();
+                }
+                
+                updateRemainingImagesInput();
+            }
+
+            // Xử lý khi ngành nghề thay đổi - load chuyên ngành tương ứng
+            $('#editNganhNghe').change(function() {
+                var selectedNganhNghe = $(this).val();
+                var $editNganhNgheChiTiet = $('#editNganhNgheChiTiet');
+                var currentSelectedValue = $editNganhNgheChiTiet.val(); // Lưu giá trị hiện tại
+                
+                $editNganhNgheChiTiet.html('<option value="">Chọn ngành nghề chi tiết</option>');
+                
+                if (!selectedNganhNghe) {
+                    return;
+                }
+                
+                var selectedOption = $(this).find('option:selected');
+                var maNganhNghe = selectedOption.data('ma-nganh-nghe');
+                
+                if (!maNganhNghe) {
+                    return;
+                }
+                
+                $.ajax({
+                    url: '/Admin/Admin/LayChuyenNganhTheoNganhNghe',
+                    type: 'GET',
+                    data: { maNganhNghe: maNganhNghe },
+                    success: function(response) {
+                        if (response.success && response.data) {
+                            response.data.forEach(function(chuyenNganh) {
+                                var option = $('<option></option>')
+                                    .attr('value', chuyenNganh.tenChuyenNganh)
+                                    .text(chuyenNganh.tenChuyenNganh);
+                                // Giữ giá trị đã chọn nếu khớp
+                                if (currentSelectedValue === chuyenNganh.tenChuyenNganh) {
+                                    option.attr('selected', 'selected');
+                                }
+                                $editNganhNgheChiTiet.append(option);
+                            });
+                        }
+                    },
+                    error: function() {
+                        console.error('Lỗi khi load chuyên ngành');
+                    }
+                });
+            });
+
+            // Load chuyên ngành khi vào edit mode nếu đã có ngành nghề được chọn
+            function loadChuyenNganhOnEdit() {
+                var selectedNganhNghe = $('#editNganhNghe').val();
+                var selectedNganhNgheChiTiet = '@Model.NganhNgheChiTiet';
+                
+                if (selectedNganhNghe) {
+                    var selectedOption = $('#editNganhNghe option:selected');
+                    var maNganhNghe = selectedOption.data('ma-nganh-nghe');
+                    
+                    if (maNganhNghe) {
+                        $.ajax({
+                            url: '/Admin/Admin/LayChuyenNganhTheoNganhNghe',
+                            type: 'GET',
+                            data: { maNganhNghe: maNganhNghe },
+                            success: function(response) {
+                                if (response.success && response.data) {
+                                    var $editNganhNgheChiTiet = $('#editNganhNgheChiTiet');
+                                    $editNganhNgheChiTiet.html('<option value="">Chọn ngành nghề chi tiết</option>');
+                                    
+                                    response.data.forEach(function(chuyenNganh) {
+                                        var option = $('<option></option>')
+                                            .attr('value', chuyenNganh.tenChuyenNganh)
+                                            .text(chuyenNganh.tenChuyenNganh);
+                                        // Set selected nếu khớp với giá trị hiện tại
+                                        if (selectedNganhNgheChiTiet === chuyenNganh.tenChuyenNganh) {
+                                            option.attr('selected', 'selected');
+                                        }
+                                        $editNganhNgheChiTiet.append(option);
+                                    });
+                                }
+                            },
+                            error: function() {
+                                console.error('Lỗi khi load chuyên ngành');
+                            }
+                        });
+                    }
+                }
+            }
+
+            // Nút Sửa
+            $('#btnEdit').on('click', function() {
+                $('#content').removeClass('view-mode').addClass('edit-mode');
+                $('#btnEdit').hide();
+                $('#btnCancel').show();
+                $('#btnSave').show();
+                
+                // Load existing images when entering edit mode
+                setTimeout(function() {
+                    loadExistingImages();
+                }, 100);
+                
+                // Load chuyên ngành khi vào edit mode
+                setTimeout(function() {
+                    loadChuyenNganhOnEdit();
+                }, 200);
+                
+                // Load quận/huyện ngay lập tức khi chuyển sang edit mode
+                function loadWardsOnEdit() {
+                    const $selectedOption = $('#editTinhThanhPho option:selected');
+                    const selectedProvinceCode = $selectedOption.data('code');
+                    const selectedWardName = '@Model.PhuongXa';
+                    
+                    console.log('Loading wards - Province Code:', selectedProvinceCode, 'Ward Name:', selectedWardName);
+                    
+                    if (selectedProvinceCode) {
+                        loadWardsByProvince(selectedProvinceCode, selectedWardName);
+                    } else {
+                        console.warn('No province code found for selected province');
+                    }
+                }
+
+                // Thử load ngay lập tức
+                setTimeout(loadWardsOnEdit, 100);
+                
+                // Thử lại sau khi DOM đã render xong
+                setTimeout(loadWardsOnEdit, 300);
+                
+                if (!editorsInitialized) {
+                    initEditors();
+                    editorsInitialized = true;
+                }
+
+                setTimeout(function() {
+                    initEditMap();
+                }, 500);
+            });
+
+            // Nút Hủy thay đổi
+            $('#btnCancel').on('click', function() {
+                if (editorsInitialized) {
+                    if (editors['MoTa']) {
+                        editors['MoTa'].setData(originalValues.MoTa);
+                    }
+                    if (editors['YeuCau']) {
+                        editors['YeuCau'].setData(originalValues.YeuCau);
+                    }
+                    if (editors['QuyenLoi']) {
+                        editors['QuyenLoi'].setData(originalValues.QuyenLoi);
+                    }
+                } else {
+                    $('#editMoTa').val(originalValues.MoTa);
+                    $('#editYeuCau').val(originalValues.YeuCau);
+                    $('#editQuyenLoi').val(originalValues.QuyenLoi);
+                }
+                
+                $('#editTenViecLam').val(originalValues.TenViecLam);
+                $('#editNganhNghe').val(originalValues.NganhNghe);
+                $('#editNganhNgheChiTiet').val(originalValues.NganhNgheChiTiet);
+                $('#editLoaiCongViec').val(originalValues.LoaiCongViec);
+                $('#editKinhNghiem').val(originalValues.KinhNghiem);
+                $('#editViTri').val(originalValues.ViTri);
+                $('#editNgoaiNgu').val(originalValues.NgoaiNgu);
+                $('#editKyNang').val(originalValues.KyNang);
+                $('#editMucLuongThapNhat').val(originalValues.MucLuongThapNhat);
+                $('#editMucLuongCaoNhat').val(originalValues.MucLuongCaoNhat);
+                $('#editDiaChiLamViec').val(originalValues.DiaChiLamViec);
+                $('#editPhuongXa').val(originalValues.PhuongXa);
+                $('#editTinhThanhPho').val(originalValues.TinhThanhPho);
+                $('#editNguoiLienHe').val(originalValues.NguoiLienHe);
+                $('#editEmailLienHe').val(originalValues.EmailLienHe);
+                $('#editSDTLienHe').val(originalValues.SDTLienHe);
+                $('#editTuKhoa').val(originalValues.TuKhoa);
+                $('#editHanNop').val(originalValues.HanNop);
+                $('#editLatitude').val(originalValues.Latitude);
+                $('#editLongitude').val(originalValues.Longitude);
+
+                if (editMapInitialized && editMarker) {
+                    var lat = parseFloat(originalValues.Latitude) || 21.028511;
+                    var lng = parseFloat(originalValues.Longitude) || 105.804817;
+                    editMarker.setLatLng([lat, lng]);
+                    editMap.setView([lat, lng], 15);
+                    $('#currentCoordsEdit').text(lat.toFixed(6) + ', ' + lng.toFixed(6));
+                }
+
+                // Reset image preview when canceling
+                newImageFiles = [];
+                newImagePreviews = [];
+                $('#editAnhVanPhong').val('');
+                $('#remainingExistingImages').val('');
+                $('#imagePreviewContainer').hide();
+                // Reload existing images to restore original state
+                loadExistingImages();
+
+                $('#content').removeClass('edit-mode').addClass('view-mode');
+                $('#btnEdit').show();
+                $('#btnCancel').hide();
+                $('#btnSave').hide();
+            });
+
+            // Nút Lưu
+            $('#btnSave').on('click', function() {
+                // Cập nhật hidden input với danh sách ảnh còn lại trước khi submit
+                updateRemainingImagesInput();
+                
+                if (editorsInitialized) {
+                    Object.keys(editors).forEach(function(fieldName) {
+                        if (editors[fieldName]) {
+                            editors[fieldName].updateSourceElement();
+                        }
+                    });
+                }
+
+                var isValid = true;
+                $('.form-control, .form-select').each(function() {
+                    if ($(this).attr('required') && !$(this).val()) {
+                        isValid = false;
+                        $(this).css('border-color', '#f56565');
+                    } else {
+                        $(this).css('border-color', '#e2e8f0');
+                    }
+                });
+
+                if (editorsInitialized) {
+                    var moTaContent = editors['MoTa'] ? editors['MoTa'].getData().trim() : '';
+                    var yeuCauContent = editors['YeuCau'] ? editors['YeuCau'].getData().trim() : '';
+                    
+                    if (!moTaContent || moTaContent === '' || moTaContent === '<p></p>') {
+                        isValid = false;
+                    }
+                    if (!yeuCauContent || yeuCauContent === '' || yeuCauContent === '<p></p>') {
+                        isValid = false;
+                    }
+                }
+
+                if (!isValid) {
+                    showNotification('Vui lòng điền đầy đủ các trường bắt buộc!', 'error');
+                    return;
+                }
+
+                $('#editForm').submit();
+            });
+
+            // Xử lý tab switching
+            $('#detailTabs button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+                if ($('#content').hasClass('edit-mode')) {
+                    $('#btnCancel').click();
+                }
+            });
+
+            // Nếu có lỗi validation, tự động chuyển sang chế độ chỉnh sửa
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <text>
+                $('#content').removeClass('view-mode').addClass('edit-mode');
+                $('#btnEdit').hide();
+                $('#btnCancel').show();
+                $('#btnSave').show();
+                
+                if (!editorsInitialized) {
+                    initEditors();
+                    editorsInitialized = true;
+                }
+                </text>
+            }
+
+            // Xử lý khi submit form thành công
+            @if (TempData["ThanhCong"] != null)
+            {
+                <text>
+                var successMessageElement = document.getElementById('successMessage');
+                if (successMessageElement) {
+                    var successMessage = successMessageElement.textContent || successMessageElement.innerText;
+                    showNotification(successMessage, 'success');
+                }
+                </text>
+            }
+        });
+
+        // Lightbox functionality for image gallery
+        $(document).ready(function() {
+            // Create lightbox HTML if it doesn't exist
+            if ($('#imageLightbox').length === 0) {
+                $('body').append(`
+                    <div id="imageLightbox" class="lightbox">
+                        <div class="lightbox-content">
+                            <span class="lightbox-close">&times;</span>
+                            <div class="lightbox-nav lightbox-prev">
+                                <i class="bi bi-chevron-left"></i>
+                            </div>
+                            <div class="lightbox-nav lightbox-next">
+                                <i class="bi bi-chevron-right"></i>
+                            </div>
+                            <img id="lightboxImage" src="" alt="Ảnh văn phòng/cửa hàng">
+                            <div class="lightbox-counter">
+                                <span id="lightboxCurrent">1</span> / <span id="lightboxTotal">1</span>
+                            </div>
+                        </div>
+                    </div>
+                `);
+            }
+
+            var currentImageIndex = 0;
+            var images = [];
+
+            // Initialize images array from gallery
+            function initImages() {
+                images = [];
+                $('.gallery-item').each(function() {
+                    var imageSrc = $(this).data('image') || $(this).find('img').attr('src');
+                    if (imageSrc) {
+                        images.push(imageSrc);
+                    }
+                });
+                $('#lightboxTotal').text(images.length);
+            }
+
+            // Open lightbox
+            function openLightbox(index) {
+                if (images.length === 0) return;
+                currentImageIndex = index;
+                updateLightboxImage();
+                $('#imageLightbox').addClass('active');
+                $('body').css('overflow', 'hidden');
+            }
+
+            // Close lightbox
+            function closeLightbox() {
+                $('#imageLightbox').removeClass('active');
+                $('body').css('overflow', '');
+            }
+
+            // Update lightbox image
+            function updateLightboxImage() {
+                if (images.length === 0) return;
+                var imageSrc = images[currentImageIndex];
+                $('#lightboxImage').attr('src', imageSrc);
+                $('#lightboxCurrent').text(currentImageIndex + 1);
+            }
+
+            // Next image
+            function nextImage() {
+                if (images.length === 0) return;
+                currentImageIndex = (currentImageIndex + 1) % images.length;
+                updateLightboxImage();
+            }
+
+            // Previous image
+            function prevImage() {
+                if (images.length === 0) return;
+                currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
+                updateLightboxImage();
+            }
+
+            // Initialize images on page load
+            initImages();
+
+            // Click on gallery item to open lightbox
+            $(document).on('click', '.gallery-item', function() {
+                var imageSrc = $(this).data('image') || $(this).find('img').attr('src');
+                if (imageSrc) {
+                    initImages(); // Re-initialize in case images changed
+                    var index = images.indexOf(imageSrc);
+                    if (index !== -1) {
+                        openLightbox(index);
+                    } else {
+                        // If image not found in array, add it and open
+                        images = [imageSrc];
+                        openLightbox(0);
+                    }
+                }
+            });
+
+            // Close lightbox on close button click
+            $(document).on('click', '.lightbox-close', function(e) {
+                e.stopPropagation();
+                closeLightbox();
+            });
+
+            // Close lightbox on background click
+            $(document).on('click', '#imageLightbox', function(e) {
+                if ($(e.target).is('#imageLightbox')) {
+                    closeLightbox();
+                }
+            });
+
+            // Next image on next button click
+            $(document).on('click', '.lightbox-next', function(e) {
+                e.stopPropagation();
+                nextImage();
+            });
+
+            // Previous image on prev button click
+            $(document).on('click', '.lightbox-prev', function(e) {
+                e.stopPropagation();
+                prevImage();
+            });
+
+            // Keyboard navigation
+            $(document).on('keydown', function(e) {
+                if ($('#imageLightbox').hasClass('active')) {
+                    if (e.key === 'Escape') {
+                        closeLightbox();
+                    } else if (e.key === 'ArrowRight') {
+                        nextImage();
+                    } else if (e.key === 'ArrowLeft') {
+                        prevImage();
+                    }
+                }
+            });
+
+            // Prevent lightbox content click from closing
+            $(document).on('click', '.lightbox-content', function(e) {
+                e.stopPropagation();
+            });
+
+            // Touch/swipe support for mobile
+            var touchStartX = 0;
+            var touchEndX = 0;
+
+            $(document).on('touchstart', '#lightboxImage', function(e) {
+                touchStartX = e.originalEvent.touches[0].clientX;
+            });
+
+            $(document).on('touchend', '#lightboxImage', function(e) {
+                touchEndX = e.originalEvent.changedTouches[0].clientX;
+                handleSwipe();
+            });
+
+            function handleSwipe() {
+                if (touchEndX < touchStartX - 50) {
+                    // Swipe left - next image
+                    nextImage();
+                }
+                if (touchEndX > touchStartX + 50) {
+                    // Swipe right - previous image
+                    prevImage();
+                }
+            }
+        });
+
+        // Xử lý phân trang và bộ lọc cho tab Danh sách ứng tuyển
+        var isPaginationClick = false;
+        
+        // Hàm điều hướng đến trang
+        window.goToPage = function(pageNumber) {
+            isPaginationClick = true;
+            $('#pageNumberInput').val(pageNumber);
+            $('#filterForm').submit();
+        };
+        
+        // Khi thay đổi filter, reset về trang 1
+        $('#trangThaiFilter').on('change', function() {
+            $('#pageNumberInput').val(1);
+            $('#filterForm').submit();
+        });
+        
+        // Khi submit form tìm kiếm, reset về trang 1 (chỉ khi không phải là click phân trang)
+        $('#filterForm').on('submit', function(e) {
+            if (!isPaginationClick) {
+                $('#pageNumberInput').val(1);
+            }
+            isPaginationClick = false;
+        });
+        
+        // Khi nhấn nút tìm kiếm, reset về trang 1
+        $('#filterForm button[type="submit"]').on('click', function() {
+            isPaginationClick = false;
+        });
+
+        // Tự động chuyển sang tab "Danh sách ứng tuyển" nếu có filter parameters hoặc parameter tab=applications
+        $(document).ready(function() {
+            var urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('searchTerm') || urlParams.has('trangThaiFilter') || urlParams.has('pageNumber') || urlParams.get('tab') === 'applications') {
+                var applicationsTab = document.getElementById('applications-tab');
+                if (applicationsTab) {
+                    var tab = new bootstrap.Tab(applicationsTab);
+                    tab.show();
+                }
+            }
+        });
+
+        // Hàm xem chi tiết đơn ứng tuyển
+        window.xemChiTietDonUngTuyen = function(maDon) {
+            $.ajax({
+                url: '@Url.Action("ChiTietDonUngTuyen", "Admin")',
+                type: 'GET',
+                data: { id: maDon },
+                success: function(response) {
+                    if (response.success && response.data) {
+                        var data = response.data;
+                        var modalContent = `
+                            <div class="modal fade" id="chiTietDonModal" tabindex="-1">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title"><i class="bi bi-file-earmark-person"></i> Chi tiết đơn ứng tuyển</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <p><strong>Mã đơn:</strong> #${data.maTinUngTuyen}</p>
+                                                    <p><strong>Họ tên:</strong> ${data.hoTen}</p>
+                                                    <p><strong>Email:</strong> <a href="mailto:${data.email}">${data.email}</a></p>
+                                                    <p><strong>SĐT:</strong> <a href="tel:${data.soDienThoai}">${data.soDienThoai}</a></p>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <p><strong>Vị trí ứng tuyển:</strong> ${data.viTriUngTuyen || data.tenViecLam}</p>
+                                                    <p><strong>Công ty:</strong> ${data.congTy}</p>
+                                                    <p><strong>Ngày ứng tuyển:</strong> ${data.ngayUngTuyen}</p>
+                                                    <p><strong>Trạng thái:</strong> <span class="badge bg-primary">${data.trangThaiXuLy}</span></p>
+                                                </div>
+                                            </div>
+                                            ${data.linkCV ? `<p><strong>CV:</strong> <a href="${data.linkCV}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-download"></i> Tải CV</a></p>` : ''}
+                                            ${data.ghiChu ? `<div class="mt-3"><strong>Ghi chú:</strong><p class="text-muted">${data.ghiChu}</p></div>` : ''}
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        $('#chiTietDonModal').remove();
+                        $('body').append(modalContent);
+                        
+                        var modal = new bootstrap.Modal(document.getElementById('chiTietDonModal'));
+                        modal.show();
+                        
+                        $('#chiTietDonModal').on('hidden.bs.modal', function() {
+                            $(this).remove();
+                        });
+                    } else {
+                        showNotification('Không thể tải thông tin đơn ứng tuyển: ' + (response.message || 'Có lỗi xảy ra'), 'error');
+                    }
+                },
+                error: function() {
+                    showNotification('Có lỗi xảy ra khi tải thông tin đơn ứng tuyển!', 'error');
+                }
+            });
+        };
+
+        // Hàm mở modal cập nhật trạng thái
+        window.capNhatTrangThaiDonUngTuyen = function(maDon) {
+            $('#maDonUngTuyen').val(maDon);
+            $('#trangThaiMoi').val('');
+            $('#ghiChu').val('');
+            var modal = new bootstrap.Modal(document.getElementById('trangThaiModal'));
+            modal.show();
+        };
+
+        // Hàm lưu trạng thái
+        window.luuTrangThaiDonUngTuyen = function() {
+            var maDon = $('#maDonUngTuyen').val();
+            var trangThaiMoi = $('#trangThaiMoi').val();
+            var ghiChu = $('#ghiChu').val();
+            
+            if (!trangThaiMoi) {
+                showNotification('Vui lòng chọn trạng thái mới!', 'error');
+                return;
+            }
+            
+            var btnLuu = $('button[onclick="luuTrangThaiDonUngTuyen()"]');
+            btnLuu.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Đang lưu...');
+            
+            $.ajax({
+                url: '@Url.Action("CapNhatTrangThaiDonUngTuyen", "Admin", new { area = "Admin" })',
+                type: 'POST',
+                data: {
+                    maDonUngTuyen: maDon,
+                    trangThaiMoi: trangThaiMoi,
+                    ghiChu: ghiChu || null,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        showNotification(response.message || 'Cập nhật trạng thái thành công!', 'success');
+                        
+                        var modal = bootstrap.Modal.getInstance(document.getElementById('trangThaiModal'));
+                        modal.hide();
+                        
+                        var currentUrl = new URL(window.location.href);
+                        currentUrl.searchParams.set('tab', 'applications');
+                        
+                        setTimeout(function() {
+                            window.location.href = currentUrl.toString();
+                        }, 1000);
+                    } else {
+                        showNotification(response.message || 'Có lỗi xảy ra khi cập nhật trạng thái!', 'error');
+                        btnLuu.prop('disabled', false).html('Lưu thay đổi');
+                    }
+                },
+                error: function(xhr) {
+                    var errorMessage = 'Có lỗi xảy ra khi cập nhật trạng thái';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                    showNotification(errorMessage, 'error');
+                    btnLuu.prop('disabled', false).html('Lưu thay đổi');
+                }
+            });
+        };
+
+        // Hàm hiển thị thông báo
+        window.showNotification = function(message, type) {
+            var bgColor = (type === 'success') ? '#48bb78' : '#f56565';
+            var notification = $('<div>')
+                .css({
+                    position: 'fixed',
+                    top: '20px',
+                    right: '20px',
+                    background: bgColor,
+                    color: 'white',
+                    padding: '15px 25px',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                    zIndex: 9999,
+                    fontWeight: '600',
+                    maxWidth: '400px'
+                })
+                .text(message)
+                .appendTo('body');
+            
+            setTimeout(function() {
+                notification.fadeOut(400, function() {
+                    $(this).remove();
+                });
+            }, 3000);
+        };
+    </script>
+    <!-- CKEditor 5 -->
+    <script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+}

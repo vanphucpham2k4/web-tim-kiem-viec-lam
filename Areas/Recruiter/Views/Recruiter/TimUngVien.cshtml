@@ -1,0 +1,644 @@
+@model List<Unicareer.Models.UngVien>
+
+@{
+    ViewData["Title"] = "Tìm ứng viên";
+}
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3);
+    }
+
+    .page-header h1 {
+        font-weight: 700;
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .page-header p {
+        opacity: 0.95;
+        font-size: 1.1rem;
+        margin-bottom: 0;
+    }
+
+    .search-bar {
+        background: white;
+        border-radius: 16px;
+        padding: 20px 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        border: 1px solid #e2e8f0;
+    }
+
+    .form-control {
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 12px 16px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: #10b981;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        outline: none;
+    }
+
+    .btn-search {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 12px 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-search:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+    }
+
+    .card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table thead {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+
+    .table thead th {
+        border: none;
+        padding: 20px 15px;
+        font-weight: 600;
+        color: #2d3748;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .table tbody tr:hover {
+        background: #f8f9fa;
+        transform: scale(1.01);
+    }
+
+    .table tbody td {
+        padding: 20px 15px;
+        vertical-align: middle;
+        color: #4a5568;
+    }
+
+    .candidate-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .candidate-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 18px;
+        flex-shrink: 0;
+        overflow: hidden;
+    }
+
+    .candidate-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+
+    .candidate-details {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .candidate-name {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 4px;
+        font-size: 0.95rem;
+    }
+
+    .candidate-email {
+        font-size: 0.85rem;
+        color: #718096;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .position-text {
+        color: #4a5568;
+        font-size: 0.9rem;
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .salary-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        background: #e8f8f5;
+        color: #27ae60;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .btn-view {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-view:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        color: white;
+    }
+
+    .date-text {
+        color: #718096;
+        font-size: 0.85rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #718096;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        opacity: 0.3;
+        margin-bottom: 20px;
+    }
+
+    .empty-state h3 {
+        color: #4a5568;
+        margin-bottom: 10px;
+    }
+
+    .filter-section {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        border: 1px solid #e2e8f0;
+    }
+
+    .filter-section h5 {
+        color: #2d3748;
+        font-weight: 600;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .filter-section h5 i {
+        color: #10b981;
+    }
+
+    .filter-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .filter-group label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #4a5568;
+        margin-bottom: 0;
+    }
+
+    .filter-group select,
+    .filter-group input {
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .filter-group select:focus,
+    .filter-group input:focus {
+        border-color: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        outline: none;
+    }
+
+    .filter-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .btn-filter {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-filter:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-reset {
+        background: #f1f5f9;
+        color: #4a5568;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 10px 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-reset:hover {
+        background: #e2e8f0;
+        transform: translateY(-2px);
+    }
+
+    .age-input-group {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .age-input-group input {
+        flex: 1;
+    }
+
+    .age-input-group span {
+        color: #718096;
+        font-size: 0.9rem;
+    }
+</style>
+
+<div class="page-header">
+    <h1><i class="bi bi-search"></i> Tìm ứng viên</h1>
+    <p>Khám phá và kết nối với những ứng viên tiềm năng phù hợp với công ty của bạn</p>
+</div>
+
+<!-- Search Bar -->
+<div class="search-bar">
+    <form method="get" action="@Url.Action("TimUngVien", "Recruiter")" id="searchForm">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-10">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0">
+                        <i class="bi bi-search text-muted"></i>
+                    </span>
+                    <input type="text" 
+                           class="form-control border-start-0" 
+                           name="keyword" 
+                           id="keywordInput"
+                           value="@ViewBag.Keyword"
+                           placeholder="Tìm kiếm theo tên, email, vị trí mong muốn...">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-search w-100">
+                    <i class="bi bi-search"></i> Tìm kiếm
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Filter Section -->
+<div class="filter-section">
+    <h5>
+        <i class="bi bi-funnel"></i>
+        Bộ lọc tìm kiếm
+    </h5>
+    <form method="get" action="@Url.Action("TimUngVien", "Recruiter")" id="filterForm">
+        <input type="hidden" name="keyword" value="@ViewBag.Keyword" id="filterKeyword">
+        
+        <div class="filter-row">
+            <div class="filter-group">
+                <label>Tỉnh/Thành phố</label>
+                <select name="tinhThanh" class="form-select">
+                    <option value="">Tất cả</option>
+                    @{
+                        var danhSachTinhThanh = ViewBag.DanhSachTinhThanh as List<Unicareer.Models.Province> ?? new List<Unicareer.Models.Province>();
+                    }
+                    @foreach (var tinh in danhSachTinhThanh)
+                    {
+                        <option value="@tinh.FullName" selected="@(ViewBag.TinhThanh == tinh.FullName)">@tinh.FullName</option>
+                    }
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Ngành nghề</label>
+                <select name="nganhNghe" class="form-select">
+                    <option value="">Tất cả</option>
+                    @{
+                        var danhSachNganhNghe = ViewBag.DanhSachNganhNghe as List<Unicareer.Models.NganhNghe> ?? new List<Unicareer.Models.NganhNghe>();
+                    }
+                    @foreach (var nganhNghe in danhSachNganhNghe)
+                    {
+                        <option value="@nganhNghe.TenNganhNghe" selected="@(ViewBag.NganhNghe == nganhNghe.TenNganhNghe)">@nganhNghe.TenNganhNghe</option>
+                    }
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Chuyên ngành</label>
+                <select name="chuyenNganh" class="form-select">
+                    <option value="">Tất cả</option>
+                    @{
+                        var danhSachChuyenNganh = ViewBag.DanhSachChuyenNganh as List<Unicareer.Models.ChuyenNganh> ?? new List<Unicareer.Models.ChuyenNganh>();
+                    }
+                    @foreach (var chuyenNganh in danhSachChuyenNganh)
+                    {
+                        <option value="@chuyenNganh.MaChuyenNganh" selected="@(ViewBag.ChuyenNganh == chuyenNganh.MaChuyenNganh.ToString())">@chuyenNganh.TenChuyenNganh</option>
+                    }
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Giới tính</label>
+                <select name="gioiTinh" class="form-select">
+                    <option value="">Tất cả</option>
+                    @{
+                        var gioiTinhOptions = ViewBag.GioiTinhOptions as List<string> ?? new List<string>();
+                    }
+                    @foreach (var gt in gioiTinhOptions)
+                    {
+                        <option value="@gt" selected="@(ViewBag.GioiTinh == gt)">@gt</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        <div class="filter-row">
+            <div class="filter-group">
+                <label>Trạng thái tìm việc</label>
+                <select name="trangThaiTimViec" class="form-select">
+                    <option value="">Tất cả</option>
+                    @{
+                        var trangThaiOptions = ViewBag.TrangThaiTimViecOptions as List<string> ?? new List<string>();
+                    }
+                    @foreach (var trangThai in trangThaiOptions)
+                    {
+                        <option value="@trangThai" selected="@(ViewBag.TrangThaiTimViec == trangThai)">@trangThai</option>
+                    }
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Mức lương kỳ vọng</label>
+                <select name="mucLuong" class="form-select">
+                    <option value="">Tất cả</option>
+                    <option value="Duoi10" selected="@(ViewBag.MucLuong == "Duoi10")">Dưới 10 triệu</option>
+                    <option value="10-15" selected="@(ViewBag.MucLuong == "10-15")">10 - 15 triệu</option>
+                    <option value="15-25" selected="@(ViewBag.MucLuong == "15-25")">15 - 25 triệu</option>
+                    <option value="25-50" selected="@(ViewBag.MucLuong == "25-50")">25 - 50 triệu</option>
+                    <option value="Tren50" selected="@(ViewBag.MucLuong == "Tren50")">Trên 50 triệu</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Vị trí mong muốn</label>
+                <input type="text" 
+                       name="viTriMongMuon" 
+                       class="form-control" 
+                       value="@ViewBag.ViTriMongMuon"
+                       placeholder="VD: Developer, Designer...">
+            </div>
+
+            <div class="filter-group">
+                <label>Độ tuổi</label>
+                <div class="age-input-group">
+                    <input type="number" 
+                           name="tuoiMin" 
+                           class="form-control" 
+                           value="@ViewBag.TuoiMin"
+                           placeholder="Từ" 
+                           min="18" 
+                           max="100">
+                    <span>đến</span>
+                    <input type="number" 
+                           name="tuoiMax" 
+                           class="form-control" 
+                           value="@ViewBag.TuoiMax"
+                           placeholder="Đến" 
+                           min="18" 
+                           max="100">
+                </div>
+            </div>
+        </div>
+
+        <div class="filter-actions">
+            <button type="submit" class="btn-filter">
+                <i class="bi bi-funnel-fill"></i> Áp dụng bộ lọc
+            </button>
+            <a href="@Url.Action("TimUngVien", "Recruiter")" class="btn-reset">
+                <i class="bi bi-arrow-counterclockwise"></i> Đặt lại
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Table -->
+<div class="card">
+    <div class="card-body p-0">
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Thông tin</th>
+                            <th>Công việc mong muốn</th>
+                            <th>Mức lương mong muốn</th>
+                            <th>Ngày cập nhật</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var ungVien in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="candidate-info">
+                                        <div class="candidate-avatar">
+                                            @if (!string.IsNullOrEmpty(ungVien.User?.Avatar))
+                                            {
+                                                <img src="@ungVien.User.Avatar" alt="@ungVien.HoTen">
+                                            }
+                                            else
+                                            {
+                                                @ungVien.HoTen.Substring(0, Math.Min(2, ungVien.HoTen.Length)).ToUpper()
+                                            }
+                                        </div>
+                                        <div class="candidate-details">
+                                            <div class="candidate-name">@ungVien.HoTen</div>
+                                            <div class="candidate-email">@ungVien.Email</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="position-text">
+                                        @if (!string.IsNullOrEmpty(ungVien.ViTriMongMuon))
+                                        {
+                                            @ungVien.ViTriMongMuon
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Chưa cập nhật</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td>
+                                    @if (ungVien.MucLuongKyVong.HasValue)
+                                    {
+                                        <span class="salary-badge">
+                                            @ungVien.MucLuongKyVong.Value.ToString("N0") triệu VNĐ
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Chưa cập nhật</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="date-text">
+                                        @ungVien.NgayDangKy.ToString("dd/MM/yyyy")
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        <a href="@Url.Action("ChiTietUngVien", "Home", new { area = "", id = ungVien.MaUngVien })" 
+                                           class="btn-view" 
+                                           target="_blank">
+                                            <i class="bi bi-eye"></i> Xem chi tiết
+                                        </a>
+                                        @if (!string.IsNullOrEmpty(ungVien.CVFile) || !string.IsNullOrEmpty(ungVien.LinkCV))
+                                        {
+                                            <a href="@(!string.IsNullOrEmpty(ungVien.CVFile) ? ungVien.CVFile : ungVien.LinkCV)" 
+                                               class="btn-view" 
+                                               target="_blank"
+                                               style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                                                <i class="bi bi-file-earmark-pdf"></i> Xem CV
+                                            </a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <i class="bi bi-person-x"></i>
+                <h3>Không tìm thấy ứng viên</h3>
+                <p>Thử thay đổi từ khóa tìm kiếm hoặc kiểm tra lại sau</p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#searchForm').on('submit', function(e) {
+                e.preventDefault();
+                var keyword = $('#keywordInput').val();
+                var url = '@Url.Action("TimUngVien", "Recruiter")';
+                var params = new URLSearchParams();
+                if (keyword) params.append('keyword', keyword);
+                
+                var filterParams = getFilterParams();
+                for (var key in filterParams) {
+                    if (filterParams[key]) params.append(key, filterParams[key]);
+                }
+                
+                window.location.href = url + '?' + params.toString();
+            });
+
+            $('#filterForm').on('submit', function(e) {
+                e.preventDefault();
+                var keyword = $('#keywordInput').val();
+                $('#filterKeyword').val(keyword);
+                
+                var url = '@Url.Action("TimUngVien", "Recruiter")';
+                var params = new URLSearchParams();
+                if (keyword) params.append('keyword', keyword);
+                
+                $(this).serializeArray().forEach(function(item) {
+                    if (item.name !== 'keyword' && item.value) {
+                        params.append(item.name, item.value);
+                    }
+                });
+                
+                window.location.href = url + '?' + params.toString();
+            });
+
+            function getFilterParams() {
+                var params = {};
+                $('#filterForm').serializeArray().forEach(function(item) {
+                    if (item.name !== 'keyword' && item.value) {
+                        params[item.name] = item.value;
+                    }
+                });
+                return params;
+            }
+        });
+    </script>
+}
+

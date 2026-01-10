@@ -1,0 +1,485 @@
+@model List<Unicareer.Models.Blog>
+
+@using System.Net
+@using System.Text.RegularExpressions
+
+@{
+    ViewData["Title"] = "Blog & Tin tức";
+    var blogs = Model ?? new List<Unicareer.Models.Blog>();
+    var sortedBlogs = blogs.OrderByDescending(b => b.NgayDang).ToList();
+    var mainBlog = sortedBlogs.FirstOrDefault();
+    var latestBlogs = sortedBlogs.Take(3).ToList();
+    var remainingBlogs = sortedBlogs.Skip(latestBlogs.Count).ToList();
+    // Chọn bài viết có nhiều lượt xem nhất từ tất cả blogs, loại trừ mainBlog và latestBlogs
+    var excludedBlogIds = new HashSet<int>();
+    if (mainBlog != null) excludedBlogIds.Add(mainBlog.MaBlog);
+    foreach (var blog in latestBlogs)
+    {
+        excludedBlogIds.Add(blog.MaBlog);
+    }
+    var highlightBlog = blogs
+        .Where(b => !excludedBlogIds.Contains(b.MaBlog))
+        .OrderByDescending(b => b.LuotXem)
+        .FirstOrDefault();
+    var danhSachTheLoaiBlog = ViewBag.DanhSachTheLoaiBlog as List<Unicareer.Models.TheLoaiBlog> ?? new List<Unicareer.Models.TheLoaiBlog>();
+    var selectedCategoryId = ViewBag.SelectedCategoryId as int?;
+    var selectedCategoryName = "Tin tức trong ngày";
+    if (selectedCategoryId.HasValue)
+    {
+        var matchedCategory = danhSachTheLoaiBlog.FirstOrDefault(t => t.MaTheLoai == selectedCategoryId.Value);
+        if (matchedCategory != null && !string.IsNullOrEmpty(matchedCategory.TenTheLoai))
+        {
+            selectedCategoryName = matchedCategory.TenTheLoai;
+        }
+    }
+
+    string BuildBlogUrl(Unicareer.Models.Blog blog)
+    {
+        return !string.IsNullOrEmpty(blog.Permalink)
+            ? $"/Home/BlogDetail?permalink={Uri.EscapeDataString(blog.Permalink)}"
+            : $"/Home/BlogDetail?id={blog.MaBlog}";
+    }
+
+    string GetImageUrl(Unicareer.Models.Blog blog)
+    {
+        return !string.IsNullOrEmpty(blog.HinhAnh)
+            ? blog.HinhAnh
+            : "https://images.unsplash.com/photo-1557425493-6f90ae4659fc?w=900&auto=format&fit=crop&q=80";
+    }
+
+    string BuildExcerpt(Unicareer.Models.Blog blog)
+    {
+        var excerpt = blog.MoTaNgan ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(excerpt) && !string.IsNullOrEmpty(blog.NoiDung))
+        {
+            excerpt = Regex.Replace(blog.NoiDung, "<.*?>", string.Empty);
+            excerpt = WebUtility.HtmlDecode(excerpt);
+        }
+
+        excerpt = excerpt?.Trim() ?? string.Empty;
+        if (excerpt.Length > 220)
+        {
+            excerpt = excerpt.Substring(0, 220).Trim() + "...";
+        }
+
+        return excerpt;
+    }
+
+    string BuildCategoryUrl(int? categoryId)
+    {
+        return categoryId.HasValue
+            ? $"/Home/Blog?categoryId={categoryId.Value}"
+            : "/Home/Blog";
+    }
+}
+
+<style>
+    .blog-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 60px 20px 100px;
+    }
+
+    .blog-heading {
+        margin-bottom: 36px;
+    }
+
+    .blog-heading h1 {
+        font-size: 32px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 8px;
+    }
+
+    .blog-heading p {
+        color: #475569;
+        font-size: 15px;
+    }
+
+    .blog-layout {
+        display: grid;
+        grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
+        gap: 32px;
+        align-items: flex-start;
+    }
+
+    .column-left,
+    .column-right {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+    }
+
+    .panel {
+        background: #fff;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+        border: 1px solid #edf2f7;
+    }
+
+    .panel h2 {
+        font-size: 20px;
+        margin-bottom: 16px;
+        color: #0f172a;
+    }
+
+    .featured-heading h2 {
+        margin: 0 0 12px;
+        font-size: 22px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .latest-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .latest-card {
+        display: flex;
+        gap: 12px;
+        padding: 12px;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        text-decoration: none;
+        color: inherit;
+        transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .latest-card:hover {
+        transform: translateY(-2px);
+        border-color: #10b981;
+    }
+
+    .latest-thumb {
+        width: 78px;
+        height: 78px;
+        border-radius: 12px;
+        overflow: hidden;
+        flex-shrink: 0;
+        background: #e2e8f0;
+    }
+
+    .latest-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .latest-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .latest-meta strong {
+        font-size: 14px;
+        color: #0f172a;
+        line-height: 1.3;
+    }
+
+    .latest-meta span {
+        font-size: 12px;
+        color: #94a3b8;
+    }
+
+    .category-panel ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .category-panel li {
+        font-size: 15px;
+        color: #0f172a;
+        padding-left: 6px;
+    }
+
+    .category-panel li a {
+        color: inherit;
+        text-decoration: none;
+        display: inline-block;
+        width: 100%;
+    }
+
+    .category-panel li a.is-active {
+        font-weight: 600;
+    }
+
+    .category-panel li a .category-icon {
+        margin-right: 6px;
+        font-size: 14px;
+    }
+
+    .panel .empty-state {
+        color: #94a3b8;
+        font-size: 13px;
+    }
+
+    .featured-card figure {
+        margin: 0;
+        border-radius: 18px;
+        overflow: hidden;
+    }
+
+    .featured-card img {
+        width: 100%;
+        height: 260px;
+        object-fit: cover;
+        display: block;
+    }
+
+    .featured-card-body {
+        margin-top: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .featured-card-body .badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 14px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        background: rgba(16, 185, 129, 0.12);
+        color: #059669;
+        width: fit-content;
+    }
+
+    .featured-card-body h3 {
+        font-size: 22px;
+        margin: 0;
+        color: #0f172a;
+    }
+
+    .featured-card-body h3 a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .featured-card-body h3 a:hover {
+        color: #059669;
+    }
+
+    .featured-card-body p {
+        margin: 0;
+        color: #475569;
+        font-size: 15px;
+        line-height: 1.6;
+    }
+
+    .meta-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+        color: #94a3b8;
+    }
+
+    .secondary-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .panel-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .panel-title-row .pill {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        padding: 6px 14px;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.08);
+        color: #0f172a;
+    }
+
+    .secondary-card {
+        border-radius: 18px;
+        border: 1px solid #e2e8f0;
+        overflow: hidden;
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .secondary-card img {
+        width: 100%;
+        height: 220px;
+        object-fit: cover;
+        display: block;
+    }
+
+    .secondary-card-body {
+        padding: 16px 20px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .secondary-card-body h3 {
+        margin: 0;
+        font-size: 18px;
+    }
+
+    .secondary-card-body h3 a {
+        color: #0f172a;
+        text-decoration: none;
+    }
+
+    .secondary-card-body h3 a:hover {
+        color: #059669;
+    }
+
+    .secondary-card-body p {
+        margin: 0;
+        color: #475569;
+        font-size: 13px;
+    }
+
+    @@media (max-width: 960px) {
+        .blog-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 640px) {
+        .blog-page {
+            padding: 40px 16px 80px;
+        }
+
+        .panel {
+            padding: 20px;
+        }
+
+        .featured-card img {
+            height: 200px;
+        }
+
+        .secondary-card img {
+            height: 180px;
+        }
+    }
+</style>
+
+<section class="blog-page">
+    <div class="blog-heading">
+        <h1>Blog &amp; Tin tức</h1>
+        <p>Cập nhật những bài viết chất lượng, được duyệt và chia sẻ những góc nhìn chuyên sâu giúp bạn định hướng nghề nghiệp.</p>
+    </div>
+
+    <div class="blog-layout">
+        <div class="column-left">
+            <div class="panel">
+                <h2>Bài viết mới nhất</h2>
+                <div class="latest-list">
+                    @if (latestBlogs.Any())
+                    {
+                        foreach (var blog in latestBlogs)
+                        {
+                            <a class="latest-card" href="@BuildBlogUrl(blog)">
+                                <div class="latest-thumb">
+                                    <img src="@GetImageUrl(blog)" alt="@blog.TieuDe" loading="lazy">
+                                </div>
+                                <div class="latest-meta">
+                                    <strong>@blog.TieuDe</strong>
+                                    <span>@blog.NgayDang.ToString("dd/MM/yyyy HH:mm")</span>
+                                </div>
+                            </a>
+                        }
+                    }
+                    else
+                    {
+                        <p class="empty-state">Chưa có bài viết mới.</p>
+                    }
+                </div>
+            </div>
+
+            <div class="panel category-panel">
+                <h2>Danh mục</h2>
+                @if (danhSachTheLoaiBlog.Any())
+                {
+                    <ul>
+                        @foreach (var theLoai in danhSachTheLoaiBlog)
+                        {
+                            <li>
+                            <a class="category-link @(selectedCategoryId == theLoai.MaTheLoai ? "is-active" : "")" href="@BuildCategoryUrl(theLoai.MaTheLoai)">
+                                <span>@theLoai.TenTheLoai</span>
+                            </a>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="empty-state">Đang cập nhật danh mục.</p>
+                }
+            </div>
+        </div>
+
+        <div class="column-right">
+            <div class="featured-heading">
+                <h2>@selectedCategoryName</h2>
+            </div>
+            <div class="panel featured-panel">
+                @if (mainBlog != null)
+                {
+                    <article class="featured-card">
+                        <figure>
+                            <img src="@GetImageUrl(mainBlog)" alt="@mainBlog.TieuDe">
+                        </figure>
+                        <div class="featured-card-body">
+                            <span class="badge">@((mainBlog.TheLoaiBlog?.TenTheLoai ?? mainBlog.TheLoai) ?? "Blog")</span>
+                            <h3><a href="@BuildBlogUrl(mainBlog)">@mainBlog.TieuDe</a></h3>
+                            <p>@BuildExcerpt(mainBlog)</p>
+                            <div class="meta-row">
+                                <span>📅 @mainBlog.NgayDang.ToString("dd/MM/yyyy HH:mm")</span>
+                                <span>👁 @mainBlog.LuotXem.ToString("N0")</span>
+                            </div>
+                        </div>
+                    </article>
+                }
+                else
+                {
+                    <p class="empty-state">Chưa có bài viết nào được duyệt.</p>
+                }
+            </div>
+
+            @if (highlightBlog != null)
+            {
+                <div class="panel secondary-panel">
+                    <div class="panel-title-row">
+                        <span class="pill">Xu hướng</span>
+                    </div>
+                    <article class="secondary-card">
+                        <img src="@GetImageUrl(highlightBlog)" alt="@highlightBlog.TieuDe" loading="lazy">
+                        <div class="secondary-card-body">
+                            <h3><a href="@BuildBlogUrl(highlightBlog)">@highlightBlog.TieuDe</a></h3>
+                            <p>@BuildExcerpt(highlightBlog)</p>
+                            <div class="meta-row">
+                                <span>📅 @highlightBlog.NgayDang.ToString("dd/MM/yyyy HH:mm")</span>
+                                <span>👁 @highlightBlog.LuotXem.ToString("N0")</span>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+

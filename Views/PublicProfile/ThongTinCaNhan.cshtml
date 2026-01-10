@@ -1,0 +1,769 @@
+@model Unicareer.Models.UngVien
+@{
+    ViewData["Title"] = "Thông tin cá nhân";
+    var isOwner = ViewBag.IsOwner as bool? ?? false;
+    var emailConfirmed = ViewBag.EmailConfirmed as bool? ?? false;
+}
+
+<style>
+    :root {
+        --primary: #10b981;
+        --primary-dark: #059669;
+        --primary-light: #d1fae5;
+        --bg: #f5f7fa;
+        --card-bg: #ffffff;
+        --text-primary: #1a202c;
+        --text-secondary: #4a5568;
+        --text-muted: #718096;
+        --border: #e2e8f0;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+        --shadow: 0 4px 6px rgba(0,0,0,0.07);
+        --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    body {
+        background: var(--bg);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .profile-wrapper {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px 20px 40px;
+    }
+
+    .profile-header-card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 40px;
+        box-shadow: var(--shadow);
+        margin-bottom: 30px;
+        display: flex;
+        gap: 30px;
+        align-items: flex-start;
+    }
+
+    .avatar-wrapper {
+        flex-shrink: 0;
+    }
+
+    .avatar-circle {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        border: 4px solid var(--primary-light);
+        background: var(--card-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 60px;
+        font-weight: 700;
+        color: var(--primary);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        position: relative;
+    }
+
+    .avatar-circle::before {
+        content: '';
+        position: absolute;
+        inset: -3px;
+        border-radius: 50%;
+        padding: 3px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+    }
+
+    .avatar-circle img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+
+    .profile-header-content {
+        flex: 1;
+    }
+
+    .profile-name-section {
+        margin-bottom: 20px;
+    }
+
+    .profile-name {
+        font-size: 36px;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+        letter-spacing: -0.5px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .email-verified-badge-name {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+        animation: pulse 2s infinite;
+    }
+
+    .email-unverified-badge-name {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+    }
+
+    .email-verified-badge-name i,
+    .email-unverified-badge-name i {
+        font-size: 16px;
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.8;
+        }
+    }
+
+    .profile-title {
+        font-size: 18px;
+        color: var(--text-secondary);
+        font-weight: 500;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .profile-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        background: var(--primary-light);
+        color: var(--primary-dark);
+        border: 1px solid var(--primary);
+    }
+
+    .badge-secondary {
+        background: #f7fafc;
+        color: var(--text-secondary);
+        border-color: var(--border);
+    }
+
+    .profile-actions {
+        margin-top: 24px;
+    }
+
+    .btn-edit {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 15px;
+        text-decoration: none;
+        transition: all 0.3s;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-edit:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+        color: white;
+    }
+
+    .content-grid {
+        display: grid;
+        grid-template-columns: 380px 1fr;
+        gap: 30px;
+    }
+
+    .sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .main-content {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .info-card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        transition: all 0.3s;
+    }
+
+    .info-card:hover {
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-2px);
+    }
+
+    .card-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .card-title i {
+        color: var(--primary);
+        font-size: 22px;
+    }
+
+    .info-row {
+        display: flex;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--border);
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .info-icon-wrapper {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: var(--primary-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .info-icon-wrapper i {
+        color: var(--primary);
+        font-size: 18px;
+    }
+
+    .info-content-wrapper {
+        flex: 1;
+    }
+
+    .info-label {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .info-value {
+        font-size: 16px;
+        color: var(--text-primary);
+        font-weight: 600;
+        word-break: break-word;
+    }
+
+    .info-value a {
+        color: var(--primary);
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .info-value a:hover {
+        color: var(--primary-dark);
+        text-decoration: underline;
+    }
+
+    .content-text {
+        background: linear-gradient(to bottom, #f8fafc, #ffffff);
+        border-radius: 12px;
+        padding: 20px;
+        line-height: 1.8;
+        color: var(--text-primary);
+        border-left: 4px solid var(--primary);
+    }
+
+    .content-text p {
+        margin-bottom: 12px;
+    }
+
+    .content-text p:last-child {
+        margin-bottom: 0;
+    }
+
+    .portfolio-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .portfolio-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 20px;
+        background: linear-gradient(135deg, var(--primary-light), #ffffff);
+        color: var(--primary-dark);
+        text-decoration: none;
+        border-radius: 10px;
+        font-weight: 600;
+        border: 2px solid var(--primary);
+        transition: all 0.3s;
+    }
+
+    .portfolio-link:hover {
+        background: var(--primary);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .cv-download-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 24px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        text-decoration: none;
+        border-radius: 10px;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        transition: all 0.3s;
+    }
+
+    .cv-download-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+        color: white;
+    }
+
+    @@media (max-width: 968px) {
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .profile-header-card {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .profile-header-content {
+            width: 100%;
+        }
+    }
+
+    @@media (max-width: 640px) {
+        .profile-wrapper {
+            padding: 10px 10px 20px;
+        }
+
+        .profile-header-card {
+            padding: 30px 20px;
+            flex-direction: column;
+        }
+
+        .avatar-circle {
+            width: 120px;
+            height: 120px;
+            font-size: 48px;
+        }
+
+        .profile-name {
+            font-size: 28px;
+        }
+
+        .profile-title {
+            font-size: 16px;
+        }
+
+        .info-card {
+            padding: 20px;
+        }
+    }
+</style>
+
+<div class="profile-wrapper">
+    <div class="profile-header-card">
+        <div class="avatar-wrapper">
+            <div class="avatar-circle">
+                @if (!string.IsNullOrEmpty(Model.User?.Avatar))
+                {
+                    <img src="@Model.User.Avatar" alt="@Model.HoTen">
+                }
+                else
+                {
+                    @Model.HoTen.Substring(0, Math.Min(2, Model.HoTen.Length)).ToUpper()
+                }
+            </div>
+        </div>
+        <div class="profile-header-content">
+            <div class="profile-name-section">
+                <h1 class="profile-name">
+                    <span>@Model.HoTen</span>
+                    @if (emailConfirmed)
+                    {
+                        <span class="email-verified-badge-name" title="Email đã được xác thực">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span>Đã xác thực</span>
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="email-unverified-badge-name" title="Email chưa được xác thực">
+                            <i class="bi bi-x-circle-fill"></i>
+                            <span>Chưa xác thực</span>
+                        </span>
+                    }
+                </h1>
+                @if (!string.IsNullOrEmpty(Model.ViTriMongMuon))
+                {
+                    <div class="profile-title">
+                        <i class="bi bi-briefcase-fill"></i>
+                        <span>@Model.ViTriMongMuon</span>
+                    </div>
+                }
+                <div class="profile-badges">
+                    @if (Model.MucLuongKyVong.HasValue)
+                    {
+                        <span class="badge">
+                            <i class="bi bi-cash-coin"></i>
+                            <span>@Model.MucLuongKyVong.Value.ToString("N0") triệu VNĐ</span>
+                        </span>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.TrangThaiTimViec))
+                    {
+                        <span class="badge badge-secondary">
+                            <i class="bi bi-info-circle-fill"></i>
+                            <span>@Model.TrangThaiTimViec</span>
+                        </span>
+                    }
+                    @if (Model.ChuyenNganh != null)
+                    {
+                        <span class="badge badge-secondary">
+                            <i class="bi bi-book-fill"></i>
+                            <span>@Model.ChuyenNganh.TenChuyenNganh</span>
+                        </span>
+                    }
+                </div>
+            </div>
+            @if (isOwner)
+            {
+                <div class="profile-actions">
+                    <a href="@Url.Action("HoSoUngVien", "Candidate", new { area = "Candidate" })" class="btn-edit">
+                        <i class="bi bi-pencil-square"></i>
+                        <span>Chỉnh sửa hồ sơ</span>
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="content-grid">
+        <div class="sidebar">
+            <div class="info-card">
+                <h3 class="card-title">
+                    <i class="bi bi-person-circle"></i>
+                    <span>Thông tin liên hệ</span>
+                </h3>
+                @if (!string.IsNullOrEmpty(Model.Email))
+                {
+                    <div class="info-row">
+                        <div class="info-icon-wrapper">
+                            <i class="bi bi-envelope-fill"></i>
+                        </div>
+                        <div class="info-content-wrapper">
+                            <div class="info-label">Email</div>
+                            <div class="info-value">
+                                <a href="mailto:@Model.Email">@Model.Email</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.SoDienThoai))
+                {
+                    <div class="info-row">
+                        <div class="info-icon-wrapper">
+                            <i class="bi bi-telephone-fill"></i>
+                        </div>
+                        <div class="info-content-wrapper">
+                            <div class="info-label">Số điện thoại</div>
+                            <div class="info-value">
+                                <a href="tel:@Model.SoDienThoai">@Model.SoDienThoai</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.DiaChi))
+                {
+                    <div class="info-row">
+                        <div class="info-icon-wrapper">
+                            <i class="bi bi-house-door-fill"></i>
+                        </div>
+                        <div class="info-content-wrapper">
+                            <div class="info-label">Địa chỉ</div>
+                            <div class="info-value">@Model.DiaChi</div>
+                        </div>
+                    </div>
+                }
+                @if (Model.NgaySinh != default(DateTime) && Model.NgaySinh.Year > 1900)
+                {
+                    <div class="info-row">
+                        <div class="info-icon-wrapper">
+                            <i class="bi bi-calendar-event-fill"></i>
+                        </div>
+                        <div class="info-content-wrapper">
+                            <div class="info-label">Ngày sinh</div>
+                            <div class="info-value">@Model.NgaySinh.ToString("dd/MM/yyyy")</div>
+                        </div>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.GioiTinh))
+                {
+                    <div class="info-row">
+                        <div class="info-icon-wrapper">
+                            <i class="bi bi-gender-ambiguous"></i>
+                        </div>
+                        <div class="info-content-wrapper">
+                            <div class="info-label">Giới tính</div>
+                            <div class="info-value">@Model.GioiTinh</div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="info-card">
+                <h3 class="card-title">
+                    <i class="bi bi-briefcase-fill"></i>
+                    <span>Thông tin nghề nghiệp</span>
+                </h3>
+                @if (!string.IsNullOrEmpty(Model.ViTriMongMuon))
+                {
+                    <div class="info-row">
+                        <div class="info-icon-wrapper">
+                            <i class="bi bi-briefcase-fill"></i>
+                        </div>
+                        <div class="info-content-wrapper">
+                            <div class="info-label">Vị trí mong muốn</div>
+                            <div class="info-value">@Model.ViTriMongMuon</div>
+                        </div>
+                    </div>
+                }
+                @if (Model.ChuyenNganh != null)
+                {
+                    <div class="info-row">
+                        <div class="info-icon-wrapper">
+                            <i class="bi bi-book-fill"></i>
+                        </div>
+                        <div class="info-content-wrapper">
+                            <div class="info-label">Chuyên ngành</div>
+                            <div class="info-value">
+                                @Model.ChuyenNganh.TenChuyenNganh
+                                @if (Model.ChuyenNganh.NganhNghe != null)
+                                {
+                                    <span style="color: var(--text-muted); font-weight: 400;"> - @Model.ChuyenNganh.NganhNghe.TenNganhNghe</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.ChuyenNganhKhac))
+                {
+                    <div class="info-row">
+                        <div class="info-icon-wrapper">
+                            <i class="bi bi-bookmark-fill"></i>
+                        </div>
+                        <div class="info-content-wrapper">
+                            <div class="info-label">Chuyên ngành khác</div>
+                            <div class="info-value">@Model.ChuyenNganhKhac</div>
+                        </div>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.NoiLamViecMongMuon))
+                {
+                    <div class="info-row">
+                        <div class="info-icon-wrapper">
+                            <i class="bi bi-geo-alt-fill"></i>
+                        </div>
+                        <div class="info-content-wrapper">
+                            <div class="info-label">Nơi làm việc mong muốn</div>
+                            <div class="info-value">@Model.NoiLamViecMongMuon</div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.LinkGitHub) || !string.IsNullOrEmpty(Model.LinkBehance) || !string.IsNullOrEmpty(Model.LinkPortfolio))
+            {
+                <div class="info-card">
+                    <h3 class="card-title">
+                        <i class="bi bi-link-45deg"></i>
+                        <span>Portfolio</span>
+                    </h3>
+                    <div class="portfolio-links">
+                        @if (!string.IsNullOrEmpty(Model.LinkGitHub))
+                        {
+                            <a href="@Model.LinkGitHub" target="_blank" class="portfolio-link">
+                                <i class="bi bi-github"></i>
+                                <span>GitHub</span>
+                            </a>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.LinkBehance))
+                        {
+                            <a href="@Model.LinkBehance" target="_blank" class="portfolio-link">
+                                <i class="bi bi-behance"></i>
+                                <span>Behance</span>
+                            </a>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.LinkPortfolio))
+                        {
+                            <a href="@Model.LinkPortfolio" target="_blank" class="portfolio-link">
+                                <i class="bi bi-globe"></i>
+                                <span>Portfolio</span>
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="main-content">
+            @if (!string.IsNullOrEmpty(Model.MoTaBanThan))
+            {
+                <div class="info-card">
+                    <h3 class="card-title">
+                        <i class="bi bi-person-badge"></i>
+                        <span>Giới thiệu</span>
+                    </h3>
+                    <div class="content-text">
+                        @Html.Raw(Model.MoTaBanThan)
+                    </div>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.MucTieuNgheNghiep))
+            {
+                <div class="info-card">
+                    <h3 class="card-title">
+                        <i class="bi bi-bullseye"></i>
+                        <span>Mục tiêu nghề nghiệp</span>
+                    </h3>
+                    <div class="content-text">
+                        @Html.Raw(Model.MucTieuNgheNghiep)
+                    </div>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.HocVanChiTiet))
+            {
+                <div class="info-card">
+                    <h3 class="card-title">
+                        <i class="bi bi-mortarboard-fill"></i>
+                        <span>Học vấn</span>
+                    </h3>
+                    <div class="content-text">
+                        @Html.Raw(Model.HocVanChiTiet)
+                    </div>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.KinhNghiemChiTiet))
+            {
+                <div class="info-card">
+                    <h3 class="card-title">
+                        <i class="bi bi-briefcase-fill"></i>
+                        <span>Kinh nghiệm làm việc</span>
+                    </h3>
+                    <div class="content-text">
+                        @Html.Raw(Model.KinhNghiemChiTiet)
+                    </div>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.KyNangChiTiet))
+            {
+                <div class="info-card">
+                    <h3 class="card-title">
+                        <i class="bi bi-star-fill"></i>
+                        <span>Kỹ năng</span>
+                    </h3>
+                    <div class="content-text">
+                        @Html.Raw(Model.KyNangChiTiet)
+                    </div>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.ChungChi))
+            {
+                <div class="info-card">
+                    <h3 class="card-title">
+                        <i class="bi bi-award-fill"></i>
+                        <span>Chứng chỉ</span>
+                    </h3>
+                    <div class="content-text">
+                        @Html.Raw(Model.ChungChi)
+                    </div>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.CVFile))
+            {
+                <div class="info-card">
+                    <h3 class="card-title">
+                        <i class="bi bi-file-earmark-pdf-fill"></i>
+                        <span>CV</span>
+                    </h3>
+                    <div style="padding-top: 8px;">
+                        <a href="@Model.CVFile" target="_blank" class="cv-download-btn">
+                            <i class="bi bi-download"></i>
+                            <span>Xem và tải CV</span>
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+

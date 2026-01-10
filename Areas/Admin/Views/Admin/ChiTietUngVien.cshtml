@@ -1,0 +1,898 @@
+@model Unicareer.Models.UngVien
+
+@{
+    ViewData["Title"] = "Chi tiết Ứng viên";
+    var danhSachChuyenNganh = ViewBag.DanhSachChuyenNganh as List<Unicareer.Models.ChuyenNganh> ?? new List<Unicareer.Models.ChuyenNganh>();
+    var danhSachNganhNghe = ViewBag.DanhSachNganhNghe as List<Unicareer.Models.NganhNghe> ?? new List<Unicareer.Models.NganhNghe>();
+    var danhSachTinhThanh = ViewBag.DanhSachTinhThanh as List<Unicareer.Models.Province> ?? new List<Unicareer.Models.Province>();
+    var danhSachTinTuyenDung = ViewBag.DanhSachTinTuyenDung as List<dynamic> ?? new List<dynamic>();
+}
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+    }
+
+    .page-header h1 {
+        font-weight: 700;
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .info-section {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 25px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        border: 1px solid #e9ecef;
+    }
+
+    .info-section h4 {
+        color: #2d3748;
+        font-weight: 600;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid #667eea;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 8px;
+    }
+
+    .info-value {
+        color: #4b5563;
+        margin-bottom: 15px;
+        padding: 10px;
+        background: #f9fafb;
+        border-radius: 8px;
+    }
+
+    .info-value.empty {
+        color: #9ca3af;
+        font-style: italic;
+    }
+
+    .badge-custom {
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    .table-responsive {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .table thead {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+
+    .table thead th {
+        border: none;
+        padding: 18px 16px;
+        font-weight: 700;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #495057;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #f1f3f5;
+    }
+
+    .table tbody tr:hover {
+        background: linear-gradient(90deg, rgba(102, 126, 234, 0.05) 0%, transparent 100%);
+    }
+
+    .table tbody td {
+        padding: 16px;
+        vertical-align: middle;
+        border: none;
+    }
+
+    .btn-back {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 12px;
+        padding: 12px 30px;
+        font-weight: 600;
+        color: white;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-back:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        color: white;
+    }
+
+    .html-content {
+        line-height: 1.8;
+    }
+
+    .html-content p {
+        margin-bottom: 10px;
+    }
+
+    .html-content ul, .html-content ol {
+        margin-left: 20px;
+        margin-bottom: 10px;
+    }
+
+    .form-control, .form-select {
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 12px 16px;
+        transition: all 0.3s;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .editor-container {
+        margin-bottom: 10px;
+    }
+
+    /* Quill Editor Styles */
+    .ql-container {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 14px;
+        border-radius: 0 0 8px 8px;
+    }
+
+    .ql-toolbar {
+        border-radius: 8px 8px 0 0;
+        border: 1px solid #e2e8f0;
+        background: #f7fafc;
+    }
+
+    .ql-container {
+        border: 1px solid #e2e8f0;
+        border-top: none;
+        min-height: 200px;
+    }
+
+    .ql-container:focus-within,
+    .ql-toolbar:focus-within {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+</style>
+
+<div class="page-header">
+    <h1><i class="bi bi-person-badge"></i> Chi tiết Ứng viên</h1>
+    <p>Thông tin đầy đủ về hồ sơ ứng viên</p>
+</div>
+
+<div class="mb-3 d-flex justify-content-between align-items-center">
+    <a href="@Url.Action("UngVien", "Admin", new { area = "Admin" })" class="btn btn-back">
+        <i class="bi bi-arrow-left"></i> Quay lại danh sách
+    </a>
+    <button type="button" class="btn btn-success" id="btnChinhSua">
+        <i class="bi bi-pencil"></i> Chỉnh sửa
+    </button>
+    <button type="button" class="btn btn-secondary" id="btnHuy" style="display: none;">
+        <i class="bi bi-x-circle"></i> Hủy
+    </button>
+</div>
+
+<div id="alertContainer"></div>
+
+<form id="formChinhSuaUngVien" method="post" action="@Url.Action("CapNhatUngVien", "Admin", new { area = "Admin" })">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" value="@Model?.MaUngVien" />
+
+<!-- Thông tin cá nhân -->
+<div class="info-section">
+    <h4><i class="bi bi-person"></i> Thông tin cá nhân</h4>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="info-label">Họ tên</div>
+            <div class="info-value view-mode">@(Model?.HoTen ?? "Chưa cập nhật")</div>
+            <input type="text" class="form-control edit-mode" name="hoTen" value="@Model?.HoTen" style="display: none;" />
+        </div>
+        <div class="col-md-6">
+            <div class="info-label">Email</div>
+            <div class="info-value view-mode">@(Model?.Email ?? "Chưa cập nhật")</div>
+            <input type="email" class="form-control edit-mode" name="email" value="@Model?.Email" style="display: none;" />
+        </div>
+        <div class="col-md-6">
+            <div class="info-label">Số điện thoại</div>
+            <div class="info-value view-mode">@(Model?.SoDienThoai ?? "Chưa cập nhật")</div>
+            <input type="text" class="form-control edit-mode" name="soDienThoai" value="@Model?.SoDienThoai" style="display: none;" />
+        </div>
+        <div class="col-md-6">
+            <div class="info-label">Ngày sinh</div>
+            <div class="info-value view-mode">@(Model?.NgaySinh.ToString("dd/MM/yyyy") ?? "Chưa cập nhật")</div>
+            <input type="date" class="form-control edit-mode" name="ngaySinh" value="@(Model?.NgaySinh.ToString("yyyy-MM-dd") ?? "")" style="display: none;" />
+        </div>
+        <div class="col-md-6">
+            <div class="info-label">Giới tính</div>
+            <div class="info-value view-mode">@(Model?.GioiTinh ?? "Chưa cập nhật")</div>
+            <select class="form-select edit-mode" name="gioiTinh" style="display: none;">
+                <option value="">Chọn giới tính</option>
+                @if (Model?.GioiTinh == "Nam")
+                {
+                    <option value="Nam" selected>Nam</option>
+                }
+                else
+                {
+                    <option value="Nam">Nam</option>
+                }
+                @if (Model?.GioiTinh == "Nữ")
+                {
+                    <option value="Nữ" selected>Nữ</option>
+                }
+                else
+                {
+                    <option value="Nữ">Nữ</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-6">
+            <div class="info-label">Địa chỉ</div>
+            <div class="info-value view-mode">@(Model?.DiaChi ?? "Chưa cập nhật")</div>
+            <input type="text" class="form-control edit-mode" name="diaChi" value="@Model?.DiaChi" style="display: none;" />
+        </div>
+        <div class="col-md-6">
+            <div class="info-label">Ngày đăng ký</div>
+            <div class="info-value">@(Model?.NgayDangKy.ToString("dd/MM/yyyy") ?? "Chưa cập nhật")</div>
+        </div>
+    </div>
+</div>
+
+<!-- Thông tin nghề nghiệp -->
+<div class="info-section">
+    <h4><i class="bi bi-briefcase"></i> Thông tin nghề nghiệp</h4>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="info-label">Vị trí mong muốn</div>
+            <div class="info-value view-mode @(string.IsNullOrEmpty(Model?.ViTriMongMuon) ? "empty" : "")">
+                @(Model?.ViTriMongMuon ?? "Chưa cập nhật")
+            </div>
+            <input type="text" class="form-control edit-mode" name="viTriMongMuon" value="@Model?.ViTriMongMuon" style="display: none;" />
+        </div>
+        <div class="col-md-6">
+            <div class="info-label">Chuyên ngành</div>
+            <div class="info-value view-mode">
+                @if (Model?.ChuyenNganh != null)
+                {
+                    <span class="badge-custom bg-info">@Model.ChuyenNganh.TenChuyenNganh</span>
+                }
+                else if (!string.IsNullOrEmpty(Model?.ChuyenNganhKhac))
+                {
+                    <span class="badge-custom bg-info">@Model.ChuyenNganhKhac</span>
+                }
+                else
+                {
+                    <span class="empty">Chưa cập nhật</span>
+                }
+            </div>
+            <select class="form-select edit-mode" name="maChuyenNganh" style="display: none;">
+                <option value="">Chọn chuyên ngành</option>
+                @foreach (var chuyenNganh in danhSachChuyenNganh)
+                {
+                    @if (Model?.MaChuyenNganh == chuyenNganh.MaChuyenNganh)
+                    {
+                        <option value="@chuyenNganh.MaChuyenNganh" selected>@chuyenNganh.TenChuyenNganh</option>
+                    }
+                    else
+                    {
+                        <option value="@chuyenNganh.MaChuyenNganh">@chuyenNganh.TenChuyenNganh</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-md-6">
+            <div class="info-label">Chuyên ngành khác</div>
+            <div class="info-value view-mode @(string.IsNullOrEmpty(Model?.ChuyenNganhKhac) ? "empty" : "")">
+                @(Model?.ChuyenNganhKhac ?? "Chưa cập nhật")
+            </div>
+            <input type="text" class="form-control edit-mode" name="chuyenNganhKhac" value="@Model?.ChuyenNganhKhac" style="display: none;" />
+        </div>
+        <div class="col-md-6">
+            <div class="info-label">Mức lương kỳ vọng</div>
+            <div class="info-value view-mode @(Model?.MucLuongKyVong == null ? "empty" : "")">
+                @if (Model != null && Model.MucLuongKyVong.HasValue)
+                {
+                    <span>@Model.MucLuongKyVong.Value.ToString("N1") triệu VNĐ</span>
+                }
+                else
+                {
+                    <span>Chưa cập nhật</span>
+                }
+            </div>
+            <input type="number" class="form-control edit-mode" name="mucLuongKyVong" value="@Model?.MucLuongKyVong" step="0.1" min="0" style="display: none;" />
+        </div>
+        <div class="col-md-6">
+            <div class="info-label">Nơi làm việc mong muốn</div>
+            <div class="info-value view-mode @(string.IsNullOrEmpty(Model?.NoiLamViecMongMuon) ? "empty" : "")">
+                @(Model?.NoiLamViecMongMuon ?? "Chưa cập nhật")
+            </div>
+            <select class="form-select edit-mode" name="noiLamViecMongMuon" style="display: none;">
+                <option value="">Chọn tỉnh/thành phố</option>
+                @foreach (var tinh in danhSachTinhThanh)
+                {
+                    @if (Model?.NoiLamViecMongMuon == tinh.FullName)
+                    {
+                        <option value="@tinh.FullName" selected>@tinh.FullName</option>
+                    }
+                    else
+                    {
+                        <option value="@tinh.FullName">@tinh.FullName</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-md-6">
+            <div class="info-label">Trạng thái tìm việc</div>
+            <div class="info-value view-mode">
+                @if (!string.IsNullOrEmpty(Model?.TrangThaiTimViec))
+                {
+                    <span class="badge-custom bg-warning text-dark">@Model.TrangThaiTimViec</span>
+                }
+                else
+                {
+                    <span class="empty">Chưa cập nhật</span>
+                }
+            </div>
+            <select class="form-select edit-mode" name="trangThaiTimViec" style="display: none;">
+                <option value="">Chọn trạng thái</option>
+                @if (Model?.TrangThaiTimViec == "Đang tìm việc")
+                {
+                    <option value="Đang tìm việc" selected>Đang tìm việc</option>
+                }
+                else
+                {
+                    <option value="Đang tìm việc">Đang tìm việc</option>
+                }
+                @if (Model?.TrangThaiTimViec == "Đang thực tập")
+                {
+                    <option value="Đang thực tập" selected>Đang thực tập</option>
+                }
+                else
+                {
+                    <option value="Đang thực tập">Đang thực tập</option>
+                }
+                @if (Model?.TrangThaiTimViec == "Đã có việc")
+                {
+                    <option value="Đã có việc" selected>Đã có việc</option>
+                }
+                else
+                {
+                    <option value="Đã có việc">Đã có việc</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-6">
+            <div class="info-label">Hiển thị công khai</div>
+            <div class="info-value view-mode">
+                @if (Model != null && Model.HienThiCongKhai)
+                {
+                    <span class="badge-custom bg-success">Có</span>
+                }
+                else
+                {
+                    <span class="badge-custom bg-secondary">Không</span>
+                }
+            </div>
+            <div class="edit-mode" style="display: none;">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="hienThiCongKhai" id="hienThiCongKhai" @(Model != null && Model.HienThiCongKhai ? "checked" : "") />
+                    <label class="form-check-label" for="hienThiCongKhai">Hiển thị công khai</label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CV và hồ sơ -->
+<div class="info-section">
+    <h4><i class="bi bi-file-earmark-person"></i> CV và hồ sơ cá nhân</h4>
+    
+    <div class="mb-3">
+        <div class="info-label">CV</div>
+        <div class="info-value">
+            @if (!string.IsNullOrEmpty(Model?.CVFile))
+            {
+                <a href="@Model.CVFile" target="_blank" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-file-earmark-pdf"></i> Xem CV
+                </a>
+            }
+            else
+            {
+                <span class="empty">Chưa tải lên CV</span>
+            }
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <div class="info-label">Mục tiêu nghề nghiệp</div>
+        <div class="info-value html-content view-mode @(string.IsNullOrEmpty(Model?.MucTieuNgheNghiep) ? "empty" : "")">
+            @if (!string.IsNullOrEmpty(Model?.MucTieuNgheNghiep))
+            {
+                @Html.Raw(Model.MucTieuNgheNghiep)
+            }
+            else
+            {
+                <span>Chưa cập nhật</span>
+            }
+        </div>
+        <div class="edit-mode" style="display: none;">
+            <div id="editor-mucTieuNgheNghiep" class="editor-container"></div>
+            <textarea name="mucTieuNgheNghiep" style="display: none;">@Model?.MucTieuNgheNghiep</textarea>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <div class="info-label">Học vấn (chi tiết)</div>
+        <div class="info-value html-content view-mode @(string.IsNullOrEmpty(Model?.HocVanChiTiet) ? "empty" : "")">
+            @if (!string.IsNullOrEmpty(Model?.HocVanChiTiet))
+            {
+                @Html.Raw(Model.HocVanChiTiet)
+            }
+            else
+            {
+                <span>Chưa cập nhật</span>
+            }
+        </div>
+        <div class="edit-mode" style="display: none;">
+            <div id="editor-hocVanChiTiet" class="editor-container"></div>
+            <textarea name="hocVanChiTiet" style="display: none;">@Model?.HocVanChiTiet</textarea>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <div class="info-label">Kinh nghiệm làm việc (chi tiết)</div>
+        <div class="info-value html-content view-mode @(string.IsNullOrEmpty(Model?.KinhNghiemChiTiet) ? "empty" : "")">
+            @if (!string.IsNullOrEmpty(Model?.KinhNghiemChiTiet))
+            {
+                @Html.Raw(Model.KinhNghiemChiTiet)
+            }
+            else
+            {
+                <span>Chưa cập nhật</span>
+            }
+        </div>
+        <div class="edit-mode" style="display: none;">
+            <div id="editor-kinhNghiemChiTiet" class="editor-container"></div>
+            <textarea name="kinhNghiemChiTiet" style="display: none;">@Model?.KinhNghiemChiTiet</textarea>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <div class="info-label">Kỹ năng (chi tiết)</div>
+        <div class="info-value html-content view-mode @(string.IsNullOrEmpty(Model?.KyNangChiTiet) ? "empty" : "")">
+            @if (!string.IsNullOrEmpty(Model?.KyNangChiTiet))
+            {
+                @Html.Raw(Model.KyNangChiTiet)
+            }
+            else
+            {
+                <span>Chưa cập nhật</span>
+            }
+        </div>
+        <div class="edit-mode" style="display: none;">
+            <div id="editor-kyNangChiTiet" class="editor-container"></div>
+            <textarea name="kyNangChiTiet" style="display: none;">@Model?.KyNangChiTiet</textarea>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <div class="info-label">Chứng chỉ</div>
+        <div class="info-value html-content view-mode @(string.IsNullOrEmpty(Model?.ChungChi) ? "empty" : "")">
+            @if (!string.IsNullOrEmpty(Model?.ChungChi))
+            {
+                @Html.Raw(Model.ChungChi)
+            }
+            else
+            {
+                <span>Chưa cập nhật</span>
+            }
+        </div>
+        <div class="edit-mode" style="display: none;">
+            <div id="editor-chungChi" class="editor-container"></div>
+            <textarea name="chungChi" style="display: none;">@Model?.ChungChi</textarea>
+        </div>
+    </div>
+</div>
+
+<!-- Portfolio -->
+<div class="info-section">
+    <h4><i class="bi bi-link-45deg"></i> Portfolio / Dự án thực tế</h4>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="info-label">Link GitHub</div>
+            <div class="info-value view-mode">
+                @if (!string.IsNullOrEmpty(Model?.LinkGitHub))
+                {
+                    <a href="@Model.LinkGitHub" target="_blank" class="text-primary">
+                        <i class="bi bi-github"></i> @Model.LinkGitHub
+                    </a>
+                }
+                else
+                {
+                    <span class="empty">Chưa cập nhật</span>
+                }
+            </div>
+            <input type="url" class="form-control edit-mode" name="linkGitHub" value="@Model?.LinkGitHub" style="display: none;" />
+        </div>
+        <div class="col-md-4">
+            <div class="info-label">Link Behance</div>
+            <div class="info-value view-mode">
+                @if (!string.IsNullOrEmpty(Model?.LinkBehance))
+                {
+                    <a href="@Model.LinkBehance" target="_blank" class="text-primary">
+                        <i class="bi bi-behance"></i> @Model.LinkBehance
+                    </a>
+                }
+                else
+                {
+                    <span class="empty">Chưa cập nhật</span>
+                }
+            </div>
+            <input type="url" class="form-control edit-mode" name="linkBehance" value="@Model?.LinkBehance" style="display: none;" />
+        </div>
+        <div class="col-md-4">
+            <div class="info-label">Link Portfolio khác</div>
+            <div class="info-value view-mode">
+                @if (!string.IsNullOrEmpty(Model?.LinkPortfolio))
+                {
+                    <a href="@Model.LinkPortfolio" target="_blank" class="text-primary">
+                        <i class="bi bi-link-45deg"></i> @Model.LinkPortfolio
+                    </a>
+                }
+                else
+                {
+                    <span class="empty">Chưa cập nhật</span>
+                }
+            </div>
+            <input type="url" class="form-control edit-mode" name="linkPortfolio" value="@Model?.LinkPortfolio" style="display: none;" />
+        </div>
+    </div>
+</div>
+
+<!-- Mô tả bản thân -->
+<div class="info-section">
+    <h4><i class="bi bi-chat-quote"></i> Mô tả bản thân</h4>
+    <div class="info-value html-content view-mode @(string.IsNullOrEmpty(Model?.MoTaBanThan) ? "empty" : "")">
+        @if (!string.IsNullOrEmpty(Model?.MoTaBanThan))
+        {
+            @Html.Raw(Model.MoTaBanThan)
+        }
+        else
+        {
+            <span>Chưa cập nhật</span>
+        }
+    </div>
+    <div class="edit-mode" style="display: none;">
+        <div id="editor-moTaBanThan" class="editor-container"></div>
+        <textarea name="moTaBanThan" style="display: none;">@Model?.MoTaBanThan</textarea>
+    </div>
+</div>
+
+<!-- Nút lưu (chỉ hiện khi ở chế độ edit) -->
+<div class="text-center mb-5" id="btnLuuContainer" style="display: none;">
+    <button type="button" class="btn btn-success btn-lg" id="btnLuu">
+        <i class="bi bi-save"></i> Lưu thay đổi
+    </button>
+</div>
+</form>
+
+<div id="danhSachTinUngTuyenContainer">
+    @Html.Partial("_DanhSachTinUngTuyen", danhSachTinTuyenDung)
+</div>
+
+@section Scripts {
+    <!-- Quill Editor CSS -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <!-- Quill Editor JS -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            var editors = {};
+            var isEditMode = false;
+            var editorsInitialized = false;
+
+            // Chuyển sang chế độ chỉnh sửa
+            $('#btnChinhSua').click(function() {
+                isEditMode = true;
+                $('.view-mode').hide();
+                $('.edit-mode').show();
+                $('#btnChinhSua').hide();
+                $('#btnHuy').show();
+                $('#btnLuuContainer').show();
+
+                // Khởi tạo Quill editors chỉ một lần duy nhất
+                if (typeof Quill !== 'undefined' && !editorsInitialized) {
+                    setTimeout(function() {
+                        initializeQuillEditors();
+                        editorsInitialized = true;
+                    }, 50);
+                }
+            });
+
+            // Hủy chỉnh sửa
+            $('#btnHuy').click(function() {
+                isEditMode = false;
+                $('.view-mode').show();
+                $('.edit-mode').hide();
+                $('#btnChinhSua').show();
+                $('#btnHuy').hide();
+                $('#btnLuuContainer').hide();
+            });
+
+            // Khởi tạo Quill editors
+            function initializeQuillEditors() {
+                var editorFields = ['mucTieuNgheNghiep', 'hocVanChiTiet', 'kinhNghiemChiTiet', 'kyNangChiTiet', 'chungChi', 'moTaBanThan'];
+                
+                editorFields.forEach(function(fieldName) {
+                    var editorContainer = document.getElementById('editor-' + fieldName);
+                    var textarea = $('textarea[name="' + fieldName + '"]')[0];
+                    
+                    if (editorContainer && !editors[fieldName] && typeof Quill !== 'undefined') {
+                        var quill = new Quill(editorContainer, {
+                            theme: 'snow',
+                            modules: {
+                                toolbar: [
+                                    [{ 'header': [1, 2, 3, false] }],
+                                    ['bold', 'italic', 'underline', 'strike'],
+                                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                    [{ 'color': [] }, { 'background': [] }],
+                                    [{ 'align': [] }],
+                                    ['link', 'image'],
+                                    ['clean']
+                                ]
+                            }
+                        });
+
+                        // Load existing content
+                        if (textarea && textarea.value) {
+                            quill.root.innerHTML = textarea.value;
+                        }
+
+                        // Update hidden textarea when editor content changes
+                        quill.on('text-change', function() {
+                            if (textarea) {
+                                textarea.value = quill.root.innerHTML;
+                            }
+                        });
+
+                        editors[fieldName] = quill;
+                    }
+                });
+            }
+
+            // Lưu thay đổi
+            $('#btnLuu').click(function() {
+                // Sync all Quill editors before submit
+                Object.keys(editors).forEach(function(fieldName) {
+                    if (editors[fieldName]) {
+                        var textarea = $('textarea[name="' + fieldName + '"]')[0];
+                        if (textarea) {
+                            textarea.value = editors[fieldName].root.innerHTML;
+                        }
+                    }
+                });
+
+                var form = $('#formChinhSuaUngVien');
+                var formData = new FormData(form[0]);
+
+                // Thêm tất cả các input từ edit-mode
+                $('.edit-mode input, .edit-mode select, .edit-mode textarea').each(function() {
+                    var name = $(this).attr('name');
+                    var value = $(this).val();
+                    if (name && value !== undefined) {
+                        formData.append(name, value);
+                    }
+                });
+
+                // Xử lý checkbox
+                var hienThiCongKhai = $('#hienThiCongKhai').is(':checked');
+                formData.set('hienThiCongKhai', hienThiCongKhai ? 'true' : 'false');
+
+                var btnLuu = $(this);
+                var originalText = btnLuu.html();
+                btnLuu.prop('disabled', true);
+                btnLuu.html('<i class="bi bi-hourglass-split"></i> Đang lưu...');
+
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            showAlert('success', response.message);
+                            setTimeout(function() {
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            showAlert('danger', response.message);
+                            btnLuu.prop('disabled', false);
+                            btnLuu.html(originalText);
+                        }
+                    },
+                    error: function(xhr) {
+                        var message = 'Có lỗi xảy ra khi lưu thông tin!';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            message = xhr.responseJSON.message;
+                        }
+                        showAlert('danger', message);
+                        btnLuu.prop('disabled', false);
+                        btnLuu.html(originalText);
+                    }
+                });
+            });
+
+            function showAlert(type, message) {
+                $('#alertContainer').html(
+                    '<div class="alert alert-' + type + ' alert-dismissible fade show" role="alert">' +
+                    message +
+                    '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                    '</div>'
+                );
+                
+                setTimeout(function() {
+                    $('#alertContainer .alert').fadeOut();
+                }, 5000);
+            }
+
+            function loadDanhSachTinUngTuyen() {
+                var search = $('#filterTimKiemTin').val() || '';
+                var trangThai = $('#filterTrangThai').val() || '';
+                var nganhNghe = $('#filterNganhNghe').val() || '';
+                var ungVienId = @Model?.MaUngVien ?? 0;
+
+                $.ajax({
+                    url: '@Url.Action("LayDanhSachTinUngTuyenFiltered", "Admin", new { area = "Admin" })',
+                    type: 'GET',
+                    data: {
+                        id: ungVienId,
+                        search: search,
+                        trangThai: trangThai,
+                        nganhNghe: nganhNghe
+                    },
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    beforeSend: function() {
+                        $('#danhSachTinUngTuyenContainer').css('opacity', '0.5');
+                    },
+                    success: function(response) {
+                        $('#danhSachTinUngTuyenContainer').html(response);
+                        $('#danhSachTinUngTuyenContainer').css('opacity', '1');
+                        bindXoaTinUngTuyenEvents();
+                    },
+                    error: function() {
+                        showNotification('Có lỗi xảy ra khi tải dữ liệu', 'error');
+                        $('#danhSachTinUngTuyenContainer').css('opacity', '1');
+                    }
+                });
+            }
+
+            function bindXoaTinUngTuyenEvents() {
+                $('.btnXoaTinUngTuyen').off('click').on('click', function() {
+                    var btn = $(this);
+                    var maTinUngTuyen = btn.data('ma-tin-ung-tuyen');
+                    var tenViecLam = btn.data('ten-viec-lam');
+                    
+                    if (!confirm('Bạn có chắc chắn muốn xóa tin ứng tuyển vào "' + tenViecLam + '"?')) {
+                        return;
+                    }
+
+                    btn.prop('disabled', true);
+                    btn.html('<i class="bi bi-hourglass-split"></i>');
+
+                    $.ajax({
+                        url: '@Url.Action("XoaTinUngTuyen", "Admin", new { area = "Admin" })',
+                        type: 'POST',
+                        data: {
+                            id: maTinUngTuyen,
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                showAlert('success', response.message);
+                                loadDanhSachTinUngTuyen();
+                            } else {
+                                showAlert('danger', response.message);
+                                btn.prop('disabled', false);
+                                btn.html('<i class="bi bi-trash"></i>');
+                            }
+                        },
+                        error: function(xhr) {
+                            var message = 'Có lỗi xảy ra khi xóa tin ứng tuyển!';
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                message = xhr.responseJSON.message;
+                            }
+                            showAlert('danger', message);
+                            btn.prop('disabled', false);
+                            btn.html('<i class="bi bi-trash"></i>');
+                        }
+                    });
+                });
+            }
+
+            $(document).on('submit', '#filterFormTinUngTuyen', function(e) {
+                e.preventDefault();
+                loadDanhSachTinUngTuyen();
+            });
+
+            $(document).on('change', '#filterTrangThai, #filterNganhNghe', function() {
+                loadDanhSachTinUngTuyen();
+            });
+
+            $(document).on('keyup', '#filterTimKiemTin', function(e) {
+                if (e.keyCode === 13) {
+                    loadDanhSachTinUngTuyen();
+                }
+            });
+
+            bindXoaTinUngTuyenEvents();
+        });
+
+        // Show notification function
+        function showNotification(message, type) {
+            var bgColor = type === 'success' ? '#48bb78' : type === 'error' ? '#e53e3e' : '#4299e1';
+            var notification = $('<div>')
+                .css({
+                    position: 'fixed',
+                    top: '20px',
+                    right: '20px',
+                    background: bgColor,
+                    color: 'white',
+                    padding: '15px 25px',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                    zIndex: 9999,
+                    fontWeight: '600',
+                    animation: 'slideInRight 0.3s ease'
+                })
+                .text(message)
+                .appendTo('body');
+            
+            setTimeout(function() {
+                notification.fadeOut(400, function() {
+                    $(this).remove();
+                });
+            }, 3000);
+        }
+    </script>
+
+    <style>
+        @@keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+}
+

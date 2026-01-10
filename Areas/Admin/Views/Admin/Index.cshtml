@@ -1,0 +1,229 @@
+@{
+    ViewData["Title"] = "Màn hình chính";
+}
+
+<div class="container-fluid">
+    <div class="row g-4">
+        <!-- Số liệu phân tích -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("Dashboard", "Admin")" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <i class="bi bi-bar-chart-line"></i>
+                    <h5>Số liệu phân tích</h5>
+                </div>
+            </a>
+        </div>
+
+        <!-- Quản lý ứng viên -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("UngVien", "Admin")" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <i class="bi bi-person-badge"></i>
+                    <h5>Quản lý ứng viên</h5>
+                </div>
+            </a>
+        </div>
+
+        <!-- Quản lý nhà tuyển dụng -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("NhaTuyenDung", "Admin")" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <i class="bi bi-building"></i>
+                    <h5>Quản lý nhà tuyển dụng</h5>
+                </div>
+            </a>
+        </div>
+
+        <!-- Quản lý tin tuyển dụng -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("TinTuyenDung", "Admin")" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <i class="bi bi-newspaper"></i>
+                    <h5>Quản lý tin tuyển dụng</h5>
+                </div>
+            </a>
+        </div>
+
+        <!-- Quản lý blog -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("Blog", "Admin")" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <i class="bi bi-journal-text"></i>
+                    <h5>Quản lý blog</h5>
+                </div>
+            </a>
+        </div>
+
+        <!-- Quản lý ngành nghề -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("NganhNghe", "Admin")" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <i class="bi bi-bookmark-star"></i>
+                    <h5>Quản lý ngành nghề</h5>
+                </div>
+            </a>
+        </div>
+
+        <!-- Quản lý chuyên ngành -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("ChuyenNganh", "Admin")" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <i class="bi bi-book-fill"></i>
+                    <h5>Quản lý chuyên ngành</h5>
+                </div>
+            </a>
+        </div>
+
+        <!-- Quản lý loại công việc -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("LoaiCongViec", "Admin")" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <i class="bi bi-briefcase"></i>
+                    <h5>Quản lý loại công việc</h5>
+                </div>
+            </a>
+        </div>
+
+        <!-- Quản lý người dùng -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("UserManagement", "AdminUser")" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <i class="bi bi-people"></i>
+                    <h5>Quản lý người dùng</h5>
+                </div>
+            </a>
+        </div>
+
+        <!-- Quản lý trường đại học -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("TruongDaiHoc", "Admin")" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <i class="bi bi-mortarboard"></i>
+                    <h5>Quản lý trường đại học</h5>
+                </div>
+            </a>
+        </div>
+
+        <!-- Quản lý tỉnh thành -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("Index", "Province")" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <i class="bi bi-geo-alt-fill"></i>
+                    <h5>Quản lý tỉnh thành</h5>
+                </div>
+            </a>
+        </div>
+
+        <!-- Quản lý quận huyện -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("Index", "Ward")" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <i class="bi bi-geo-fill"></i>
+                    <h5>Quản lý quận huyện</h5>
+                </div>
+            </a>
+        </div>
+
+        <!-- Cài đặt hệ thống -->
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <a href="@Url.Action("Settings", "Admin")" class="text-decoration-none">
+                <div class="dashboard-card special-card">
+                    <i class="bi bi-gear-fill"></i>
+                    <h5>Cài đặt hệ thống</h5>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .dashboard-card {
+        background: white;
+        border-radius: 20px;
+        padding: 40px 30px;
+        text-align: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+        cursor: pointer;
+        border: 2px solid transparent;
+        height: 100%;
+        min-height: 180px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 10px 30px rgba(37, 69, 184, 0.15);
+        border-color: #2545B8;
+    }
+
+    .dashboard-card i {
+        font-size: 3.5rem;
+        color: #2545B8;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+    }
+
+    .dashboard-card:hover i {
+        transform: scale(1.1);
+    }
+
+    .dashboard-card h5 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    .special-card {
+        background: linear-gradient(135deg, #84d9d2 0%, #7dc8c2 100%);
+        color: white;
+    }
+
+    .special-card i {
+        color: white;
+    }
+
+    .special-card h5 {
+        color: white;
+    }
+
+    .special-card:hover {
+        border-color: #6bc5bd;
+        box-shadow: 0 10px 30px rgba(132, 217, 210, 0.3);
+    }
+
+    /* Animation */
+    .dashboard-card {
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .col-xl-3:nth-child(1) .dashboard-card { animation-delay: 0.1s; }
+    .col-xl-3:nth-child(2) .dashboard-card { animation-delay: 0.15s; }
+    .col-xl-3:nth-child(3) .dashboard-card { animation-delay: 0.2s; }
+    .col-xl-3:nth-child(4) .dashboard-card { animation-delay: 0.25s; }
+    .col-xl-3:nth-child(5) .dashboard-card { animation-delay: 0.3s; }
+    .col-xl-3:nth-child(6) .dashboard-card { animation-delay: 0.35s; }
+    .col-xl-3:nth-child(7) .dashboard-card { animation-delay: 0.4s; }
+    .col-xl-3:nth-child(8) .dashboard-card { animation-delay: 0.45s; }
+    .col-xl-3:nth-child(9) .dashboard-card { animation-delay: 0.5s; }
+    .col-xl-3:nth-child(10) .dashboard-card { animation-delay: 0.55s; }
+    .col-xl-3:nth-child(11) .dashboard-card { animation-delay: 0.6s; }
+    .col-xl-3:nth-child(12) .dashboard-card { animation-delay: 0.65s; }
+    .col-xl-3:nth-child(13) .dashboard-card { animation-delay: 0.7s; }
+
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>

@@ -1,0 +1,2347 @@
+@model Unicareer.Models.NhaTuyenDung
+
+@{
+    ViewData["Title"] = "Chi tiết Nhà tuyển dụng";
+    var danhSachTinTuyenDung = ViewBag.DanhSachTinTuyenDung as List<Unicareer.Models.TinTuyenDung> ?? new List<Unicareer.Models.TinTuyenDung>();
+}
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 10px 40px rgba(37, 69, 184, 0.3);
+    }
+
+    .page-header h1 {
+        font-weight: 700;
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+
+    .info-card {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        margin-bottom: 25px;
+    }
+
+    .info-card h5 {
+        color: #2d3748;
+        font-weight: 600;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .info-card h5 i {
+        color: #2545B8;
+        font-size: 1.3rem;
+    }
+
+    .info-item {
+        display: flex;
+        padding: 12px 0;
+        border-bottom: 1px solid #f7fafc;
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #718096;
+        min-width: 180px;
+        flex-shrink: 0;
+    }
+
+    .info-value {
+        color: #2d3748;
+        flex: 1;
+    }
+
+    .badge-custom {
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .badge-success {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        color: white;
+    }
+
+    .badge-secondary {
+        background: linear-gradient(135deg, #a0aec0 0%, #718096 100%);
+        color: white;
+    }
+
+    .badge-primary {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        color: white;
+    }
+
+    .badge-info {
+        background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+        color: white;
+    }
+
+    .badge-warning {
+        background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+        color: white;
+    }
+
+    /* Tab Styles */
+    .nav-tabs {
+        border-bottom: 3px solid #e2e8f0;
+        margin-bottom: 25px;
+    }
+
+    .nav-tabs .nav-link {
+        border: none;
+        border-bottom: 3px solid transparent;
+        color: #718096;
+        font-weight: 600;
+        padding: 15px 25px;
+        transition: all 0.3s ease;
+        background: transparent;
+    }
+
+    .nav-tabs .nav-link:hover {
+        border-bottom-color: #cbd5e0;
+        color: #2d3748;
+    }
+
+    .nav-tabs .nav-link.active {
+        color: #2545B8;
+        border-bottom-color: #2545B8;
+        background: transparent;
+    }
+
+    .tab-content {
+        padding: 20px 0;
+    }
+
+    /* Table Styles */
+    .table-responsive {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table thead {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+
+    .table thead th {
+        border: none;
+        color: #2d3748;
+        font-weight: 600;
+        padding: 18px 15px;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f7fafc;
+        transform: scale(1.01);
+    }
+
+    .table tbody td {
+        padding: 18px 15px;
+        vertical-align: middle;
+        border: none;
+    }
+
+    .btn-action {
+        padding: 6px 12px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        margin: 0 2px;
+        border: 2px solid;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .btn-view {
+        border-color: #4299e1;
+        color: #4299e1;
+        background: transparent;
+    }
+
+    .btn-view:hover {
+        background: #4299e1;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .btn-delete {
+        border-color: #f56565;
+        color: #f56565;
+        background: transparent;
+    }
+
+    .btn-delete:hover {
+        background: #f56565;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #a0aec0;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .empty-state h5 {
+        color: #718096;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .empty-state p {
+        color: #a0aec0;
+        margin: 0;
+    }
+
+    .back-button {
+        background: white;
+        border: 2px solid #2545B8;
+        color: #2545B8;
+        padding: 10px 20px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .back-button:hover {
+        background: #2545B8;
+        color: white;
+        transform: translateX(-5px);
+    }
+
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .stat-card {
+        background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        border: 2px solid #e2e8f0;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+
+    .stat-card .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .stat-card .stat-label {
+        font-size: 0.9rem;
+        color: #718096;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-card.primary .stat-number {
+        color: #2545B8;
+    }
+
+    .stat-card.success .stat-number {
+        color: #48bb78;
+    }
+
+    .content-section {
+        margin-bottom: 30px;
+    }
+
+    .content-section h4 {
+        color: #2d3748;
+        font-weight: 600;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    /* Phân trang styles */
+    .pagination {
+        gap: 8px;
+        margin-top: 30px;
+        flex-wrap: wrap;
+    }
+
+    .pagination .page-link {
+        border: 2px solid #e2e8f0;
+        color: #2545B8;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .pagination .page-link:hover {
+        background: #2545B8;
+        color: white;
+        border-color: #2545B8;
+        transform: translateY(-2px);
+    }
+
+    .pagination .page-item.active .page-link {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        border-color: #2545B8;
+        color: white;
+        box-shadow: 0 4px 15px rgba(37, 69, 184, 0.4);
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: #a0aec0;
+        border-color: #e2e8f0;
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    .pagination .page-item.disabled .page-link:hover {
+        background: transparent;
+        transform: none;
+    }
+
+    /* Form tìm kiếm styles */
+    .input-group .form-control,
+    .input-group .form-control-edit {
+        border-radius: 10px 0 0 10px;
+        border-right: none;
+    }
+
+    .input-group .btn {
+        border-radius: 0 10px 10px 0;
+        border-left: 2px solid #e2e8f0;
+        padding: 12px 20px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .input-group .btn-outline-primary {
+        border: 2px solid #e2e8f0;
+        border-left: 2px solid #e2e8f0;
+        color: #2545B8;
+        background: white;
+    }
+
+    .input-group .btn-outline-primary:hover {
+        background: #2545B8;
+        color: white;
+        border-color: #2545B8;
+    }
+
+    .input-group .form-control-edit:focus {
+        border-right: none;
+    }
+
+    .form-select, .form-control {
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 10px 15px;
+        transition: all 0.3s ease;
+    }
+
+    .form-select:focus, .form-control:focus {
+        border-color: #2545B8;
+        box-shadow: 0 0 0 4px rgba(37, 69, 184, 0.1);
+        outline: none;
+    }
+
+    /* Edit Mode Styles */
+    .edit-controls {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .btn-edit {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        border: none;
+        color: white;
+        padding: 12px 25px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-edit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 69, 184, 0.4);
+    }
+
+    .btn-cancel {
+        background: white;
+        border: 2px solid #a0aec0;
+        color: #718096;
+        padding: 12px 25px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-cancel:hover {
+        background: #f7fafc;
+        border-color: #718096;
+        color: #2d3748;
+        transform: translateY(-2px);
+    }
+
+    .btn-save {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        border: none;
+        color: white;
+        padding: 12px 25px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(72, 187, 120, 0.4);
+    }
+
+    .edit-mode .view-content {
+        display: none;
+    }
+
+    .edit-mode .edit-content {
+        display: block;
+    }
+
+    .view-mode .view-content {
+        display: block;
+    }
+
+    .view-mode .edit-content {
+        display: none;
+    }
+
+    .edit-content {
+        display: none;
+    }
+
+    .form-control-edit, .form-select-edit {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        font-family: inherit;
+    }
+
+    .form-control-edit:focus, .form-select-edit:focus {
+        border-color: #2545B8;
+        box-shadow: 0 0 0 4px rgba(37, 69, 184, 0.1);
+        outline: none;
+    }
+
+    textarea.form-control-edit {
+        min-height: 150px;
+        resize: vertical;
+    }
+
+    .edit-field-group {
+        margin-bottom: 20px;
+    }
+
+    .edit-field-group label {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .edit-content .form-section {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 25px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        border: 1px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+
+    .edit-content .form-section:hover {
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        transform: translateY(-2px);
+    }
+
+    .edit-content .form-section h4 {
+        color: #2d3748;
+        font-weight: 600;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid #2545B8;
+        display: inline-block;
+    }
+
+    .edit-content .form-section h4 i {
+        color: #2545B8;
+        margin-right: 10px;
+        font-size: 1.3rem;
+    }
+
+    .required-label::after {
+        content: " *";
+        color: #f56565;
+    }
+
+    /* Logo Display Styles */
+    .logo-display {
+        margin-top: 15px;
+    }
+
+    .logo-preview-view {
+        width: 200px;
+        height: 200px;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background: #f7fafc;
+        position: relative;
+    }
+
+    .logo-preview-view img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+
+    .logo-preview-view.has-image {
+        border-color: #2545B8;
+        box-shadow: 0 4px 15px rgba(37, 69, 184, 0.2);
+    }
+
+    /* Map Styles for View Mode and Edit Mode */
+    .map-container {
+        position: relative;
+        margin-top: 15px;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        border: 2px solid #e2e8f0;
+        background: #f7fafc;
+        z-index: 1;
+        width: 100%;
+    }
+
+    #mapView, #mapEdit {
+        height: 400px;
+        border-radius: 16px;
+        width: 100%;
+        position: relative;
+        z-index: 1;
+    }
+
+    .map-info {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+        padding: 12px 18px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        z-index: 1000;
+        font-size: 0.9rem;
+        font-weight: 600;
+        border: 2px solid #e2e8f0;
+    }
+
+    .map-info i {
+        font-size: 1.2rem;
+        margin-right: 5px;
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @@keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+
+    /* Custom marker styling for view mode */
+    .custom-marker {
+        background: transparent;
+        border: none;
+    }
+
+    .marker-pulse-ring {
+        position: absolute;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(37, 69, 184, 0.3);
+        animation: ripple 2s ease-out infinite;
+        top: 0;
+        left: 0;
+    }
+
+    @@keyframes ripple {
+        0% {
+            transform: scale(0.8);
+            opacity: 1;
+        }
+        100% {
+            transform: scale(2);
+            opacity: 0;
+        }
+    }
+
+    .marker-pin {
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        top: 5px;
+        left: 5px;
+        box-shadow: 0 3px 10px rgba(37, 69, 184, 0.4);
+    }
+
+    .marker-pin::after {
+        content: '';
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        background: white;
+        border-radius: 50%;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(45deg);
+    }
+</style>
+
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="bi bi-building"></i> Chi tiết Nhà tuyển dụng</h1>
+        </div>
+        <a href="@Url.Action("NhaTuyenDung", "Admin")" class="back-button">
+            <i class="bi bi-arrow-left"></i> Quay lại
+        </a>
+    </div>
+</div>
+
+<!-- Thông tin cơ bản -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="info-card">
+            <h5><i class="bi bi-info-circle"></i> Thông tin cơ bản</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="info-item">
+                        <span class="info-label">Mã NTD:</span>
+                        <span class="info-value"><strong>#@Model.MaNhaTuyenDung</strong></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Tên công ty:</span>
+                        <span class="info-value"><strong>@Model.TenCongTy</strong></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Email:</span>
+                        <span class="info-value">@Model.Email</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Số điện thoại:</span>
+                        <span class="info-value">@Model.SoDienThoai</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Website:</span>
+                        <span class="info-value">
+                            @if (!string.IsNullOrEmpty(Model.Website))
+                            {
+                                <a href="@Model.Website" target="_blank" class="text-primary">
+                                    <i class="bi bi-link-45deg"></i> @Model.Website
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Chưa cập nhật</span>
+                            }
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Địa chỉ:</span>
+                        <span class="info-value">@Model.DiaChi</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-item">
+                        <span class="info-label">Tỉnh/Thành phố:</span>
+                        <span class="info-value">
+                            <span class="badge-custom badge-primary">@Model.TinhThanhPho</span>
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Quận/Huyện:</span>
+                        <span class="info-value">
+                            <span class="badge-custom badge-info">@Model.QuanHuyen</span>
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Người đại diện:</span>
+                        <span class="info-value">@Model.NguoiDaiDien</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Chức vụ:</span>
+                        <span class="info-value">@Model.ChucVu</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Ngày đăng ký:</span>
+                        <span class="info-value">@Model.NgayDangKy.ToString("dd/MM/yyyy")</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Thống kê -->
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="stat-card primary">
+            <div class="stat-number">@(ViewBag.SoTinDaDang ?? 0)</div>
+            <div class="stat-label">Tin tuyển dụng đã đăng</div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="stat-card success">
+            <div class="stat-number">@(ViewBag.SoUngVienNhan ?? 0)</div>
+            <div class="stat-label">Ứng viên đã nhận</div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="stat-card primary">
+            <div class="stat-number">
+                @{
+                    var soTinDaDang = ViewBag.SoTinDaDang as int? ?? 0;
+                    var soUngVienNhan = ViewBag.SoUngVienNhan as int? ?? 0;
+                    var trungBinh = soTinDaDang > 0 ? (soUngVienNhan / (double)soTinDaDang).ToString("F1") : "0";
+                }
+                @trungBinh
+            </div>
+            <div class="stat-label">TB ứng viên/tin</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="row">
+    <div class="col-12">
+        <div class="info-card">
+            <ul class="nav nav-tabs" id="detailTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    @{
+                        var activeTab = ViewBag.ActiveTab as string ?? "thongtin";
+                        var isThongTinActive = activeTab == "thongtin";
+                    }
+                    <button class="nav-link @(isThongTinActive ? "active" : "")" id="thongtin-tab" data-bs-toggle="tab" data-bs-target="#thongtin" type="button" role="tab">
+                        <i class="bi bi-building"></i> Thông tin công ty
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    @{
+                        var isTinTuyenDungActive = activeTab == "tintuyendung";
+                    }
+                    <button class="nav-link @(isTinTuyenDungActive ? "active" : "")" id="tintuyendung-tab" data-bs-toggle="tab" data-bs-target="#tintuyendung" type="button" role="tab">
+                        <i class="bi bi-newspaper"></i> Các tin tuyển dụng (@danhSachTinTuyenDung.Count)
+                    </button>
+                </li>
+            </ul>
+            <div class="tab-content" id="detailTabsContent">
+                <!-- Tab 1: Thông tin công ty -->
+                <div class="tab-pane fade @(isThongTinActive ? "show active" : "") view-mode" id="thongtin" role="tabpanel">
+                    <!-- Edit Controls -->
+                    <div class="edit-controls">
+                        <button type="button" class="btn-edit" id="btnEdit">
+                            <i class="bi bi-pencil"></i> Sửa
+                        </button>
+                        <button type="button" class="btn-cancel" id="btnCancel" style="display: none;">
+                            <i class="bi bi-x-circle"></i> Hủy thay đổi
+                        </button>
+                        <button type="button" class="btn-save" id="btnSave" style="display: none;">
+                            <i class="bi bi-check-circle"></i> Lưu
+                        </button>
+                    </div>
+
+                    <form id="editForm" method="post" action="@Url.Action("CapNhatNhaTuyenDung", "Admin")">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.MaNhaTuyenDung" />
+
+                        <!-- View Mode Content -->
+                        <div class="view-content">
+                            <!-- Thông tin công ty -->
+                            <div class="content-section">
+                                <h4><i class="bi bi-building"></i> Thông tin công ty</h4>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <p><strong>Mã NTD:</strong> #@Model.MaNhaTuyenDung</p>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <p><strong>Tên công ty:</strong> @Model.TenCongTy</p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <p><strong>Email:</strong> <a href="mailto:@Model.Email">@Model.Email</a></p>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <p><strong>Số điện thoại:</strong> <a href="tel:@Model.SoDienThoai">@Model.SoDienThoai</a></p>
+                                    </div>
+                                </div>
+                                @if (!string.IsNullOrEmpty(Model.Website))
+                                {
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <p><strong>Website:</strong> <a href="@Model.Website" target="_blank">@Model.Website <i class="bi bi-box-arrow-up-right"></i></a></p>
+                                        </div>
+                                    </div>
+                                }
+                                <div class="row">
+                                    <div class="col-md-12 mb-3">
+                                        <p><strong>Địa chỉ:</strong> @Model.DiaChi</p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <p><strong>Tỉnh/Thành phố:</strong> <span class="badge-custom badge-primary">@Model.TinhThanhPho</span></p>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <p><strong>Quận/Huyện:</strong> <span class="badge-custom badge-info">@Model.QuanHuyen</span></p>
+                                    </div>
+                                </div>
+                                @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
+                                {
+                                    <!-- Map Container -->
+                                    <div class="map-container" style="margin-top: 20px;">
+                                        <div id="mapView"></div>
+                                        <div class="map-info">
+                                            <i class="bi bi-geo-alt-fill text-danger"></i>
+                                            <span id="currentCoordsView">@Model.Latitude.Value.ToString("F6"), @Model.Longitude.Value.ToString("F6")</span>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Logo công ty -->
+                            <div class="content-section">
+                                <h4><i class="bi bi-image"></i> Logo công ty</h4>
+                                <div class="logo-display">
+                                    <div class="logo-preview-view @(!string.IsNullOrEmpty(Model.Logo) ? "has-image" : "")">
+                                        @if (!string.IsNullOrEmpty(Model.Logo))
+                                        {
+                                            <img src="@Model.Logo" alt="Logo công ty" />
+                                        }
+                                        else
+                                        {
+                                            <img src="/images/default-avatar.png" alt="Logo mặc định" style="opacity: 0.5;" />
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Thông tin người đại diện -->
+                            <div class="content-section">
+                                <h4><i class="bi bi-person-badge"></i> Người đại diện</h4>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <p><strong>Họ tên:</strong> @(Model.NguoiDaiDien ?? "Chưa cập nhật")</p>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <p><strong>Chức vụ:</strong> @(Model.ChucVu ?? "Chưa cập nhật")</p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <p><strong>SĐT người đại diện:</strong> 
+                                            @if (!string.IsNullOrEmpty(Model.SoDienThoaiNguoiDaiDien))
+                                            {
+                                                <a href="tel:@Model.SoDienThoaiNguoiDaiDien">@Model.SoDienThoaiNguoiDaiDien</a>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Chưa cập nhật</span>
+                                            }
+                                        </p>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <p><strong>Email người đại diện:</strong>
+                                            @if (!string.IsNullOrEmpty(Model.EmailNguoiDaiDien))
+                                            {
+                                                <a href="mailto:@Model.EmailNguoiDaiDien">@Model.EmailNguoiDaiDien</a>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Chưa cập nhật</span>
+                                            }
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <p><strong>Ngày đăng ký:</strong> @Model.NgayDangKy.ToString("dd/MM/yyyy")</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(Model.LinhVuc))
+                            {
+                                <div class="content-section">
+                                    <h4><i class="bi bi-briefcase"></i> Lĩnh vực hoạt động</h4>
+                                    <p>@Model.LinhVuc</p>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.MoTa))
+                            {
+                                <div class="content-section">
+                                    <h4><i class="bi bi-info-circle"></i> Giới thiệu công ty</h4>
+                                    <div class="text-muted" style="line-height: 1.8;">
+                                        @Html.Raw(Model.MoTa)
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Edit Mode Content -->
+                        <div class="edit-content">
+                            <!-- Thông tin công ty -->
+                            <div class="form-section">
+                                <h4><i class="bi bi-building"></i> Thông tin công ty</h4>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label required-label">Tên công ty</label>
+                                        <input type="text" class="form-control-edit" name="tenCongTy" id="editTenCongTy" value="@Model.TenCongTy" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label required-label">Email</label>
+                                        <input type="email" class="form-control-edit" name="email" id="editEmail" value="@Model.Email" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label required-label">Số điện thoại</label>
+                                        <input type="text" class="form-control-edit" name="soDienThoai" id="editSoDienThoai" value="@Model.SoDienThoai" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Website</label>
+                                        <input type="url" class="form-control-edit" name="website" id="editWebsite" value="@Model.Website">
+                                    </div>
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label">Địa chỉ</label>
+                                        <input type="text" class="form-control-edit" name="diaChi" id="editDiaChi" value="@Model.DiaChi" placeholder="123 Nguyễn Huệ, Quận 1">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Tỉnh/Thành phố</label>
+                                        <select class="form-select-edit" name="tinhThanhPho" id="editTinhThanhPho">
+                                            <option value="">Chọn tỉnh/thành phố</option>
+                                            @{
+                                                var danhSachTinhThanh = ViewBag.DanhSachTinhThanh as List<Unicareer.Models.Province> ?? new List<Unicareer.Models.Province>();
+                                            }
+                                            @foreach (var tinh in danhSachTinhThanh)
+                                            {
+                                                if (Model.TinhThanhPho == tinh.FullName)
+                                                {
+                                                    <option value="@tinh.FullName" data-code="@tinh.Code" selected>@tinh.FullName</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@tinh.FullName" data-code="@tinh.Code">@tinh.FullName</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Quận/Huyện</label>
+                                        <select class="form-select-edit" name="quanHuyen" id="editQuanHuyen">
+                                            <option value="">Chọn quận/huyện</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Hidden fields for coordinates -->
+                            <input type="hidden" name="latitude" id="editLatitude" value="@(Model.Latitude?.ToString("F6") ?? "21.028511")">
+                            <input type="hidden" name="longitude" id="editLongitude" value="@(Model.Longitude?.ToString("F6") ?? "105.804817")">
+                            
+                            <!-- Map Section for Edit Mode -->
+                            <div class="form-section">
+                                <h4><i class="bi bi-geo-alt-fill"></i> Vị trí trên bản đồ</h4>
+                                <div class="mb-3">
+                                    <label class="form-label">Tìm kiếm địa chỉ trên bản đồ</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control-edit" id="editDiaChiForMap" placeholder="Nhập địa chỉ để tìm kiếm (ví dụ: 123 Nguyễn Huệ, Quận 1, TP.HCM)" value="@Model.DiaChi">
+                                        <button type="button" class="btn btn-outline-primary" id="btnSearchAddressEdit">
+                                            <i class="bi bi-search"></i> Tìm trên bản đồ
+                                        </button>
+                                    </div>
+                                    <small class="text-muted">
+                                        <i class="bi bi-info-circle"></i> Nhập địa chỉ và click "Tìm trên bản đồ" để tìm vị trí, hoặc kéo marker trên bản đồ để chọn vị trí chính xác, hoặc click vào bản đồ để đặt marker.
+                                    </small>
+                                </div>
+                                <!-- Map Container for Edit Mode -->
+                                <div class="map-container">
+                                    <div id="mapEdit"></div>
+                                    <div class="map-info">
+                                        <i class="bi bi-geo-alt-fill text-danger"></i>
+                                        <span id="currentCoordsEdit">
+                                            @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
+                                            {
+                                                @($"{Model.Latitude.Value.ToString("F6")}, {Model.Longitude.Value.ToString("F6")}")
+                                            }
+                                            else
+                                            {
+                                                <text>21.028511, 105.804817</text>
+                                            }
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Người đại diện -->
+                            <div class="form-section">
+                                <h4><i class="bi bi-person-badge"></i> Người đại diện</h4>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Người đại diện</label>
+                                        <input type="text" class="form-control-edit" name="nguoiDaiDien" id="editNguoiDaiDien" value="@Model.NguoiDaiDien">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Chức vụ</label>
+                                        <input type="text" class="form-control-edit" name="chucVu" id="editChucVu" value="@Model.ChucVu">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">SĐT người đại diện</label>
+                                        <input type="text" class="form-control-edit" name="soDienThoaiNguoiDaiDien" id="editSoDienThoaiNguoiDaiDien" value="@Model.SoDienThoaiNguoiDaiDien">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Email người đại diện</label>
+                                        <input type="email" class="form-control-edit" name="emailNguoiDaiDien" id="editEmailNguoiDaiDien" value="@Model.EmailNguoiDaiDien">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Lĩnh vực và mô tả -->
+                            <div class="form-section">
+                                <h4><i class="bi bi-info-circle"></i> Thông tin bổ sung</h4>
+                                <div class="mb-3">
+                                    <label class="form-label">Lĩnh vực</label>
+                                    <input type="text" class="form-control-edit" name="linhVuc" id="editLinhVuc" value="@Model.LinhVuc" placeholder="Ví dụ: Công nghệ thông tin, Tài chính, Bất động sản...">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Mô tả/Giới thiệu</label>
+                                    <div id="editor-container-mota"></div>
+                                    <textarea name="moTa" id="editMoTa" style="display: none;">@Model.MoTa</textarea>
+                                    <small class="text-muted"><i class="bi bi-info-circle"></i> Hãy viết một đoạn giới thiệu về công ty, lịch sử phát triển, sứ mệnh, tầm nhìn và các sản phẩm/dịch vụ chính</small>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Tab 2: Các tin tuyển dụng -->
+                <div class="tab-pane fade @(isTinTuyenDungActive ? "show active" : "")" id="tintuyendung" role="tabpanel">
+                    @{
+                        // Cập nhật danhSachTinTuyenDung từ ViewBag (đã khai báo ở đầu file)
+                        danhSachTinTuyenDung = ViewBag.DanhSachTinTuyenDung as List<Unicareer.Models.TinTuyenDung> ?? new List<Unicareer.Models.TinTuyenDung>();
+                        var pageNumber = ViewBag.PageNumber as int? ?? 1;
+                        var pageSize = ViewBag.PageSize as int? ?? 10;
+                        var totalCount = ViewBag.TotalCount as int? ?? 0;
+                        var totalPages = ViewBag.TotalPages as int? ?? 1;
+                        var searchTerm = ViewBag.SearchTerm as string;
+                        var trangThaiFilter = ViewBag.TrangThaiFilter as string;
+                        var nganhNgheFilter = ViewBag.NganhNgheFilter as string;
+                        var loaiCongViecFilter = ViewBag.LoaiCongViecFilter as string;
+                        var danhSachNganhNghe = ViewBag.DanhSachNganhNghe as List<string> ?? new List<string>();
+                        var danhSachLoaiCongViec = ViewBag.DanhSachLoaiCongViec as List<string> ?? new List<string>();
+                    }
+                    
+                    <!-- Form tìm kiếm và lọc -->
+                    <form method="get" action="@Url.Action("ChiTietNhaTuyenDung", "Admin", new { id = Model.MaNhaTuyenDung })" id="searchForm">
+                        <input type="hidden" id="pageNumberInput" name="pageNumber" value="@pageNumber" />
+                        <input type="hidden" name="activeTab" value="tintuyendung" />
+                        <div class="row g-3 mb-4">
+                            <div class="col-lg-3 col-md-6">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="timKiemInput" name="searchTerm" 
+                                           placeholder="Tìm kiếm theo tên việc làm..." value="@searchTerm">
+                                    <button class="btn btn-outline-secondary" type="submit">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-lg-2 col-md-6">
+                                <select class="form-select" id="locTrangThai" name="trangThaiFilter">
+                                    <option value="">Tất cả trạng thái</option>
+                                    @if (trangThaiFilter == "Dang tuyen")
+                                    {
+                                        <option value="Dang tuyen" selected>Đang tuyển</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="Dang tuyen">Đang tuyển</option>
+                                    }
+                                    @if (trangThaiFilter == "Het han")
+                                    {
+                                        <option value="Het han" selected>Hết hạn</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="Het han">Hết hạn</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-lg-2 col-md-6">
+                                <select class="form-select" id="locNganhNghe" name="nganhNgheFilter">
+                                    <option value="">Tất cả ngành nghề</option>
+                                    @foreach (var nganhNghe in danhSachNganhNghe)
+                                    {
+                                        if (nganhNgheFilter == nganhNghe)
+                                        {
+                                            <option value="@nganhNghe" selected>@nganhNghe</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@nganhNghe">@nganhNghe</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-lg-2 col-md-6">
+                                <select class="form-select" id="locLoaiCongViec" name="loaiCongViecFilter">
+                                    <option value="">Tất cả loại CV</option>
+                                    @foreach (var loaiCV in danhSachLoaiCongViec)
+                                    {
+                                        if (loaiCongViecFilter == loaiCV)
+                                        {
+                                            <option value="@loaiCV" selected>@loaiCV</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@loaiCV">@loaiCV</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <button class="btn btn-primary w-100" type="submit">
+                                    <i class="bi bi-funnel-fill"></i> Lọc
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    @if (danhSachTinTuyenDung.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th><i class="bi bi-hash"></i> Mã tin</th>
+                                        <th><i class="bi bi-briefcase"></i> Tên việc làm</th>
+                                        <th><i class="bi bi-briefcase-fill"></i> Ngành nghề</th>
+                                        <th><i class="bi bi-briefcase"></i> Loại công việc</th>
+                                        <th><i class="bi bi-geo-alt"></i> Tỉnh/TP</th>
+                                        <th><i class="bi bi-cash-stack"></i> Mức lương</th>
+                                        <th><i class="bi bi-people"></i> Ứng viên ứng tuyển</th>
+                                        <th><i class="bi bi-calendar"></i> Ngày đăng</th>
+                                        <th><i class="bi bi-calendar-event"></i> Hạn nộp</th>
+                                        <th><i class="bi bi-gear"></i> Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var tin in danhSachTinTuyenDung)
+                                    {
+                                        var mucLuong = "";
+                                        if (tin.MucLuongThapNhat.HasValue && tin.MucLuongCaoNhat.HasValue)
+                                        {
+                                            mucLuong = tin.MucLuongThapNhat.Value.ToString("N0") + " - " + tin.MucLuongCaoNhat.Value.ToString("N0") + " triệu";
+                                        }
+                                        else if (tin.MucLuongThapNhat.HasValue)
+                                        {
+                                            mucLuong = "Từ " + tin.MucLuongThapNhat.Value.ToString("N0") + " triệu";
+                                        }
+                                        else
+                                        {
+                                            mucLuong = "<span class='text-muted'>Thỏa thuận</span>";
+                                        }
+
+                                        <tr>
+                                            <td><strong>#@tin.MaTinTuyenDung</strong></td>
+                                            <td><strong>@tin.TenViecLam</strong></td>
+                                            <td><span class="badge-custom badge-info">@tin.NganhNghe</span></td>
+                                            <td><span class="badge-custom badge-secondary">@tin.LoaiCongViec</span></td>
+                                            <td>@tin.TinhThanhPho</td>
+                                            <td>@Html.Raw(mucLuong)</td>
+                                            <td>@tin.SoLuongUngTuyen</td>
+                                            <td><small>@tin.NgayDang.ToString("dd/MM/yyyy")</small></td>
+                                            <td><small>@tin.HanNop.ToString("dd/MM/yyyy")</small></td>
+                                            <td>
+                                                <a href="@Url.Action("ChiTietTinTuyenDung", "Admin", new { id = tin.MaTinTuyenDung })" 
+                                                   class="btn btn-action btn-view" title="Xem chi tiết">
+                                                    <i class="bi bi-eye"></i> Xem
+                                                </a>
+                                                <button class="btn btn-action btn-delete btn-xoa-tin" 
+                                                        data-ma="@tin.MaTinTuyenDung" 
+                                                        data-ten="@tin.TenViecLam"
+                                                        title="Xóa tin tuyển dụng">
+                                                    <i class="bi bi-trash"></i> Xóa
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Phân trang -->
+                        @if (totalPages > 1)
+                        {
+                            <nav aria-label="Phân trang" class="mt-4">
+                                <ul class="pagination justify-content-center">
+                                    @if (pageNumber > 1)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">
+                                                <i class="bi bi-chevron-double-left"></i>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(pageNumber - 1))">
+                                                <i class="bi bi-chevron-left"></i>
+                                            </a>
+                                        </li>
+                                    }
+                                    else
+                                    {
+                                        <li class="page-item disabled">
+                                            <span class="page-link"><i class="bi bi-chevron-double-left"></i></span>
+                                        </li>
+                                        <li class="page-item disabled">
+                                            <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                                        </li>
+                                    }
+
+                                    @{
+                                        var startPage = Math.Max(1, pageNumber - 2);
+                                        var endPage = Math.Min(totalPages, pageNumber + 2);
+                                    }
+
+                                    @if (startPage > 1)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">1</a>
+                                        </li>
+                                        @if (startPage > 2)
+                                        {
+                                            <li class="page-item disabled">
+                                                <span class="page-link">...</span>
+                                            </li>
+                                        }
+                                    }
+
+                                    @for (int i = startPage; i <= endPage; i++)
+                                    {
+                                        <li class="page-item @(i == pageNumber ? "active" : "")">
+                                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(@i)">@i</a>
+                                        </li>
+                                    }
+
+                                    @if (endPage < totalPages)
+                                    {
+                                        @if (endPage < totalPages - 1)
+                                        {
+                                            <li class="page-item disabled">
+                                                <span class="page-link">...</span>
+                                            </li>
+                                        }
+                                        <li class="page-item">
+                                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(@totalPages)">@totalPages</a>
+                                        </li>
+                                    }
+
+                                    @if (pageNumber < totalPages)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(pageNumber + 1))">
+                                                <i class="bi bi-chevron-right"></i>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(@totalPages)">
+                                                <i class="bi bi-chevron-double-right"></i>
+                                            </a>
+                                        </li>
+                                    }
+                                    else
+                                    {
+                                        <li class="page-item disabled">
+                                            <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                                        </li>
+                                        <li class="page-item disabled">
+                                            <span class="page-link"><i class="bi bi-chevron-double-right"></i></span>
+                                        </li>
+                                    }
+                                </ul>
+                                <div class="text-center mt-3 text-muted">
+                                    Hiển thị <strong>@((pageNumber - 1) * pageSize + 1)</strong> - 
+                                    <strong>@(Math.Min(pageNumber * pageSize, totalCount))</strong> 
+                                    trong tổng số <strong>@totalCount</strong> tin tuyển dụng
+                                </div>
+                            </nav>
+                        }
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <h5>Không tìm thấy tin tuyển dụng nào</h5>
+                            <p>Không có tin tuyển dụng nào phù hợp với bộ lọc của bạn.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sidebar với thao tác quản lý -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="info-card">
+            <h5><i class="bi bi-gear"></i> Thao tác quản lý</h5>
+            <div class="action-buttons">
+                <button class="btn btn-danger w-100 mb-2 btn-xoa" data-ma="@Model.MaNhaTuyenDung">
+                    <i class="bi bi-trash"></i> Xóa nhà tuyển dụng
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Quill Editor CSS -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <!-- Quill Editor JS -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    
+    @Html.AntiForgeryToken()
+    <script>
+        var quillMoTa = null;
+        
+        $(document).ready(function() {
+            var isPaginationClick = false;
+            
+            // Kích hoạt tab dựa trên ViewBag.ActiveTab
+            var currentActiveTab = '@(ViewBag.ActiveTab as string ?? "thongtin")';
+            
+            // Nếu currentActiveTab là "tintuyendung", kích hoạt tab đó
+            if (currentActiveTab === 'tintuyendung') {
+                // Xóa active từ tab thông tin
+                $('#thongtin-tab').removeClass('active');
+                $('#thongtin').removeClass('show active');
+                
+                // Thêm active cho tab tin tuyển dụng
+                $('#tintuyendung-tab').addClass('active');
+                $('#tintuyendung').addClass('show active');
+                
+                // Trigger Bootstrap tab show event
+                var tabElement = document.getElementById('tintuyendung-tab');
+                if (tabElement) {
+                    var tab = new bootstrap.Tab(tabElement);
+                    tab.show();
+                }
+            }
+            
+            // Lưu tab active khi click vào tab
+            $('#detailTabs button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+                var targetTab = $(e.target).data('bs-target');
+                var tabName = targetTab === '#thongtin' ? 'thongtin' : 'tintuyendung';
+                
+                // Lưu vào localStorage để giữ khi reload
+                localStorage.setItem('activeTab_@Model.MaNhaTuyenDung', tabName);
+            });
+            
+            // Hàm điều hướng đến trang
+            window.goToPage = function(pageNumber) {
+                isPaginationClick = true;
+                $('#pageNumberInput').val(pageNumber);
+                // Đảm bảo activeTab được set
+                $('input[name="activeTab"]').val('tintuyendung');
+                $('#searchForm').submit();
+            };
+            
+            // Khi thay đổi filter, reset về trang 1 và giữ tab
+            $('#locTrangThai, #locNganhNghe, #locLoaiCongViec').on('change', function() {
+                $('#pageNumberInput').val(1);
+                // Đảm bảo activeTab được set
+                $('input[name="activeTab"]').val('tintuyendung');
+                $('#searchForm').submit();
+            });
+            
+            // Khi submit form tìm kiếm, reset về trang 1 (chỉ khi không phải là click phân trang)
+            $('#searchForm').on('submit', function(e) {
+                if (!isPaginationClick) {
+                    $('#pageNumberInput').val(1);
+                }
+                // Đảm bảo activeTab được set
+                $('input[name="activeTab"]').val('tintuyendung');
+                isPaginationClick = false; // Reset flag
+            });
+            
+            // Khi nhấn nút tìm kiếm, reset về trang 1
+            $('#searchForm button[type="submit"]').on('click', function() {
+                isPaginationClick = false;
+                // Đảm bảo activeTab được set
+                $('input[name="activeTab"]').val('tintuyendung');
+            });
+            
+            // Lưu giá trị ban đầu để có thể hủy
+            var originalValues = {
+                tenCongTy: $('#editTenCongTy').val() || '',
+                email: $('#editEmail').val() || '',
+                soDienThoai: $('#editSoDienThoai').val() || '',
+                website: $('#editWebsite').val() || '',
+                diaChi: $('#editDiaChi').val() || '',
+                tinhThanhPho: $('#editTinhThanhPho').val() || '',
+                quanHuyen: $('#editQuanHuyen').val() || '',
+                nguoiDaiDien: $('#editNguoiDaiDien').val() || '',
+                chucVu: $('#editChucVu').val() || '',
+                soDienThoaiNguoiDaiDien: $('#editSoDienThoaiNguoiDaiDien').val() || '',
+                emailNguoiDaiDien: $('#editEmailNguoiDaiDien').val() || '',
+                linhVuc: $('#editLinhVuc').val() || '',
+                moTa: '@Html.Raw(Model.MoTa?.Replace("'", "\\'").Replace("\"", "\\\"") ?? "")',
+                latitude: '@(Model.Latitude?.ToString("F6") ?? "21.028511")',
+                longitude: '@(Model.Longitude?.ToString("F6") ?? "105.804817")'
+            };
+
+            // Initialize Quill Editor
+            function initQuillEditor() {
+                if (typeof Quill === 'undefined') {
+                    setTimeout(initQuillEditor, 500);
+                    return;
+                }
+
+                if (quillMoTa) {
+                    return; // Đã khởi tạo rồi
+                }
+
+                try {
+                    var editorContainer = document.getElementById('editor-container-mota');
+                    if (!editorContainer) {
+                        setTimeout(initQuillEditor, 300);
+                        return;
+                    }
+
+                    quillMoTa = new Quill('#editor-container-mota', {
+                        theme: 'snow',
+                        modules: {
+                            toolbar: [
+                                [{ 'header': [1, 2, 3, false] }],
+                                ['bold', 'italic', 'underline', 'strike'],
+                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                [{ 'color': [] }, { 'background': [] }],
+                                [{ 'align': [] }],
+                                ['link', 'image'],
+                                ['clean']
+                            ]
+                        },
+                        placeholder: 'Viết một vài dòng giới thiệu về công ty, lịch sử phát triển, sứ mệnh, tầm nhìn, sản phẩm/dịch vụ chính...'
+                    });
+
+                    // Load nội dung ban đầu
+                    var moTaContent = originalValues.moTa || '';
+                    if (moTaContent) {
+                        quillMoTa.root.innerHTML = moTaContent;
+                        $('#editMoTa').val(moTaContent);
+                    }
+
+                    // Update hidden textarea when editor content changes
+                    quillMoTa.on('text-change', function() {
+                        var content = quillMoTa.root.innerHTML;
+                        // Loại bỏ các thẻ <p><br></p> rỗng
+                        content = content.replace(/<p><br><\/p>/gi, '');
+                        content = content.replace(/<p>\s*<\/p>/gi, '');
+                        $('#editMoTa').val(content);
+                    });
+                } catch (error) {
+                    console.error('Lỗi khi khởi tạo Quill Editor:', error);
+                }
+            }
+
+            // Nút Sửa
+            $('#btnEdit').on('click', function() {
+                $('#thongtin').removeClass('view-mode').addClass('edit-mode');
+                $('#btnEdit').hide();
+                $('#btnCancel').show();
+                $('#btnSave').show();
+                
+                // Khởi tạo Quill Editor khi vào edit mode
+                setTimeout(function() {
+                    initQuillEditor();
+                }, 100);
+                
+                // Load quận/huyện ngay lập tức khi chuyển sang edit mode
+                function loadWardsOnEdit() {
+                    const $selectedOption = $('#editTinhThanhPho option:selected');
+                    const selectedProvinceCode = $selectedOption.attr('data-code');
+                    const selectedWardName = '@(Model.QuanHuyen ?? "")';
+                    
+                    console.log('Loading wards - Province Code:', selectedProvinceCode, 'Ward Name:', selectedWardName);
+                    
+                    if (selectedProvinceCode) {
+                        loadWardsByProvince(selectedProvinceCode, selectedWardName);
+                    } else {
+                        console.warn('No province code found for selected province');
+                    }
+                }
+
+                // Thử load ngay lập tức
+                setTimeout(loadWardsOnEdit, 100);
+                
+                // Thử lại sau khi DOM đã render xong
+                setTimeout(loadWardsOnEdit, 300);
+                
+                // Khởi tạo map cho edit mode - đợi một chút để đảm bảo DOM đã render xong
+                setTimeout(function() {
+                    initEditMap();
+                }, 500);
+            });
+
+            // Nút Hủy thay đổi
+            $('#btnCancel').on('click', function() {
+                // Khôi phục giá trị ban đầu
+                $('#editTenCongTy').val(originalValues.tenCongTy);
+                $('#editEmail').val(originalValues.email);
+                $('#editSoDienThoai').val(originalValues.soDienThoai);
+                $('#editWebsite').val(originalValues.website);
+                $('#editDiaChi').val(originalValues.diaChi);
+                $('#editTinhThanhPho').val(originalValues.tinhThanhPho);
+                $('#editQuanHuyen').val(originalValues.quanHuyen);
+                $('#editNguoiDaiDien').val(originalValues.nguoiDaiDien);
+                $('#editChucVu').val(originalValues.chucVu);
+                $('#editSoDienThoaiNguoiDaiDien').val(originalValues.soDienThoaiNguoiDaiDien);
+                $('#editEmailNguoiDaiDien').val(originalValues.emailNguoiDaiDien);
+                $('#editLinhVuc').val(originalValues.linhVuc);
+                $('#editLatitude').val(originalValues.latitude || '21.028511');
+                $('#editLongitude').val(originalValues.longitude || '105.804817');
+                
+                // Khôi phục Quill Editor
+                if (quillMoTa) {
+                    quillMoTa.root.innerHTML = originalValues.moTa || '';
+                    $('#editMoTa').val(originalValues.moTa || '');
+                } else {
+                    $('#editMoTa').val(originalValues.moTa || '');
+                }
+
+                // Khôi phục vị trí marker trên map nếu đã khởi tạo
+                if (editMapInitialized && editMarker) {
+                    var lat = parseFloat(originalValues.latitude) || 21.028511;
+                    var lng = parseFloat(originalValues.longitude) || 105.804817;
+                    editMarker.setLatLng([lat, lng]);
+                    editMap.setView([lat, lng], 15);
+                    $('#currentCoordsEdit').text(lat.toFixed(6) + ', ' + lng.toFixed(6));
+                }
+
+                // Load lại quận/huyện nếu có tỉnh/thành phố
+                setTimeout(function() {
+                    var selectedProvince = $('#editTinhThanhPho option:selected');
+                    var provinceCode = null;
+                    
+                    if (selectedProvince.length > 0) {
+                        provinceCode = selectedProvince.attr('data-code');
+                        
+                        // Nếu không có data-code, thử tìm lại
+                        if (!provinceCode && selectedProvince.val()) {
+                            var provinceName = selectedProvince.val();
+                            $('#editTinhThanhPho option').each(function() {
+                                if ($(this).val() === provinceName) {
+                                    var code = $(this).attr('data-code');
+                                    if (code) {
+                                        provinceCode = code;
+                                        return false; // break
+                                    }
+                                }
+                            });
+                        }
+                    }
+                    
+                    if (provinceCode) {
+                        console.log('Reloading wards for province code:', provinceCode, 'Original ward:', originalValues.quanHuyen);
+                        loadWardsByProvince(provinceCode, originalValues.quanHuyen);
+                    } else {
+                        $('#editQuanHuyen').html('<option value="">Chọn quận/huyện</option>');
+                    }
+                }, 200);
+
+                $('#thongtin').removeClass('edit-mode').addClass('view-mode');
+                $('#btnEdit').show();
+                $('#btnCancel').hide();
+                $('#btnSave').hide();
+            });
+
+            // Nút Lưu
+            $('#btnSave').on('click', function() {
+                // Cập nhật giá trị từ Quill Editor vào hidden textarea
+                if (quillMoTa) {
+                    var moTaContent = quillMoTa.root.innerHTML;
+                    moTaContent = moTaContent.replace(/<p><br><\/p>/gi, '');
+                    moTaContent = moTaContent.replace(/<p>\s*<\/p>/gi, '');
+                    $('#editMoTa').val(moTaContent);
+                }
+                
+                // Luôn cập nhật coordinates từ marker nếu map đã được khởi tạo
+                if (editMarker && editMap && editMapInitialized) {
+                    try {
+                        var position = editMarker.getLatLng();
+                        var lat = position.lat;
+                        var lng = position.lng;
+                        $('#editLatitude').val(lat.toFixed(6));
+                        $('#editLongitude').val(lng.toFixed(6));
+                        console.log('Coordinates updated from marker:', {
+                            latitude: lat.toFixed(6),
+                            longitude: lng.toFixed(6)
+                        });
+                    } catch (error) {
+                        console.error('Error getting marker position:', error);
+                    }
+                }
+                
+                // Validate coordinates trước khi submit
+                var latValue = $('#editLatitude').val();
+                var lngValue = $('#editLongitude').val();
+                console.log('Final coordinates before submit:', {
+                    latitude: latValue,
+                    longitude: lngValue
+                });
+                
+                // Validate form
+                var isValid = true;
+                $('.form-control-edit, .form-select-edit').each(function() {
+                    if ($(this).attr('required') && !$(this).val()) {
+                        isValid = false;
+                        $(this).css('border-color', '#f56565');
+                    } else {
+                        $(this).css('border-color', '#e2e8f0');
+                    }
+                });
+
+                if (!isValid) {
+                    showNotification('Vui lòng điền đầy đủ các trường bắt buộc!', 'error');
+                    return;
+                }
+
+                $('#editForm').submit();
+            });
+
+            // Function to load wards by province (improved with better error handling)
+            function loadWardsByProvince(provinceCode, selectedWardName = null) {
+                const $editQuanHuyen = $('#editQuanHuyen');
+                
+                console.log('loadWardsByProvince called with:', { provinceCode, selectedWardName });
+                
+                // Kiểm tra xem dropdown có tồn tại không
+                if ($editQuanHuyen.length === 0) {
+                    console.error('editQuanHuyen dropdown not found');
+                    return;
+                }
+                
+                if (!provinceCode) {
+                    console.warn('loadWardsByProvince: provinceCode is empty');
+                    $editQuanHuyen.html('<option value="">Chọn quận/huyện</option>');
+                    return;
+                }
+                
+                // Reset quận/huyện dropdown
+                $editQuanHuyen.html('<option value="">Chọn quận/huyện</option>');
+                
+                // Show loading state
+                $editQuanHuyen.prop('disabled', true);
+                $editQuanHuyen.html('<option value="">Đang tải...</option>');
+                
+                const apiUrl = `/Admin/Admin/GetWardsByProvince?provinceCode=${encodeURIComponent(provinceCode)}`;
+                console.log('Fetching wards from:', apiUrl);
+                
+                // Fetch wards from API
+                fetch(apiUrl)
+                    .then(response => {
+                        console.log('Response status:', response.status);
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Wards data received:', data);
+                        $editQuanHuyen.html('<option value="">Chọn quận/huyện</option>');
+                        
+                        if (data && Array.isArray(data) && data.length > 0) {
+                            let foundSelected = false;
+                            
+                            // Decode HTML entities và normalize selectedWardName
+                            let normalizedSelectedWard = '';
+                            if (selectedWardName) {
+                                // Decode HTML entities
+                                const tempDiv = document.createElement('div');
+                                tempDiv.innerHTML = selectedWardName;
+                                normalizedSelectedWard = tempDiv.textContent || tempDiv.innerText || '';
+                                // Normalize: trim và lowercase để so sánh
+                                normalizedSelectedWard = normalizedSelectedWard.trim().toLowerCase();
+                                console.log('Normalized selected ward:', normalizedSelectedWard);
+                            }
+                            
+                            data.forEach(ward => {
+                                const option = $('<option></option>')
+                                    .attr('value', ward.fullName)
+                                    .text(ward.fullName);
+                                
+                                // So sánh với normalized selected ward
+                                if (selectedWardName) {
+                                    const normalizedWardName = ward.fullName.trim().toLowerCase();
+                                    if (normalizedWardName === normalizedSelectedWard || ward.fullName === selectedWardName) {
+                                        option.attr('selected', 'selected');
+                                        foundSelected = true;
+                                        console.log('Selected ward matched:', ward.fullName);
+                                    }
+                                }
+                                
+                                $editQuanHuyen.append(option);
+                            });
+                            
+                            if (selectedWardName && !foundSelected) {
+                                console.warn('Selected ward not found in list:', selectedWardName);
+                                console.log('Available wards (first 5):', data.slice(0, 5).map(w => w.fullName));
+                            }
+                            
+                            console.log('Loaded', data.length, 'wards');
+                        } else {
+                            console.warn('No wards data received');
+                            $editQuanHuyen.html('<option value="">Không có dữ liệu</option>');
+                        }
+                        
+                        $editQuanHuyen.prop('disabled', false);
+                    })
+                    .catch(error => {
+                        console.error('Error loading wards:', error);
+                        $editQuanHuyen.html('<option value="">Lỗi tải dữ liệu</option>');
+                        $editQuanHuyen.prop('disabled', false);
+                    });
+            }
+
+            // Event handler for province change - register outside using event delegation
+            $(document).on('change', '#editTinhThanhPho', function() {
+                var selectedOption = $(this).find('option:selected');
+                var cityName = $(this).val();
+                var provinceCode = selectedOption.attr('data-code');
+                
+                // Load wards for selected province
+                if (provinceCode) {
+                    loadWardsByProvince(provinceCode);
+                } else {
+                    $('#editQuanHuyen').html('<option value="">Chọn quận/huyện</option>');
+                }
+                
+                // Update map coordinates if map is initialized
+                if (editMap && editMarker) {
+                    var coordinates = {
+                        'Hà Nội': [21.028511, 105.804817],
+                        'Thành phố Hà Nội': [21.028511, 105.804817],
+                        'TP Hồ Chí Minh': [10.762622, 106.660172],
+                        'Thành phố Hồ Chí Minh': [10.762622, 106.660172],
+                        'Đà Nẵng': [16.047079, 108.206230],
+                        'Thành phố Đà Nẵng': [16.047079, 108.206230],
+                        'Hải Phòng': [20.844892, 106.687973],
+                        'Thành phố Hải Phòng': [20.844892, 106.687973],
+                        'Cần Thơ': [10.045162, 105.746857],
+                        'Thành phố Cần Thơ': [10.045162, 105.746857]
+                    };
+                    
+                    // Try to find matching coordinates
+                    var coords = null;
+                    for (var key in coordinates) {
+                        if (cityName && (cityName.includes(key) || key.includes(cityName))) {
+                            coords = coordinates[key];
+                            break;
+                        }
+                    }
+                    
+                    if (coords) {
+                        editMap.setView(coords, 13);
+                        editMarker.setLatLng(coords);
+                        updateEditCoordinates(coords[0], coords[1]);
+                    }
+                }
+            });
+
+            // Xử lý khi submit form thành công
+            @if (TempData["ThanhCong"] != null)
+            {
+                <text>
+                var successMessageElement = document.getElementById('successMessage');
+                if (successMessageElement) {
+                    var successMessage = successMessageElement.textContent || successMessageElement.innerText;
+                    showNotification(successMessage, 'success');
+                }
+                </text>
+            }
+
+            // Xử lý khi có lỗi
+            @if (TempData["Loi"] != null)
+            {
+                <text>
+                var errorMessageElement = document.getElementById('errorMessage');
+                if (errorMessageElement) {
+                    var errorMessage = errorMessageElement.textContent || errorMessageElement.innerText;
+                    showNotification(errorMessage, 'error');
+                }
+                </text>
+            }
+
+            // Xử lý tab switching - hủy edit mode nếu đang chỉnh sửa
+            $('#detailTabs button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+                if ($('#thongtin').hasClass('edit-mode')) {
+                    $('#btnCancel').click();
+                }
+            });
+
+            // Nếu có lỗi validation, tự động chuyển sang chế độ chỉnh sửa
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <text>
+                $('#thongtin').removeClass('view-mode').addClass('edit-mode');
+                $('#btnEdit').hide();
+                $('#btnCancel').show();
+                $('#btnSave').show();
+                
+                // Khởi tạo Quill Editor khi có lỗi validation
+                setTimeout(function() {
+                    initQuillEditor();
+                }, 200);
+                </text>
+            }
+
+            // Initialize Map for View Mode
+            @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
+            {
+                <text>
+                var viewMap = null;
+                var viewMapInitialized = false;
+                
+                function initViewMap() {
+                    if (typeof L === 'undefined') {
+                        setTimeout(initViewMap, 500);
+                        return;
+                    }
+
+                    // Kiểm tra xem map element có tồn tại không
+                    var mapElement = document.getElementById('mapView');
+                    if (!mapElement) {
+                        setTimeout(initViewMap, 300);
+                        return;
+                    }
+
+                    // Kiểm tra xem map đã được khởi tạo chưa
+                    if (mapElement._leaflet_id) {
+                        if (viewMap) {
+                            setTimeout(function() {
+                                viewMap.invalidateSize();
+                            }, 100);
+                        }
+                        return;
+                    }
+
+                    try {
+                        var mapLat = @Model.Latitude.Value;
+                        var mapLng = @Model.Longitude.Value;
+                        var addressText = '@Html.Raw(!string.IsNullOrEmpty(Model.DiaChi) ? Model.DiaChi.Replace("'", "\\'").Replace("\"", "\\\"") : "Địa chỉ công ty")';
+                        
+                        viewMap = L.map('mapView', {
+                            preferCanvas: false
+                        }).setView([mapLat, mapLng], 15);
+                        
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                            maxZoom: 19
+                        }).addTo(viewMap);
+
+                        // Invalidate size sau khi map được tạo
+                        setTimeout(function() {
+                            if (viewMap) {
+                                viewMap.invalidateSize();
+                            }
+                        }, 200);
+
+                        delete L.Icon.Default.prototype._getIconUrl;
+                        L.Icon.Default.mergeOptions({
+                            iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+                            iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+                            shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png'
+                        });
+
+                        var customIcon = L.divIcon({
+                            className: 'custom-marker',
+                            html: '<div class="marker-pulse-ring"></div><div class="marker-pin"></div>',
+                            iconSize: [40, 40],
+                            iconAnchor: [20, 40],
+                            popupAnchor: [0, -40]
+                        });
+
+                        var viewMarker = L.marker([mapLat, mapLng], {
+                            icon: customIcon,
+                            title: 'Vị trí công ty'
+                        }).addTo(viewMap);
+
+                        viewMarker.bindPopup('<strong>📍 Vị trí công ty</strong><br>' + addressText).openPopup();
+                        
+                        viewMapInitialized = true;
+                    } catch (error) {
+                        console.error('Lỗi khi khởi tạo view map:', error);
+                    }
+                }
+
+                // Khởi tạo map sau khi document ready
+                setTimeout(function() {
+                    initViewMap();
+                }, 500);
+
+                // Khởi tạo lại map khi tab được hiển thị
+                $('#thongtin-tab').on('shown.bs.tab', function() {
+                    setTimeout(function() {
+                        if (viewMap) {
+                            viewMap.invalidateSize();
+                        } else {
+                            initViewMap();
+                        }
+                    }, 300);
+                });
+                </text>
+            }
+
+            // Initialize Map for Edit Mode
+            var editMap = null;
+            var editMarker = null;
+            var editMapInitialized = false;
+            
+            // Function to update edit coordinates
+            function updateEditCoordinates(lat, lng) {
+                var latStr = lat.toFixed(6);
+                var lngStr = lng.toFixed(6);
+                
+                $('#editLatitude').val(latStr);
+                $('#editLongitude').val(lngStr);
+                $('#currentCoordsEdit').text(latStr + ', ' + lngStr);
+                
+                // Debug log để kiểm tra
+                console.log('Coordinates updated:', { lat: latStr, lng: lngStr });
+                console.log('Hidden fields:', {
+                    latitude: $('#editLatitude').val(),
+                    longitude: $('#editLongitude').val()
+                });
+            }
+            
+            function initEditMap() {
+                if (typeof L === 'undefined') {
+                    setTimeout(initEditMap, 500);
+                    return;
+                }
+
+                // Kiểm tra xem map element có tồn tại không
+                var mapElement = document.getElementById('mapEdit');
+                if (!mapElement) {
+                    setTimeout(initEditMap, 300);
+                    return;
+                }
+
+                // Kiểm tra xem map element có đang hiển thị không
+                var $mapContainer = $('#mapEdit').closest('.map-container');
+                if ($mapContainer.length > 0 && $mapContainer.is(':hidden')) {
+                    setTimeout(initEditMap, 300);
+                    return;
+                }
+
+                // Kiểm tra xem map đã được khởi tạo chưa
+                if (mapElement._leaflet_id) {
+                    if (editMap) {
+                        setTimeout(function() {
+                            editMap.invalidateSize();
+                        }, 100);
+                    }
+                    return;
+                }
+
+                try {
+                    var mapLat = parseFloat($('#editLatitude').val()) || 21.028511;
+                    var mapLng = parseFloat($('#editLongitude').val()) || 105.804817;
+                    var addressText = $('#editDiaChi').val() || 'Địa chỉ công ty';
+                    
+                    editMap = L.map('mapEdit', {
+                        preferCanvas: false
+                    }).setView([mapLat, mapLng], 15);
+                    
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                        maxZoom: 19
+                    }).addTo(editMap);
+
+                    // Invalidate size sau khi map được tạo để đảm bảo hiển thị đúng
+                    setTimeout(function() {
+                        if (editMap) {
+                            editMap.invalidateSize();
+                            // Đảm bảo marker có thể kéo được
+                            if (editMarker) {
+                                editMarker.dragging.enable();
+                            }
+                        }
+                    }, 300);
+
+                    delete L.Icon.Default.prototype._getIconUrl;
+                    L.Icon.Default.mergeOptions({
+                        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+                        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+                        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png'
+                    });
+
+                    var customIcon = L.divIcon({
+                        className: 'custom-marker',
+                        html: '<div class="marker-pulse-ring"></div><div class="marker-pin"></div>',
+                        iconSize: [40, 40],
+                        iconAnchor: [20, 40],
+                        popupAnchor: [0, -40]
+                    });
+
+                    editMarker = L.marker([mapLat, mapLng], {
+                        draggable: true,
+                        icon: customIcon,
+                        title: 'Kéo tôi để chọn vị trí'
+                    }).addTo(editMap);
+
+                    editMarker.bindPopup('<strong>📍 Vị trí công ty</strong><br>Kéo marker để điều chỉnh vị trí chính xác').openPopup();
+                    
+                    // Đảm bảo coordinates được cập nhật ngay sau khi marker được tạo
+                    updateEditCoordinates(mapLat, mapLng);
+
+                    // Update coordinates when marker is dragged
+                    editMarker.on('dragend', function(e) {
+                        var lat = e.target.getLatLng().lat;
+                        var lng = e.target.getLatLng().lng;
+                        updateEditCoordinates(lat, lng);
+                        editMarker.bindPopup('<strong>✓ Vị trí đã cập nhật</strong><br>Lat: ' + lat.toFixed(6) + '<br>Lng: ' + lng.toFixed(6)).openPopup();
+                        
+                        // Reverse geocoding để lấy địa chỉ khi kéo marker
+                        $.ajax({
+                            url: 'https://nominatim.openstreetmap.org/reverse',
+                            data: {
+                                lat: lat,
+                                lon: lng,
+                                format: 'json',
+                                addressdetails: 1
+                            },
+                            success: function(data) {
+                                if (data && data.address) {
+                                    var address = '';
+                                    if (data.address.road) address += data.address.road + ', ';
+                                    if (data.address.suburb || data.address.neighbourhood) address += (data.address.suburb || data.address.neighbourhood) + ', ';
+                                    if (data.address.city || data.address.town) address += (data.address.city || data.address.town);
+                                    if (address) {
+                                        $('#editDiaChi').val(address.trim());
+                                    }
+                                } else if (data && data.display_name) {
+                                    // Fallback: sử dụng display_name nếu không có address object
+                                    var addressParts = data.display_name.split(',');
+                                    if (addressParts.length > 0) {
+                                        var mainAddress = addressParts.slice(0, Math.min(4, addressParts.length)).join(', ').trim();
+                                        $('#editDiaChi').val(mainAddress);
+                                    }
+                                }
+                            }
+                        });
+                    });
+
+                    // Update marker when clicking on map
+                    editMap.on('click', function(e) {
+                        var lat = e.latlng.lat;
+                        var lng = e.latlng.lng;
+                        
+                        editMarker.setLatLng([lat, lng]);
+                        updateEditCoordinates(lat, lng);
+                        editMarker.bindPopup('<strong>✓ Vị trí đã cập nhật</strong><br>Lat: ' + lat.toFixed(6) + '<br>Lng: ' + lng.toFixed(6)).openPopup();
+                        
+                        // Reverse geocoding để lấy địa chỉ
+                        $.ajax({
+                            url: 'https://nominatim.openstreetmap.org/reverse',
+                            data: {
+                                lat: lat,
+                                lon: lng,
+                                format: 'json',
+                                addressdetails: 1
+                            },
+                            success: function(data) {
+                                if (data && data.address) {
+                                    var address = '';
+                                    if (data.address.road) address += data.address.road + ', ';
+                                    if (data.address.suburb || data.address.neighbourhood) address += (data.address.suburb || data.address.neighbourhood) + ', ';
+                                    if (data.address.city || data.address.town) address += (data.address.city || data.address.town);
+                                    if (address) {
+                                        $('#editDiaChi').val(address.trim());
+                                    }
+                                } else if (data && data.display_name) {
+                                    // Fallback: sử dụng display_name nếu không có address object
+                                    var addressParts = data.display_name.split(',');
+                                    if (addressParts.length > 0) {
+                                        var mainAddress = addressParts.slice(0, Math.min(4, addressParts.length)).join(', ').trim();
+                                        $('#editDiaChi').val(mainAddress);
+                                    }
+                                }
+                            }
+                        });
+                    });
+
+                    // Button tìm kiếm địa chỉ
+                    $('#btnSearchAddressEdit').click(function() {
+                        var address = $('#editDiaChiForMap').val();
+                        var city = $('#editTinhThanhPho').val();
+                        
+                        if (!address) {
+                            showNotification('Vui lòng nhập địa chỉ!', 'error');
+                            return;
+                        }
+
+                        var searchQuery = address + (city ? ', ' + city : '') + ', Vietnam';
+                        
+                        $.ajax({
+                            url: 'https://nominatim.openstreetmap.org/search',
+                            data: {
+                                q: searchQuery,
+                                format: 'json',
+                                limit: 1
+                            },
+                            success: function(data) {
+                                if (data && data.length > 0) {
+                                    var lat = parseFloat(data[0].lat);
+                                    var lon = parseFloat(data[0].lon);
+                                    
+                                    editMap.setView([lat, lon], 16);
+                                    editMarker.setLatLng([lat, lon]);
+                                    updateEditCoordinates(lat, lon);
+                                    
+                                    // Cập nhật địa chỉ chính nếu tìm thấy
+                                    $('#editDiaChi').val(data[0].display_name.split(',')[0] || address);
+                                    
+                                    editMarker.bindPopup('<strong>📍 Tìm thấy địa chỉ</strong><br>' + data[0].display_name).openPopup();
+                                } else {
+                                    showNotification('Không tìm thấy địa chỉ. Vui lòng thử lại!', 'error');
+                                }
+                            },
+                            error: function() {
+                                showNotification('Có lỗi xảy ra khi tìm kiếm địa chỉ!', 'error');
+                            }
+                        });
+                    });
+
+                    // Cho phép nhấn Enter để tìm kiếm
+                    $('#editDiaChiForMap').keypress(function(e) {
+                        if (e.which === 13) {
+                            e.preventDefault();
+                            $('#btnSearchAddressEdit').click();
+                        }
+                    });
+
+                    // Geocoding khi nhập địa chỉ (tự động tìm vị trí)
+                    var geocodeTimeout;
+                    $('#editDiaChi').on('input', function() {
+                        clearTimeout(geocodeTimeout);
+                        var address = $(this).val();
+                        
+                        if (address.length > 10 && editMap && editMarker) {
+                            geocodeTimeout = setTimeout(function() {
+                                $.ajax({
+                                    url: 'https://nominatim.openstreetmap.org/search',
+                                    data: {
+                                        q: address + ', ' + $('#editTinhThanhPho').val() + ', Vietnam',
+                                        format: 'json',
+                                        limit: 1
+                                    },
+                                    success: function(data) {
+                                        if (data && data.length > 0) {
+                                            var lat = parseFloat(data[0].lat);
+                                            var lon = parseFloat(data[0].lon);
+                                            
+                                            editMap.setView([lat, lon], 16);
+                                            editMarker.setLatLng([lat, lon]);
+                                            updateEditCoordinates(lat, lon);
+                                        }
+                                    }
+                                });
+                            }, 1000);
+                        }
+                    });
+                    
+                    editMapInitialized = true;
+                } catch (error) {
+                    console.error('Lỗi khi khởi tạo edit map:', error);
+                }
+            }
+
+            // Xóa nhà tuyển dụng
+            $('.btn-xoa').on('click', function() {
+                var ma = $(this).data('ma');
+                if (confirm('Bạn có chắc chắn muốn xóa nhà tuyển dụng này không? Hành động này không thể hoàn tác!')) {
+                    $.ajax({
+                        url: '@Url.Action("XoaNhaTuyenDung", "Admin")',
+                        type: 'POST',
+                        headers: {
+                            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        data: { 
+                            id: ma,
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                showNotification('Đã xóa nhà tuyển dụng thành công!', 'success');
+                                setTimeout(function() {
+                                    window.location.href = '@Url.Action("NhaTuyenDung", "Admin")';
+                                }, 1000);
+                            } else {
+                                showNotification(response.message || 'Có lỗi xảy ra!', 'error');
+                            }
+                        },
+                        error: function() {
+                            showNotification('Có lỗi xảy ra khi xóa nhà tuyển dụng!', 'error');
+                        }
+                    });
+                }
+            });
+
+            // Xóa tin tuyển dụng
+            $('.btn-xoa-tin').on('click', function(e) {
+                e.preventDefault();
+                var row = $(this).closest('tr');
+                var ma = $(this).data('ma');
+                var ten = $(this).data('ten');
+                
+                if (confirm('Bạn có chắc chắn muốn xóa tin tuyển dụng "' + ten + '" không? Hành động này không thể hoàn tác!')) {
+                    $.ajax({
+                        url: '@Url.Action("XoaTinTuyenDung", "Admin")',
+                        type: 'POST',
+                        headers: {
+                            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        data: { 
+                            id: ma,
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                row.fadeOut(400, function() {
+                                    $(this).remove();
+                                    showNotification('Đã xóa tin tuyển dụng thành công!', 'success');
+                                    // Reload trang sau 1 giây để cập nhật số liệu thống kê
+                                    setTimeout(function() {
+                                        location.reload();
+                                    }, 1000);
+                                });
+                            } else {
+                                showNotification(response.message || 'Có lỗi xảy ra!', 'error');
+                            }
+                        },
+                        error: function() {
+                            showNotification('Có lỗi xảy ra khi xóa tin tuyển dụng!', 'error');
+                        }
+                    });
+                }
+            });
+
+            // Hàm hiển thị thông báo
+            function showNotification(message, type) {
+                var bgColor = type === 'success' ? '#48bb78' : '#f56565';
+                var notification = $('<div>')
+                    .css({
+                        position: 'fixed',
+                        top: '20px',
+                        right: '20px',
+                        background: bgColor,
+                        color: 'white',
+                        padding: '15px 25px',
+                        borderRadius: '12px',
+                        boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                        zIndex: 9999,
+                        fontWeight: '600',
+                        maxWidth: '400px'
+                    })
+                    .text(message)
+                    .appendTo('body');
+                
+                setTimeout(function() {
+                    notification.fadeOut(400, function() {
+                        $(this).remove();
+                    });
+                }, 3000);
+            }
+        });
+    </script>
+}
+

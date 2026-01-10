@@ -1,46 +1,582 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+﻿@using Microsoft.AspNetCore.Identity
+@using Unicareer.Data
+@using Microsoft.EntityFrameworkCore
+@inject SignInManager<Unicareer.Models.ApplicationUser> SignInManager
+@inject UserManager<Unicareer.Models.ApplicationUser> UserManager
+@inject ApplicationDbContext DbContext
+
+<!DOCTYPE html>
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Unicareer</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Unicareer.styles.css" asp-append-version="true" />
+    <style>
+        :root {
+            --primary-color: #10b981;
+            --primary-hover: #059669;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .top-header {
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 0;
+        }
+        
+        .top-header .container-fluid {
+            padding: 0 30px;
+            max-width: 100%;
+        }
+        
+        .logo {
+            display: inline-block;
+            text-decoration: none;
+        }
+        
+        .logo img {
+            height: 45px;
+            width: auto;
+        }
+        
+        .top-header .navbar {
+            flex-grow: 0;
+        }
+        
+        .top-header .nav-link {
+            color: #333;
+            font-weight: 600;
+            padding: 10px 25px;
+            text-transform: uppercase;
+            font-size: 14px;
+            transition: all 0.3s;
+            border-radius: 8px;
+            margin: 0 5px;
+        }
+        
+        .top-header .nav-link:hover {
+            color: var(--primary-color);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .top-header .nav-link-recruiter {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #fff !important;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .top-header .nav-link-recruiter:hover {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: #fff !important;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+        }
+
+        .top-header .nav-link-recruiter i {
+            font-size: 16px;
+        }
+
+        .top-header .nav-link-candidate {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #fff !important;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .top-header .nav-link-candidate:hover {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: #fff !important;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+        }
+
+        .top-header .nav-link-candidate i {
+            font-size: 16px;
+        }
+        
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-actions a {
+            color: #333;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .user-actions a:hover {
+            color: var(--primary-color);
+        }
+
+        .user-actions .admin-link {
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #fff !important;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .user-actions .admin-link:hover {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+        }
+
+        .user-actions .admin-link i {
+            font-size: 16px;
+        }
+
+        .user-actions .candidate-link {
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #fff !important;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .user-actions .candidate-link:hover {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+        }
+
+        .user-actions .candidate-link i {
+            font-size: 16px;
+        }
+
+        .user-actions .recruiter-link {
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #fff !important;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .user-actions .recruiter-link:hover {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+        }
+
+        .user-actions .recruiter-link i {
+            font-size: 16px;
+        }
+        
+        /* User Profile Dropdown Styles */
+        .user-profile {
+            position: relative;
+        }
+
+        .user-profile.dropdown {
+            padding: 0 !important;
+            margin: 0;
+            border: none;
+        }
+
+        .user-profile > a {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .user-profile > a:hover {
+            background: #f5f5f5;
+        }
+
+        .user-profile .dropdown-menu {
+            margin-top: 10px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            border: none;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .user-profile .dropdown-menu li {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .user-profile .dropdown-menu .dropdown-divider {
+            margin: 0;
+        }
+
+        .user-profile .dropdown-item {
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+            margin: 0;
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 0;
+        }
+
+        .user-profile .dropdown-item:hover {
+            background: #f5f5f5;
+            padding-left: 25px;
+        }
+
+        .user-profile .dropdown-item i {
+            margin-right: 10px;
+            width: 20px;
+            display: inline-block;
+        }
+
+        .user-profile .dropdown-item.text-danger {
+            color: #dc3545;
+        }
+
+        .user-profile .dropdown-item.text-danger:hover {
+            background: #ffe5e5;
+            color: #dc3545 !important;
+        }
+
+        .user-profile form button {
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+            margin: 0;
+            padding: 0;
+        }
+
+        .user-profile form button.dropdown-item {
+            padding: 10px 20px;
+        }
+
+        .user-profile form button.dropdown-item:hover {
+            padding-left: 25px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            display: block;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.9rem;
+            line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100px;
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: #7f8c8d;
+            line-height: 1.2;
+        }
+
+        .user-actions .btn {
+            border-radius: 25px;
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 2px solid;
+        }
+
+        .user-actions .btn i {
+            font-size: 16px;
+        }
+
+        /* Nút Đăng nhập - Style outline xanh */
+        .user-actions .btn-login {
+            background-color: transparent;
+            border-color: #10b981;
+            color: #10b981;
+        }
+
+        .user-actions .btn-login:hover {
+            background-color: rgba(16, 185, 129, 0.1);
+            border-color: #10b981;
+            color: #10b981;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        /* Nút Đăng ký - Style đầy xanh */
+        .user-actions .btn-register {
+            background-color: #10b981;
+            border-color: #10b981;
+            color: #fff;
+        }
+
+        .user-actions .btn-register:hover {
+            background-color: #059669;
+            border-color: #059669;
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+
+        /* Xóa các style cũ */
+        .user-actions .btn-primary,
+        .user-actions .btn-outline-primary {
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <!-- Top Header with Navigation -->
+        <div class="top-header">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Unicareer</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
+                <div class="d-flex justify-content-between align-items-center" style="padding: 15px 0;">
+                    <!-- Logo -->
+                    <a href="/" class="logo">
+                        <img src="~/images/logoUnicareer.png" alt="Unicareer" />
+                    </a>
+                    
+                    <!-- Main Navigation -->
+                    <nav class="navbar navbar-expand-lg p-0">
+                        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+                        <div class="collapse navbar-collapse" id="mainNav">
+                            <ul class="navbar-nav">
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/Home/TimViec">TÌM VIỆC</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/Home/ThucTap">THỰC TẬP</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/Home/CongTy">CÔNG TY</a>
+                                </li>
+                                @if (SignInManager.IsSignedIn(User) && (User.IsInRole(Unicareer.Models.SD.Role_NhaTuyenDung) || User.IsInRole(Unicareer.Models.SD.Role_Admin)))
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="/Home/UngVien">ỨNG VIÊN</a>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    </nav>
+                    
+                    <!-- User Actions -->
+                    <div class="user-actions">
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            var currentUser = await UserManager.GetUserAsync(User);
+                            var roles = await UserManager.GetRolesAsync(currentUser);
+                            var roleName = roles.FirstOrDefault() ?? "User";
+                            
+                            // Đối với nhà tuyển dụng, ưu tiên lấy logo công ty
+                            string? displayImage = null;
+                            if (roleName == "NhaTuyenDung")
+                            {
+                                var nhaTuyenDung = await DbContext.NhaTuyenDungs
+                                    .FirstOrDefaultAsync(n => n.UserId == currentUser.Id);
+                                if (nhaTuyenDung != null && !string.IsNullOrEmpty(nhaTuyenDung.Logo))
+                                {
+                                    displayImage = nhaTuyenDung.Logo;
+                                }
+                            }
+                            
+                            // Nếu không có logo công ty, dùng avatar user
+                            if (string.IsNullOrEmpty(displayImage) && !string.IsNullOrEmpty(currentUser?.Avatar))
+                            {
+                                displayImage = currentUser.Avatar;
+                            }
+                            
+                            // Nếu vẫn không có, dùng avatar mặc định
+                            var avatarUrl = !string.IsNullOrEmpty(displayImage) 
+                                ? displayImage 
+                                : "/images/default-avatar.png";
+                            
+                            // Lấy chữ cái đầu của tên để làm fallback
+                            var initials = "UV";
+                            if (roleName == "NhaTuyenDung")
+                            {
+                                initials = "NT";
+                            }
+                            else if (roleName == "Admin")
+                            {
+                                initials = "AD";
+                            }
+                            
+                            if (!string.IsNullOrEmpty(currentUser?.HoTen))
+                            {
+                                var nameParts = currentUser.HoTen.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                                if (nameParts.Length >= 2)
+                                {
+                                    // Lấy chữ cái đầu của họ và tên
+                                    initials = $"{nameParts[0][0]}{nameParts[^1][0]}".ToUpper();
+                                }
+                                else if (nameParts.Length == 1)
+                                {
+                                    initials = nameParts[0].Substring(0, Math.Min(2, nameParts[0].Length)).ToUpper();
+                                }
+                            }
+
+                            // Chuyển đổi role sang tiếng Việt
+                            var roleDisplay = roleName switch
+                            {
+                                "Admin" => "Quản trị viên",
+                                "NhaTuyenDung" => "Nhà tuyển dụng",
+                                "UngVien" => "Ứng viên",
+                                _ => roleName
+                            };
+                            
+                            @if (User.IsInRole(Unicareer.Models.SD.Role_Admin))
+                            {
+                                <a asp-area="Admin" asp-controller="Admin" asp-action="Index" class="admin-link">
+                                    <i class="bi bi-speedometer2"></i> Quản trị hệ thống
+                                </a>
+                            }
+                            @if (User.IsInRole(Unicareer.Models.SD.Role_UngVien))
+                            {
+                                <a asp-area="Candidate" asp-controller="Candidate" asp-action="Index" class="candidate-link">
+                                    <i class="bi bi-person-badge"></i> Quản lý ứng tuyển
+                                </a>
+                            }
+                            @if (User.IsInRole(Unicareer.Models.SD.Role_NhaTuyenDung))
+                            {
+                                <a asp-area="Recruiter" asp-controller="Recruiter" asp-action="Index" class="recruiter-link">
+                                    <i class="bi bi-building"></i> Quản lý tuyển dụng
+                                </a>
+                            }
+                            
+                            <div class="user-profile dropdown">
+                                <a href="#" class="d-flex align-items-center gap-2" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none;">
+                                    <div class="user-avatar">
+                                        @if (!string.IsNullOrEmpty(displayImage))
+                                        {
+                                            <img src="@displayImage?v=@DateTime.Now.Ticks" alt="Logo/Avatar" />
+                                        }
+                                        else
+                                        {
+                                            <img src="@avatarUrl" alt="Avatar mặc định" style="opacity: 0.7;" />
+                                            <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; font-size: 0.9rem;">@initials</span>
+                                        }
+                                    </div>
+                                    <div class="user-info">
+                                        <div class="user-name">@currentUser?.HoTen</div>
+                                        <div class="user-role">@roleDisplay</div>
+                                    </div>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    @if (User.IsInRole(Unicareer.Models.SD.Role_UngVien))
+                                    {
+                                        <li><a class="dropdown-item" asp-area="Candidate" asp-controller="Candidate" asp-action="Index"><i class="bi bi-house-door"></i> Trang chủ ứng viên</a></li>
+                                        <li><a class="dropdown-item" asp-area="Candidate" asp-controller="Candidate" asp-action="QuanLyTinUngTuyen"><i class="bi bi-clipboard-check"></i> Quản lý tin ứng tuyển</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" asp-area="Candidate" asp-controller="Candidate" asp-action="CaiDat"><i class="bi bi-person"></i> Thông tin tài khoản</a></li>
+                                        <li><a class="dropdown-item" asp-area="Candidate" asp-controller="Candidate" asp-action="ViecLamDaLuu"><i class="bi bi-heart"></i> Việc làm đã lưu</a></li>
+                                    }
+                                    else if (User.IsInRole(Unicareer.Models.SD.Role_NhaTuyenDung))
+                                    {
+                                        <li><a class="dropdown-item" asp-area="Recruiter" asp-controller="Recruiter" asp-action="Index"><i class="bi bi-house-door"></i> Trang chủ nhà tuyển dụng</a></li>
+                                        <li><a class="dropdown-item" asp-area="Recruiter" asp-controller="Recruiter" asp-action="TinDaDang"><i class="bi bi-file-earmark-text"></i> Tin đã đăng</a></li>
+                                        <li><a class="dropdown-item" asp-area="Recruiter" asp-controller="Recruiter" asp-action="DangTinTuyenDung"><i class="bi bi-plus-circle"></i> Đăng tin mới</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" asp-area="Recruiter" asp-controller="Recruiter" asp-action="ThongTinTaiKhoan"><i class="bi bi-person"></i> Thông tin tài khoản</a></li>
+                                    }
+                                    else
+                                    {
+                                        <li><a class="dropdown-item" href="#"><i class="bi bi-person"></i> Thông tin tài khoản</a></li>
+                                    }
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                            <button type="submit" class="dropdown-item text-danger">
+                                                <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        }
+                        else
+                        {
+                            <a asp-controller="Account" asp-action="Login" class="btn btn-login">
+                                <i class="bi bi-box-arrow-in-right"></i>
+                                <span>Đăng nhập</span>
+                            </a>
+                            <a asp-controller="Account" asp-action="Register" class="btn btn-register ms-2">
+                                <i class="bi bi-person-plus"></i>
+                                <span>Đăng ký</span>
+                            </a>
+                        }
+                    </div>
                 </div>
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
-
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - Unicareer - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
-    </footer>
+    </header>
+    
+    <main role="main">
+        @RenderBody()
+    </main>
+
+    @await Html.PartialAsync("_Footer")
+    
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

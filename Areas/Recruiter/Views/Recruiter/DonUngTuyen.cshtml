@@ -1,0 +1,1300 @@
+@model Unicareer.Models.ViewModels.DonUngTuyenViewModel
+@using Unicareer.Models.Enums
+
+@{
+    ViewData["Title"] = "Đơn ứng tuyển";
+    var danhSachTinTuyenDung = Model.DanhSachTinTuyenDung;
+}
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3);
+    }
+
+    .page-header h1 {
+        font-weight: 700;
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .page-header p {
+        opacity: 0.95;
+        font-size: 1.1rem;
+        margin-bottom: 0;
+    }
+
+    .action-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        gap: 15px;
+    }
+
+    .search-filter-group {
+        display: flex;
+        gap: 15px;
+        flex: 1;
+    }
+
+    .form-control, .form-select {
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 12px 16px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #10b981;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        outline: none;
+    }
+
+    .input-group .btn {
+        border-radius: 0 10px 10px 0;
+        border: 2px solid #e2e8f0;
+        border-left: none;
+    }
+
+    .input-group .form-control {
+        border-radius: 10px 0 0 10px;
+    }
+
+    .card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        animation: slideUp 0.5s ease forwards;
+    }
+
+    .card:hover {
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        transform: translateY(-5px);
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table thead {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+
+    .table thead th {
+        border: none;
+        padding: 20px 15px;
+        font-weight: 600;
+        color: #2d3748;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f7fafc;
+        transform: scale(1.01);
+    }
+
+    .table tbody td {
+        padding: 20px 15px;
+        vertical-align: middle;
+    }
+
+    .badge {
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 0.85rem;
+    }
+
+    .btn-sm {
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-sm:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .stats-card {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        transition: all 0.3s ease;
+        animation: slideUp 0.5s ease forwards;
+    }
+
+    .stats-card:nth-child(1) { animation-delay: 0.1s; }
+    .stats-card:nth-child(2) { animation-delay: 0.2s; }
+    .stats-card:nth-child(3) { animation-delay: 0.3s; }
+    .stats-card:nth-child(4) { animation-delay: 0.4s; }
+
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+
+    .stats-card .card-title {
+        font-size: 0.9rem;
+        color: #718096;
+        margin-bottom: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stats-card h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0;
+    }
+
+    .stats-card.primary {
+        border-left: 5px solid #10b981;
+    }
+
+    .stats-card.success {
+        border-left: 5px solid #48bb78;
+    }
+
+    .stats-card.warning {
+        border-left: 5px solid #ed8936;
+    }
+
+    .stats-card.info {
+        border-left: 5px solid #4299e1;
+    }
+
+    @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @@keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+
+    .table-responsive {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 30px;
+        flex-wrap: wrap;
+    }
+
+    .pagination .page-link {
+        border: 2px solid #e2e8f0;
+        color: #10b981;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .pagination .page-link:hover {
+        background: #10b981;
+        color: white;
+        border-color: #10b981;
+        transform: translateY(-2px);
+    }
+
+    .pagination .page-item.active .page-link {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border-color: #10b981;
+        color: white;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: #a0aec0;
+        border-color: #e2e8f0;
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    .pagination .page-item.disabled .page-link:hover {
+        background: transparent;
+        transform: none;
+    }
+
+    .pagination-info {
+        text-align: center;
+        margin-top: 15px;
+        color: #718096;
+        font-size: 0.9rem;
+    }
+
+    .candidate-info {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .candidate-name {
+        font-weight: 600;
+        color: #2d3748;
+        font-size: 1rem;
+    }
+
+    .candidate-contact {
+        font-size: 0.85rem;
+        color: #718096;
+    }
+
+    .position-info {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .position-title {
+        font-weight: 600;
+        color: #2d3748;
+    }
+
+    .position-company {
+        font-size: 0.85rem;
+        color: #718096;
+    }
+
+    .modal-content {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border-radius: 20px 20px 0 0;
+        padding: 25px 30px;
+        border-bottom: none;
+    }
+
+    .modal-header .modal-title {
+        font-weight: 700;
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .modal-header .btn-close {
+        filter: brightness(0) invert(1);
+        opacity: 0.9;
+    }
+
+    .modal-header .btn-close:hover {
+        opacity: 1;
+    }
+
+    .modal-body {
+        padding: 30px;
+        max-height: calc(100vh - 200px);
+        overflow-y: auto;
+    }
+
+    .modal-footer {
+        border-top: 2px solid #e2e8f0;
+        padding: 20px 30px;
+        border-radius: 0 0 20px 20px;
+    }
+
+    .info-card {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .info-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+
+    .info-card h6 {
+        color: #10b981;
+        font-weight: 700;
+        font-size: 1rem;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .info-card h6 i {
+        font-size: 1.2rem;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: flex-start;
+        padding: 12px 0;
+        border-bottom: 1px solid #e2e8f0;
+        word-wrap: break-word;
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #2d3748;
+        min-width: 150px;
+        max-width: 150px;
+        margin-right: 15px;
+        flex-shrink: 0;
+        line-height: 1.5;
+    }
+
+    .info-value {
+        color: #4a5568;
+        flex: 1;
+        min-width: 0;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        line-height: 1.5;
+    }
+
+    .info-value a {
+        color: #10b981;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .info-value a:hover {
+        text-decoration: underline;
+    }
+
+    .cv-card {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 20px;
+        border: 2px solid #10b981;
+    }
+
+    .cv-card h6 {
+        color: #059669;
+        font-weight: 700;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .notes-card {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 20px;
+        border: 2px solid #f59e0b;
+    }
+
+    .notes-card h6 {
+        color: #d97706;
+        font-weight: 700;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .notes-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .notes-list li {
+        padding: 8px 0;
+        color: #78350f;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .notes-list li i {
+        color: #10b981;
+        margin-top: 4px;
+        flex-shrink: 0;
+    }
+
+    .status-badge-modal {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: inline-block;
+    }
+
+    @@media (max-width: 768px) {
+        .action-bar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .search-filter-group {
+            flex-direction: column;
+        }
+
+        .modal-body {
+            padding: 20px 15px;
+        }
+
+        .info-card {
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .info-item {
+            flex-direction: column;
+            padding: 10px 0;
+        }
+
+        .info-label {
+            min-width: auto;
+            max-width: 100%;
+            margin-right: 0;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            width: 100%;
+        }
+
+        .cv-card, .notes-card {
+            padding: 15px;
+            margin-top: 15px;
+        }
+    }
+</style>
+
+<div class="page-header">
+    <h1><i class="bi bi-inbox-fill"></i> Quản lý đơn ứng tuyển</h1>
+    <p>Xem và quản lý tất cả các đơn ứng tuyển từ ứng viên</p>
+</div>
+
+<form method="get" action="@Url.Action("DonUngTuyen", "Recruiter")" id="searchForm">
+    <div class="action-bar">
+        <div class="search-filter-group">
+            <div class="input-group" style="max-width: 350px;">
+                <input type="text" class="form-control" id="timKiemInput" name="searchTerm" 
+                       placeholder="Tìm kiếm theo tên, email..." value="@Model.SearchTerm">
+                <button class="btn btn-outline-secondary" type="submit">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+            <select class="form-select" id="locTrangThai" name="trangThaiFilter" style="max-width: 200px;">
+                <option value="">Tất cả trạng thái</option>
+                @if (Model.TrangThaiFilter == "Đang xem xét")
+                {
+                    <option value="Đang xem xét" selected>Đang xem xét</option>
+                }
+                else
+                {
+                    <option value="Đang xem xét">Đang xem xét</option>
+                }
+                @if (Model.TrangThaiFilter == "Chờ phỏng vấn")
+                {
+                    <option value="Chờ phỏng vấn" selected>Chờ phỏng vấn</option>
+                }
+                else
+                {
+                    <option value="Chờ phỏng vấn">Chờ phỏng vấn</option>
+                }
+                @if (Model.TrangThaiFilter == "Đã phỏng vấn")
+                {
+                    <option value="Đã phỏng vấn" selected>Đã phỏng vấn</option>
+                }
+                else
+                {
+                    <option value="Đã phỏng vấn">Đã phỏng vấn</option>
+                }
+                @if (Model.TrangThaiFilter == "Tuyển dụng")
+                {
+                    <option value="Tuyển dụng" selected>Tuyển dụng</option>
+                }
+                else
+                {
+                    <option value="Tuyển dụng">Tuyển dụng</option>
+                }
+                @if (Model.TrangThaiFilter == "Từ chối")
+                {
+                    <option value="Từ chối" selected>Từ chối</option>
+                }
+                else
+                {
+                    <option value="Từ chối">Từ chối</option>
+                }
+                @if (Model.TrangThaiFilter == "Không phù hợp")
+                {
+                    <option value="Không phù hợp" selected>Không phù hợp</option>
+                }
+                else
+                {
+                    <option value="Không phù hợp">Không phù hợp</option>
+                }
+            </select>
+            <select class="form-select" id="locTinTuyenDung" name="tinTuyenDungFilter" style="max-width: 250px;">
+                <option value="">Tất cả tin tuyển dụng</option>
+                @foreach (var tin in danhSachTinTuyenDung)
+                {
+                    @if (Model.TinTuyenDungFilter == tin.MaTinTuyenDung.ToString())
+                    {
+                        <option value="@tin.MaTinTuyenDung" selected>@tin.TenViecLam</option>
+                    }
+                    else
+                    {
+                        <option value="@tin.MaTinTuyenDung">@tin.TenViecLam</option>
+                    }
+                }
+            </select>
+            <input type="hidden" name="pageNumber" id="pageNumberInput" value="@Model.PageNumber" />
+        </div>
+    </div>
+</form>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th><i class="bi bi-hash"></i> STT</th>
+                                <th><i class="bi bi-person"></i> Ứng viên</th>
+                                <th><i class="bi bi-briefcase"></i> Vị trí ứng tuyển</th>
+                                <th><i class="bi bi-calendar-plus"></i> Ngày ứng tuyển</th>
+                                <th><i class="bi bi-toggle-on"></i> Trạng thái</th>
+                                <th><i class="bi bi-file-earmark-pdf"></i> CV</th>
+                                <th><i class="bi bi-gear"></i> Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                int stt = (Model.PageNumber - 1) * Model.PageSize + 1;
+                            }
+                            @if (Model.DonUngTuyens != null && Model.DonUngTuyens.Any())
+                            {
+                                @foreach (var don in Model.DonUngTuyens)
+                            {
+                                var tinTuyenDung = danhSachTinTuyenDung.FirstOrDefault(t => t.MaTinTuyenDung.ToString() == don.MaTinTuyenDung);
+                                var trangThaiEnum = TrangThaiXuLyHelper.FromString(don.TrangThaiXuLy);
+                                var trangThaiDisplay = trangThaiEnum.HasValue 
+                                    ? TrangThaiXuLyHelper.ToString(trangThaiEnum.Value) 
+                                    : don.TrangThaiXuLy;
+                                var badgeClass = trangThaiEnum.HasValue 
+                                    ? TrangThaiXuLyHelper.GetBadgeClass(trangThaiEnum.Value) 
+                                    : "bg-secondary";
+                                
+                                <tr data-ma="@don.MaTinUngTuyen" data-trangthai="@trangThaiDisplay" data-tin="@don.MaTinTuyenDung" data-userid="@(don.UserId ?? "")">
+                                    <td><span class="text-muted">@stt</span></td>
+                                    <td>
+                                        <span class="candidate-name">@don.HoTen</span>
+                                    </td>
+                                    <td>
+                                        <span class="position-title">@don.ViTriUngTuyen</span>
+                                    </td>
+                                    <td>@don.NgayUngTuyen.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>
+                                        <span class="badge @badgeClass">@trangThaiDisplay</span>
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(don.LinkCV))
+                                        {
+                                            <a href="@don.LinkCV" target="_blank" class="btn btn-sm btn-outline-primary" title="Xem CV">
+                                                <i class="bi bi-file-earmark-pdf"></i> Xem CV
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Chưa có CV</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-info" title="Xem chi tiết" onclick="xemChiTiet(@don.MaTinUngTuyen)">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-success" title="Cập nhật trạng thái" onclick="capNhatTrangThai(@don.MaTinUngTuyen)">
+                                            <i class="bi bi-check-circle"></i>
+                                        </button>
+                                        @if (!string.IsNullOrEmpty(don.UserId))
+                                        {
+                                            <button class="btn btn-sm btn-outline-secondary" title="Xem thông tin tài khoản" onclick="xemThongTinTaiKhoan('@don.UserId')">
+                                                <i class="bi bi-person-circle"></i>
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                                stt++;
+                            }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="7" class="text-center py-5">
+                                        <i class="bi bi-inbox" style="font-size: 3rem; color: #cbd5e0;"></i>
+                                        <p class="mt-3 text-muted">Không có đơn ứng tuyển nào</p>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                
+                @if (Model.TotalPages > 1)
+                {
+                    <nav aria-label="Phân trang">
+                        <ul class="pagination">
+                            @if (Model.PageNumber > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">
+                                        <i class="bi bi-chevron-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(Model.PageNumber - 1))">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="bi bi-chevron-double-left"></i></span>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                                </li>
+                            }
+
+                            @{
+                                int startPage = Math.Max(1, Model.PageNumber - 2);
+                                int endPage = Math.Min(Model.TotalPages, Model.PageNumber + 2);
+                            }
+
+                            @if (startPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">1</a>
+                                </li>
+                                @if (startPage > 2)
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                }
+                            }
+
+                            @for (int i = startPage; i <= endPage; i++)
+                            {
+                                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(@i)">@i</a>
+                                </li>
+                            }
+
+                            @if (endPage < Model.TotalPages)
+                            {
+                                @if (endPage < Model.TotalPages - 1)
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                }
+                                <li class="page-item">
+                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(@Model.TotalPages)">@Model.TotalPages</a>
+                                </li>
+                            }
+
+                            @if (Model.PageNumber < Model.TotalPages)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(Model.PageNumber + 1))">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(@Model.TotalPages)">
+                                        <i class="bi bi-chevron-double-right"></i>
+                                    </a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="bi bi-chevron-double-right"></i></span>
+                                </li>
+                            }
+                        </ul>
+                        <div class="pagination-info">
+                            Hiển thị <strong>@((Model.PageNumber - 1) * Model.PageSize + 1)</strong> - 
+                            <strong>@(Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount))</strong> 
+                            trong tổng số <strong>@Model.TotalCount</strong> đơn ứng tuyển
+                        </div>
+                    </nav>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-3 mb-3">
+        <div class="stats-card primary">
+            <h6 class="card-title">
+                <i class="bi bi-inbox"></i> Tổng đơn ứng tuyển
+            </h6>
+            <h2 class="text-primary">@Model.TotalCount</h2>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card warning">
+            <h6 class="card-title">
+                <i class="bi bi-clock-history"></i> Đang xem xét
+            </h6>
+            <h2 class="text-warning">@Model.TotalDangXemXet</h2>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card info">
+            <h6 class="card-title">
+                <i class="bi bi-calendar-check"></i> Chờ phỏng vấn
+            </h6>
+            <h2 class="text-info">@Model.TotalChoPhongVan</h2>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card success">
+            <h6 class="card-title">
+                <i class="bi bi-person-check"></i> Đã tuyển dụng
+            </h6>
+            <h2 class="text-success">@Model.TotalTuyenDung</h2>
+        </div>
+    </div>
+</div>
+
+<!-- Modal xem chi tiết -->
+<div class="modal fade" id="chiTietModal" tabindex="-1" aria-labelledby="chiTietModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="chiTietModalLabel">
+                    <i class="bi bi-file-earmark-text-fill"></i> Chi tiết đơn ứng tuyển
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="chiTietModalBody">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i> Đóng
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal cập nhật trạng thái -->
+<div class="modal fade" id="trangThaiModal" tabindex="-1" aria-labelledby="trangThaiModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="trangThaiModalLabel">Cập nhật trạng thái</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formCapNhatTrangThai">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="maDonUngTuyen" name="maDonUngTuyen" />
+                    <div class="mb-3">
+                        <label for="trangThaiMoi" class="form-label">Trạng thái mới</label>
+                        <select class="form-select" id="trangThaiMoi" name="trangThaiMoi" required>
+                            <option value="">-- Chọn trạng thái --</option>
+                            <option value="@TrangThaiXuLyHelper.ToString(TrangThaiXuLy.DangXemXet)">Đang xem xét</option>
+                            <option value="@TrangThaiXuLyHelper.ToString(TrangThaiXuLy.ChoPhongVan)">Chờ phỏng vấn</option>
+                            <option value="@TrangThaiXuLyHelper.ToString(TrangThaiXuLy.DaPhongVan)">Đã phỏng vấn</option>
+                            <option value="@TrangThaiXuLyHelper.ToString(TrangThaiXuLy.TuyenDung)">Tuyển dụng</option>
+                            <option value="@TrangThaiXuLyHelper.ToString(TrangThaiXuLy.TuChoi)">Từ chối</option>
+                            <option value="@TrangThaiXuLyHelper.ToString(TrangThaiXuLy.KhongPhuHop)">Không phù hợp</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="ghiChu" class="form-label">Nội dung tin bạn muốn gửi</label>
+                        <textarea class="form-control" id="ghiChu" name="ghiChu" rows="4" placeholder="Nhập nội dung tin bạn muốn gửi cho ứng viên (nếu có). Nội dung này sẽ được gửi kèm trong email thông báo."></textarea>
+                        <small class="form-text text-muted">
+                            <i class="bi bi-info-circle"></i> Nội dung này sẽ được gửi kèm trong email thông báo cho ứng viên. Để trống nếu không cần gửi thêm thông tin.
+                        </small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="luuTrangThai()">Lưu thay đổi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal thông tin tài khoản -->
+<div class="modal fade" id="taiKhoanModal" tabindex="-1" aria-labelledby="taiKhoanModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="taiKhoanModalLabel"><i class="bi bi-person-circle"></i> Thông tin tài khoản</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="taiKhoanModalBody">
+                <!-- Nội dung sẽ được load bằng JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            var isPaginationClick = false;
+            
+            // Hàm điều hướng đến trang
+            window.goToPage = function(pageNumber) {
+                isPaginationClick = true;
+                $('#pageNumberInput').val(pageNumber);
+                $('#searchForm').submit();
+            };
+            
+            // Khi thay đổi filter, reset về trang 1
+            $('#locTrangThai, #locTinTuyenDung').on('change', function() {
+                $('#pageNumberInput').val(1);
+                $('#searchForm').submit();
+            });
+            
+            // Khi submit form tìm kiếm, reset về trang 1 (chỉ khi không phải là click phân trang)
+            $('#searchForm').on('submit', function(e) {
+                if (!isPaginationClick) {
+                    $('#pageNumberInput').val(1);
+                }
+                isPaginationClick = false; // Reset flag
+            });
+            
+            // Khi nhấn nút tìm kiếm, reset về trang 1
+            $('#searchForm button[type="submit"]').on('click', function() {
+                isPaginationClick = false;
+            });
+        });
+        
+        function xemChiTiet(maDon) {
+            var modal = new bootstrap.Modal(document.getElementById('chiTietModal'));
+            $('#chiTietModalBody').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"><span class="visually-hidden">Đang tải...</span></div><p class="mt-3 text-muted">Đang tải thông tin...</p></div>');
+            modal.show();
+            
+            $.ajax({
+                url: '@Url.Action("ChiTietDonUngTuyen", "Recruiter", new { area = "Recruiter" })',
+                type: 'GET',
+                data: { id: maDon },
+                success: function(response) {
+                    if (response.success && response.data) {
+                        var data = response.data;
+                        
+                        var trangThaiBadge = '';
+                        if (data.trangThaiXuLy) {
+                            var badgeClass = 'bg-secondary';
+                            var trangThai = data.trangThaiXuLy.toLowerCase();
+                            if (trangThai.includes('xem xét')) badgeClass = 'bg-warning';
+                            else if (trangThai.includes('phỏng vấn')) badgeClass = 'bg-info';
+                            else if (trangThai.includes('tuyển dụng')) badgeClass = 'bg-success';
+                            else if (trangThai.includes('từ chối') || trangThai.includes('không phù hợp')) badgeClass = 'bg-danger';
+                            trangThaiBadge = `<span class="badge ${badgeClass} status-badge-modal">${data.trangThaiXuLy}</span>`;
+                        }
+                        
+                        var cvSection = '';
+                        if (data.linkCV && data.linkCV.trim() !== '') {
+                            cvSection = `
+                                <div class="cv-card">
+                                    <h6><i class="bi bi-file-earmark-pdf-fill"></i> CV ứng viên</h6>
+                                    <a href="${data.linkCV}" target="_blank" class="btn btn-success">
+                                        <i class="bi bi-download me-2"></i> Tải CV
+                                    </a>
+                                </div>
+                            `;
+                        }
+                        
+                        var ghiChuSection = '';
+                        if (data.ghiChu && data.ghiChu.trim() !== '') {
+                            var ghiChuParts = data.ghiChu.split(';');
+                            var ghiChuHtml = '<ul class="notes-list">';
+                            ghiChuParts.forEach(function(part) {
+                                if (part.trim()) {
+                                    ghiChuHtml += '<li><i class="bi bi-check-circle-fill"></i><span>' + part.trim() + '</span></li>';
+                                }
+                            });
+                            ghiChuHtml += '</ul>';
+                            ghiChuSection = `
+                                <div class="notes-card">
+                                    <h6><i class="bi bi-sticky-fill"></i> Thông tin bổ sung</h6>
+                                    ${ghiChuHtml}
+                                </div>
+                            `;
+                        }
+                        
+                        $('#chiTietModalBody').html(`
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="info-card">
+                                        <h6><i class="bi bi-person-circle-fill"></i> Thông tin ứng viên</h6>
+                                        <div class="info-item">
+                                            <span class="info-label"><i class="bi bi-person me-1"></i> Họ và tên:</span>
+                                            <span class="info-value">${data.hoTen || 'Chưa cập nhật'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label"><i class="bi bi-envelope me-1"></i> Email:</span>
+                                            <span class="info-value"><a href="mailto:${data.email}">${data.email}</a></span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label"><i class="bi bi-telephone me-1"></i> Số điện thoại:</span>
+                                            <span class="info-value"><a href="tel:${data.soDienThoai}">${data.soDienThoai || 'Chưa cập nhật'}</a></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="info-card">
+                                        <h6><i class="bi bi-briefcase-fill"></i> Thông tin ứng tuyển</h6>
+                                        <div class="info-item">
+                                            <span class="info-label"><i class="bi bi-briefcase me-1"></i> Vị trí:</span>
+                                            <span class="info-value">${data.viTriUngTuyen || 'N/A'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label"><i class="bi bi-file-text me-1"></i> Tên công việc:</span>
+                                            <span class="info-value">${data.tenViecLam || data.viTriUngTuyen || 'N/A'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label"><i class="bi bi-building me-1"></i> Công ty:</span>
+                                            <span class="info-value">${data.congTy || 'N/A'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label"><i class="bi bi-calendar-event me-1"></i> Ngày ứng tuyển:</span>
+                                            <span class="info-value">${data.ngayUngTuyen || 'N/A'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label"><i class="bi bi-toggle-on me-1"></i> Trạng thái:</span>
+                                            <span class="info-value">${trangThaiBadge}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            ${cvSection}
+                            ${ghiChuSection}
+                        `);
+                    } else {
+                        $('#chiTietModalBody').html(`
+                            <div class="alert alert-danger">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>${response.message || 'Không thể tải thông tin đơn ứng tuyển'}
+                            </div>
+                        `);
+                    }
+                },
+                error: function(xhr) {
+                    var errorMessage = 'Có lỗi xảy ra khi tải thông tin';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                    $('#chiTietModalBody').html(`
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>${errorMessage}
+                        </div>
+                    `);
+                }
+            });
+        }
+        
+        function capNhatTrangThai(maDon) {
+            $('#maDonUngTuyen').val(maDon);
+            $('#trangThaiMoi').val('');
+            $('#ghiChu').val('');
+            var modal = new bootstrap.Modal(document.getElementById('trangThaiModal'));
+            modal.show();
+        }
+        
+        function luuTrangThai() {
+            var maDon = $('#maDonUngTuyen').val();
+            var trangThaiMoi = $('#trangThaiMoi').val();
+            var ghiChu = $('#ghiChu').val();
+            
+            if (!trangThaiMoi) {
+                showNotification('Vui lòng chọn trạng thái mới!', 'error');
+                return;
+            }
+            
+            // Disable nút để tránh double submit
+            var btnLuu = $('button[onclick="luuTrangThai()"]');
+            btnLuu.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Đang lưu...');
+            
+            // Gửi request cập nhật trạng thái lên server
+            $.ajax({
+                url: '@Url.Action("CapNhatTrangThaiDonUngTuyen", "Recruiter", new { area = "Recruiter" })',
+                type: 'POST',
+                data: {
+                    maDonUngTuyen: maDon,
+                    trangThaiMoi: trangThaiMoi,
+                    ghiChu: ghiChu || null,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Hiển thị thông báo thành công
+                        showNotification(response.message || 'Cập nhật trạng thái thành công!', 'success');
+                        
+                        // Đóng modal
+                        var modal = bootstrap.Modal.getInstance(document.getElementById('trangThaiModal'));
+                        modal.hide();
+                        
+                        // Reload trang để cập nhật dữ liệu sau 1 giây để người dùng thấy thông báo
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        showNotification(response.message || 'Có lỗi xảy ra khi cập nhật trạng thái!', 'error');
+                        btnLuu.prop('disabled', false).html('Lưu thay đổi');
+                    }
+                },
+                error: function(xhr) {
+                    var errorMessage = 'Có lỗi xảy ra khi cập nhật trạng thái';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                    showNotification(errorMessage, 'error');
+                    btnLuu.prop('disabled', false).html('Lưu thay đổi');
+                }
+            });
+        }
+        
+        // Hàm xem thông tin tài khoản
+        function xemThongTinTaiKhoan(userId) {
+            // Gọi API để lấy thông tin tài khoản và chuyển đến trang hồ sơ
+            $.ajax({
+                url: '@Url.Action("ThongTinTaiKhoanUser", "Recruiter", new { area = "Recruiter" })',
+                type: 'GET',
+                data: { userId: userId },
+                success: function(response) {
+                    if (response.success && response.data) {
+                        var data = response.data;
+                        
+                        // Kiểm tra nếu có thông tin ứng viên và mã ứng viên, chuyển đến trang hồ sơ
+                        if (data.ungVien && data.ungVien.maUngVien) {
+                            var baseUrl = window.location.origin;
+                            var profileUrl = baseUrl + '/PublicProfile/ThongTinCaNhan?id=' + data.ungVien.maUngVien;
+                            console.log('Redirecting to:', profileUrl);
+                            console.log('MaUngVien:', data.ungVien.maUngVien);
+                            window.location.href = profileUrl;
+                            return;
+                        }
+                        
+                        // Nếu không có mã ứng viên, hiển thị modal như cũ
+                        var modal = new bootstrap.Modal(document.getElementById('taiKhoanModal'));
+                        $('#taiKhoanModalBody').html('<div class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Đang tải...</span></div><p class="mt-2">Đang tải thông tin tài khoản...</p></div>');
+                        modal.show();
+                        var avatarHtml = '';
+                        if (data.avatar) {
+                            avatarHtml = `<img src="${data.avatar}" alt="Avatar" class="rounded-circle mb-3" style="width: 100px; height: 100px; object-fit: cover;">`;
+                        } else {
+                            var initials = 'UV';
+                            if (data.hoTen) {
+                                var nameParts = data.hoTen.trim().split(' ');
+                                if (nameParts.length >= 2) {
+                                    initials = (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase();
+                                } else if (nameParts.length == 1) {
+                                    initials = nameParts[0].substring(0, Math.min(2, nameParts[0].length)).toUpperCase();
+                                }
+                            }
+                            avatarHtml = `<div class="rounded-circle mb-3 d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px; background: linear-gradient(135deg, #10b981, #059669); color: white; font-size: 36px; font-weight: bold;">${initials}</div>`;
+                        }
+                        
+                        var rolesHtml = '';
+                        if (data.roles && data.roles.length > 0) {
+                            var roleLabels = data.roles.map(function(role) {
+                                var label = role;
+                                if (role === 'UngVien') label = 'Ứng viên';
+                                else if (role === 'NhaTuyenDung') label = 'Nhà tuyển dụng';
+                                else if (role === 'Admin') label = 'Quản trị viên';
+                                return '<span class="badge bg-primary me-1">' + label + '</span>';
+                            }).join('');
+                            rolesHtml = `<p><strong>Vai trò:</strong> ${roleLabels}</p>`;
+                        }
+                        
+                        var emailConfirmedBadge = data.emailConfirmed 
+                            ? '<span class="badge bg-success">Đã xác thực</span>' 
+                            : '<span class="badge bg-warning">Chưa xác thực</span>';
+                        
+                        var ungVienSection = '';
+                        if (data.ungVien) {
+                            var ungVien = data.ungVien;
+                            var cvLinkHtml = '';
+                            if (ungVien.linkCV) {
+                                cvLinkHtml = `<p><strong>CV:</strong> <a href="${ungVien.linkCV}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-file-earmark-pdf"></i> Xem CV</a></p>`;
+                            }
+                            
+                            ungVienSection = `
+                                <hr>
+                                <div>
+                                    <h6 class="mb-3"><i class="bi bi-person-badge"></i> Thông tin ứng viên</h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>Mã ứng viên:</strong> #${ungVien.maUngVien}</p>
+                                            ${ungVien.ngaySinh ? `<p><strong>Ngày sinh:</strong> ${ungVien.ngaySinh}</p>` : ''}
+                                            ${ungVien.gioiTinh ? `<p><strong>Giới tính:</strong> ${ungVien.gioiTinh}</p>` : ''}
+                                            ${ungVien.diaChi ? `<p><strong>Địa chỉ:</strong> ${ungVien.diaChi}</p>` : ''}
+                                            ${ungVien.hocVan ? `<p><strong>Học vấn:</strong> ${ungVien.hocVan}</p>` : ''}
+                                        </div>
+                                        <div class="col-md-6">
+                                            ${ungVien.kinhNghiem ? `<p><strong>Kinh nghiệm:</strong> ${ungVien.kinhNghiem}</p>` : ''}
+                                            ${ungVien.kyNang ? `<p><strong>Kỹ năng:</strong> ${ungVien.kyNang}</p>` : ''}
+                                            ${ungVien.nganhNghe ? `<p><strong>Ngành nghề:</strong> ${ungVien.nganhNghe}</p>` : ''}
+                                            ${ungVien.chuyenNganh ? `<p><strong>Chuyên ngành:</strong> ${ungVien.chuyenNganh}</p>` : ''}
+                                            ${cvLinkHtml}
+                                        </div>
+                                    </div>
+                                    ${ungVien.viTriMongMuon ? `<p><strong>Vị trí mong muốn:</strong> ${ungVien.viTriMongMuon}</p>` : ''}
+                                    ${ungVien.mucLuongKyVong ? `<p><strong>Mức lương kỳ vọng:</strong> ${ungVien.mucLuongKyVong.toLocaleString('vi-VN')} triệu</p>` : ''}
+                                    ${ungVien.noiLamViecMongMuon ? `<p><strong>Nơi làm việc mong muốn:</strong> ${ungVien.noiLamViecMongMuon}</p>` : ''}
+                                    ${ungVien.trangThaiTimViec ? `<p><strong>Trạng thái tìm việc:</strong> ${ungVien.trangThaiTimViec}</p>` : ''}
+                                    <p><strong>Số lần ứng tuyển:</strong> ${ungVien.soLanUngTuyen}</p>
+                                </div>
+                            `;
+                        }
+                        
+                        $('#taiKhoanModalBody').html(`
+                            <div class="text-center mb-4">
+                                ${avatarHtml}
+                                <h5 class="mb-1">${data.hoTen || data.email || 'Chưa có tên'}</h5>
+                                <p class="text-muted mb-0">${data.email}</p>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="mb-3"><i class="bi bi-person-circle"></i> Thông tin tài khoản</h6>
+                                    <p><strong>Email:</strong> <a href="mailto:${data.email}">${data.email}</a> ${emailConfirmedBadge}</p>
+                                    ${data.phoneNumber ? `<p><strong>Số điện thoại:</strong> <a href="tel:${data.phoneNumber}">${data.phoneNumber}</a></p>` : ''}
+                                    <p><strong>Ngày đăng ký:</strong> ${data.ngayDangKy}</p>
+                                    ${rolesHtml}
+                                    <p><strong>Số đơn ứng tuyển:</strong> ${data.soLuongDonUngTuyen || 0}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    ${ungVienSection || '<p class="text-muted">Ứng viên chưa cập nhật hồ sơ.</p>'}
+                                </div>
+                            </div>
+                        `);
+                    } else {
+                        var modal = new bootstrap.Modal(document.getElementById('taiKhoanModal'));
+                        $('#taiKhoanModalBody').html(`
+                            <div class="alert alert-danger">
+                                <i class="bi bi-exclamation-triangle"></i> ${response.message || 'Không thể tải thông tin tài khoản'}
+                            </div>
+                        `);
+                        modal.show();
+                    }
+                },
+                error: function(xhr) {
+                    var modal = new bootstrap.Modal(document.getElementById('taiKhoanModal'));
+                    var errorMessage = 'Có lỗi xảy ra khi tải thông tin tài khoản';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                    $('#taiKhoanModalBody').html(`
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle"></i> ${errorMessage}
+                        </div>
+                    `);
+                }
+            });
+        }
+        
+        // Hàm hiển thị thông báo toast
+        function showNotification(message, type) {
+            var bgColor = type === 'success' ? '#10b981' : '#e53e3e';
+            var icon = type === 'success' ? '<i class="bi bi-check-circle-fill me-2"></i>' : '<i class="bi bi-exclamation-circle-fill me-2"></i>';
+            var notification = $('<div>')
+                .css({
+                    position: 'fixed',
+                    top: '20px',
+                    right: '20px',
+                    background: bgColor,
+                    color: 'white',
+                    padding: '15px 25px',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                    zIndex: 10000,
+                    fontWeight: '600',
+                    maxWidth: '400px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    animation: 'slideInRight 0.3s ease'
+                })
+                .html(icon + message)
+                .appendTo('body');
+            
+            setTimeout(function() {
+                notification.css('animation', 'slideOutRight 0.3s ease');
+                setTimeout(function() {
+                    notification.remove();
+                }, 300);
+            }, 3000);
+        }
+    </script>
+}
+

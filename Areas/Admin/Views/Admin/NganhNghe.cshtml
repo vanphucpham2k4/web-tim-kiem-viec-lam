@@ -1,0 +1,791 @@
+@model Unicareer.Models.ViewModels.NganhNgheAdminViewModel
+
+@{
+    ViewData["Title"] = "Quản lý Ngành nghề";
+}
+
+<style>
+    .nganhnghe-management-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 10px 40px rgba(37, 69, 184, 0.3);
+    }
+
+    .page-header h1 {
+        font-weight: 700;
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .page-header p {
+        font-size: 1.1rem;
+        opacity: 0.95;
+    }
+
+    .filter-section {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .filter-form {
+        display: grid;
+        grid-template-columns: 2fr auto;
+        gap: 15px;
+        align-items: end;
+    }
+
+    .filter-form input {
+        padding: 12px 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+
+    .filter-form input:focus {
+        outline: none;
+        border-color: #2545B8;
+        box-shadow: 0 0 0 3px rgba(37, 69, 184, 0.1);
+    }
+
+    .btn-filter {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-filter:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 69, 184, 0.4);
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        overflow-x: auto;
+    }
+
+    .nganhnghe-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .nganhnghe-table thead {
+        background: #f8f9fa;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .nganhnghe-table th {
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+        color: #2d3748;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .nganhnghe-table td {
+        padding: 15px;
+        border-bottom: 1px solid #e9ecef;
+        vertical-align: middle;
+    }
+
+    .nganhnghe-table tbody tr {
+        transition: all 0.2s ease;
+    }
+
+    .nganhnghe-table tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .badge-custom {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-primary-custom {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-edit {
+        background: #f3e8ff;
+        color: #6b21a8;
+    }
+
+    .btn-edit:hover {
+        background: #e9d5ff;
+    }
+
+    .btn-delete {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .btn-delete:hover {
+        background: #fecaca;
+    }
+
+    .stats-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        text-align: center;
+    }
+
+    .stat-card h3 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2545B8;
+        margin: 0;
+    }
+
+    .stat-card p {
+        color: #718096;
+        margin: 10px 0 0 0;
+        font-size: 0.9rem;
+    }
+
+    .modal-content {
+        border-radius: 16px;
+        border: none;
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        color: white;
+        border-radius: 16px 16px 0 0;
+        padding: 20px 30px;
+    }
+
+    .modal-body {
+        padding: 30px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #2545B8;
+        box-shadow: 0 0 0 3px rgba(37, 69, 184, 0.1);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 69, 184, 0.4);
+    }
+
+    .no-data {
+        text-align: center;
+        padding: 60px 20px;
+        color: #718096;
+    }
+
+    .no-data i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 30px;
+        flex-wrap: wrap;
+    }
+
+    .pagination .page-link {
+        border: 2px solid #e2e8f0;
+        color: #2545B8;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .pagination .page-link:hover {
+        background: #2545B8;
+        color: white;
+        border-color: #2545B8;
+        transform: translateY(-2px);
+    }
+
+    .pagination .page-item.active .page-link {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        border-color: #2545B8;
+        color: white;
+        box-shadow: 0 4px 15px rgba(37, 69, 184, 0.4);
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: #a0aec0;
+        border-color: #e2e8f0;
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    .pagination .page-item.disabled .page-link:hover {
+        background: transparent;
+        transform: none;
+    }
+
+    .pagination-info {
+        text-align: center;
+        margin-top: 15px;
+        color: #718096;
+        font-size: 0.9rem;
+    }
+
+    @@media (max-width: 768px) {
+        .filter-form {
+            grid-template-columns: 1fr;
+        }
+
+        .nganhnghe-table {
+            font-size: 0.85rem;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .page-header > div {
+            flex-direction: column !important;
+            gap: 20px;
+        }
+
+        .page-header .btn {
+            width: 100%;
+            text-align: center;
+        }
+    }
+</style>
+
+@Html.AntiForgeryToken()
+
+<div class="nganhnghe-management-container">
+    <div class="page-header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1><i class="bi bi-briefcase-fill"></i> Quản lý Ngành nghề</h1>
+                <p>Quản lý danh mục ngành nghề trong hệ thống</p>
+            </div>
+            <button class="btn" style="background: white; color: #2545B8; padding: 12px 30px; border-radius: 10px; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: all 0.3s;" data-bs-toggle="modal" data-bs-target="#themNganhNgheModal">
+                <i class="bi bi-plus-circle"></i> Thêm mới
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="stats-section">
+        <div class="stat-card">
+            <h3>@Model.TotalNganhNghe</h3>
+            <p>Tổng ngành nghề</p>
+        </div>
+        <div class="stat-card">
+            <h3>@Model.TotalCongViec</h3>
+            <p>Tổng công việc</p>
+        </div>
+        <div class="stat-card">
+            <h3>@Model.TrungBinhCongViec</h3>
+            <p>TB công việc/ngành</p>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <form class="filter-form" method="get" action="@Url.Action("NganhNghe", "Admin", new { area = "Admin" })" id="searchForm">
+            <input type="hidden" name="pageNumber" id="pageNumberInput" value="@Model.PageNumber" />
+            <input type="hidden" name="pageSize" value="@Model.PageSize" />
+            <div>
+                <label for="timKiemInput" style="margin-bottom: 8px; display: block; font-weight: 600; color: #2d3748;">Tìm kiếm</label>
+                <input type="text" id="timKiemInput" name="searchTerm" value="@Model.SearchTerm" placeholder="Tìm kiếm theo tên ngành nghề..." />
+            </div>
+            <div>
+                <button type="submit" class="btn-filter">
+                    <i class="bi bi-search"></i> Tìm kiếm
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Table Section -->
+    <div class="table-container">
+        @if (Model.NganhNghes != null && Model.NganhNghes.Any())
+        {
+            <table class="nganhnghe-table" id="bangNganhNghe">
+                <thead>
+                    <tr>
+                        <th>Mã</th>
+                        <th>Tên ngành nghề</th>
+                        <th>Mô tả</th>
+                        <th>Số lượng CV</th>
+                        <th>Ngày tạo</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var nganhNghe in Model.NganhNghes)
+                    {
+                        <tr data-ma="@nganhNghe.MaNganhNghe">
+                            <td><strong>#@nganhNghe.MaNganhNghe</strong></td>
+                            <td><strong>@nganhNghe.TenNganhNghe</strong></td>
+                            <td>
+                                <span class="text-muted">
+                                    @(nganhNghe.MoTa != null && nganhNghe.MoTa.Length > 60 ? nganhNghe.MoTa.Substring(0, 60) + "..." : nganhNghe.MoTa ?? "")
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge-custom badge-primary-custom">@nganhNghe.SoLuongCongViec việc</span>
+                            </td>
+                            <td>@nganhNghe.NgayTao.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-action btn-edit btn-sua" 
+                                            data-ma="@nganhNghe.MaNganhNghe"
+                                            data-ten="@nganhNghe.TenNganhNghe"
+                                            data-mota="@nganhNghe.MoTa"
+                                            data-soluong="@nganhNghe.SoLuongCongViec"
+                                            title="Sửa">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn-action btn-delete btn-xoa" 
+                                            data-ma="@nganhNghe.MaNganhNghe" 
+                                            title="Xóa">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            
+            <!-- Pagination -->
+            @if (Model.TotalPages > 1)
+            {
+                <nav aria-label="Phân trang">
+                    <ul class="pagination">
+                        @if (Model.PageNumber > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">
+                                    <i class="bi bi-chevron-double-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(Model.PageNumber - 1))">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-double-left"></i></span>
+                            </li>
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                            </li>
+                        }
+
+                        @{
+                            int startPage = Math.Max(1, Model.PageNumber - 2);
+                            int endPage = Math.Min(Model.TotalPages, Model.PageNumber + 2);
+                        }
+
+                        @if (startPage > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">1</a>
+                            </li>
+                            @if (startPage > 2)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                        }
+
+                        @for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@i)">@i</a>
+                            </li>
+                        }
+
+                        @if (endPage < Model.TotalPages)
+                        {
+                            @if (endPage < Model.TotalPages - 1)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@Model.TotalPages)">@Model.TotalPages</a>
+                            </li>
+                        }
+
+                        @if (Model.PageNumber < Model.TotalPages)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(Model.PageNumber + 1))">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@Model.TotalPages)">
+                                    <i class="bi bi-chevron-double-right"></i>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                            </li>
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-double-right"></i></span>
+                            </li>
+                        }
+                    </ul>
+                    <div class="pagination-info">
+                        Hiển thị <strong>@((Model.PageNumber - 1) * Model.PageSize + 1)</strong> - 
+                        <strong>@(Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount))</strong> 
+                        trong tổng số <strong>@Model.TotalCount</strong> ngành nghề
+                    </div>
+                </nav>
+            }
+        }
+        else
+        {
+            <div class="no-data">
+                <i class="bi bi-briefcase"></i>
+                <h3>Chưa có ngành nghề nào</h3>
+                <p>Hãy thêm ngành nghề mới để bắt đầu</p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Modal Thêm ngành nghề -->
+<div class="modal fade" id="themNganhNgheModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Thêm ngành nghề mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formThemNganhNghe">
+                    <div class="form-group">
+                        <label for="tenNganhNgheMoi">Tên ngành nghề <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="tenNganhNgheMoi" required placeholder="Nhập tên ngành nghề">
+                    </div>
+                    <div class="form-group">
+                        <label for="moTaMoi">Mô tả</label>
+                        <textarea class="form-control" id="moTaMoi" rows="3" placeholder="Nhập mô tả ngành nghề (tùy chọn)"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="btnLuuNganhNghe">
+                    <i class="bi bi-check-circle me-2"></i>Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Sửa ngành nghề -->
+<div class="modal fade" id="suaNganhNgheModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Sửa ngành nghề</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formSuaNganhNghe">
+                    <input type="hidden" id="maNganhNgheSua">
+                    <div class="form-group">
+                        <label for="tenNganhNgheSua">Tên ngành nghề <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="tenNganhNgheSua" required placeholder="Nhập tên ngành nghề">
+                    </div>
+                    <div class="form-group">
+                        <label for="moTaSua">Mô tả</label>
+                        <textarea class="form-control" id="moTaSua" rows="3" placeholder="Nhập mô tả ngành nghề (tùy chọn)"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="btnCapNhatNganhNghe">
+                    <i class="bi bi-check-circle me-2"></i>Cập nhật
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            var isPaginationClick = false;
+            
+            // Hàm điều hướng đến trang
+            window.goToPage = function(pageNumber) {
+                isPaginationClick = true;
+                $('#pageNumberInput').val(pageNumber);
+                $('#searchForm').submit();
+            };
+            
+            // Khi submit form tìm kiếm, reset về trang 1 (chỉ khi không phải là click phân trang)
+            $('#searchForm').on('submit', function(e) {
+                if (!isPaginationClick) {
+                    $('#pageNumberInput').val(1);
+                }
+                isPaginationClick = false; // Reset flag
+            });
+            
+            // Khi nhấn nút tìm kiếm, reset về trang 1
+            $('#searchForm button[type="submit"]').on('click', function() {
+                isPaginationClick = false;
+            });
+
+            // Them nganh nghe
+            $('#btnLuuNganhNghe').click(function() {
+                var tenNganhNghe = $('#tenNganhNgheMoi').val();
+                var moTa = $('#moTaMoi').val();
+
+                if (!tenNganhNghe) {
+                    showNotification('Vui lòng nhập tên ngành nghề!', 'error');
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("ThemNganhNghe", "Admin", new { area = "Admin" })',
+                    type: 'POST',
+                    data: {
+                        tenNganhNghe: tenNganhNghe,
+                        moTa: moTa,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            showNotification(response.message, 'success');
+                            $('#themNganhNgheModal').modal('hide');
+                            $('#formThemNganhNghe')[0].reset();
+                            location.reload();
+                        } else {
+                            showNotification(response.message, 'error');
+                        }
+                    },
+                    error: function() {
+                        showNotification('Có lỗi xảy ra khi thêm ngành nghề!', 'error');
+                    }
+                });
+            });
+
+            // Sua nganh nghe
+            $(document).on('click', '.btn-sua', function() {
+                var ma = $(this).data('ma');
+                var ten = $(this).data('ten');
+                var moTa = $(this).data('mota');
+
+                $('#maNganhNgheSua').val(ma);
+                $('#tenNganhNgheSua').val(ten);
+                $('#moTaSua').val(moTa);
+
+                $('#suaNganhNgheModal').modal('show');
+            });
+
+            $('#btnCapNhatNganhNghe').click(function() {
+                var ma = $('#maNganhNgheSua').val();
+                var ten = $('#tenNganhNgheSua').val();
+                var moTa = $('#moTaSua').val();
+
+                if (!ten) {
+                    showNotification('Vui lòng nhập tên ngành nghề!', 'error');
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("CapNhatNganhNghe", "Admin", new { area = "Admin" })',
+                    type: 'POST',
+                    data: {
+                        id: ma,
+                        tenNganhNghe: ten,
+                        moTa: moTa,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            showNotification(response.message, 'success');
+                            $('#suaNganhNgheModal').modal('hide');
+                            location.reload();
+                        } else {
+                            showNotification(response.message, 'error');
+                        }
+                    },
+                    error: function() {
+                        showNotification('Có lỗi xảy ra khi cập nhật ngành nghề!', 'error');
+                    }
+                });
+            });
+
+            // Xoa nganh nghe
+            $(document).on('click', '.btn-xoa', function() {
+                var ma = $(this).data('ma');
+                var row = $(this).closest('tr');
+                
+                if (confirm('Bạn có chắc chắn muốn xóa ngành nghề này?')) {
+                    $.ajax({
+                        url: '@Url.Action("XoaNganhNghe", "Admin", new { area = "Admin" })',
+                        type: 'POST',
+                        data: {
+                            id: ma,
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                showNotification(response.message, 'success');
+                                row.fadeOut(300, function() {
+                                    $(this).remove();
+                                    location.reload();
+                                });
+                            } else {
+                                showNotification(response.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            showNotification('Có lỗi xảy ra khi xóa ngành nghề!', 'error');
+                        }
+                    });
+                }
+            });
+        });
+
+        // Show notification function
+        function showNotification(message, type) {
+            var bgColor = type === 'success' ? '#48bb78' : type === 'error' ? '#e53e3e' : '#4299e1';
+            var notification = $('<div>')
+                .css({
+                    position: 'fixed',
+                    top: '20px',
+                    right: '20px',
+                    background: bgColor,
+                    color: 'white',
+                    padding: '15px 25px',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                    zIndex: 9999,
+                    fontWeight: '600',
+                    animation: 'slideInRight 0.3s ease'
+                })
+                .text(message)
+                .appendTo('body');
+            
+            setTimeout(function() {
+                notification.fadeOut(400, function() {
+                    $(this).remove();
+                });
+            }, 3000);
+        }
+    </script>
+
+    <style>
+        @@keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+}

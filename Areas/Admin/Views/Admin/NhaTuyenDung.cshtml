@@ -1,0 +1,909 @@
+@model Unicareer.Models.ViewModels.NhaTuyenDungManagementViewModel
+
+@{
+    ViewData["Title"] = "Quản lý Nhà tuyển dụng";
+}
+
+<div class="container-fluid">
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="dashboard-card special-card">
+                <div class="hero-title d-flex align-items-center justify-content-between flex-wrap gap-3">
+                    <div>
+                        <h5 class="mb-1 text-white">Quản lý nhà tuyển dụng</h5>
+                        <p class="mb-0 text-white-75">Theo dõi các công ty và tin tuyển dụng, đảm bảo vận hành tuyển dụng hiệu quả.</p>
+                    </div>
+                    <i class="bi bi-building icon-large text-white"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <div class="dashboard-card">
+                <i class="bi bi-building text-primary"></i>
+                <h5 class="mt-3">Tổng NTD</h5>
+                <p class="stat-value mb-0">@Model.TotalNhaTuyenDung</p>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <div class="dashboard-card">
+                <i class="bi bi-file-earmark-text text-success"></i>
+                <h5 class="mt-3">Tổng tin đăng</h5>
+                <p class="stat-value mb-0">@Model.TotalTinDang</p>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <div class="dashboard-card">
+                <i class="bi bi-person-check text-warning"></i>
+                <h5 class="mt-3">Tổng UV nhận</h5>
+                <p class="stat-value mb-0">@Model.TotalUngVienNhan</p>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <div class="dashboard-card">
+                <i class="bi bi-graph-up-arrow text-info"></i>
+                <h5 class="mt-3">TB tin/NTD</h5>
+                <p class="stat-value mb-0">@Model.TrungBinhTinPerNTD</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="filter-card">
+                <form id="searchForm" method="get" action="@Url.Action("NhaTuyenDung", "Admin", new { area = "Admin" })">
+                    <input type="hidden" id="pageNumberInput" name="pageNumber" value="@Model.PageNumber" />
+                    <div class="row g-3 align-items-end">
+                        <div class="col-lg-4 col-md-6">
+                            <label class="form-label">Tìm kiếm</label>
+                            <div class="search-wrapper">
+                                <i class="bi bi-search search-icon"></i>
+                                <input type="text" class="form-control search-input" id="timKiemInput" name="search" value="@Model.SearchTerm" placeholder="Tên công ty, email, điện thoại...">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label">Tỉnh/TP</label>
+                            <div class="filter-select-wrapper">
+                                <i class="bi bi-geo-alt filter-icon"></i>
+                                <select class="form-select filter-select" id="locTinhThanhPho" name="tinhThanhPho">
+                                    <option value="">Tất cả tỉnh/TP</option>
+                                    @foreach (var tinh in Model.DanhSachTinhThanh)
+                                    {
+                                        if (Model.TinhThanhPhoFilter == tinh.FullName)
+                                        {
+                                            <option value="@tinh.FullName" data-code="@tinh.Code" selected>@tinh.FullName</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@tinh.FullName" data-code="@tinh.Code">@tinh.FullName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label">Quận/Huyện</label>
+                            <div class="filter-select-wrapper">
+                                <i class="bi bi-map filter-icon"></i>
+                                <select class="form-select filter-select" id="locQuanHuyen" name="quanHuyen">
+                                    <option value="">Tất cả quận/huyện</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <button class="btn btn-primary w-100 filter-btn" type="submit" id="btnTimKiem">
+                                <i class="bi bi-funnel-fill me-1"></i> Lọc
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="data-table-card">
+                <div class="table-responsive">
+                    <table class="table table-hover modern-table" id="bangNhaTuyenDung">
+                        <thead>
+                            <tr>
+                                <th>Mã</th>
+                                <th>Tên công ty</th>
+                                <th>Người đại diện</th>
+                                <th>Email / SĐT</th>
+                                <th>Tỉnh/TP</th>
+                                <th>Quận/Huyện</th>
+                                <th>Tin đăng</th>
+                                <th>UV nhận</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ntd in Model.NhaTuyenDungs)
+                            {
+                                <tr data-ma="@ntd.MaNhaTuyenDung" data-tinhthanhpho="@ntd.TinhThanhPho" data-quanhuyen="@ntd.QuanHuyen">
+                                    <td>@ntd.MaNhaTuyenDung</td>
+                                    <td>
+                                        <strong>@ntd.TenCongTy</strong>
+                                    </td>
+                                    <td>
+                                        @ntd.NguoiDaiDien
+                                    </td>
+                                    <td>
+                                        <i class="bi bi-envelope"></i> @ntd.Email<br />
+                                        <small class="text-muted"><i class="bi bi-telephone"></i> @ntd.SoDienThoai</small>
+                                    </td>
+                                    <td><span class="badge bg-primary">@ntd.TinhThanhPho</span></td>
+                                    <td><span class="badge bg-info">@ntd.QuanHuyen</span></td>
+                                    <td><span class="badge bg-success">@Model.DanhSachTinTuyenDung.Count(t => t.CongTy == ntd.TenCongTy)</span></td>
+                                    <td><span class="badge bg-warning text-dark">@Model.DanhSachTinUngTuyen.Count(t => t.CongTy == ntd.TenCongTy)</span></td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <a href="@Url.Action("ChiTietNhaTuyenDung", "Admin", new { id = ntd.MaNhaTuyenDung })"
+                                               class="btn-action btn-view" title="Xem chi tiết">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <button class="btn-action btn-delete btn-xoa" data-ma="@ntd.MaNhaTuyenDung" title="Xóa">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                @if (Model.TotalPages > 1)
+                {
+                    <nav aria-label="Phân trang" style="margin-top: 30px;">
+                        <ul class="pagination justify-content-center">
+                            @if (Model.PageNumber > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">
+                                        <i class="bi bi-chevron-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(Model.PageNumber - 1))">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="bi bi-chevron-double-left"></i></span>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                                </li>
+                            }
+
+                            @{
+                                int startPage = Math.Max(1, Model.PageNumber - 2);
+                                int endPage = Math.Min(Model.TotalPages, Model.PageNumber + 2);
+                            }
+
+                            @if (startPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">1</a>
+                                </li>
+                                @if (startPage > 2)
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                }
+                            }
+
+                            @for (int i = startPage; i <= endPage; i++)
+                            {
+                                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(@i)">@i</a>
+                                </li>
+                            }
+
+                            @if (endPage < Model.TotalPages)
+                            {
+                                @if (endPage < Model.TotalPages - 1)
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                }
+                                <li class="page-item">
+                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(@Model.TotalPages)">@Model.TotalPages</a>
+                                </li>
+                            }
+
+                            @if (Model.PageNumber < Model.TotalPages)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(Model.PageNumber + 1))">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(@Model.TotalPages)">
+                                        <i class="bi bi-chevron-double-right"></i>
+                                    </a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="bi bi-chevron-double-right"></i></span>
+                                </li>
+                            }
+                        </ul>
+                        <div class="pagination-info">
+                            Hiển thị <strong>@((Model.PageNumber - 1) * Model.PageSize + 1)</strong> -
+                            <strong>@(Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount))</strong>
+                            trong tổng số <strong>@Model.TotalCount</strong> nhà tuyển dụng
+                        </div>
+                    </nav>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Xem chi tiet -->
+<div class="modal fade" id="xemChiTietModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-building me-2"></i>Thông tin Nhà tuyển dụng</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-tabs mb-4" id="chiTietTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="thongtin-tab" data-bs-toggle="tab" data-bs-target="#thongtin" type="button" role="tab" aria-controls="thongtin" aria-selected="true">
+                            <i class="bi bi-building me-2"></i>Thông tin công ty
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tintuyendung-tab" data-bs-toggle="tab" data-bs-target="#tintuyendung" type="button" role="tab" aria-controls="tintuyendung" aria-selected="false">
+                            <i class="bi bi-newspaper me-2"></i>Các tin tuyển dụng
+                            <span class="badge bg-primary ms-2" id="badgeSoTin">0</span>
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="chiTietTabContent">
+                    <div class="tab-pane fade show active" id="thongtin" role="tabpanel" aria-labelledby="thongtin-tab">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="text-primary mb-3"><i class="bi bi-building"></i> Thông tin công ty</h6>
+                                <p><strong>Tên công ty:</strong> <span id="chiTietTenCongTy"></span></p>
+                                <p><strong>Email:</strong> <span id="chiTietEmail"></span></p>
+                                <p><strong>Số điện thoại:</strong> <span id="chiTietSDT"></span></p>
+                                <p><strong>Website:</strong> <a href="#" id="chiTietWebsite" target="_blank"></a></p>
+                                <p><strong>Địa chỉ:</strong> <span id="chiTietDiaChi"></span></p>
+                                <p><strong>Tỉnh/Thành phố:</strong> <span id="chiTietTinhThanhPho" class="badge bg-primary"></span></p>
+                                <p><strong>Quận/Huyện:</strong> <span id="chiTietQuanHuyen" class="badge bg-info"></span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-primary mb-3"><i class="bi bi-person-badge"></i> Người đại diện</h6>
+                                <p><strong>Họ tên:</strong> <span id="chiTietNguoiDaiDien"></span></p>
+                                <p><strong>Chức vụ:</strong> <span id="chiTietChucVu"></span></p>
+                                <p><strong>Lĩnh vực:</strong> <span id="chiTietLinhVuc"></span></p>
+                                <p><strong>Ngày đăng ký:</strong> <span id="chiTietNgayDK"></span></p>
+                            </div>
+                        </div>
+                        <hr />
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3"><i class="bi bi-info-circle"></i> Giới thiệu</h6>
+                                <p id="chiTietMoTa" class="text-muted"></p>
+                            </div>
+                        </div>
+                        <hr />
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card bg-light border-0">
+                                    <div class="card-body text-center">
+                                        <h3 id="chiTietSoTin" class="text-primary mb-0">0</h3>
+                                        <p class="mb-0 mt-2 small">Tin tuyển dụng đã đăng</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light border-0">
+                                    <div class="card-body text-center">
+                                        <h3 id="chiTietSoUV" class="text-success mb-0">0</h3>
+                                        <p class="mb-0 mt-2 small">Ứng viên đã nhận</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="tintuyendung" role="tabpanel" aria-labelledby="tintuyendung-tab">
+                        <div id="loadingTinTuyenDung" class="text-center py-5" style="display: none;">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Đang tải...</span>
+                            </div>
+                            <p class="mt-3 text-muted">Đang tải danh sách tin tuyển dụng...</p>
+                        </div>
+                        <div id="noDataTinTuyenDung" class="text-center py-5" style="display: none;">
+                            <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+                            <p class="mt-3 text-muted">Công ty này chưa đăng tin tuyển dụng nào.</p>
+                        </div>
+                        <div id="danhSachTinTuyenDung" class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Mã tin</th>
+                                        <th>Tên việc làm</th>
+                                        <th>Ngành nghề</th>
+                                        <th>Loại công việc</th>
+                                        <th>Tỉnh/TP</th>
+                                        <th>Mức lương</th>
+                                        <th>UV ứng tuyển</th>
+                                        <th>Ngày đăng</th>
+                                        <th>Hạn nộp</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodyTinTuyenDung">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .dashboard-card {
+        background: white;
+        border-radius: 20px;
+        padding: 32px 28px;
+        text-align: left;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 30px rgba(37, 69, 184, 0.08);
+        position: relative;
+        min-height: 160px;
+        overflow: hidden;
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .dashboard-card i {
+        font-size: 2.5rem;
+        color: #2545B8;
+        transition: transform 0.3s ease;
+    }
+
+    .dashboard-card h5 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 4px;
+        color: #2c3e50;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 40px rgba(37, 69, 184, 0.15);
+    }
+
+    .special-card {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        color: white;
+        box-shadow: 0 15px 35px rgba(37, 69, 184, 0.35);
+    }
+
+    .special-card .dashboard-card i {
+        color: white;
+    }
+
+    .special-card:hover {
+        box-shadow: 0 25px 45px rgba(37, 69, 184, 0.45);
+    }
+
+    .hero-title h5 {
+        font-size: 2.3rem;
+        letter-spacing: 0.5px;
+    }
+
+    .hero-title p {
+        font-size: 1.1rem;
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .icon-large {
+        font-size: 4rem;
+    }
+
+    .stat-value {
+        font-size: 2.25rem;
+        font-weight: 700;
+        color: #172b4d;
+    }
+
+    .filter-card {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 15px 35px rgba(15, 23, 42, 0.08);
+    }
+
+    .filter-card .form-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #5a5f7d;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .search-wrapper {
+        position: relative;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #667eea;
+        font-size: 1rem;
+        z-index: 2;
+    }
+
+    .search-input {
+        padding-left: 40px;
+        border-radius: 12px;
+        height: 48px;
+        border: 1px solid #e6e9ef;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .search-input:focus {
+        border-color: #2545B8;
+        box-shadow: 0 0 0 3px rgba(37, 69, 184, 0.2);
+    }
+
+    .filter-select-wrapper {
+        position: relative;
+    }
+
+    .filter-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 1rem;
+        color: #667eea;
+        pointer-events: none;
+    }
+
+    .filter-select {
+        width: 100%;
+        padding-left: 40px;
+        height: 48px;
+        border-radius: 12px;
+        border: 1px solid #e6e9ef;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .filter-select:focus {
+        border-color: #2545B8;
+        box-shadow: 0 0 0 3px rgba(37, 69, 184, 0.2);
+    }
+
+    .filter-btn {
+        height: 48px;
+        border-radius: 12px;
+        font-weight: 600;
+        background: linear-gradient(135deg, #2545B8 0%, #4B6CE7 100%);
+        border: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .filter-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(37, 69, 184, 0.3);
+    }
+
+    .data-table-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .modern-table {
+        margin-bottom: 0;
+    }
+
+    .modern-table thead {
+        background: linear-gradient(135deg, #f6f8fb 0%, #e2e8f0 100%);
+    }
+
+    .modern-table thead th {
+        border: none;
+        padding: 18px 14px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #495057;
+    }
+
+    .modern-table tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #f1f3f5;
+    }
+
+    .modern-table tbody tr:hover {
+        background: linear-gradient(90deg, rgba(37, 69, 184, 0.05) 0%, transparent 100%);
+        transform: translateX(4px);
+        box-shadow: 0 2px 8px rgba(37, 69, 184, 0.08);
+    }
+
+    .modern-table tbody td {
+        padding: 18px 14px;
+        vertical-align: middle;
+        border: none;
+    }
+
+    .pagination {
+        margin: 0;
+        padding: 0;
+    }
+
+    .pagination .page-item {
+        margin: 0 3px;
+    }
+
+    .pagination .page-link {
+        color: #2545B8;
+        border: 1px solid #e2e8f0;
+        padding: 8px 14px;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .pagination .page-link:hover {
+        background: rgba(37, 69, 184, 0.08);
+        color: #1e3475;
+        border-color: #1e3475;
+    }
+
+    .pagination .page-item.active .page-link {
+        background: linear-gradient(135deg, #2545B8 0%, #4B6CE7 100%);
+        border-color: #2545B8;
+        color: white;
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: #cbd5e0;
+        cursor: not-allowed;
+        background: #f7fafc;
+    }
+
+    .pagination-info {
+        text-align: center;
+        margin-top: 15px;
+        color: #4c566a;
+        font-size: 0.9rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-view {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .btn-view:hover {
+        background: #bfdbfe;
+    }
+
+    .btn-delete {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .btn-delete:hover {
+        background: #fecaca;
+    }
+
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            function loadWardsByProvince(provinceCode) {
+                const $locQuanHuyen = $('#locQuanHuyen');
+
+                $locQuanHuyen.html('<option value="">Tất cả quận/huyện</option>');
+
+                if (provinceCode) {
+                    $locQuanHuyen.prop('disabled', true);
+                    $locQuanHuyen.html('<option value="">Đang tải...</option>');
+
+                    return fetch(`/Admin/Admin/GetWardsByProvince?provinceCode=${encodeURIComponent(provinceCode)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            $locQuanHuyen.html('<option value="">Tất cả quận/huyện</option>');
+
+                            if (data && data.length > 0) {
+                                data.forEach(ward => {
+                                    const option = $('<option></option>')
+                                        .attr('value', ward.fullName)
+                                        .text(ward.fullName);
+                                    $locQuanHuyen.append(option);
+                                });
+                            } else {
+                                $locQuanHuyen.html('<option value="">Không có dữ liệu</option>');
+                            }
+
+                            $locQuanHuyen.prop('disabled', false);
+                            return data;
+                        })
+                        .catch(error => {
+                            console.error('Error loading wards:', error);
+                            $locQuanHuyen.html('<option value="">Lỗi tải dữ liệu</option>');
+                            $locQuanHuyen.prop('disabled', false);
+                            return [];
+                        });
+                } else {
+                    $locQuanHuyen.prop('disabled', false);
+                    return Promise.resolve([]);
+                }
+            }
+
+            $('#locTinhThanhPho').on('change', function() {
+                var selectedOption = $(this).find('option:selected');
+                var provinceCode = selectedOption.data('code');
+                if (provinceCode) {
+                    loadWardsByProvince(provinceCode);
+                } else {
+                    $('#locQuanHuyen').html('<option value="">Tất cả quận/huyện</option>');
+                }
+                $('#pageNumberInput').val(1);
+                $('#pageNumberInput').removeData('pagination-click');
+                $('#searchForm').submit();
+            });
+
+            const selectedProvinceCode = $('#locTinhThanhPho option:selected').data('code');
+            if (selectedProvinceCode) {
+                loadWardsByProvince(selectedProvinceCode).then(function() {
+                    var quanHuyenFilter = '@Model.QuanHuyenFilter';
+                    if (quanHuyenFilter) {
+                        $('#locQuanHuyen').val(quanHuyenFilter);
+                    }
+                });
+            }
+
+            window.goToPage = function(pageNumber) {
+                $('#pageNumberInput').val(pageNumber);
+                $('#pageNumberInput').data('pagination-click', true);
+                $('#searchForm').submit();
+            };
+
+            $('#searchForm').on('submit', function() {
+                if (!$('#pageNumberInput').data('pagination-click')) {
+                    $('#pageNumberInput').val(1);
+                }
+                $('#pageNumberInput').removeData('pagination-click');
+            });
+
+            $(document).on('click', '.page-link', function() {
+                $('#pageNumberInput').data('pagination-click', true);
+            });
+
+            $('#locQuanHuyen').on('change', function() {
+                $('#pageNumberInput').val(1);
+                $('#pageNumberInput').removeData('pagination-click');
+                $('#searchForm').submit();
+            });
+
+            var currentTenCongTy = '';
+
+            $('.btn-xem').click(function() {
+                var tenCongTy = $(this).data('tencongty');
+                currentTenCongTy = tenCongTy;
+
+                $('#chiTietTenCongTy').text(tenCongTy);
+                $('#chiTietEmail').text($(this).data('email'));
+                $('#chiTietSDT').text($(this).data('sdt'));
+                $('#chiTietWebsite').attr('href', $(this).data('website')).text($(this).data('website'));
+                $('#chiTietDiaChi').text($(this).data('diachi'));
+                $('#chiTietTinhThanhPho').text($(this).data('tinhthanhpho'));
+                $('#chiTietQuanHuyen').text($(this).data('quanhuyen'));
+                $('#chiTietNguoiDaiDien').text($(this).data('nguoidaidien'));
+                $('#chiTietChucVu').text($(this).data('chucvu'));
+                $('#chiTietLinhVuc').text($(this).data('linhvuc'));
+                $('#chiTietMoTa').text($(this).data('mota'));
+                var soTin = $(this).data('sotindadang');
+                $('#chiTietSoTin').text(soTin);
+                $('#badgeSoTin').text(soTin);
+                $('#chiTietSoUV').text($(this).data('soungviennhan'));
+                $('#chiTietNgayDK').text($(this).data('ngaydk'));
+
+                $('#thongtin-tab').tab('show');
+                $('#tbodyTinTuyenDung').empty();
+                $('#danhSachTinTuyenDung').hide();
+                $('#noDataTinTuyenDung').hide();
+
+                $('#xemChiTietModal').modal('show');
+            });
+
+            $('#tintuyendung-tab').on('shown.bs.tab', function() {
+                if (currentTenCongTy && $('#tbodyTinTuyenDung').children().length === 0) {
+                    loadDanhSachTinTuyenDung(currentTenCongTy);
+                }
+            });
+
+            var chiTietTinUrl = '@Url.Action("ChiTietTinTuyenDung", "Admin", new { area = "Admin" })';
+            var layTinUrl = '@Url.Action("LayDanhSachTinTuyenDungTheoCongTy", "Admin", new { area = "Admin" })';
+
+            function loadDanhSachTinTuyenDung(tenCongTy) {
+                $('#loadingTinTuyenDung').show();
+                $('#danhSachTinTuyenDung').hide();
+                $('#noDataTinTuyenDung').hide();
+                $('#tbodyTinTuyenDung').empty();
+
+                $.ajax({
+                    url: layTinUrl,
+                    type: 'GET',
+                    data: { tenCongTy: tenCongTy },
+                    success: function(response) {
+                        $('#loadingTinTuyenDung').hide();
+
+                        if (response.success && response.data && response.data.length > 0) {
+                            var html = '';
+                            response.data.forEach(function(tin) {
+                                var mucLuong = '';
+                                if (tin.mucLuongThapNhat && tin.mucLuongCaoNhat) {
+                                    mucLuong = formatCurrency(tin.mucLuongThapNhat) + ' - ' + formatCurrency(tin.mucLuongCaoNhat) + ' triệu';
+                                } else if (tin.mucLuongThapNhat) {
+                                    mucLuong = 'Từ ' + formatCurrency(tin.mucLuongThapNhat) + ' triệu';
+                                } else {
+                                    mucLuong = '<span class="text-muted">Thỏa thuận</span>';
+                                }
+
+                                var trangThaiBadge = tin.soLuongUngTuyen > 0
+                                    ? '<span class="badge bg-success">Đang tuyển</span>'
+                                    : '<span class="badge bg-secondary">Chưa có UV</span>';
+
+                                html += '<tr>';
+                                html += '<td><strong>#' + tin.maTin + '</strong></td>';
+                                html += '<td><strong>' + (tin.tenViecLam || 'N/A') + '</strong></td>';
+                                html += '<td><span class="badge bg-info">' + (tin.nganhNghe || 'N/A') + '</span></td>';
+                                html += '<td><span class="badge bg-secondary">' + (tin.loaiCongViec || 'N/A') + '</span></td>';
+                                html += '<td>' + (tin.tinhThanhPho || 'N/A') + '</td>';
+                                html += '<td>' + mucLuong + '</td>';
+                                html += '<td>' + trangThaiBadge + ' <small class="text-muted">(' + tin.soLuongUngTuyen + ')</small></td>';
+                                html += '<td><small>' + tin.ngayDang + '</small></td>';
+                                html += '<td><small>' + tin.hanNop + '</small></td>';
+                                html += '<td>';
+                                html += '<a href="' + chiTietTinUrl + '?id=' + tin.maTin + '" class="btn btn-sm btn-outline-primary" title="Xem chi tiết" target="_blank">';
+                                html += '<i class="bi bi-eye"></i>';
+                                html += '</a>';
+                                html += '</td>';
+                                html += '</tr>';
+                            });
+                            $('#tbodyTinTuyenDung').html(html);
+                            $('#danhSachTinTuyenDung').show();
+                        } else {
+                            $('#noDataTinTuyenDung').show();
+                        }
+                    },
+                    error: function() {
+                        $('#loadingTinTuyenDung').hide();
+                        $('#noDataTinTuyenDung').show();
+                        $('#noDataTinTuyenDung').html('<i class="bi bi-exclamation-triangle" style="font-size: 3rem; color: #f56565;"></i><p class="mt-3 text-danger">Có lỗi xảy ra khi tải dữ liệu!</p>');
+                    }
+                });
+            }
+
+            function formatCurrency(amount) {
+                if (amount >= 1000) {
+                    return (amount / 1000).toFixed(1) + 'M';
+                }
+                return amount.toString();
+            }
+
+            $('.btn-tin').click(function() {
+                var ma = $(this).data('ma');
+                var ten = $(this).data('ten');
+                showNotification('Xem các tin tuyển dụng của ' + ten, 'info');
+            });
+
+            $('.btn-xoa').click(function() {
+                var ma = $(this).data('ma');
+                if (confirm('Bạn có chắc chắn muốn xóa nhà tuyển dụng này?')) {
+                    showNotification('Đã xóa nhà tuyển dụng mã ' + ma, 'success');
+                    $(this).closest('tr').fadeOut();
+                }
+            });
+        });
+
+        // Show notification function
+        function showNotification(message, type) {
+            var bgColor = type === 'success' ? '#48bb78' : type === 'error' ? '#e53e3e' : '#4299e1';
+            var notification = $('<div>')
+                .css({
+                    position: 'fixed',
+                    top: '20px',
+                    right: '20px',
+                    background: bgColor,
+                    color: 'white',
+                    padding: '15px 25px',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                    zIndex: 9999,
+                    fontWeight: '600',
+                    animation: 'slideInRight 0.3s ease'
+                })
+                .text(message)
+                .appendTo('body');
+            
+            setTimeout(function() {
+                notification.fadeOut(400, function() {
+                    $(this).remove();
+                });
+            }, 3000);
+        }
+    </script>
+
+    <style>
+        @@keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+}
+

@@ -1,0 +1,1006 @@
+@model List<Unicareer.Models.Blog>
+
+@{
+    ViewData["Title"] = "Quản lý Blog";
+    var search = ViewBag.Search as string ?? "";
+    var pageNumber = ViewBag.PageNumber as int? ?? 1;
+    var pageSize = ViewBag.PageSize as int? ?? 20;
+    var totalPages = ViewBag.TotalPages as int? ?? 1;
+    var totalItems = ViewBag.TotalItems as int? ?? 0;
+}
+
+<style>
+    .blog-management-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 10px 40px rgba(37, 69, 184, 0.3);
+    }
+
+    .page-header h1 {
+        font-weight: 700;
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .filter-section {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .filter-form {
+        display: grid;
+        grid-template-columns: 2fr auto;
+        gap: 15px;
+        align-items: end;
+    }
+
+    .filter-form input {
+        padding: 12px 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        width: 100%;
+    }
+
+    .btn-filter {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        overflow-x: auto;
+    }
+
+    .blog-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .blog-table thead {
+        background: #f8f9fa;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .blog-table th {
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+        color: #2d3748;
+        font-size: 14px;
+    }
+
+    .blog-table td {
+        padding: 15px;
+        border-bottom: 1px solid #e9ecef;
+        vertical-align: middle;
+    }
+
+    .blog-table tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-success {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .badge-warning {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .badge-danger {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-edit {
+        background: #f3e8ff;
+        color: #6b21a8;
+    }
+
+    .btn-delete {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .btn-toggle {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 30px;
+    }
+
+    .page-link {
+        border: 2px solid #e2e8f0;
+        color: #2545B8;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .page-link:hover {
+        background: #2545B8;
+        color: white;
+    }
+
+    .page-item.active .page-link {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        color: white;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        overflow-y: auto;
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 50px auto;
+        padding: 0;
+        border-radius: 16px;
+        width: 90%;
+        max-width: 1200px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        padding: 25px 30px;
+        border-radius: 16px 16px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-body {
+        padding: 30px;
+    }
+
+    .close {
+        color: white;
+        font-size: 32px;
+        font-weight: bold;
+        cursor: pointer;
+        border: none;
+        background: none;
+        line-height: 1;
+    }
+
+    .close:hover {
+        opacity: 0.8;
+    }
+
+    .search-api-section {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+    }
+
+    .api-search-form {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+
+    .api-search-form input {
+        flex: 1;
+        padding: 12px 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .api-articles-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 20px;
+        max-height: 600px;
+        overflow-y: auto;
+        padding: 10px;
+    }
+
+    .api-article-card {
+        background: white;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .api-article-card:hover {
+        border-color: #10b981;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    }
+
+    .api-article-image {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-bottom: 12px;
+    }
+
+    .api-article-title {
+        font-weight: 600;
+        font-size: 16px;
+        margin-bottom: 8px;
+        color: #2d3748;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .api-article-description {
+        font-size: 13px;
+        color: #718096;
+        margin-bottom: 12px;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .api-article-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+        color: #a0aec0;
+        margin-bottom: 12px;
+    }
+
+    .api-article-tags {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+    }
+
+    .api-tag {
+        background: #e0f2fe;
+        color: #0369a1;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+    }
+
+    .btn-import-article {
+        width: 100%;
+        background: #10b981;
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .btn-import-article:hover {
+        background: #059669;
+    }
+
+    .btn-import-article:disabled {
+        background: #cbd5e0;
+        cursor: not-allowed;
+    }
+
+    .loading-spinner {
+        text-align: center;
+        padding: 40px;
+    }
+
+    .spinner {
+        border: 4px solid #f3f4f6;
+        border-top: 4px solid #10b981;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+    }
+
+    @@keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .blog-image-wrapper {
+        position: relative;
+        width: 60px;
+        height: 60px;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #e2e8f0;
+    }
+
+    .blog-image-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: opacity 0.3s ease;
+    }
+
+    .blog-image-wrapper img.loading {
+        opacity: 0.5;
+    }
+
+    .api-article-image-wrapper {
+        position: relative;
+        width: 100%;
+        height: 180px;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #e2e8f0;
+        margin-bottom: 12px;
+    }
+
+    .api-article-image-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .image-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        background: #e2e8f0;
+    }
+</style>
+
+<div class="blog-management-container">
+    <div class="page-header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1><i class="bi bi-journal-text"></i> Quản lý Blog</h1>
+                <p>Quản lý các bài viết blog trên trang chủ</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="openImportModal()" class="btn" style="background: #10b981; color: white; padding: 12px 30px; border-radius: 10px; font-weight: 600; border: none; cursor: pointer;">
+                    <i class="bi bi-cloud-download"></i> Import từ API
+                </button>
+                <a href="@Url.Action("ThemBlog", "Admin", new { area = "Admin" })" class="btn" style="background: white; color: #2545B8; padding: 12px 30px; border-radius: 10px; font-weight: 600; text-decoration: none;">
+                    <i class="bi bi-plus-circle"></i> Thêm blog mới
+                </a>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["ThanhCong"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["ThanhCong"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Loi"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Loi"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Pending API Articles Section -->
+    @{
+        var danhSachBaiVietChoDuyet = ViewBag.DanhSachBaiVietChoDuyet as List<Unicareer.Models.Blog>;
+        if (danhSachBaiVietChoDuyet != null && danhSachBaiVietChoDuyet.Any())
+        {
+            <div class="filter-section" style="background: #fef3c7; border: 2px solid #f59e0b;">
+                <h4 style="margin-bottom: 15px; color: #92400e;">
+                    <i class="bi bi-exclamation-triangle"></i> Bài viết từ API chờ duyệt (@danhSachBaiVietChoDuyet.Count)
+                </h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
+                    @foreach (var blog in danhSachBaiVietChoDuyet.Take(6))
+                    {
+                        <div class="api-article-card">
+                            @if (!string.IsNullOrEmpty(blog.HinhAnh))
+                            {
+                                <img src="@blog.HinhAnh" 
+                                     alt="@blog.TieuDe" 
+                                     style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 10px;" 
+                                     onerror="this.onerror=null; this.style.display='none';" />
+                            }
+                            <div style="font-weight: 600; font-size: 14px; margin-bottom: 8px;">@blog.TieuDe</div>
+                            <div style="font-size: 12px; color: #718096; margin-bottom: 10px;">
+                                <i class="bi bi-person"></i> <strong>@(blog.TacGia ?? "Unknown")</strong>
+                            </div>
+                            <div style="font-size: 11px; color: #a0aec0; margin-bottom: 10px;">
+                                <i class="bi bi-link-45deg"></i> @(blog.NguonBaiViet ?? "External API")
+                            </div>
+                            <div style="display: flex; gap: 5px;">
+                                <a href="@Url.Action("SuaBlog", "Admin", new { area = "Admin", id = blog.MaBlog })" class="btn-action btn-edit" style="flex: 1; text-align: center;">
+                                    <i class="bi bi-pencil"></i> Xem & Duyệt
+                                </a>
+                                <button class="btn-action btn-delete" onclick="xoaBlog(@blog.MaBlog)" style="flex: 0;">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+                @if (danhSachBaiVietChoDuyet.Count > 6)
+                {
+                    <p style="margin-top: 15px; text-align: center; color: #92400e;">
+                        <i class="bi bi-info-circle"></i> Còn @(danhSachBaiVietChoDuyet.Count - 6) bài viết khác chờ duyệt. Lọc theo "Nguồn" để xem tất cả.
+                    </p>
+                }
+            </div>
+        }
+    }
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <form class="filter-form" method="get" action="@Url.Action("Blog", "Admin", new { area = "Admin" })">
+            <div>
+                <input type="text" name="search" value="@search" placeholder="Tìm kiếm theo tiêu đề, mô tả, thể loại..." />
+            </div>
+            <div>
+                <button type="submit" class="btn-filter">
+                    <i class="bi bi-search"></i> Tìm kiếm
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Table Section -->
+    <div class="table-container">
+        @if (Model != null && Model.Any())
+        {
+            <table class="blog-table">
+                <thead>
+                    <tr>
+                        <th>Mã</th>
+                        <th>Hình ảnh</th>
+                        <th>Tiêu đề</th>
+                        <th>Thể loại</th>
+                        <th>Tác giả</th>
+                        <th>Nguồn</th>
+                        <th>Ngày đăng</th>
+                        <th>Lượt xem</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var blog in Model)
+                    {
+                        <tr>
+                            <td><strong>#@blog.MaBlog</strong></td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(blog.HinhAnh))
+                                {
+                                    <img src="@blog.HinhAnh" 
+                                         alt="@blog.TieuDe" 
+                                         style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;" 
+                                         onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div style=\'width: 60px; height: 60px; background: #e2e8f0; border-radius: 8px; display: flex; align-items: center; justify-content: center;\'><i class=\'bi bi-image-fill\' style=\'font-size: 24px; color: #a0aec0;\'></i></div>';" />
+                                }
+                                else
+                                {
+                                    <div style="width: 60px; height: 60px; background: #e2e8f0; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="bi bi-image" style="font-size: 24px; color: #a0aec0;"></i>
+                                    </div>
+                                }
+                            </td>
+                            <td>
+                                <strong>@blog.TieuDe</strong><br />
+                                <small class="text-muted">@(blog.MoTaNgan != null && blog.MoTaNgan.Length > 50 ? blog.MoTaNgan.Substring(0, 50) + "..." : blog.MoTaNgan ?? "")</small>
+                            </td>
+                            <td>
+                                @if (blog.TheLoaiBlog != null)
+                                {
+                                    <span class="badge" style="background: #fef3c7; color: #92400e;">
+                                        @blog.TheLoaiBlog.TenTheLoai
+                                    </span>
+                                }
+                                else if (!string.IsNullOrEmpty(blog.TheLoai))
+                                {
+                                    <span class="badge badge-warning">@blog.TheLoai</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-warning">Chưa phân loại</span>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(blog.TacGia))
+                                {
+                                    <div>
+                                        <strong><i class="bi bi-person-fill"></i> @blog.TacGia</strong>
+                                        @if (!string.IsNullOrEmpty(blog.ApiArticleId))
+                                        {
+                                            <br />
+                                            <small style="color: #6366f1; font-size: 10px;">
+                                                <i class="bi bi-cloud-check-fill"></i> Imported from API
+                                            </small>
+                                        }
+                                    </div>
+                                }
+                                else if (blog.User != null)
+                                {
+                                    <div>
+                                        <strong>@(blog.User.HoTen ?? blog.User.UserName ?? blog.User.Email ?? "N/A")</strong>
+                                        @if (!string.IsNullOrEmpty(blog.User.Email))
+                                        {
+                                            <br /><small class="text-muted">@blog.User.Email</small>
+                                        }
+                                        <br />
+                                        <small style="color: #8b5cf6; font-size: 10px;">
+                                            <i class="bi bi-pencil-fill"></i> Tạo bởi Admin
+                                        </small>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Admin</span>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(blog.NguonBaiViet))
+                                {
+                                    <div style="display: flex; align-items: center; gap: 4px;">
+                                        <i class="bi bi-globe2" style="color: #10b981;"></i>
+                                        <span style="font-weight: 600; color: #10b981;">@blog.NguonBaiViet</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            <td>@blog.NgayDang.ToString("dd/MM/yyyy")</td>
+                            <td>@blog.LuotXem</td>
+                            <td>
+                                @if (!blog.DaDang)
+                                {
+                                    <span class="badge badge-warning">Bản nháp</span>
+                                }
+                                else if (blog.DaDang && !blog.HienThi)
+                                {
+                                    <span class="badge" style="background: #dbeafe; color: #1e40af;">Đã đăng - Ẩn</span>
+                                }
+                                else if (blog.DaDang && blog.HienThi)
+                                {
+                                    <span class="badge badge-success">Đã đăng - Hiển thị</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-danger">Không xác định</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="@Url.Action("SuaBlog", "Admin", new { area = "Admin", id = blog.MaBlog })" class="btn-action btn-edit">
+                                        <i class="bi bi-pencil"></i> Sửa
+                                    </a>
+                                    
+                                    @if (!blog.DaDang)
+                                    {
+                                        <button class="btn-action" style="background: #d1fae5; color: #065f46;" onclick="toggleDang(@blog.MaBlog, true)">
+                                            <i class="bi bi-send"></i> Đăng
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn-action" style="background: #fee2e2; color: #991b1b;" onclick="toggleDang(@blog.MaBlog, false)">
+                                            <i class="bi bi-arrow-counterclockwise"></i> Hủy đăng
+                                        </button>
+                                        
+                                        @if (!blog.HienThi)
+                                        {
+                                            <button class="btn-action btn-toggle" onclick="toggleHienThi(@blog.MaBlog, true)">
+                                                <i class="bi bi-eye"></i> Hiện
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn-action btn-toggle" onclick="toggleHienThi(@blog.MaBlog, false)">
+                                                <i class="bi bi-eye-slash"></i> Ẩn
+                                            </button>
+                                        }
+                                    }
+                                    
+                                    <button class="btn-action btn-delete" onclick="xoaBlog(@blog.MaBlog)">
+                                        <i class="bi bi-trash"></i> Xóa
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <!-- Pagination -->
+            @if (totalPages > 1)
+            {
+                <nav aria-label="Phân trang">
+                    <ul class="pagination">
+                        @if (pageNumber > 1)
+                        {
+                            <li><a href="@Url.Action("Blog", "Admin", new { area = "Admin", search = search, pageNumber = pageNumber - 1, pageSize = pageSize })" class="page-link">Trước</a></li>
+                        }
+                        @for (int i = Math.Max(1, pageNumber - 2); i <= Math.Min(totalPages, pageNumber + 2); i++)
+                        {
+                            <li class="@(i == pageNumber ? "active" : "")">
+                                <a href="@Url.Action("Blog", "Admin", new { area = "Admin", search = search, pageNumber = i, pageSize = pageSize })" class="page-link">@i</a>
+                            </li>
+                        }
+                        @if (pageNumber < totalPages)
+                        {
+                            <li><a href="@Url.Action("Blog", "Admin", new { area = "Admin", search = search, pageNumber = pageNumber + 1, pageSize = pageSize })" class="page-link">Sau</a></li>
+                        }
+                    </ul>
+                </nav>
+            }
+        }
+        else
+        {
+            <div style="text-align: center; padding: 60px 20px; color: #718096;">
+                <i class="bi bi-journal-x" style="font-size: 4rem; margin-bottom: 20px; opacity: 0.5;"></i>
+                <p>Chưa có blog nào. Hãy thêm blog mới!</p>
+            </div>
+        }
+    </div>
+</div>
+
+<div id="importModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2><i class="bi bi-cloud-download"></i> Import Bài Viết từ External APIs</h2>
+            <button class="close" onclick="closeImportModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="search-api-section">
+                <h4 style="margin-bottom: 15px;">Tìm kiếm bài viết về việc làm, kỹ năng, career...</h4>
+                <div class="api-search-form">
+                    <input type="text" id="apiSearchKeyword" placeholder="Nhập từ khóa: career, job, programming, interview..." />
+                    <button onclick="searchAPIArticles()" class="btn-filter">
+                        <i class="bi bi-search"></i> Tìm kiếm
+                    </button>
+                </div>
+                <p style="margin: 0; font-size: 13px; color: #718096;">
+                    <i class="bi bi-info-circle"></i> Nguồn: Dev.to, NewsAPI, MediaStack
+                </p>
+            </div>
+
+            <div id="apiArticlesContainer">
+                <div style="text-align: center; padding: 40px; color: #718096;">
+                    <i class="bi bi-search" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                    <p>Nhập từ khóa và nhấn Tìm kiếm để xem bài viết từ các nguồn bên ngoài</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.AntiForgeryToken()
+
+<script>
+    function openImportModal() {
+        document.getElementById('importModal').style.display = 'block';
+    }
+
+    function closeImportModal() {
+        document.getElementById('importModal').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('importModal');
+        if (event.target == modal) {
+            closeImportModal();
+        }
+    }
+
+    async function searchAPIArticles() {
+        const keyword = document.getElementById('apiSearchKeyword').value;
+        const container = document.getElementById('apiArticlesContainer');
+        
+        container.innerHTML = `
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p style="margin-top: 15px; color: #718096;">Đang tìm kiếm bài viết...</p>
+            </div>
+        `;
+
+        try {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const response = await fetch('@Url.Action("TimKiemBaiVietAPI", "Admin", new { area = "Admin" })', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': token
+                },
+                body: new URLSearchParams({
+                    keyword: keyword || 'career',
+                    pageSize: 12,
+                    __RequestVerificationToken: token
+                })
+            });
+
+            const result = await response.json();
+            
+            if (result.success && result.data && result.data.length > 0) {
+                container.innerHTML = `<div class="api-articles-grid">${result.data.map(article => createArticleCard(article)).join('')}</div>`;
+            } else {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #718096;">
+                        <i class="bi bi-exclamation-circle" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                        <p>Không tìm thấy bài viết nào. Thử từ khóa khác!</p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #ef4444;">
+                    <i class="bi bi-x-circle" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                    <p>Lỗi khi tìm kiếm: ${error.message}</p>
+                </div>
+            `;
+        }
+    }
+
+    function createArticleCard(article) {
+        const imageHtml = article.imageUrl 
+            ? `<img src="${article.imageUrl}" class="api-article-image" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';" /><div style="width: 100%; height: 180px; background: #e2e8f0; border-radius: 8px; margin-bottom: 12px; display: none; align-items: center; justify-content: center;"><i class="bi bi-image-fill" style="font-size: 48px; color: #a0aec0;"></i></div>`
+            : '<div style="width: 100%; height: 180px; background: #e2e8f0; border-radius: 8px; margin-bottom: 12px; display: flex; align-items: center; justify-content: center;"><i class="bi bi-image" style="font-size: 48px; color: #a0aec0;"></i></div>';
+        
+        const tagsHtml = article.tags && article.tags.length > 0 
+            ? `<div class="api-article-tags">${article.tags.slice(0, 5).map(tag => `<span class="api-tag">${tag}</span>`).join('')}</div>`
+            : '';
+        
+        const publishedDate = article.publishedAt ? new Date(article.publishedAt).toLocaleDateString('vi-VN') : 'N/A';
+        const authorName = article.author || 'Unknown Author';
+        const sourceName = article.sourceName || 'External API';
+        
+        return `
+            <div class="api-article-card">
+                ${imageHtml}
+                <div class="api-article-title">${article.title}</div>
+                <div class="api-article-description">${article.description || article.content.substring(0, 150) + '...'}</div>
+                ${tagsHtml}
+                <div class="api-article-meta">
+                    <span><i class="bi bi-person"></i> <strong>${authorName}</strong></span>
+                    <span><i class="bi bi-calendar"></i> ${publishedDate}</span>
+                </div>
+                <div class="api-article-meta">
+                    <span><i class="bi bi-link-45deg"></i> ${sourceName}</span>
+                </div>
+                <button class="btn-import-article" onclick='importArticle(${JSON.stringify(article).replace(/'/g, "&apos;")})'>
+                    <i class="bi bi-download"></i> Import bài viết
+                </button>
+            </div>
+        `;
+    }
+
+    async function importArticle(article) {
+        if (!confirm('Bạn có chắc muốn import bài viết này?\n\nBài viết sẽ được lưu dưới dạng bản nháp và cần duyệt trước khi đăng.\nNếu có ảnh, ảnh sẽ được tải về server (có thể mất vài giây).')) {
+            return;
+        }
+
+        const button = event.target;
+        button.disabled = true;
+        button.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang import...';
+
+        try {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const formData = new URLSearchParams({
+                articleId: article.id,
+                title: article.title,
+                description: article.description || '',
+                content: article.content,
+                imageUrl: article.imageUrl || '',
+                author: article.author || '',
+                sourceUrl: article.sourceUrl || '',
+                sourceName: article.sourceName || '',
+                tags: article.tags ? article.tags.join(', ') : '',
+                publishedAt: article.publishedAt || new Date().toISOString(),
+                __RequestVerificationToken: token
+            });
+
+            if (article.imageUrl) {
+                button.innerHTML = '<i class="bi bi-cloud-download"></i> Đang tải ảnh...';
+            }
+
+            const response = await fetch('@Url.Action("ImportBaiVietAPI", "Admin", new { area = "Admin" })', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': token
+                },
+                body: formData
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                button.innerHTML = '<i class="bi bi-check-circle"></i> Đã import!';
+                button.style.background = '#059669';
+                showNotification(result.message, 'success');
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                button.disabled = false;
+                button.innerHTML = '<i class="bi bi-download"></i> Import bài viết';
+                showNotification(result.message, 'error');
+            }
+        } catch (error) {
+            button.disabled = false;
+            button.innerHTML = '<i class="bi bi-download"></i> Import bài viết';
+            showNotification('Lỗi khi import: ' + error.message, 'error');
+        }
+    }
+
+    document.getElementById('apiSearchKeyword')?.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            searchAPIArticles();
+        }
+    });
+
+    function toggleDang(id, daDang) {
+        const message = daDang ? 'Bạn có chắc muốn đăng blog này?' : 'Bạn có chắc muốn chuyển blog về bản nháp? (Sẽ hủy trạng thái hiển thị)';
+        if (confirm(message)) {
+            fetch('@Url.Action("DangBlog", "Admin", new { area = "Admin" })?id=' + id + '&daDang=' + daDang, {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    showNotification(data.message || 'Có lỗi xảy ra!', 'error');
+                }
+            });
+        }
+    }
+
+    function toggleHienThi(id, hienThi) {
+        const message = hienThi ? 'Bạn có chắc muốn hiển thị blog này trên trang chủ?' : 'Bạn có chắc muốn ẩn blog này khỏi trang chủ?';
+        if (confirm(message)) {
+            fetch('@Url.Action("HienThiBlog", "Admin", new { area = "Admin" })?id=' + id + '&hienThi=' + hienThi, {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    showNotification(data.message || 'Có lỗi xảy ra!', 'error');
+                }
+            });
+        }
+    }
+
+    function xoaBlog(id) {
+        if (confirm('Bạn có chắc muốn xóa blog này? Hành động này không thể hoàn tác!')) {
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '@Url.Action("XoaBlog", "Admin", new { area = "Admin" })?id=' + id;
+            
+            var token = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (token) {
+                var tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = '__RequestVerificationToken';
+                tokenInput.value = token.value;
+                form.appendChild(tokenInput);
+            }
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+
+    // Show notification function
+    function showNotification(message, type) {
+        var bgColor = type === 'success' ? '#48bb78' : type === 'error' ? '#e53e3e' : '#4299e1';
+        var notification = $('<div>')
+            .css({
+                position: 'fixed',
+                top: '20px',
+                right: '20px',
+                background: bgColor,
+                color: 'white',
+                padding: '15px 25px',
+                borderRadius: '12px',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                zIndex: 9999,
+                fontWeight: '600',
+                animation: 'slideInRight 0.3s ease'
+            })
+            .text(message)
+            .appendTo('body');
+        
+        setTimeout(function() {
+            notification.fadeOut(400, function() {
+                $(this).remove();
+            });
+        }, 3000);
+    }
+</script>
+
+<style>
+    @@keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+</style>
+

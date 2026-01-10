@@ -1,0 +1,798 @@
+@model Unicareer.Models.ViewModels.TruongDaiHocAdminViewModel
+
+@{
+    ViewData["Title"] = "Quản lý Trường đại học";
+}
+
+<style>
+    .truongdaihoc-management-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 10px 40px rgba(37, 69, 184, 0.3);
+    }
+
+    .page-header h1 {
+        font-weight: 700;
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .page-header p {
+        font-size: 1.1rem;
+        opacity: 0.95;
+    }
+
+    .filter-section {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .filter-form {
+        display: grid;
+        grid-template-columns: 2fr auto;
+        gap: 15px;
+        align-items: end;
+    }
+
+    .filter-form input {
+        padding: 12px 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+
+    .filter-form input:focus {
+        outline: none;
+        border-color: #2545B8;
+        box-shadow: 0 0 0 3px rgba(37, 69, 184, 0.1);
+    }
+
+    .btn-filter {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-filter:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 69, 184, 0.4);
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        overflow-x: auto;
+    }
+
+    .truongdaihoc-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .truongdaihoc-table thead {
+        background: #f8f9fa;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .truongdaihoc-table th {
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+        color: #2d3748;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .truongdaihoc-table td {
+        padding: 15px;
+        border-bottom: 1px solid #e9ecef;
+        vertical-align: middle;
+    }
+
+    .truongdaihoc-table tbody tr {
+        transition: all 0.2s ease;
+    }
+
+    .truongdaihoc-table tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .badge-custom {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-primary-custom {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-edit {
+        background: #f3e8ff;
+        color: #6b21a8;
+    }
+
+    .btn-edit:hover {
+        background: #e9d5ff;
+    }
+
+    .btn-delete {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .btn-delete:hover {
+        background: #fecaca;
+    }
+
+    .stats-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        text-align: center;
+    }
+
+    .stat-card h3 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2545B8;
+        margin: 0;
+    }
+
+    .stat-card p {
+        color: #718096;
+        margin: 10px 0 0 0;
+        font-size: 0.9rem;
+    }
+
+    .modal-content {
+        border-radius: 16px;
+        border: none;
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        color: white;
+        border-radius: 16px 16px 0 0;
+        padding: 20px 30px;
+    }
+
+    .modal-body {
+        padding: 30px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #2545B8;
+        box-shadow: 0 0 0 3px rgba(37, 69, 184, 0.1);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 69, 184, 0.4);
+    }
+
+    .no-data {
+        text-align: center;
+        padding: 60px 20px;
+        color: #718096;
+    }
+
+    .no-data i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 30px;
+        flex-wrap: wrap;
+    }
+
+    .pagination .page-link {
+        border: 2px solid #e2e8f0;
+        color: #2545B8;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .pagination .page-link:hover {
+        background: #2545B8;
+        color: white;
+        border-color: #2545B8;
+        transform: translateY(-2px);
+    }
+
+    .pagination .page-item.active .page-link {
+        background: linear-gradient(135deg, #2545B8 0%, #1a3599 100%);
+        border-color: #2545B8;
+        color: white;
+        box-shadow: 0 4px 15px rgba(37, 69, 184, 0.4);
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: #a0aec0;
+        border-color: #e2e8f0;
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    .pagination .page-item.disabled .page-link:hover {
+        background: transparent;
+        transform: none;
+    }
+
+    .pagination-info {
+        text-align: center;
+        margin-top: 15px;
+        color: #718096;
+        font-size: 0.9rem;
+    }
+
+    @@media (max-width: 768px) {
+        .filter-form {
+            grid-template-columns: 1fr;
+        }
+
+        .truongdaihoc-table {
+            font-size: 0.85rem;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .page-header > div {
+            flex-direction: column !important;
+            gap: 20px;
+        }
+
+        .page-header .btn {
+            width: 100%;
+            text-align: center;
+        }
+    }
+</style>
+
+@Html.AntiForgeryToken()
+
+<div class="truongdaihoc-management-container">
+    <div class="page-header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1><i class="bi bi-building"></i> Quản lý Trường đại học</h1>
+                <p>Quản lý danh mục trường đại học trong hệ thống</p>
+            </div>
+            <button class="btn" style="background: white; color: #2545B8; padding: 12px 30px; border-radius: 10px; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: all 0.3s;" data-bs-toggle="modal" data-bs-target="#themTruongDaiHocModal">
+                <i class="bi bi-plus-circle"></i> Thêm mới
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="stats-section">
+        <div class="stat-card">
+            <h3>@Model.TotalTruongDaiHoc</h3>
+            <p>Tổng trường đại học</p>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <form class="filter-form" method="get" action="@Url.Action("TruongDaiHoc", "Admin", new { area = "Admin" })" id="searchForm">
+            <input type="hidden" name="pageNumber" id="pageNumberInput" value="@Model.PageNumber" />
+            <input type="hidden" name="pageSize" value="@Model.PageSize" />
+            <div>
+                <label for="timKiemInput" style="margin-bottom: 8px; display: block; font-weight: 600; color: #2d3748;">Tìm kiếm</label>
+                <input type="text" id="timKiemInput" name="searchTerm" value="@Model.SearchTerm" placeholder="Tìm kiếm theo tên trường đại học..." />
+            </div>
+            <div>
+                <button type="submit" class="btn-filter">
+                    <i class="bi bi-search"></i> Tìm kiếm
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Table Section -->
+    <div class="table-container">
+        @if (Model.TruongDaiHocs != null && Model.TruongDaiHocs.Any())
+        {
+            <table class="truongdaihoc-table" id="bangTruongDaiHoc">
+                <thead>
+                    <tr>
+                        <th>Mã</th>
+                        <th>Tên trường</th>
+                        <th>Mô tả</th>
+                        <th>Ngày tạo</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var truong in Model.TruongDaiHocs)
+                    {
+                        <tr data-ma="@truong.MaTruong">
+                            <td><strong>#@truong.MaTruong</strong></td>
+                            <td><strong>@truong.TenTruong</strong></td>
+                            <td>
+                                <span class="text-muted">
+                                    @(truong.MoTa != null && truong.MoTa.Length > 60 ? truong.MoTa.Substring(0, 60) + "..." : truong.MoTa ?? "")
+                                </span>
+                            </td>
+                            <td>@truong.NgayTao.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-action btn-edit btn-sua" 
+                                            data-ma="@truong.MaTruong"
+                                            data-ten="@truong.TenTruong"
+                                            data-mota="@truong.MoTa"
+                                            title="Sửa">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn-action btn-delete btn-xoa" 
+                                            data-ma="@truong.MaTruong" 
+                                            title="Xóa">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            
+            <!-- Pagination -->
+            @if (Model.TotalPages > 1)
+            {
+                <nav aria-label="Phân trang">
+                    <ul class="pagination">
+                        @if (Model.PageNumber > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">
+                                    <i class="bi bi-chevron-double-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(Model.PageNumber - 1))">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-double-left"></i></span>
+                            </li>
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                            </li>
+                        }
+
+                        @{
+                            int startPage = Math.Max(1, Model.PageNumber - 2);
+                            int endPage = Math.Min(Model.TotalPages, Model.PageNumber + 2);
+                        }
+
+                        @if (startPage > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(1)">1</a>
+                            </li>
+                            @if (startPage > 2)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                        }
+
+                        @for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@i)">@i</a>
+                            </li>
+                        }
+
+                        @if (endPage < Model.TotalPages)
+                        {
+                            @if (endPage < Model.TotalPages - 1)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@Model.TotalPages)">@Model.TotalPages</a>
+                            </li>
+                        }
+
+                        @if (Model.PageNumber < Model.TotalPages)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@(Model.PageNumber + 1))">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(@Model.TotalPages)">
+                                    <i class="bi bi-chevron-double-right"></i>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                            </li>
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-double-right"></i></span>
+                            </li>
+                        }
+                    </ul>
+                    <div class="pagination-info">
+                        Hiển thị <strong>@((Model.PageNumber - 1) * Model.PageSize + 1)</strong> - 
+                        <strong>@(Math.Min(Model.PageNumber * Model.PageSize, Model.TotalCount))</strong> 
+                        trong tổng số <strong>@Model.TotalCount</strong> trường đại học
+                    </div>
+                </nav>
+            }
+        }
+        else
+        {
+            <div class="no-data">
+                <i class="bi bi-building"></i>
+                <h3>Chưa có trường đại học nào</h3>
+                <p>Hãy thêm trường đại học mới để bắt đầu</p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Modal Thêm trường đại học -->
+<div class="modal fade" id="themTruongDaiHocModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Thêm trường đại học mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formThemTruongDaiHoc">
+                    <div class="form-group">
+                        <label for="tenTruongMoi">Tên trường đại học <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="tenTruongMoi" required placeholder="Nhập tên trường đại học">
+                    </div>
+                    <div class="form-group">
+                        <label for="moTaMoi">Mô tả <span style="color: red;">*</span></label>
+                        <textarea class="form-control" id="moTaMoi" rows="3" required placeholder="Nhập mô tả trường đại học"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="btnLuuTruongDaiHoc">
+                    <i class="bi bi-check-circle me-2"></i>Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Sửa trường đại học -->
+<div class="modal fade" id="suaTruongDaiHocModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Sửa trường đại học</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formSuaTruongDaiHoc">
+                    <input type="hidden" id="maTruongSua">
+                    <div class="form-group">
+                        <label for="tenTruongSua">Tên trường đại học <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="tenTruongSua" required placeholder="Nhập tên trường đại học">
+                    </div>
+                    <div class="form-group">
+                        <label for="moTaSua">Mô tả <span style="color: red;">*</span></label>
+                        <textarea class="form-control" id="moTaSua" rows="3" required placeholder="Nhập mô tả trường đại học"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="btnCapNhatTruongDaiHoc">
+                    <i class="bi bi-check-circle me-2"></i>Cập nhật
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            var isPaginationClick = false;
+            
+            // Hàm điều hướng đến trang
+            window.goToPage = function(pageNumber) {
+                isPaginationClick = true;
+                $('#pageNumberInput').val(pageNumber);
+                $('#searchForm').submit();
+            };
+            
+            // Khi submit form tìm kiếm, reset về trang 1 (chỉ khi không phải là click phân trang)
+            $('#searchForm').on('submit', function(e) {
+                if (!isPaginationClick) {
+                    $('#pageNumberInput').val(1);
+                }
+                isPaginationClick = false; // Reset flag
+            });
+            
+            // Khi nhấn nút tìm kiếm, reset về trang 1
+            $('#searchForm button[type="submit"]').on('click', function() {
+                isPaginationClick = false;
+            });
+
+            // Them truong dai hoc
+            $('#btnLuuTruongDaiHoc').click(function() {
+                var tenTruong = $('#tenTruongMoi').val().trim();
+                var moTa = $('#moTaMoi').val().trim();
+
+                if (!tenTruong) {
+                    showNotification('Vui lòng nhập tên trường đại học!', 'error');
+                    return;
+                }
+
+                // Disable button để tránh double submit
+                var btn = $(this);
+                btn.prop('disabled', true).html('<i class="bi bi-hourglass-split me-2"></i>Đang xử lý...');
+
+                $.ajax({
+                    url: '@Url.Action("ThemTruongDaiHoc", "Admin", new { area = "Admin" })',
+                    type: 'POST',
+                    data: {
+                        tenTruong: tenTruong,
+                        moTa: moTa,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            showNotification(response.message, 'success');
+                            $('#themTruongDaiHocModal').modal('hide');
+                            $('#formThemTruongDaiHoc')[0].reset();
+                            // Reload trang để hiển thị dữ liệu mới
+                            location.reload();
+                        } else {
+                            showNotification(response.message || 'Có lỗi xảy ra khi thêm trường đại học!', 'error');
+                            btn.prop('disabled', false).html('<i class="bi bi-check-circle me-2"></i>Lưu');
+                        }
+                    },
+                    error: function() {
+                        showNotification('Có lỗi xảy ra khi kết nối đến server!', 'error');
+                        btn.prop('disabled', false).html('<i class="bi bi-check-circle me-2"></i>Lưu');
+                    }
+                });
+            });
+
+            // Sua truong dai hoc
+            $(document).on('click', '.btn-sua', function() {
+                var ma = $(this).data('ma');
+                var ten = $(this).data('ten');
+                var moTa = $(this).data('mota') || '';
+
+                $('#maTruongSua').val(ma);
+                $('#tenTruongSua').val(ten);
+                $('#moTaSua').val(moTa);
+
+                $('#suaTruongDaiHocModal').modal('show');
+            });
+
+            $('#btnCapNhatTruongDaiHoc').click(function() {
+                var ma = $('#maTruongSua').val();
+                var ten = $('#tenTruongSua').val().trim();
+                var moTa = $('#moTaSua').val().trim();
+
+                if (!ten) {
+                    showNotification('Vui lòng nhập tên trường đại học!', 'error');
+                    return;
+                }
+
+                // Disable button để tránh double submit
+                var btn = $(this);
+                btn.prop('disabled', true).html('<i class="bi bi-hourglass-split me-2"></i>Đang xử lý...');
+
+                $.ajax({
+                    url: '@Url.Action("CapNhatTruongDaiHoc", "Admin", new { area = "Admin" })',
+                    type: 'POST',
+                    data: {
+                        id: ma,
+                        tenTruong: ten,
+                        moTa: moTa,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            showNotification(response.message, 'success');
+                            $('#suaTruongDaiHocModal').modal('hide');
+                            // Reload trang để hiển thị dữ liệu mới
+                            location.reload();
+                        } else {
+                            showNotification(response.message || 'Có lỗi xảy ra khi cập nhật trường đại học!', 'error');
+                            btn.prop('disabled', false).html('<i class="bi bi-check-circle me-2"></i>Cập nhật');
+                        }
+                    },
+                    error: function() {
+                        showNotification('Có lỗi xảy ra khi kết nối đến server!', 'error');
+                        btn.prop('disabled', false).html('<i class="bi bi-check-circle me-2"></i>Cập nhật');
+                    }
+                });
+            });
+
+            // Xoa truong dai hoc
+            $(document).on('click', '.btn-xoa', function() {
+                var ma = $(this).data('ma');
+                var ten = $(this).closest('tr').find('td:eq(1)').text().trim();
+                
+                if (!confirm('Bạn có chắc chắn muốn xóa trường đại học "' + ten + '" (Mã: ' + ma + ')?')) {
+                    return;
+                }
+
+                var btn = $(this);
+                btn.prop('disabled', true);
+
+                $.ajax({
+                    url: '@Url.Action("XoaTruongDaiHoc", "Admin", new { area = "Admin" })',
+                    type: 'POST',
+                    data: {
+                        id: ma,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            showNotification(response.message, 'success');
+                            // Reload trang để hiển thị dữ liệu mới
+                            location.reload();
+                        } else {
+                            showNotification(response.message || 'Có lỗi xảy ra khi xóa trường đại học!', 'error');
+                            btn.prop('disabled', false);
+                        }
+                    },
+                    error: function() {
+                        showNotification('Có lỗi xảy ra khi kết nối đến server!', 'error');
+                        btn.prop('disabled', false);
+                    }
+                });
+            });
+        });
+
+        // Show notification function
+        function showNotification(message, type) {
+            var bgColor = type === 'success' ? '#48bb78' : type === 'error' ? '#e53e3e' : '#4299e1';
+            var notification = $('<div>')
+                .css({
+                    position: 'fixed',
+                    top: '20px',
+                    right: '20px',
+                    background: bgColor,
+                    color: 'white',
+                    padding: '15px 25px',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                    zIndex: 9999,
+                    fontWeight: '600',
+                    animation: 'slideInRight 0.3s ease'
+                })
+                .text(message)
+                .appendTo('body');
+            
+            setTimeout(function() {
+                notification.fadeOut(400, function() {
+                    $(this).remove();
+                });
+            }, 3000);
+        }
+    </script>
+
+    <style>
+        @@keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+}
+

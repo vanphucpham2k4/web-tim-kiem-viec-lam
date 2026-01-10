@@ -1,0 +1,257 @@
+@using Microsoft.AspNetCore.Identity
+@using Unicareer.Models
+@inject SignInManager<ApplicationUser> SignInManager
+
+<footer class="footer-modern">
+    <div class="container pt-5 pb-4">
+        <div class="row g-4 justify-content-between">
+
+            <div class="col-lg-4 col-md-6">
+                <div class="footer-brand-wrapper mb-4">
+                    <a href="/" class="d-inline-block mb-3">
+                        <img src="~/images/logoUnicareer.png" alt="Unicareer Logo" class="footer-logo" height="50">
+                    </a>
+                    <p class="text-muted small mb-4">
+                        Nền tảng hệ sinh thái nhân sự tiên phong, kết nối tri thức trẻ với doanh nghiệp hàng đầu bằng công nghệ AI.
+                    </p>
+
+                    <h6 class="text-white mb-3 text-uppercase fw-bold small">Tải ứng dụng ngay</h6>
+                    <div class="app-buttons d-flex gap-2">
+                        <a href="#" class="btn btn-outline-light btn-sm d-flex align-items-center gap-2 app-btn">
+                            <i class="bi bi-apple fs-5"></i>
+                            <div class="text-start lh-1">
+                                <span class="d-block" style="font-size: 10px;">Download on</span>
+                                <span class="fw-bold">App Store</span>
+                            </div>
+                        </a>
+                        <a href="#" class="btn btn-outline-light btn-sm d-flex align-items-center gap-2 app-btn">
+                            <i class="bi bi-google-play fs-5"></i>
+                            <div class="text-start lh-1">
+                                <span class="d-block" style="font-size: 10px;">Get it on</span>
+                                <span class="fw-bold">Google Play</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-2 col-6">
+                <h6 class="footer-heading">Ứng viên</h6>
+                <ul class="list-unstyled footer-links">
+                    <li><a href="/Home/TimViec">Việc làm mới nhất</a></li>
+                    <li><a href="/Home/ThucTap">Thực tập sinh</a></li>
+                    <li><a href="/Home/Blog">Cẩm nang nghề nghiệp</a></li>
+                    <li><a href="#">Tạo CV online</a></li>
+                    @if (SignInManager.IsSignedIn(User) && User.IsInRole(SD.Role_UngVien))
+                    {
+                        <li><a asp-area="Candidate" asp-controller="Candidate" asp-action="Index">Dashboard ứng viên</a></li>
+                        <li><a asp-area="Candidate" asp-controller="Candidate" asp-action="ViecLamDaLuu">Việc làm đã lưu</a></li>
+                    }
+                    else
+                    {
+                        <li><a asp-controller="Account" asp-action="Register">Đăng ký tài khoản</a></li>
+                    }
+                </ul>
+            </div>
+
+            <div class="col-lg-2 col-6">
+                <h6 class="footer-heading">Nhà tuyển dụng</h6>
+                <ul class="list-unstyled footer-links">
+                    <li><a href="/Home/CongTy">Danh sách công ty</a></li>
+                    @if (SignInManager.IsSignedIn(User) && User.IsInRole(SD.Role_NhaTuyenDung))
+                    {
+                        <li><a asp-area="Recruiter" asp-controller="Recruiter" asp-action="DangTinTuyenDung">Đăng tin tuyển dụng</a></li>
+                        <li><a asp-area="Recruiter" asp-controller="Recruiter" asp-action="Index">Quản lý hồ sơ</a></li>
+                    }
+                    else
+                    {
+                        <li><a asp-controller="Account" asp-action="Register">Đăng ký doanh nghiệp</a></li>
+                    }
+                    <li><a href="#">Báo giá dịch vụ</a></li>
+                    <li><a href="#">Tìm kiếm nhân tài</a></li>
+                </ul>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <h6 class="footer-heading">Liên hệ & Hỗ trợ</h6>
+                <ul class="list-unstyled footer-contact">
+                    <li class="d-flex gap-3 mb-3">
+                        <div class="icon-box"><i class="bi bi-geo-alt-fill"></i></div>
+                        <span>123 Đường Innovation, Khu Công Nghệ Cao, TP.HCM</span>
+                    </li>
+                    <li class="d-flex gap-3 mb-3">
+                        <div class="icon-box"><i class="bi bi-envelope-fill"></i></div>
+                        <a href="mailto:support@unicareer.vn" class="text-decoration-none text-muted hover-white">support@unicareer.vn</a>
+                    </li>
+                    <li class="d-flex gap-3 mb-3">
+                        <div class="icon-box"><i class="bi bi-telephone-fill"></i></div>
+                        <a href="tel:19001234" class="text-decoration-none text-muted hover-white">1900 1234 (Hotline)</a>
+                    </li>
+                </ul>
+
+                <div class="mt-4">
+                    <h6 class="text-white small mb-2">Kết nối với chúng tôi</h6>
+                    <div class="social-links d-flex gap-2">
+                        <a href="#" class="social-btn facebook"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="social-btn linkedin"><i class="bi bi-linkedin"></i></a>
+                        <a href="#" class="social-btn youtube"><i class="bi bi-youtube"></i></a>
+                        <a href="#" class="social-btn tiktok"><i class="bi bi-tiktok"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-bottom py-3">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="mb-0 small text-muted">
+                        &copy; @DateTime.Now.Year <strong>Unicareer Corp</strong>. All rights reserved.
+                    </p>
+                </div>
+                <div class="col-md-6 text-center text-md-end mt-2 mt-md-0">
+                    <ul class="list-inline mb-0 small">
+                        <li class="list-inline-item"><a href="#" class="text-muted text-decoration-none">Bảo mật</a></li>
+                        <li class="list-inline-item"><span class="text-muted">&bull;</span></li>
+                        <li class="list-inline-item"><a href="#" class="text-muted text-decoration-none">Điều khoản</a></li>
+                        <li class="list-inline-item"><span class="text-muted">&bull;</span></li>
+                        <li class="list-inline-item"><a href="#" class="text-muted text-decoration-none">Sitemap</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<style>
+    /* --- CSS Variables --- */
+    :root {
+        --footer-bg: #0f172a; /* Dark Navy */
+        --footer-border: #1e293b;
+        --footer-text: #94a3b8; /* Slate 400 */
+        --footer-heading: #f8fafc; /* Slate 50 */
+        --brand-green: #10b981; /* Emerald 500 */
+    }
+
+    /* --- Layout --- */
+    .footer-modern {
+        background-color: var(--footer-bg);
+        color: var(--footer-text);
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        border-top: 5px solid var(--brand-green);
+        margin-top: auto; /* Đẩy footer xuống dưới cùng nếu nội dung ngắn */
+    }
+
+    .footer-logo {
+        filter: brightness(0) invert(1); /* Làm logo trắng hoàn toàn */
+        transition: opacity 0.3s;
+    }
+
+        .footer-logo:hover {
+            opacity: 0.8;
+        }
+
+    /* --- Headings --- */
+    .footer-heading {
+        color: var(--brand-green);
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+        margin-bottom: 1.25rem;
+    }
+
+    /* --- Links --- */
+    .footer-links li {
+        margin-bottom: 10px;
+    }
+
+    .footer-links a {
+        color: var(--footer-text);
+        text-decoration: none;
+        transition: all 0.2s ease;
+        display: inline-block;
+        font-size: 0.95rem;
+    }
+
+        .footer-links a:hover {
+            color: white;
+            transform: translateX(5px); /* Hiệu ứng trượt nhẹ */
+        }
+
+    /* --- Contact --- */
+    .footer-contact .icon-box {
+        color: var(--brand-green);
+        font-size: 1.1rem;
+        width: 20px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .hover-white:hover {
+        color: white !important;
+    }
+
+    /* --- App Buttons --- */
+    .app-btn {
+        border-color: #334155;
+        background-color: rgba(255,255,255,0.02);
+        color: #e2e8f0;
+        padding: 8px 12px;
+        transition: all 0.3s;
+    }
+
+        .app-btn:hover {
+            background-color: var(--brand-green);
+            border-color: var(--brand-green);
+            color: white;
+        }
+
+    /* --- Social Buttons --- */
+    .social-btn {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #1e293b;
+        color: white;
+        border-radius: 50%;
+        text-decoration: none;
+        transition: transform 0.3s, background-color 0.3s;
+    }
+
+        .social-btn:hover {
+            transform: translateY(-3px);
+            color: white;
+        }
+
+        .social-btn.facebook:hover {
+            background-color: #1877f2;
+        }
+
+        .social-btn.linkedin:hover {
+            background-color: #0077b5;
+        }
+
+        .social-btn.youtube:hover {
+            background-color: #ff0000;
+        }
+
+        .social-btn.tiktok:hover {
+            background-color: #000000;
+            border: 1px solid #333;
+        }
+
+    /* --- Bottom Bar --- */
+    .footer-bottom {
+        border-top: 1px solid var(--footer-border);
+        background-color: rgba(0,0,0,0.2);
+    }
+
+        .footer-bottom a:hover {
+            color: var(--brand-green) !important;
+            text-decoration: underline !important;
+        }
+</style>

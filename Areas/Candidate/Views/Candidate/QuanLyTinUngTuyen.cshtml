@@ -1,0 +1,830 @@
+@model List<Unicareer.Models.TinUngTuyen>
+@using Unicareer.Models.Enums
+
+@{
+    ViewData["Title"] = "Quản lý tin ứng tuyển";
+    
+    // Helper function để kiểm tra điều kiện hiển thị nút review
+    Func<Unicareer.Models.TinUngTuyen, bool> CanReview = (tin) =>
+    {
+        var trangThaiEnum = TrangThaiXuLyHelper.FromString(tin.TrangThaiXuLy);
+        
+        // Điều kiện 1: Trạng thái thuộc các nhóm cho phép
+        if (trangThaiEnum.HasValue)
+        {
+            var trangThai = trangThaiEnum.Value;
+            if (trangThai == TrangThaiXuLy.DaPhongVan ||
+                trangThai == TrangThaiXuLy.TuyenDung ||
+                trangThai == TrangThaiXuLy.TuChoi)
+            {
+                return true;
+            }
+        }
+        
+        // Điều kiện 2: Đơn đã nộp quá 14 ngày mà vẫn là "DangXemXet" (ghosting)
+        if (trangThaiEnum == TrangThaiXuLy.DangXemXet)
+        {
+            var soNgay = (DateTime.Now - tin.NgayUngTuyen).TotalDays;
+            if (soNgay >= 14)
+            {
+                return true;
+            }
+        }
+        
+        return false;
+    };
+    
+    var danhGiaDict = ViewBag.DanhGiaDict as Dictionary<int, Unicareer.Models.DanhGiaCongTy> ?? new Dictionary<int, Unicareer.Models.DanhGiaCongTy>();
+}
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3);
+    }
+
+    .page-header h1 {
+        font-weight: 700;
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .page-header p {
+        opacity: 0.95;
+        font-size: 1.1rem;
+        margin-bottom: 0;
+    }
+
+    .action-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        gap: 15px;
+    }
+
+    .search-filter-group {
+        display: flex;
+        gap: 15px;
+        flex: 1;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border: none;
+        border-radius: 12px;
+        padding: 12px 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+    }
+
+    .form-control, .form-select {
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 12px 16px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #10b981;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        outline: none;
+    }
+
+    .input-group .btn {
+        border-radius: 0 10px 10px 0;
+        border: 2px solid #e2e8f0;
+        border-left: none;
+    }
+
+    .input-group .form-control {
+        border-radius: 10px 0 0 10px;
+    }
+
+    .card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        animation: slideUp 0.5s ease forwards;
+    }
+
+    .card:hover {
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        transform: translateY(-5px);
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table thead {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+
+    .table thead th {
+        border: none;
+        color: #2d3748;
+        font-weight: 600;
+        padding: 18px 15px;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f7fafc;
+        transform: scale(1.01);
+    }
+
+    .table tbody td {
+        padding: 18px 15px;
+        vertical-align: middle;
+        border: none;
+    }
+
+    .badge {
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .badge.bg-success {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%) !important;
+    }
+
+    .badge.bg-secondary {
+        background: linear-gradient(135deg, #a0aec0 0%, #718096 100%) !important;
+    }
+
+    .badge.bg-primary {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    }
+
+    .badge.bg-warning {
+        background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%) !important;
+    }
+
+    .badge.bg-info {
+        background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%) !important;
+    }
+
+    .badge.bg-danger {
+        background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%) !important;
+    }
+
+    .btn-sm {
+        padding: 8px 12px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        margin: 0 2px;
+    }
+
+    .btn-outline-primary {
+        border: 2px solid #10b981;
+        color: #10b981;
+    }
+
+    .btn-outline-primary:hover {
+        background: #10b981;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .stats-card {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        text-align: center;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        border: 2px solid #e2e8f0;
+        animation: slideUp 0.5s ease forwards;
+        opacity: 0;
+    }
+
+    .stats-card:nth-child(1) { animation-delay: 0.1s; }
+    .stats-card:nth-child(2) { animation-delay: 0.2s; }
+    .stats-card:nth-child(3) { animation-delay: 0.3s; }
+    .stats-card:nth-child(4) { animation-delay: 0.4s; }
+
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+
+    .stats-card .card-title {
+        font-size: 0.9rem;
+        color: #718096;
+        margin-bottom: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stats-card h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0;
+    }
+
+    .stats-card.primary {
+        border-left: 5px solid #10b981;
+    }
+
+    .stats-card.success {
+        border-left: 5px solid #48bb78;
+    }
+
+    .stats-card.secondary {
+        border-left: 5px solid #a0aec0;
+    }
+
+    .stats-card.info {
+        border-left: 5px solid #4299e1;
+    }
+
+    @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .table-responsive {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    @@media (max-width: 768px) {
+        .action-bar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .search-filter-group {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="page-header">
+    <h1><i class="bi bi-clipboard-check"></i> Quản lý tin ứng tuyển</h1>
+    <p>Xem và theo dõi tất cả các tin ứng tuyển của bạn</p>
+</div>
+
+<div class="action-bar">
+    <div class="search-filter-group">
+        <div class="input-group" style="max-width: 350px;">
+            <input type="text" class="form-control" id="timKiemInput" placeholder="Tìm kiếm theo vị trí...">
+            <button class="btn btn-outline-secondary" type="button">
+                <i class="bi bi-search"></i>
+            </button>
+        </div>
+        <select class="form-select" id="locTrangThai" style="max-width: 200px;">
+            <option value="">Tất cả trạng thái</option>
+            <option value="Đang xem xét">Đang xem xét</option>
+            <option value="Chờ phỏng vấn">Chờ phỏng vấn</option>
+            <option value="Đã phỏng vấn">Đã phỏng vấn</option>
+            <option value="Tuyển dụng">Tuyển dụng</option>
+            <option value="Từ chối">Từ chối</option>
+            <option value="Không phù hợp">Không phù hợp</option>
+        </select>
+    </div>
+    <div>
+        <a href="/Home/TimViec" class="btn btn-primary">
+            <i class="bi bi-search"></i> Tìm việc làm mới
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th><i class="bi bi-hash"></i> STT</th>
+                                <th><i class="bi bi-briefcase"></i> Vị trí ứng tuyển</th>
+                                <th><i class="bi bi-building"></i> Công ty</th>
+                                <th><i class="bi bi-calendar-plus"></i> Ngày ứng tuyển</th>
+                                <th><i class="bi bi-toggle-on"></i> Trạng thái</th>
+                                <th><i class="bi bi-gear"></i> Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                int stt = 1;
+                            }
+                            @foreach (var tin in Model)
+                            {
+                                var trangThaiEnum = TrangThaiXuLyHelper.FromString(tin.TrangThaiXuLy);
+                                var trangThaiDisplay = trangThaiEnum.HasValue 
+                                    ? TrangThaiXuLyHelper.ToString(trangThaiEnum.Value) 
+                                    : tin.TrangThaiXuLy;
+                                var badgeClass = trangThaiEnum.HasValue 
+                                    ? TrangThaiXuLyHelper.GetBadgeClass(trangThaiEnum.Value) 
+                                    : "bg-secondary";
+                                
+                                <tr>
+                                    <td><span class="text-muted">@stt</span></td>
+                                    <td>
+                                        <strong style="color: #2d3748; font-size: 1rem;">@tin.ViTriUngTuyen</strong>
+                                    </td>
+                                    <td>@tin.CongTy</td>
+                                    <td>@tin.NgayUngTuyen.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        <span class="badge @badgeClass">@trangThaiDisplay</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <a href="@Url.Action("ChiTietTinUngTuyen", "Candidate", new { id = tin.MaTinUngTuyen })" class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
+                                                <i class="bi bi-eye"></i> Chi tiết
+                                            </a>
+                                            @{
+                                                var daDanhGia = danhGiaDict.ContainsKey(tin.MaTinUngTuyen);
+                                                var coTheDanhGia = CanReview(tin);
+                                            }
+                                            @if (daDanhGia)
+                                            {
+                                                <button type="button" class="btn btn-sm btn-outline-success" onclick="xemDanhGiaCuaToi(@tin.MaTinUngTuyen)" title="Xem đánh giá của bạn">
+                                                    <i class="bi bi-star-fill"></i> Đã đánh giá
+                                                </button>
+                                            }
+                                            else if (coTheDanhGia)
+                                            {
+                                                <button type="button" class="btn btn-sm btn-warning text-white" onclick="moModalDanhGia(@tin.MaTinUngTuyen, '@tin.ViTriUngTuyen', '@tin.CongTy')" title="Đánh giá công ty">
+                                                    <i class="bi bi-star"></i> Đánh giá
+                                                </button>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                                stt++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-3 mb-3">
+        <div class="stats-card primary">
+            <h6 class="card-title">
+                <i class="bi bi-clipboard-check"></i> Tổng tin ứng tuyển
+            </h6>
+            <h2 class="text-primary">@Model.Count</h2>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card success">
+            <h6 class="card-title">
+                <i class="bi bi-check-circle"></i> Đang xem xét
+            </h6>
+            <h2 class="text-success">@Model.Count(t => TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy) == TrangThaiXuLy.DangXemXet)</h2>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card info">
+            <h6 class="card-title">
+                <i class="bi bi-calendar-event"></i> Chờ phỏng vấn
+            </h6>
+            <h2 class="text-info">@Model.Count(t => TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy) == TrangThaiXuLy.ChoPhongVan)</h2>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card secondary">
+            <h6 class="card-title">
+                <i class="bi bi-x-circle"></i> Từ chối
+            </h6>
+            <h2 class="text-secondary">@Model.Count(t => TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy) == TrangThaiXuLy.TuChoi)</h2>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Đánh giá Công ty -->
+<div class="modal fade" id="modalDanhGia" tabindex="-1" aria-labelledby="modalDanhGiaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 20px 20px 0 0; border: none; padding: 25px 30px;">
+                <h5 class="modal-title text-white" id="modalDanhGiaLabel" style="font-weight: 700; font-size: 1.5rem;">
+                    <i class="bi bi-star-fill"></i> Đánh giá công ty
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 30px;">
+                <form id="formDanhGia">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="maTinUngTuyen" name="maTinUngTuyen" />
+                    <input type="hidden" id="maNhaTuyenDung" name="maNhaTuyenDung" />
+                    
+                    <!-- Khu vực 1: Định danh & An toàn -->
+                    <div class="mb-4 p-3" style="background: #f0fdf4; border-radius: 12px; border-left: 4px solid #10b981;">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="isAnDanh" checked style="width: 3rem; height: 1.5rem;">
+                            <label class="form-check-label fw-bold" for="isAnDanh" style="color: #059669;">
+                                <i class="bi bi-shield-check"></i> Chế độ ẩn danh (BẬT)
+                            </label>
+                        </div>
+                        <small class="text-muted d-block mt-2">
+                            <i class="bi bi-info-circle"></i> Danh tính của bạn được mã hóa. HR sẽ không biết bạn là ai.
+                        </small>
+                    </div>
+                    
+                    <!-- Khu vực 2: Thang đo cảm xúc -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3" style="color: #2d3748;">
+                            <i class="bi bi-emoji-smile"></i> Đánh giá cảm xúc
+                        </h6>
+                        
+                        <!-- Minh bạch lương -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                💸 Minh bạch lương & Phúc lợi
+                            </label>
+                            <div class="d-flex align-items-center gap-3">
+                                <span style="font-size: 1.5rem;">💸</span>
+                                <input type="range" class="form-range" id="diemMinhBachLuong" min="1" max="5" value="3" 
+                                       oninput="updateEmojiSlider(this, 'emojiMinhBachLuong')">
+                                <span style="font-size: 1.5rem;" id="emojiMinhBachLuong">💰</span>
+                                <span class="badge bg-primary" id="valueMinhBachLuong">3</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Tốc độ phản hồi -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                ⚡ Tốc độ phản hồi
+                            </label>
+                            <div class="d-flex align-items-center gap-3">
+                                <span style="font-size: 1.5rem;">🐌</span>
+                                <input type="range" class="form-range" id="diemTocDoPhanHoi" min="1" max="5" value="3"
+                                       oninput="updateEmojiSlider(this, 'emojiTocDoPhanHoi')">
+                                <span style="font-size: 1.5rem;" id="emojiTocDoPhanHoi">⚡</span>
+                                <span class="badge bg-primary" id="valueTocDoPhanHoi">3</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Tôn trọng ứng viên -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                🤝 Tôn trọng ứng viên
+                            </label>
+                            <div class="d-flex align-items-center gap-3">
+                                <span style="font-size: 1.5rem;">😡</span>
+                                <input type="range" class="form-range" id="diemTonTrongUngVien" min="1" max="5" value="3"
+                                       oninput="updateEmojiSlider(this, 'emojiTonTrongUngVien')">
+                                <span style="font-size: 1.5rem;" id="emojiTonTrongUngVien">🤝</span>
+                                <span class="badge bg-primary" id="valueTonTrongUngVien">3</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Khu vực 3: Hệ thống Tag -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3" style="color: #2d3748;">
+                            <i class="bi bi-tags"></i> Gắn nhãn (Chọn nhiều)
+                        </h6>
+                        
+                        <!-- Red Flags -->
+                        <div class="mb-3">
+                            <label class="form-label text-danger fw-semibold">🚩 Cờ đỏ (Red Flags)</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="button" class="btn btn-outline-danger btn-sm tag-btn" data-tag="Ghosting" onclick="toggleTag(this)">
+                                    🚩 Ghosting
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-sm tag-btn" data-tag="Lương không như JD" onclick="toggleTag(this)">
+                                    🚩 Lương không như JD
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-sm tag-btn" data-tag="Hỏi đời tư quá đà" onclick="toggleTag(this)">
+                                    🚩 Hỏi đời tư quá đà
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-sm tag-btn" data-tag="Bắt làm bài test free" onclick="toggleTag(this)">
+                                    🚩 Bắt làm bài test free
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-sm tag-btn" data-tag="OT không lương" onclick="toggleTag(this)">
+                                    🚩 OT không lương
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Green Flags -->
+                        <div class="mb-3">
+                            <label class="form-label text-success fw-semibold">✅ Cờ xanh (Green Flags)</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="button" class="btn btn-outline-success btn-sm tag-btn" data-tag="Phỏng vấn đúng giờ" onclick="toggleTag(this)">
+                                    ✅ Phỏng vấn đúng giờ
+                                </button>
+                                <button type="button" class="btn btn-outline-success btn-sm tag-btn" data-tag="Feedback có tâm" onclick="toggleTag(this)">
+                                    ✅ Feedback có tâm
+                                </button>
+                                <button type="button" class="btn btn-outline-success btn-sm tag-btn" data-tag="Văn phòng xịn sò" onclick="toggleTag(this)">
+                                    ✅ Văn phòng xịn sò
+                                </button>
+                                <button type="button" class="btn btn-outline-success btn-sm tag-btn" data-tag="HR thân thiện" onclick="toggleTag(this)">
+                                    ✅ HR thân thiện
+                                </button>
+                                <button type="button" class="btn btn-outline-success btn-sm tag-btn" data-tag="Quy trình nhanh gọn" onclick="toggleTag(this)">
+                                    ✅ Quy trình nhanh gọn
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Khu vực 4: Lời nhắn -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-chat-left-text"></i> Lời nhắn
+                        </label>
+                        <textarea class="form-control" id="noiDung" rows="4" 
+                                  placeholder="Kể thêm chút 'tea' (chuyện) về buổi phỏng vấn đi..." 
+                                  maxlength="500"></textarea>
+                        <small class="text-muted">
+                            <span id="charCount">0</span>/500 ký tự
+                        </small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid #e2e8f0; padding: 20px 30px;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-success" onclick="submitDanhGia()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;">
+                    <i class="bi bi-send"></i> Gửi đánh giá
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var selectedTags = [];
+        var currentMaTinUngTuyen = 0;
+        
+        function updateEmojiSlider(slider, emojiId) {
+            var value = parseInt(slider.value);
+            var emoji = document.getElementById(emojiId);
+            var valueSpan = document.getElementById('value' + slider.id.replace('diem', ''));
+            
+            valueSpan.textContent = value;
+            
+            // Update emoji based on value
+            var emojis = {
+                'emojiMinhBachLuong': ['💸', '💸', '💰', '💰', '💰'],
+                'emojiTocDoPhanHoi': ['🐌', '🐌', '⚡', '⚡', '⚡'],
+                'emojiTonTrongUngVien': ['😡', '😡', '🤝', '🤝', '🤝']
+            };
+            
+            if (emojis[emojiId]) {
+                emoji.textContent = emojis[emojiId][value - 1];
+            }
+        }
+        
+        function toggleTag(btn) {
+            var tag = btn.getAttribute('data-tag');
+            if (btn.classList.contains('active')) {
+                btn.classList.remove('active');
+                selectedTags = selectedTags.filter(t => t !== tag);
+                if (btn.classList.contains('btn-outline-danger')) {
+                    btn.classList.remove('btn-danger');
+                    btn.classList.add('btn-outline-danger');
+                } else {
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-outline-success');
+                }
+            } else {
+                btn.classList.add('active');
+                selectedTags.push(tag);
+                if (btn.classList.contains('btn-outline-danger')) {
+                    btn.classList.remove('btn-outline-danger');
+                    btn.classList.add('btn-danger');
+                } else {
+                    btn.classList.remove('btn-outline-success');
+                    btn.classList.add('btn-success');
+                }
+            }
+        }
+        
+        function moModalDanhGia(maTinUngTuyen, viTriUngTuyen, congTy) {
+            currentMaTinUngTuyen = maTinUngTuyen;
+            selectedTags = [];
+            
+            // Reset form
+            document.getElementById('maTinUngTuyen').value = maTinUngTuyen;
+            document.getElementById('diemMinhBachLuong').value = 3;
+            document.getElementById('diemTocDoPhanHoi').value = 3;
+            document.getElementById('diemTonTrongUngVien').value = 3;
+            document.getElementById('noiDung').value = '';
+            document.getElementById('charCount').textContent = '0';
+            document.getElementById('isAnDanh').checked = true;
+            
+            // Reset tags
+            document.querySelectorAll('.tag-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.classList.contains('btn-danger')) {
+                    btn.classList.remove('btn-danger');
+                    btn.classList.add('btn-outline-danger');
+                } else if (btn.classList.contains('btn-success')) {
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-outline-success');
+                }
+            });
+            
+            // Update emoji sliders
+            updateEmojiSlider(document.getElementById('diemMinhBachLuong'), 'emojiMinhBachLuong');
+            updateEmojiSlider(document.getElementById('diemTocDoPhanHoi'), 'emojiTocDoPhanHoi');
+            updateEmojiSlider(document.getElementById('diemTonTrongUngVien'), 'emojiTonTrongUngVien');
+            
+            // Load thông tin đơn ứng tuyển
+            fetch('@Url.Action("LayThongTinDonUngTuyen", "DanhGiaCongTy", new { area = "Candidate" })?maTinUngTuyen=' + maTinUngTuyen)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('maNhaTuyenDung').value = data.maNhaTuyenDung;
+                    }
+                });
+            
+            // Show modal
+            var modal = new bootstrap.Modal(document.getElementById('modalDanhGia'));
+            modal.show();
+        }
+        
+        function submitDanhGia() {
+            var maTinUngTuyen = document.getElementById('maTinUngTuyen').value;
+            var maNhaTuyenDung = document.getElementById('maNhaTuyenDung').value;
+            var diemMinhBachLuong = document.getElementById('diemMinhBachLuong').value;
+            var diemTocDoPhanHoi = document.getElementById('diemTocDoPhanHoi').value;
+            var diemTonTrongUngVien = document.getElementById('diemTonTrongUngVien').value;
+            var noiDung = document.getElementById('noiDung').value;
+            var isAnDanh = document.getElementById('isAnDanh').checked;
+            var tags = JSON.stringify(selectedTags);
+            
+            var formData = new FormData();
+            formData.append('maTinUngTuyen', maTinUngTuyen);
+            formData.append('maNhaTuyenDung', maNhaTuyenDung);
+            formData.append('diemMinhBachLuong', diemMinhBachLuong);
+            formData.append('diemTocDoPhanHoi', diemTocDoPhanHoi);
+            formData.append('diemTonTrongUngVien', diemTonTrongUngVien);
+            formData.append('tags', tags);
+            formData.append('noiDung', noiDung);
+            formData.append('isAnDanh', isAnDanh);
+            var token = $('input[name="__RequestVerificationToken"]').val();
+            if (token) {
+                formData.append('__RequestVerificationToken', token);
+            }
+            
+            fetch('@Url.Action("TaoDanhGia", "DanhGiaCongTy", new { area = "Candidate" })', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi gửi đánh giá');
+            });
+        }
+        
+        function xemDanhGiaCuaToi(maTinUngTuyen) {
+            // Lấy thông tin đánh giá
+            fetch('@Url.Action("LayDanhGiaCuaToi", "DanhGiaCongTy", new { area = "Candidate" })?maTinUngTuyen=' + maTinUngTuyen)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Lấy thông tin công ty từ đánh giá
+                        fetch('@Url.Action("LayThongTinDonUngTuyen", "DanhGiaCongTy", new { area = "Candidate" })?maTinUngTuyen=' + maTinUngTuyen)
+                            .then(response => response.json())
+                            .then(companyData => {
+                                if (companyData.success && companyData.maNhaTuyenDung) {
+                                    // Redirect đến trang chi tiết công ty với tham số reviewId
+                                    var url = '/Home/ChiTietCongTy/' + companyData.maNhaTuyenDung + '?reviewId=' + data.maDanhGia;
+                                    window.location.href = url;
+                                } else {
+                                    alert('Không tìm thấy thông tin công ty');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                alert('Có lỗi xảy ra khi lấy thông tin công ty');
+                            });
+                    } else {
+                        alert('Không tìm thấy đánh giá của bạn');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Có lỗi xảy ra khi lấy thông tin đánh giá');
+                });
+        }
+        
+        // Character count
+        document.addEventListener('DOMContentLoaded', function() {
+            var noiDungTextarea = document.getElementById('noiDung');
+            if (noiDungTextarea) {
+                noiDungTextarea.addEventListener('input', function() {
+                    document.getElementById('charCount').textContent = this.value.length;
+                });
+            }
+        });
+        
+        $(document).ready(function() {
+            // Search and filter functionality
+            function filterTable() {
+                var searchText = $('#timKiemInput').val().toLowerCase();
+                var filterStatus = $('#locTrangThai').val();
+                
+                $('table tbody tr').each(function() {
+                    var row = $(this);
+                    var position = row.find('td:eq(1) strong').text().toLowerCase();
+                    var status = row.find('td:eq(4) .badge').text().trim();
+                    
+                    var showRow = true;
+                    
+                    // Filter by search text
+                    if (searchText && !position.includes(searchText)) {
+                        showRow = false;
+                    }
+                    
+                    // Filter by status
+                    if (filterStatus && status !== filterStatus) {
+                        showRow = false;
+                    }
+                    
+                    if (showRow) {
+                        row.show();
+                        row.css('opacity', '0');
+                        setTimeout(function() {
+                            row.animate({ opacity: 1 }, 300);
+                        }, 50);
+                    } else {
+                        row.hide();
+                    }
+                });
+            }
+            
+            // Bind events
+            $('#timKiemInput').on('keyup', filterTable);
+            $('#locTrangThai').on('change', filterTable);
+            
+            // Add hover effect for stats cards
+            $('.stats-card').hover(
+                function() {
+                    $(this).find('h2').css('transform', 'scale(1.1)').css('transition', 'all 0.3s ease');
+                },
+                function() {
+                    $(this).find('h2').css('transform', 'scale(1)');
+                }
+            );
+            
+            // Animate numbers on load
+            $('.stats-card h2').each(function() {
+                var $this = $(this);
+                var countTo = parseInt($this.text());
+                
+                $({ countNum: 0 }).animate({
+                    countNum: countTo
+                }, {
+                    duration: 1500,
+                    easing: 'swing',
+                    step: function() {
+                        $this.text(Math.floor(this.countNum));
+                    },
+                    complete: function() {
+                        $this.text(this.countNum);
+                    }
+                });
+            });
+        });
+    </script>
+}

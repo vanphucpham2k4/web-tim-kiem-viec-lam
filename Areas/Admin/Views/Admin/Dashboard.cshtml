@@ -1,0 +1,732 @@
+@using Unicareer.Models
+@using Unicareer.Models.Enums
+
+@{
+    ViewData["Title"] = "Số liệu phân tích";
+
+    var danhSachUngVien = ViewBag.DanhSachUngVien as List<UngVien> ?? new List<UngVien>();
+    var danhSachNhaTuyenDung = ViewBag.DanhSachNhaTuyenDung as List<NhaTuyenDung> ?? new List<NhaTuyenDung>();
+    var danhSachTinTuyenDung = ViewBag.DanhSachTinTuyenDung as List<TinTuyenDung> ?? new List<TinTuyenDung>();
+    var danhSachTinUngTuyen = ViewBag.DanhSachTinUngTuyen as List<TinUngTuyen> ?? new List<TinUngTuyen>();
+    var danhSachNganhNghe = ViewBag.DanhSachNganhNghe as List<NganhNghe> ?? new List<NganhNghe>();
+    var danhSachLoaiCongViec = ViewBag.DanhSachLoaiCongViec as List<LoaiCongViec> ?? new List<LoaiCongViec>();
+    var soTinDaDangDict = ViewBag.SoTinDaDangDict as Dictionary<int, int> ?? new Dictionary<int, int>();
+    var soLuongCongViecDict = ViewBag.SoLuongCongViecDict as Dictionary<string, int> ?? new Dictionary<string, int>();
+    var soLuongViTriDict = ViewBag.SoLuongViTriDict as Dictionary<string, int> ?? new Dictionary<string, int>();
+    var thangLabels = ViewBag.ThangLabels as List<string> ?? new List<string>();
+    var ungVienData = ViewBag.UngVienData as List<int> ?? new List<int>();
+    var nhaTuyenDungData = ViewBag.NhaTuyenDungData as List<int> ?? new List<int>();
+    var tinDangData = ViewBag.TinDangData as List<int> ?? new List<int>();
+    var luotUngTuyenData = ViewBag.LuotUngTuyenData as List<int> ?? new List<int>();
+    var nganhNgheData = ViewBag.NganhNgheData as List<int> ?? new List<int>();
+    var loaiCongViecData = ViewBag.LoaiCongViecData as List<int> ?? new List<int>();
+
+    var tongUngVien = danhSachUngVien.Count;
+    var tongNhaTuyenDung = danhSachNhaTuyenDung.Count;
+    var tongTinTuyenDung = danhSachTinTuyenDung.Count;
+    var tongTinUngTuyen = danhSachTinUngTuyen.Count;
+    var tongUngTuyenThanhCong = danhSachTinUngTuyen.Count(t =>
+    {
+        var trangThai = TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy);
+        return trangThai.HasValue && trangThai.Value == TrangThaiXuLy.TuyenDung;
+    });
+    var tongChoPhongVan = danhSachTinUngTuyen.Count(t =>
+    {
+        var trangThai = TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy);
+        return trangThai.HasValue && trangThai.Value == TrangThaiXuLy.ChoPhongVan;
+    });
+    var tongTuChoi = danhSachTinUngTuyen.Count(t =>
+    {
+        var trangThai = TrangThaiXuLyHelper.FromString(t.TrangThaiXuLy);
+        return trangThai.HasValue && trangThai.Value == TrangThaiXuLy.TuChoi;
+    });
+    var tiLeThanhCong = tongTinUngTuyen > 0 ? (tongUngTuyenThanhCong * 100.0 / tongTinUngTuyen) : 0;
+}
+
+<style>
+    :root {
+        --primary-color: #4e73df;
+        --success-color: #1cc88a;
+        --info-color: #36b9cc;
+        --warning-color: #f6c23e;
+        --danger-color: #e74a3b;
+        --dark-color: #5a5c69;
+        --light-bg: #f8f9fc;
+        --card-bg: #ffffff;
+        --shadow-md: 0 4px 20px 0 rgba(0, 0, 0, 0.05);
+        --radius: 12px;
+    }
+
+    body {
+        background-color: var(--light-bg);
+        font-family: 'Nunito', sans-serif;
+    }
+
+    /* --- Animation --- */
+    @@keyframes fadeInUp {
+        from
+
+    {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    }
+
+    .animate-fade-up {
+        animation: fadeInUp 0.5s ease-out forwards;
+    }
+
+    /* --- Header --- */
+    .dashboard-header-card {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+        border-radius: var(--radius);
+        padding: 30px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 4px 15px rgba(78, 115, 223, 0.4);
+    }
+
+    /* --- Stat Cards --- */
+    .dashboard-stat-card {
+        background: var(--card-bg);
+        border-radius: var(--radius);
+        border: none;
+        box-shadow: var(--shadow-md);
+        transition: transform 0.3s ease;
+        height: 100%;
+        border-left: 4px solid transparent;
+    }
+
+        .dashboard-stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .dashboard-stat-card.primary {
+            border-left-color: var(--primary-color);
+        }
+
+        .dashboard-stat-card.success {
+            border-left-color: var(--success-color);
+        }
+
+        .dashboard-stat-card.info {
+            border-left-color: var(--info-color);
+        }
+
+        .dashboard-stat-card.warning {
+            border-left-color: var(--warning-color);
+        }
+
+    .stat-label {
+        color: var(--primary-color);
+        font-weight: 700;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+    }
+
+    .stat-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #5a5c69;
+    }
+
+    /* --- Modern Data Card --- */
+    .modern-data-card {
+        background: var(--card-bg);
+        border-radius: var(--radius);
+        border: none;
+        box-shadow: var(--shadow-md);
+        margin-bottom: 24px;
+        height: 100%;
+        overflow: hidden;
+    }
+
+        .modern-data-card .card-header {
+            background-color: white;
+            border-bottom: 1px solid #e3e6f0;
+            padding: 16px 20px;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modern-data-card .card-body {
+            padding: 1.5rem;
+        }
+
+    /* --- Tabs --- */
+    .modern-tabs {
+        border: none;
+        background: transparent;
+        margin-bottom: 20px;
+        gap: 10px;
+    }
+
+        .modern-tabs .nav-link {
+            border: none;
+            background: white;
+            color: var(--dark-color);
+            border-radius: 50px;
+            padding: 10px 25px;
+            font-weight: 600;
+            box-shadow: 0 .125rem .25rem 0 rgba(58, 59, 69, .2);
+            transition: all 0.2s;
+        }
+
+            .modern-tabs .nav-link.active {
+                background: var(--primary-color);
+                color: white;
+            }
+
+    /* --- Misc --- */
+    .progress-modern {
+        height: 0.6rem;
+        border-radius: 1rem;
+        background-color: #eaecf4;
+        margin-top: 5px;
+    }
+
+    .activity-item {
+        padding: 12px 0;
+        border-bottom: 1px solid #f1f1f1;
+        display: flex;
+        align-items: center;
+    }
+
+    .badge-soft {
+        padding: 0.4em 0.8em;
+        font-size: 85%;
+        font-weight: 600;
+        border-radius: 0.35rem;
+    }
+
+    .badge-soft-primary {
+        background: rgba(78, 115, 223, 0.1);
+        color: #4e73df;
+    }
+
+    .badge-soft-success {
+        background: rgba(28, 200, 138, 0.1);
+        color: #1cc88a;
+    }
+</style>
+
+<div class="dashboard-header-card animate-fade-up">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h3 class="fw-bold mb-2"><i class="bi bi-bar-chart-fill me-2"></i>Dashboard Quản Trị</h3>
+            <p class="mb-0 opacity-75">Cập nhật: @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
+        </div>
+    </div>
+</div>
+
+<ul class="nav modern-tabs justify-content-center justify-content-md-start" id="dashboardTabs" role="tablist">
+    <li class="nav-item">
+        <button class="nav-link active" id="tong-quan-tab" data-bs-toggle="tab" data-bs-target="#tong-quan" type="button"><i class="bi bi-speedometer2"></i> Tổng quan</button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" id="nguoi-dung-tab" data-bs-toggle="tab" data-bs-target="#nguoi-dung" type="button"><i class="bi bi-people"></i> Người dùng</button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" id="tuyen-dung-tab" data-bs-toggle="tab" data-bs-target="#tuyen-dung" type="button"><i class="bi bi-file-earmark-text"></i> Tuyển dụng</button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" id="danh-muc-tab" data-bs-toggle="tab" data-bs-target="#danh-muc" type="button"><i class="bi bi-list-ul"></i> Danh mục</button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" id="he-thong-tab" data-bs-toggle="tab" data-bs-target="#he-thong" type="button"><i class="bi bi-server"></i> Hệ thống</button>
+    </li>
+</ul>
+
+<div class="tab-content pt-2" id="dashboardTabContent">
+
+    <div class="tab-pane fade show active" id="tong-quan" role="tabpanel">
+        <div class="row g-4 mb-4">
+            <div class="col-xl-3 col-md-6 animate-fade-up" style="animation-delay: 0.1s;">
+                <div class="dashboard-stat-card primary">
+                    <div class="card-body">
+                        <div class="stat-label">Ứng viên</div>
+                        <div class="stat-value">@tongUngVien</div>
+                        <div class="text-xs text-muted mt-2"><i class="bi bi-person-check-fill"></i> Đã đăng ký</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 animate-fade-up" style="animation-delay: 0.2s;">
+                <div class="dashboard-stat-card success">
+                    <div class="card-body">
+                        <div class="stat-label">Nhà tuyển dụng</div>
+                        <div class="stat-value">@tongNhaTuyenDung</div>
+                        <div class="text-xs text-muted mt-2"><i class="bi bi-building"></i> Đối tác</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 animate-fade-up" style="animation-delay: 0.3s;">
+                <div class="dashboard-stat-card info">
+                    <div class="card-body">
+                        <div class="stat-label">Tin tuyển dụng</div>
+                        <div class="stat-value">@tongTinTuyenDung</div>
+                        <div class="text-xs text-muted mt-2"><i class="bi bi-newspaper"></i> Đang hiển thị</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 animate-fade-up" style="animation-delay: 0.4s;">
+                <div class="dashboard-stat-card warning">
+                    <div class="card-body">
+                        <div class="stat-label">Hồ sơ ứng tuyển</div>
+                        <div class="stat-value">@tongTinUngTuyen</div>
+                        <div class="text-xs text-muted mt-2"><i class="bi bi-file-earmark-person"></i> Cần xử lý</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-lg-8 mb-4">
+                <div class="modern-data-card">
+                    <div class="card-header"><span><i class="bi bi-graph-up me-2"></i>Xu hướng đăng ký hệ thống</span></div>
+                    <div class="card-body">
+                        <canvas id="userTrendChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-4">
+                <div class="modern-data-card">
+                    <div class="card-header"><span><i class="bi bi-pie-chart me-2"></i>Tỷ lệ tuyển dụng</span></div>
+                    <div class="card-body">
+                        <div class="text-center mb-4">
+                            <h2 class="text-primary fw-bold">@tiLeThanhCong.ToString("F1")%</h2>
+                            <small class="text-muted">Tỷ lệ thành công</small>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1 small"><span>Thành công</span><span class="text-success">@tongUngTuyenThanhCong</span></div>
+                            <div class="progress-modern"><div class="progress-bar bg-success" style="width: @(tongTinUngTuyen > 0 ? tongUngTuyenThanhCong * 100 / tongTinUngTuyen : 0)%"></div></div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1 small"><span>Chờ phỏng vấn</span><span class="text-warning">@tongChoPhongVan</span></div>
+                            <div class="progress-modern"><div class="progress-bar bg-warning" style="width: @(tongTinUngTuyen > 0 ? tongChoPhongVan * 100 / tongTinUngTuyen : 0)%"></div></div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1 small"><span>Từ chối</span><span class="text-danger">@tongTuChoi</span></div>
+                            <div class="progress-modern"><div class="progress-bar bg-danger" style="width: @(tongTinUngTuyen > 0 ? tongTuChoi * 100 / tongTinUngTuyen : 0)%"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="modern-data-card">
+                    <div class="card-header"><span><i class="bi bi-activity me-2"></i>Hoạt động ứng tuyển gần đây</span></div>
+                    <div class="card-body">
+                        @foreach (var tinUT in danhSachTinUngTuyen.OrderByDescending(t => t.NgayUngTuyen).Take(5))
+                        {
+                            <div class="activity-item">
+                                <div class="me-3"><div class="avatar bg-light text-primary rounded-circle p-2"><i class="bi bi-person"></i></div></div>
+                                <div class="flex-grow-1">
+                                    <strong class="text-primary">@tinUT.HoTen</strong> <span class="text-muted">đã ứng tuyển vị trí</span> <strong>@tinUT.ViTriUngTuyen</strong>
+                                </div>
+                                <div class="small text-muted"><i class="bi bi-clock"></i> @tinUT.NgayUngTuyen.ToString("dd/MM HH:mm")</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="nguoi-dung" role="tabpanel">
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="modern-data-card">
+                    <div class="card-header"><span><i class="bi bi-graph-up-arrow me-2"></i>Xu hướng đăng ký người dùng theo tháng</span></div>
+                    <div class="card-body">
+                        <canvas id="userRegistrationChart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="modern-data-card">
+                    <div class="card-header text-primary"><span><i class="bi bi-people-fill me-2"></i>Thống kê Ứng viên</span></div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="text-muted">Tổng số</span>
+                            <span class="fw-bold h4 mb-0">@danhSachUngVien.Count</span>
+                        </div>
+                        <hr>
+                        <h6 class="small fw-bold text-uppercase text-muted mb-3">Top khu vực</h6>
+                        @foreach (var item in danhSachUngVien.GroupBy(u => u.DiaChi).Select(g => new { DiaChi = g.Key, SoLuong = g.Count() }).OrderByDescending(x => x.SoLuong).Take(5))
+                        {
+                            var percent = tongUngVien > 0 ? (item.SoLuong * 100.0 / tongUngVien) : 0;
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between small"><span>@item.DiaChi</span><span>@item.SoLuong</span></div>
+                                <div class="progress-modern"><div class="progress-bar bg-primary" style="width: @percent%"></div></div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="modern-data-card">
+                    <div class="card-header text-success"><span><i class="bi bi-building me-2"></i>Top Doanh nghiệp năng động</span></div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-borderless align-middle">
+                                <thead class="border-bottom">
+                                    <tr class="text-muted small text-uppercase">
+                                        <th>Công ty</th>
+                                        <th>Ngày tham gia</th>
+                                        <th class="text-end">Tin đã đăng</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var ntd in danhSachNhaTuyenDung.OrderByDescending(n => soTinDaDangDict.GetValueOrDefault(n.MaNhaTuyenDung, 0)).Take(6))
+                                    {
+                                        var soTin = soTinDaDangDict.GetValueOrDefault(ntd.MaNhaTuyenDung, 0);
+                                        <tr>
+                                            <td class="fw-bold text-dark">@ntd.TenCongTy</td>
+                                            <td class="text-muted">@ntd.NgayDangKy.ToString("dd/MM/yyyy")</td>
+                                            <td class="text-end"><span class="badge badge-soft-success">@soTin tin</span></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="tuyen-dung" role="tabpanel">
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="modern-data-card">
+                    <div class="card-header"><span><i class="bi bi-graph-up-arrow me-2"></i>Xu hướng tuyển dụng và ứng tuyển</span></div>
+                    <div class="card-body">
+                        <canvas id="recruitmentTrendChart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-6 mb-4">
+                <div class="modern-data-card">
+                    <div class="card-header"><span><i class="bi bi-pie-chart me-2"></i>Phân bố theo ngành nghề</span></div>
+                    <div class="card-body">
+                        <canvas id="industryPieChart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-4">
+                <div class="modern-data-card">
+                    <div class="card-header text-danger"><span><i class="bi bi-alarm me-2"></i>Tin sắp hết hạn (7 ngày)</span></div>
+                    <div class="card-body p-0">
+                        <table class="table table-striped mb-0 small">
+                            <thead><tr><th>Vị trí</th><th>Hạn nộp</th><th>Còn lại</th></tr></thead>
+                            <tbody>
+                                @foreach (var tin in danhSachTinTuyenDung.Where(t => (t.HanNop - DateTime.Now).Days <= 7 && (t.HanNop - DateTime.Now).Days >= 0).OrderBy(t => t.HanNop).Take(5))
+                                {
+                                    <tr>
+                                        <td class="fw-bold">@tin.TenViecLam</td>
+                                        <td>@tin.HanNop.ToString("dd/MM")</td>
+                                        <td><span class="badge bg-warning text-dark">@((tin.HanNop - DateTime.Now).Days) ngày</span></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="danh-muc" role="tabpanel">
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="modern-data-card">
+                    <div class="card-header"><span><i class="bi bi-line-chart me-2"></i>Xu hướng phát triển danh mục</span></div>
+                    <div class="card-body">
+                        <canvas id="categoryGrowthChart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="modern-data-card">
+                    <div class="card-header"><span><i class="bi bi-tag me-2"></i>Ngành nghề (Top 6)</span></div>
+                    <div class="card-body">
+                        @foreach (var nganh in danhSachNganhNghe.OrderByDescending(n => soLuongCongViecDict.GetValueOrDefault(n.TenNganhNghe, 0)).Take(6))
+                        {
+                            var soLuong = soLuongCongViecDict.GetValueOrDefault(nganh.TenNganhNghe, 0);
+                            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                                <span class="fw-bold text-dark">@nganh.TenNganhNghe</span>
+                                <span class="badge badge-soft-primary">@soLuong jobs</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="modern-data-card">
+                    <div class="card-header"><span><i class="bi bi-briefcase me-2"></i>Loại công việc</span></div>
+                    <div class="card-body">
+                        @foreach (var loai in danhSachLoaiCongViec.OrderByDescending(l => soLuongViTriDict.GetValueOrDefault(l.TenLoaiCongViec, 0)))
+                        {
+                            var soLuong = soLuongViTriDict.GetValueOrDefault(loai.TenLoaiCongViec, 0);
+                            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                                <span class="fw-bold text-dark">@loai.TenLoaiCongViec</span>
+                                <span class="badge badge-soft-success">@soLuong vị trí</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="he-thong" role="tabpanel">
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="modern-data-card">
+                    <div class="card-header"><span><i class="bi bi-cpu me-2"></i>Hoạt động hệ thống theo thời gian</span></div>
+                    <div class="card-body">
+                        <canvas id="systemActivityChart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modern-data-card">
+            <div class="card-header"><span><i class="bi bi-info-circle me-2"></i>Thông số kỹ thuật</span></div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3 mb-3">
+                        <h3 class="text-primary fw-bold">1.0.0</h3><span class="text-muted small">Phiên bản</span>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <h3 class="text-success fw-bold">.NET 8</h3><span class="text-muted small">Platform</span>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <h3 class="text-info fw-bold">SQL</h3><span class="text-muted small">Database</span>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <h3 class="text-warning fw-bold">Active</h3><span class="text-muted small">Trạng thái</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        // --- CẤU HÌNH CHUNG ĐỂ GIAO DIỆN ĐẸP HƠN ---
+        Chart.defaults.font.family = "'Nunito', sans-serif";
+        Chart.defaults.color = '#858796';
+        Chart.defaults.scale.grid.color = "#e3e6f0";
+        Chart.defaults.elements.line.tension = 0.4; // Đường cong mềm mại
+        Chart.defaults.elements.point.radius = 3;
+
+        // 1. Biểu đồ Tab Tổng quan (User Trend)
+        var ctxUser = document.getElementById('userTrendChart').getContext('2d');
+        @{
+            var thangLabelsTongQuanJson = thangLabels.Count > 0 
+                ? string.Join(",", thangLabels.Select(t => $"'{t}'")) 
+                : "'Th 4','Th 5','Th 6','Th 7','Th 8','Th 9','Th 10'";
+            var ungVienDataTongQuanJson = ungVienData.Count > 0 
+                ? string.Join(",", ungVienData) 
+                : "0,0,0,0,0,0,0";
+            var nhaTuyenDungDataTongQuanJson = nhaTuyenDungData.Count > 0 
+                ? string.Join(",", nhaTuyenDungData) 
+                : "0,0,0,0,0,0,0";
+        }
+        const thangLabelsTongQuan = [@Html.Raw(thangLabelsTongQuanJson)];
+        const ungVienDataTongQuan = [@Html.Raw(ungVienDataTongQuanJson)];
+        const nhaTuyenDungDataTongQuan = [@Html.Raw(nhaTuyenDungDataTongQuanJson)];
+        
+        new Chart(ctxUser, {
+            type: 'line',
+            data: {
+                labels: thangLabelsTongQuan,
+                datasets: [{
+                    label: 'Ứng viên',
+                    data: ungVienDataTongQuan,
+                    borderColor: '#4e73df',
+                    backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                    fill: true
+                }, {
+                    label: 'Nhà tuyển dụng',
+                    data: nhaTuyenDungDataTongQuan,
+                    borderColor: '#1cc88a',
+                    backgroundColor: 'rgba(28, 200, 138, 0.05)',
+                    fill: true
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // 2. Biểu đồ Tab Người dùng (Registration Trend)
+        var ctxUserReg = document.getElementById('userRegistrationChart').getContext('2d');
+        @{
+            var thangLabelsJson = thangLabels.Count > 0 
+                ? string.Join(",", thangLabels.Select(t => $"'{t}'")) 
+                : "'Th 4','Th 5','Th 6','Th 7','Th 8','Th 9','Th 10'";
+            var ungVienDataJson = ungVienData.Count > 0 
+                ? string.Join(",", ungVienData) 
+                : "0,0,0,0,0,0,0";
+            var nhaTuyenDungDataJson = nhaTuyenDungData.Count > 0 
+                ? string.Join(",", nhaTuyenDungData) 
+                : "0,0,0,0,0,0,0";
+        }
+        const thangLabelsData = [@Html.Raw(thangLabelsJson)];
+        const ungVienDataChart = [@Html.Raw(ungVienDataJson)];
+        const nhaTuyenDungDataChart = [@Html.Raw(nhaTuyenDungDataJson)];
+        
+        new Chart(ctxUserReg, {
+            type: 'bar',
+            data: {
+                labels: thangLabelsData,
+                datasets: [{
+                    label: 'Ứng viên mới',
+                    data: ungVienDataChart,
+                    backgroundColor: '#4e73df'
+                }, {
+                    label: 'Doanh nghiệp mới',
+                    data: nhaTuyenDungDataChart,
+                    backgroundColor: '#36b9cc'
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // 3. Biểu đồ Tab Tuyển dụng (Recruitment Trend)
+        var ctxRecruitment = document.getElementById('recruitmentTrendChart').getContext('2d');
+        @{
+            var thangLabelsTuyenDungJson = thangLabels.Count > 0 
+                ? string.Join(",", thangLabels.Select(t => $"'{t}'")) 
+                : "'Th 4','Th 5','Th 6','Th 7','Th 8','Th 9','Th 10'";
+            var tinDangDataJson = tinDangData.Count > 0 
+                ? string.Join(",", tinDangData) 
+                : "0,0,0,0,0,0,0";
+            var luotUngTuyenDataJson = luotUngTuyenData.Count > 0 
+                ? string.Join(",", luotUngTuyenData) 
+                : "0,0,0,0,0,0,0";
+        }
+        const thangLabelsTuyenDung = [@Html.Raw(thangLabelsTuyenDungJson)];
+        const tinDangDataChart = [@Html.Raw(tinDangDataJson)];
+        const luotUngTuyenDataChart = [@Html.Raw(luotUngTuyenDataJson)];
+        
+        new Chart(ctxRecruitment, {
+            type: 'line',
+            data: {
+                labels: thangLabelsTuyenDung,
+                datasets: [{
+                    label: 'Tin đăng',
+                    data: tinDangDataChart,
+                    borderColor: '#f6c23e',
+                    backgroundColor: 'rgba(246, 194, 62, 0.1)',
+                    fill: true
+                }, {
+                    label: 'Lượt ứng tuyển',
+                    data: luotUngTuyenDataChart,
+                    borderColor: '#e74a3b',
+                    backgroundColor: 'rgba(231, 74, 59, 0.1)',
+                    fill: true
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // 3.1 Biểu đồ Pie Ngành nghề (Tuyển dụng Tab)
+        const nganhLabels = [@Html.Raw(string.Join(",", danhSachNganhNghe.OrderByDescending(n => soLuongCongViecDict.GetValueOrDefault(n.TenNganhNghe, 0)).Take(5).Select(n => $"'{n.TenNganhNghe}'")))];
+        const nganhData = [@string.Join(",", danhSachNganhNghe.OrderByDescending(n => soLuongCongViecDict.GetValueOrDefault(n.TenNganhNghe, 0)).Take(5).Select(n => soLuongCongViecDict.GetValueOrDefault(n.TenNganhNghe, 0)))];
+
+        // Fix nếu không có data thì dùng data mẫu để không bị lỗi chart
+        const safeLabels = nganhLabels.length > 0 ? nganhLabels : ['CNTT', 'Kinh doanh', 'Marketing', 'Tài chính'];
+        const safeData = nganhData.length > 0 ? nganhData : [10, 20, 15, 5];
+
+        var ctxPie = document.getElementById('industryPieChart').getContext('2d');
+        new Chart(ctxPie, {
+            type: 'doughnut',
+            data: {
+                labels: safeLabels,
+                datasets: [{
+                    data: safeData,
+                    backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'],
+                    hoverBorderColor: "#fff"
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '70%' }
+        });
+
+        // 4. Biểu đồ Tab Danh mục (Category Growth)
+        var ctxCategory = document.getElementById('categoryGrowthChart').getContext('2d');
+        @{
+            var thangLabelsDanhMucJson = thangLabels.Count > 0 
+                ? string.Join(",", thangLabels.Select(t => $"'{t}'")) 
+                : "'Th 4','Th 5','Th 6','Th 7','Th 8','Th 9','Th 10'";
+            var nganhNgheDataJson = nganhNgheData.Count > 0 
+                ? string.Join(",", nganhNgheData) 
+                : "0,0,0,0,0,0,0";
+            var loaiCongViecDataJson = loaiCongViecData.Count > 0 
+                ? string.Join(",", loaiCongViecData) 
+                : "0,0,0,0,0,0,0";
+        }
+        const thangLabelsDanhMuc = [@Html.Raw(thangLabelsDanhMucJson)];
+        const nganhNgheDataChart = [@Html.Raw(nganhNgheDataJson)];
+        const loaiCongViecDataChart = [@Html.Raw(loaiCongViecDataJson)];
+        
+        new Chart(ctxCategory, {
+            type: 'line',
+            data: {
+                labels: thangLabelsDanhMuc,
+                datasets: [{
+                    label: 'Ngành nghề',
+                    data: nganhNgheDataChart,
+                    borderColor: '#4e73df',
+                    tension: 0.1
+                }, {
+                    label: 'Loại công việc',
+                    data: loaiCongViecDataChart,
+                    borderColor: '#858796',
+                    borderDash: [5, 5],
+                    tension: 0.1
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // 5. Biểu đồ Tab Hệ thống (System Activity)
+        var ctxSystem = document.getElementById('systemActivityChart').getContext('2d');
+        new Chart(ctxSystem, {
+            type: 'line',
+            data: {
+                labels: ['Th 4', 'Th 5', 'Th 6', 'Th 7', 'Th 8', 'Th 9', 'Th 10'],
+                datasets: [{
+                    label: 'Requests',
+                    data: [1500, 1800, 2200, 2600, 3100, 3800, 4500],
+                    borderColor: '#36b9cc',
+                    backgroundColor: 'rgba(54, 185, 204, 0.1)',
+                    fill: true
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    </script>
+}

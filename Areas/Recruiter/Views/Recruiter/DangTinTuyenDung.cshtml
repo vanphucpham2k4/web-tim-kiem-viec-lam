@@ -1,0 +1,1339 @@
+@model Unicareer.Models.TinTuyenDung
+
+@{
+    ViewData["Title"] = "Dang tuyen dung";
+}
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3);
+    }
+
+    .page-header h1 {
+        font-weight: 700;
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .page-header p {
+        opacity: 0.95;
+        font-size: 1.1rem;
+    }
+
+    .form-section {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 25px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        border: 1px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+
+    .form-section:hover {
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        transform: translateY(-2px);
+    }
+
+    .form-section h4 {
+        color: #2d3748;
+        font-weight: 600;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid #10b981;
+        display: inline-block;
+    }
+
+    .form-section h4 i {
+        color: #10b981;
+        margin-right: 10px;
+        font-size: 1.3rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #4a5568;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+    }
+
+    .required-label::after {
+        content: " *";
+        color: #e53e3e;
+        font-weight: bold;
+    }
+
+    .form-control, .form-select {
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #10b981;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        outline: none;
+    }
+
+    .form-control:hover, .form-select:hover {
+        border-color: #cbd5e0;
+    }
+
+    .input-group .btn {
+        border-radius: 0 10px 10px 0;
+        padding: 12px 24px;
+        font-weight: 600;
+    }
+
+    .input-group .form-control {
+        border-radius: 10px 0 0 10px;
+    }
+
+    .text-muted {
+        font-size: 0.875rem;
+        color: #718096 !important;
+        margin-top: 5px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border: none;
+        border-radius: 12px;
+        padding: 14px 40px;
+        font-weight: 600;
+        font-size: 1.05rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+    }
+
+    .btn-secondary {
+        background: #718096;
+        border: none;
+        border-radius: 12px;
+        padding: 14px 40px;
+        font-weight: 600;
+        font-size: 1.05rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+        background: #4a5568;
+        transform: translateY(-2px);
+    }
+
+    .btn-outline-primary {
+        border: 2px solid #10b981;
+        color: #10b981;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-outline-primary:hover {
+        background: #10b981;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* Animate form sections on load */
+    .form-section {
+        animation: slideUp 0.5s ease forwards;
+        opacity: 0;
+    }
+
+    .form-section:nth-child(1) { animation-delay: 0.1s; }
+    .form-section:nth-child(2) { animation-delay: 0.2s; }
+    .form-section:nth-child(3) { animation-delay: 0.3s; }
+    .form-section:nth-child(4) { animation-delay: 0.4s; }
+    .form-section:nth-child(5) { animation-delay: 0.5s; }
+
+    @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Image Preview Styles */
+    .image-preview-container {
+        margin-top: 20px;
+        padding: 20px;
+        background: #f7fafc;
+        border-radius: 12px;
+        border: 2px dashed #cbd5e0;
+    }
+
+    .image-preview-container.has-images {
+        border: 2px solid #10b981;
+        background: #ffffff;
+    }
+
+    .preview-section-title {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 15px;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .preview-section-title i {
+        color: #10b981;
+    }
+
+    .preview-images-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+    }
+
+    .preview-image-item {
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        aspect-ratio: 4/3;
+        background: #ffffff;
+        border: 2px solid #e2e8f0;
+        transition: all 0.3s ease;
+    }
+
+    .preview-image-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .preview-image-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .preview-image-item .remove-btn {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: rgba(245, 101, 101, 0.9);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 1.2rem;
+        transition: all 0.3s ease;
+        z-index: 10;
+        font-weight: bold;
+        line-height: 1;
+    }
+
+    .preview-image-item .remove-btn:hover {
+        background: rgba(229, 62, 62, 1);
+        transform: scale(1.1);
+    }
+
+    .preview-image-item .image-label {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(180deg, transparent 0%, rgba(72, 187, 120, 0.8) 100%);
+        color: white;
+        padding: 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .no-preview {
+        text-align: center;
+        padding: 30px;
+        color: #a0aec0;
+    }
+
+    .no-preview i {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        opacity: 0.5;
+    }
+
+    .no-preview p {
+        margin: 0;
+        font-size: 0.9rem;
+    }
+
+    /* Quill Editor Styles */
+    .editor-container {
+        min-height: 200px;
+        margin-bottom: 10px;
+    }
+
+    .editor-container .ql-editor {
+        min-height: 200px;
+        font-size: 0.95rem;
+    }
+
+    .editor-container .ql-container {
+        border-radius: 10px;
+        border: 2px solid #e2e8f0;
+    }
+
+    .editor-container .ql-toolbar {
+        border-radius: 10px 10px 0 0;
+        border: 2px solid #e2e8f0;
+        border-bottom: none;
+        background: #f7fafc;
+    }
+
+    .editor-container .ql-container.ql-snow {
+        border-top: 2px solid #e2e8f0;
+    }
+
+    .editor-container .ql-editor.ql-blank::before {
+        color: #a0aec0;
+        font-style: normal;
+    }
+
+    .editor-container .ql-editor:focus {
+        outline: none;
+    }
+
+    .editor-container .ql-container.ql-snow:focus-within {
+        border-color: #10b981;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+    }
+</style>
+
+<div class="page-header">
+    <h1><i class="bi bi-file-earmark-plus"></i> Đăng tin tuyển dụng mới</h1>
+    <p>Điền thông tin chi tiết để thu hút ứng viên chất lượng</p>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <form asp-action="DangTinTuyenDung" method="post" enctype="multipart/form-data" id="formDangTin">
+            @Html.AntiForgeryToken()
+            
+            <!-- Hiển thị lỗi validation -->
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger" role="alert">
+                    <h5><i class="bi bi-exclamation-triangle"></i> Vui lòng kiểm tra lại thông tin:</h5>
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                </div>
+            }
+            
+            <!-- Hiển thị thông báo thành công -->
+            @if (TempData["ThanhCong"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle"></i> @TempData["ThanhCong"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            
+            <!-- Ten viec lam -->
+            <div class="form-section">
+                <h4><i class="bi bi-briefcase-fill"></i> Thông tin cơ bản</h4>
+                <div class="mb-4">
+                    <label asp-for="TenViecLam" class="form-label required-label">Tên vị trí tuyển dụng</label>
+                    <input type="text" asp-for="TenViecLam" class="form-control" required 
+                           placeholder="Ví dụ: Senior Full-stack Developer">
+                    <span asp-validation-for="TenViecLam" class="text-danger"></span>
+                </div>
+            </div>
+
+            <!-- Mo ta cong viec -->
+            <div class="form-section">
+                <h4><i class="bi bi-file-text"></i> Mô tả công việc</h4>
+                
+                @{
+                    var danhSachNganhNghe = ViewBag.DanhSachNganhNghe as List<Unicareer.Models.NganhNghe> ?? new List<Unicareer.Models.NganhNghe>();
+                    var danhSachChuyenNganh = ViewBag.DanhSachChuyenNganh as List<Unicareer.Models.ChuyenNganh> ?? new List<Unicareer.Models.ChuyenNganh>();
+                }
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="NganhNghe" class="form-label required-label">Ngành nghề</label>
+                        <select asp-for="NganhNghe" class="form-select" id="nganhNgheSelect" required>
+                            <option value="">Chọn ngành nghề</option>
+                            @foreach (var nganhNghe in danhSachNganhNghe)
+                            {
+                                var isSelected = Model?.NganhNghe == nganhNghe.TenNganhNghe;
+                                <option value="@nganhNghe.TenNganhNghe" data-ma="@nganhNghe.MaNganhNghe" selected="@isSelected">@nganhNghe.TenNganhNghe</option>
+                            }
+                        </select>
+                        <span asp-validation-for="NganhNghe" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="NganhNgheChiTiet" class="form-label">Chuyên ngành</label>
+                        <select asp-for="NganhNgheChiTiet" class="form-select" id="chuyenNganhSelect">
+                            <option value="">Chọn chuyên ngành</option>
+                            @if (!string.IsNullOrEmpty(Model?.NganhNghe))
+                            {
+                                var selectedNganhNghe = danhSachNganhNghe.FirstOrDefault(n => n.TenNganhNghe == Model.NganhNghe);
+                                if (selectedNganhNghe != null)
+                                {
+                                    var chuyenNganhTheoNganhNghe = danhSachChuyenNganh.Where(c => c.MaNganhNghe == selectedNganhNghe.MaNganhNghe).ToList();
+                                    foreach (var chuyenNganh in chuyenNganhTheoNganhNghe)
+                                    {
+                                        var isSelected = Model.NganhNgheChiTiet == chuyenNganh.TenChuyenNganh;
+                                        <option value="@chuyenNganh.TenChuyenNganh" selected="@isSelected">@chuyenNganh.TenChuyenNganh</option>
+                                    }
+                                }
+                            }
+                        </select>
+                        <small class="text-muted"><i class="bi bi-info-circle"></i> Vui lòng chọn ngành nghề trước</small>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="LoaiCongViec" class="form-label required-label">Hình thức làm việc</label>
+                        <select asp-for="LoaiCongViec" class="form-select" required>
+                            <option value="">Chọn hình thức</option>
+                            @{
+                                var danhSachLoaiCongViec = ViewBag.DanhSachLoaiCongViec as List<Unicareer.Models.LoaiCongViec> ?? new List<Unicareer.Models.LoaiCongViec>();
+                            }
+                            @foreach (var loaiCongViec in danhSachLoaiCongViec)
+                            {
+                                <option value="@loaiCongViec.TenLoaiCongViec">@loaiCongViec.TenLoaiCongViec</option>
+                            }
+                        </select>
+                        <span asp-validation-for="LoaiCongViec" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Kinh nghiệm làm việc</label>
+                        <select class="form-select" name="KinhNghiem">
+                            <option value="">Chọn kinh nghiệm</option>
+                            @foreach (var kn in Unicareer.Models.DropdownOptions.KinhNghiem)
+                            {
+                                @if (Model?.KinhNghiem == kn)
+                                {
+                                    <option value="@kn" selected>@kn</option>
+                                }
+                                else
+                                {
+                                    <option value="@kn">@kn</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="ViTri" class="form-label required-label">Vị trí</label>
+                        <select asp-for="ViTri" class="form-select" required>
+                            <option value="">Chọn vị trí</option>
+                            @foreach (var vt in Unicareer.Models.DropdownOptions.ViTri)
+                            {
+                                @if (Model?.ViTri == vt)
+                                {
+                                    <option value="@vt" selected>@vt</option>
+                                }
+                                else
+                                {
+                                    <option value="@vt">@vt</option>
+                                }
+                            }
+                        </select>
+                        <span asp-validation-for="ViTri" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Ngoại ngữ</label>
+                        <select class="form-select" name="NgoaiNgu">
+                            <option value="">Chọn ngoại ngữ</option>
+                            @foreach (var nn in Unicareer.Models.DropdownOptions.NgoaiNgu)
+                            {
+                                @if (Model?.NgoaiNgu == nn)
+                                {
+                                    <option value="@nn" selected>@nn</option>
+                                }
+                                else
+                                {
+                                    <option value="@nn">@nn</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Từ khóa</label>
+                        <input type="text" class="form-control" name="TuKhoa" 
+                               placeholder="Nhập từ khóa liên quan đến công việc">
+                        <small class="text-muted"><i class="bi bi-lightbulb"></i> Ví dụ: ReactJS, NodeJS, .NET Core</small>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Kỹ năng</label>
+                        <input type="text" class="form-control" name="KyNang" 
+                               placeholder="Nhập kỹ năng cần thiết">
+                        <small class="text-muted"><i class="bi bi-lightbulb"></i> Ví dụ: Teamwork, Communication, Problem Solving</small>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="MoTa" class="form-label required-label">Mô tả công việc chi tiết</label>
+                    <div id="editor-MoTa" class="editor-container"></div>
+                    <textarea asp-for="MoTa" id="MoTa" name="MoTa" style="display: none;" required>@Html.Raw(Model?.MoTa)</textarea>
+                    <span asp-validation-for="MoTa" class="text-danger"></span>
+                </div>
+            </div>
+
+            <!-- Yeu cau cong viec -->
+            <div class="form-section">
+                <h4><i class="bi bi-clipboard-check"></i> Yêu cầu công việc</h4>
+                <div class="mb-3">
+                    <label asp-for="YeuCau" class="form-label">Các yêu cầu đối với ứng viên</label>
+                    <div id="editor-YeuCau" class="editor-container"></div>
+                    <textarea asp-for="YeuCau" id="YeuCau" name="YeuCau" style="display: none;" required>@Html.Raw(Model?.YeuCau)</textarea>
+                    <span asp-validation-for="YeuCau" class="text-danger"></span>
+                </div>
+            </div>
+
+            <!-- Quyen loi -->
+            <div class="form-section">
+                <h4><i class="bi bi-gift"></i> Quyền lợi</h4>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Mức lương thấp nhất (Triệu đồng)</label>
+                        <input type="number" class="form-control" name="MucLuongThapNhat" min="0" value="0"
+                               placeholder="VD: 10">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Mức lương cao nhất (Triệu đồng)</label>
+                        <input type="number" class="form-control" name="MucLuongCaoNhat" min="0" value="0"
+                               placeholder="VD: 20">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Thông tin thêm về quyền lợi</label>
+                    <div id="editor-QuyenLoi" class="editor-container"></div>
+                    <textarea id="QuyenLoi" name="QuyenLoi" style="display: none;">@Html.Raw(Model?.QuyenLoi)</textarea>
+                    <small class="text-muted"><i class="bi bi-info-circle"></i> Các quyền lợi khác như: bảo hiểm, thưởng, du lịch...</small>
+                </div>
+            </div>
+
+            <!-- Thong Tin Lien He -->
+            <div class="form-section">
+                <h4><i class="bi bi-telephone"></i> Thông tin liên hệ</h4>
+                
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Người liên hệ</label>
+                        <input type="text" class="form-control" name="NguoiLienHe" 
+                               placeholder="Nguyễn Văn A">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="EmailLienHe" class="form-label required-label">Email liên hệ</label>
+                        <input type="email" asp-for="EmailLienHe" class="form-control" required
+                               placeholder="tuyendung@company.com">
+                        <span asp-validation-for="EmailLienHe" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Điện thoại liên hệ</label>
+                        <input type="tel" class="form-control" name="SDTLienHe" 
+                               placeholder="0312345656">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="TinhThanhPho" class="form-label required-label">Làm việc tại Tỉnh/Thành phố</label>
+                        <select asp-for="TinhThanhPho" class="form-select" id="tinhThanhPho" required>
+                            <option value="">Chọn tỉnh/thành phố</option>
+                            @{
+                                var danhSachTinhThanh = ViewBag.DanhSachTinhThanh as List<Unicareer.Models.Province> ?? new List<Unicareer.Models.Province>();
+                            }
+                            @foreach (var tinh in danhSachTinhThanh)
+                            {
+                                <option value="@tinh.FullName" data-code="@tinh.Code" data-fullname="@tinh.FullName">@tinh.FullName</option>
+                            }
+                        </select>
+                        <span asp-validation-for="TinhThanhPho" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Quận/Huyện</label>
+                        <select class="form-select" name="PhuongXa" id="phuongXa">
+                            <option value="">Chọn quận/huyện</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="DiaChiLamViec" class="form-label required-label">Địa chỉ làm việc</label>
+                    <div class="input-group">
+                        <input type="text" asp-for="DiaChiLamViec" class="form-control" required
+                               id="diaChiInput" placeholder="123 Nguyễn Huệ, Quận 1">
+                        <button type="button" class="btn btn-outline-primary" id="btnSearchAddress">
+                            <i class="bi bi-search"></i> Tìm trên bản đồ
+                        </button>
+                    </div>
+                    <span asp-validation-for="DiaChiLamViec" class="text-danger"></span>
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle"></i> Kéo marker 📍 trên bản đồ để chọn vị trí chính xác hoặc click vào bản đồ
+                    </small>
+                </div>
+
+                <!-- Hidden fields for coordinates -->
+                <input type="hidden" asp-for="Latitude" id="latitude" value="21.028511">
+                <input type="hidden" asp-for="Longitude" id="longitude" value="105.804817">
+
+                <!-- Map Container -->
+                <div class="map-container">
+                    <div id="map"></div>
+                    <div class="map-info">
+                        <i class="bi bi-geo-alt-fill text-danger"></i>
+                        <span id="currentCoords">21.028511, 105.804817</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Anh van phong/cua hang -->
+            <div class="form-section">
+                <h4><i class="bi bi-images"></i> Ảnh văn phòng/cửa hàng</h4>
+                <div class="mb-3">
+                    <label class="form-label">Tải lên hình ảnh</label>
+                    <input type="file" class="form-control" name="AnhVanPhong" 
+                           id="anhVanPhongInput" accept="image/*" multiple>
+                    <small class="text-muted"><i class="bi bi-info-circle"></i> Có thể chọn nhiều ảnh. Định dạng: JPG, PNG, GIF</small>
+                </div>
+                
+                <!-- Preview Area -->
+                <div id="imagePreviewContainer" class="image-preview-container">
+                    <!-- Preview Images -->
+                    <div id="previewImagesSection" class="preview-section" style="display: none;">
+                        <div class="preview-section-title">
+                            <i class="bi bi-image"></i> Ảnh đã chọn
+                        </div>
+                        <div id="previewImagesGrid" class="preview-images-grid"></div>
+                    </div>
+                    
+                    <!-- No Preview Message -->
+                    <div id="noPreviewMessage" class="no-preview">
+                        <i class="bi bi-image"></i>
+                        <p>Chưa có ảnh để xem trước. Chọn ảnh để xem preview.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Han tuyen dung -->
+            <div class="form-section">
+                <h4><i class="bi bi-calendar-event"></i> Hạn tuyển dụng</h4>
+                <div class="mb-3">
+                    <label asp-for="HanNop" class="form-label required-label">Ngày hết hạn nộp hồ sơ</label>
+                    <input type="date" asp-for="HanNop" class="form-control" required
+                           min="@DateTime.Now.ToString("yyyy-MM-dd")">
+                    <span asp-validation-for="HanNop" class="text-danger"></span>
+                    <small class="text-muted"><i class="bi bi-clock-history"></i> Chọn ngày cuối cùng nhận hồ sơ ứng tuyển</small>
+                </div>
+            </div>
+
+            <!-- Submit buttons -->
+            <div class="text-center mt-5 mb-4">
+                <button type="submit" class="btn btn-primary btn-lg px-5 me-3">
+                    <i class="bi bi-check-circle"></i> Đăng tin tuyển dụng
+                </button>
+                <button type="button" class="btn btn-secondary btn-lg px-5" onclick="window.history.back()">
+                    <i class="bi bi-x-circle"></i> Hủy
+                </button>
+            </div>
+
+        </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Quill Editor CSS -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <!-- Quill Editor JS -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    
+    <style>
+        .map-container {
+            position: relative;
+            margin-top: 15px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+            border: 2px solid #e2e8f0;
+        }
+
+        #map {
+            height: 500px;
+            border-radius: 16px;
+        }
+
+        .map-info {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+            padding: 12px 18px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            z-index: 1000;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border: 2px solid #e2e8f0;
+        }
+
+        .map-info i {
+            font-size: 1.2rem;
+            margin-right: 5px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @@keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Custom marker popup */
+        .leaflet-popup-content-wrapper {
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            border: 2px solid #10b981;
+        }
+
+        .leaflet-popup-content {
+            margin: 15px;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        /* Marker animation */
+        @@keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .leaflet-marker-icon.marker-pulse {
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        /* Custom marker styling */
+        .custom-marker {
+            background: none;
+            border: none;
+        }
+
+        .marker-pin {
+            width: 35px;
+            height: 35px;
+            border-radius: 50% 50% 50% 0;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            position: absolute;
+            transform: rotate(-45deg);
+            left: 50%;
+            top: 50%;
+            margin: -17.5px 0 0 -17.5px;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.6);
+        }
+
+        .marker-pin::after {
+            content: '';
+            width: 16px;
+            height: 16px;
+            margin: 9.5px 0 0 9.5px;
+            background: #fff;
+            position: absolute;
+            border-radius: 50%;
+        }
+
+        /* Pulse animation */
+        .marker-pulse-ring {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(16, 185, 129, 0.3);
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            margin: -25px 0 0 -25px;
+            animation: pulsate 1.5s ease-out infinite;
+        }
+
+        @@keyframes pulsate {
+            0% {
+                transform: scale(0.5, 0.5);
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.5, 1.5);
+                opacity: 0;
+            }
+        }
+    </style>
+
+    <script>
+        $(document).ready(function() {
+            // Function to load chuyên ngành
+            function loadChuyenNganh(maNganhNghe, selectedValue) {
+                var $chuyenNganhSelect = $('#chuyenNganhSelect');
+                
+                if (maNganhNghe) {
+                    // Show loading
+                    $chuyenNganhSelect.prop('disabled', true);
+                    $chuyenNganhSelect.html('<option value="">Đang tải...</option>');
+                    
+                    // Load chuyên ngành từ server
+                    $.ajax({
+                        url: '@Url.Action("LayChuyenNganhTheoNganhNghe", "Recruiter", new { area = "Recruiter" })',
+                        type: 'GET',
+                        data: { maNganhNghe: maNganhNghe },
+                        success: function(response) {
+                            $chuyenNganhSelect.html('<option value="">Chọn chuyên ngành</option>');
+                            
+                            if (response.success && response.data && response.data.length > 0) {
+                                response.data.forEach(function(chuyenNganh) {
+                                    var isSelected = selectedValue && selectedValue === chuyenNganh.tenChuyenNganh;
+                                    var option = $('<option></option>')
+                                        .attr('value', chuyenNganh.tenChuyenNganh)
+                                        .text(chuyenNganh.tenChuyenNganh);
+                                    if (isSelected) {
+                                        option.prop('selected', true);
+                                    }
+                                    $chuyenNganhSelect.append(option);
+                                });
+                            } else {
+                                $chuyenNganhSelect.html('<option value="">Không có chuyên ngành</option>');
+                            }
+                            
+                            $chuyenNganhSelect.prop('disabled', false);
+                        },
+                        error: function() {
+                            $chuyenNganhSelect.html('<option value="">Lỗi tải dữ liệu</option>');
+                            $chuyenNganhSelect.prop('disabled', false);
+                        }
+                    });
+                } else {
+                    $chuyenNganhSelect.html('<option value="">Chọn chuyên ngành</option>');
+                    $chuyenNganhSelect.prop('disabled', false);
+                }
+            }
+
+            // Load chuyên ngành khi chọn ngành nghề
+            $('#nganhNgheSelect').change(function() {
+                var maNganhNghe = $(this).find('option:selected').data('ma');
+                loadChuyenNganh(maNganhNghe, null);
+            });
+
+            // Load chuyên ngành khi trang load (nếu đã có giá trị)
+            var selectedNganhNghe = $('#nganhNgheSelect option:selected');
+            if (selectedNganhNghe.length > 0 && selectedNganhNghe.val()) {
+                var maNganhNghe = selectedNganhNghe.data('ma');
+                var selectedChuyenNganh = $('#chuyenNganhSelect option:selected').val();
+                if (maNganhNghe) {
+                    loadChuyenNganh(maNganhNghe, selectedChuyenNganh);
+                }
+            }
+
+            // Initialize Quill Editor for all editors
+            let editors = {};
+            
+            // Editor configurations
+            const editorConfigs = {
+                'MoTa': {
+                    placeholder: 'Nhập mô tả chi tiết về công việc, trách nhiệm, nhiệm vụ...'
+                },
+                'YeuCau': {
+                    placeholder: 'Nhập các yêu cầu về học vấn, kinh nghiệm, kỹ năng cần thiết...'
+                },
+                'QuyenLoi': {
+                    placeholder: 'Mô tả các quyền lợi khác như bảo hiểm, thưởng, du lịch...'
+                }
+            };
+
+            // Initialize all Quill editors
+            Object.keys(editorConfigs).forEach(function(fieldName) {
+                var editorContainer = document.getElementById('editor-' + fieldName);
+                var textarea = document.getElementById(fieldName);
+                
+                if (editorContainer && typeof Quill !== 'undefined') {
+                    var quill = new Quill(editorContainer, {
+                        theme: 'snow',
+                        modules: {
+                            toolbar: [
+                                [{ 'header': [1, 2, 3, false] }],
+                                ['bold', 'italic', 'underline', 'strike'],
+                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                [{ 'color': [] }, { 'background': [] }],
+                                [{ 'align': [] }],
+                                ['link', 'image'],
+                                ['clean']
+                            ]
+                        },
+                        placeholder: editorConfigs[fieldName].placeholder
+                    });
+
+                    // Load existing content
+                    if (textarea && textarea.value) {
+                        quill.root.innerHTML = textarea.value;
+                    }
+
+                    // Update hidden textarea when editor content changes
+                    quill.on('text-change', function() {
+                        if (textarea) {
+                            textarea.value = quill.root.innerHTML;
+                        }
+                    });
+
+                    editors[fieldName] = quill;
+                    console.log('Quill Editor initialized for:', fieldName);
+                }
+            });
+            
+            // Image Preview Variables
+            var selectedImageFiles = [];
+            var imagePreviews = [];
+
+            // Update file input with remaining files
+            function updateFileInput() {
+                var $input = $('#anhVanPhongInput');
+                if ($input.length > 0 && typeof DataTransfer !== 'undefined') {
+                    try {
+                        var dt = new DataTransfer();
+                        selectedImageFiles.forEach(function(file) {
+                            dt.items.add(file);
+                        });
+                        $input[0].files = dt.files;
+                    } catch (e) {
+                        // Fallback: if DataTransfer is not supported, we'll rely on form submission
+                        console.log('DataTransfer not supported, files will be submitted as selected');
+                    }
+                }
+            }
+
+            // Handle file input change for image preview
+            $('#anhVanPhongInput').on('change', function(e) {
+                var files = e.target.files;
+                if (!files || files.length === 0) {
+                    return;
+                }
+                
+                // Filter only image files
+                var imageFiles = Array.from(files).filter(function(file) {
+                    return file.type && file.type.startsWith('image/');
+                });
+                
+                if (imageFiles.length === 0) {
+                    alert('Vui lòng chọn file ảnh hợp lệ (JPG, PNG, GIF)');
+                    // Reset input
+                    $(this).val('');
+                    return;
+                }
+                
+                // Add new files to array (merge with existing, avoid duplicates)
+                var filesToAdd = [];
+                imageFiles.forEach(function(file) {
+                    // Check if file already exists by name and size
+                    var exists = selectedImageFiles.some(function(existingFile) {
+                        return existingFile.name === file.name && existingFile.size === file.size;
+                    });
+                    if (!exists) {
+                        filesToAdd.push(file);
+                    }
+                });
+                
+                // Add new files to selectedImageFiles array
+                selectedImageFiles = selectedImageFiles.concat(filesToAdd);
+                
+                // Read each new file and create preview
+                if (filesToAdd.length > 0) {
+                    var readCount = 0;
+                    var totalToRead = filesToAdd.length;
+                    
+                    filesToAdd.forEach(function(file) {
+                        var reader = new FileReader();
+                        reader.onload = function(e) {
+                            imagePreviews.push({
+                                file: file,
+                                url: e.target.result,
+                                index: imagePreviews.length
+                            });
+                            readCount++;
+                            
+                            // Update indices for all previews
+                            imagePreviews.forEach(function(p, i) {
+                                p.index = i;
+                            });
+                            
+                            // Render when all files are read
+                            if (readCount === totalToRead) {
+                                renderImagePreviews();
+                                // Update file input after rendering
+                                updateFileInput();
+                            }
+                        };
+                        reader.onerror = function() {
+                            readCount++;
+                            console.error('Error reading file:', file.name);
+                            // Remove file from array if error
+                            var fileIndex = selectedImageFiles.indexOf(file);
+                            if (fileIndex > -1) {
+                                selectedImageFiles.splice(fileIndex, 1);
+                            }
+                            if (readCount === totalToRead) {
+                                renderImagePreviews();
+                                updateFileInput();
+                            }
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                } else {
+                    // All files already exist, just render
+                    renderImagePreviews();
+                    updateFileInput();
+                }
+                
+                // Reset input value to allow selecting same files again
+                $(this).val('');
+            });
+
+            // Render image previews
+            function renderImagePreviews() {
+                var $grid = $('#previewImagesGrid');
+                var $container = $('#imagePreviewContainer');
+                $grid.empty();
+                
+                if (imagePreviews.length > 0) {
+                    $('#previewImagesSection').show();
+                    $('#noPreviewMessage').hide();
+                    $container.addClass('has-images');
+                    
+                    imagePreviews.forEach(function(preview, index) {
+                        var $item = $('<div class="preview-image-item" data-index="' + index + '">' +
+                            '<img src="' + preview.url + '" alt="Ảnh đã chọn">' +
+                            '<button type="button" class="remove-btn" data-index="' + index + '" title="Xóa ảnh">×</button>' +
+                            '<div class="image-label">Ảnh ' + (index + 1) + '</div>' +
+                            '</div>');
+                        $grid.append($item);
+                    });
+                    
+                    // Attach remove handlers
+                    $('.preview-image-item .remove-btn').off('click').on('click', function(e) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        var index = parseInt($(this).data('index'));
+                        removeImage(index);
+                    });
+                } else {
+                    $('#previewImagesSection').hide();
+                    $('#noPreviewMessage').show();
+                    $container.removeClass('has-images');
+                }
+            }
+
+            // Remove image
+            function removeImage(index) {
+                if (index < 0 || index >= imagePreviews.length) {
+                    return;
+                }
+                
+                // Get the file to remove
+                var fileToRemove = imagePreviews[index].file;
+                
+                // Remove from imagePreviews array
+                imagePreviews.splice(index, 1);
+                
+                // Remove from selectedImageFiles array
+                var fileIndex = selectedImageFiles.indexOf(fileToRemove);
+                if (fileIndex > -1) {
+                    selectedImageFiles.splice(fileIndex, 1);
+                }
+                
+                // Update indices for all previews
+                imagePreviews.forEach(function(p, i) {
+                    p.index = i;
+                });
+                
+                // Update file input
+                updateFileInput();
+                renderImagePreviews();
+            }
+            
+            // Update form submission to sync editor data and validate
+            $('#formDangTin').on('submit', function(e) {
+                var valid = true;
+                
+                // Update file input before submit to ensure all selected files are included
+                updateFileInput();
+                
+                // Sync all editors before submit
+                Object.keys(editors).forEach(function(fieldName) {
+                    if (editors[fieldName]) {
+                        // Get HTML content from Quill editor
+                        var editorData = editors[fieldName].root.innerHTML;
+                        var textarea = document.getElementById(fieldName);
+                        
+                        if (textarea) {
+                            // Update textarea with editor content
+                            textarea.value = editorData;
+                            
+                            // Validate editor content if required
+                            if (textarea.hasAttribute('required')) {
+                                // Check if editor has meaningful content (not just empty HTML tags)
+                                var textContent = editors[fieldName].getText().trim();
+                                if (!textContent) {
+                                    var label = $(textarea).prev('label').text() || $(textarea).closest('.mb-3').find('label').text();
+                                    alert('Vui lòng nhập nội dung cho trường: ' + label);
+                                    valid = false;
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // Check other required fields
+                if (!$('input[name="TenViecLam"]').val()) {
+                    alert('Vui lòng nhập tên việc làm!');
+                    valid = false;
+                }
+
+                if (!valid) {
+                    e.preventDefault();
+                } else {
+                    // Show success message
+                    console.log('Form data:', {
+                        latitude: $('#latitude').val(),
+                        longitude: $('#longitude').val(),
+                        imageCount: selectedImageFiles.length
+                    });
+                }
+            });
+
+            // Initialize Leaflet Map
+            var map = L.map('map').setView([21.028511, 105.804817], 13);
+            
+            // Add tile layer with better styling
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                maxZoom: 19
+            }).addTo(map);
+
+            // Fix Leaflet default marker icon path
+            delete L.Icon.Default.prototype._getIconUrl;
+            L.Icon.Default.mergeOptions({
+                iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+                iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+                shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png'
+            });
+
+            // Create custom marker icon with pulse effect
+            var customIcon = L.divIcon({
+                className: 'custom-marker',
+                html: '<div class="marker-pulse-ring"></div><div class="marker-pin"></div>',
+                iconSize: [40, 40],
+                iconAnchor: [20, 40],
+                popupAnchor: [0, -40]
+            });
+
+            // Create draggable marker with custom icon
+            var marker = L.marker([21.028511, 105.804817], {
+                draggable: true,
+                icon: customIcon,
+                title: 'Kéo tôi để chọn vị trí'
+            }).addTo(map);
+
+            // Add popup to marker
+            marker.bindPopup('<strong>📍 Vị trí làm việc</strong><br>Kéo marker để điều chỉnh vị trí chính xác').openPopup();
+
+            // Function to update coordinates
+            function updateCoordinates(lat, lng) {
+                $('#latitude').val(lat.toFixed(6));
+                $('#longitude').val(lng.toFixed(6));
+                $('#currentCoords').text(lat.toFixed(6) + ', ' + lng.toFixed(6));
+            }
+
+            // Update marker position when dragged
+            marker.on('dragend', function(e) {
+                var position = marker.getLatLng();
+                updateCoordinates(position.lat, position.lng);
+                
+                // Show notification
+                marker.bindPopup('<strong>✓ Vị trí đã cập nhật</strong><br>Lat: ' + position.lat.toFixed(6) + '<br>Lng: ' + position.lng.toFixed(6)).openPopup();
+            });
+
+            // Update marker when clicking on map
+            map.on('click', function(e) {
+                marker.setLatLng(e.latlng);
+                updateCoordinates(e.latlng.lat, e.latlng.lng);
+                marker.bindPopup('<strong>✓ Vị trí đã cập nhật</strong><br>Lat: ' + e.latlng.lat.toFixed(6) + '<br>Lng: ' + e.latlng.lng.toFixed(6)).openPopup();
+            });
+
+            // Search address button
+            $('#btnSearchAddress').click(function() {
+                var address = $('#diaChiInput').val();
+                var city = $('#tinhThanhPho').val();
+                
+                if (!address) {
+                    alert('Vui lòng nhập địa chỉ!');
+                    return;
+                }
+
+                // Simple geocoding using Nominatim
+                var searchQuery = address + (city ? ', ' + city : '') + ', Vietnam';
+                
+                $.ajax({
+                    url: 'https://nominatim.openstreetmap.org/search',
+                    data: {
+                        q: searchQuery,
+                        format: 'json',
+                        limit: 1
+                    },
+                    success: function(data) {
+                        if (data && data.length > 0) {
+                            var lat = parseFloat(data[0].lat);
+                            var lon = parseFloat(data[0].lon);
+                            
+                            map.setView([lat, lon], 16);
+                            marker.setLatLng([lat, lon]);
+                            updateCoordinates(lat, lon);
+                            
+                            marker.bindPopup('<strong>📍 Tìm thấy địa chỉ</strong><br>' + data[0].display_name).openPopup();
+                        } else {
+                            alert('Không tìm thấy địa chỉ. Vui lòng thử lại!');
+                        }
+                    },
+                    error: function() {
+                        alert('Có lỗi xảy ra khi tìm kiếm địa chỉ!');
+                    }
+                });
+            });
+
+            // Function to load wards by province
+            function loadWardsByProvince(provinceCode) {
+                const $phuongXa = $('#phuongXa');
+                
+                // Reset quận/huyện dropdown
+                $phuongXa.html('<option value="">Chọn quận/huyện</option>');
+                
+                if (provinceCode) {
+                    // Show loading state
+                    $phuongXa.prop('disabled', true);
+                    $phuongXa.html('<option value="">Đang tải...</option>');
+                    
+                    // Fetch wards from API
+                    fetch(`/Recruiter/Recruiter/GetWardsByProvince?provinceCode=${encodeURIComponent(provinceCode)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            $phuongXa.html('<option value="">Chọn quận/huyện</option>');
+                            
+                            if (data && data.length > 0) {
+                                data.forEach(ward => {
+                                    const option = $('<option></option>')
+                                        .attr('value', ward.fullName)
+                                        .text(ward.fullName);
+                                    $phuongXa.append(option);
+                                });
+                            } else {
+                                $phuongXa.html('<option value="">Không có dữ liệu</option>');
+                            }
+                            
+                            $phuongXa.prop('disabled', false);
+                        })
+                        .catch(error => {
+                            console.error('Error loading wards:', error);
+                            $phuongXa.html('<option value="">Lỗi tải dữ liệu</option>');
+                            $phuongXa.prop('disabled', false);
+                        });
+                } else {
+                    $phuongXa.prop('disabled', false);
+                }
+            }
+
+            // Update map when city changes
+            $('#tinhThanhPho').change(function() {
+                var selectedOption = $(this).find('option:selected');
+                var cityName = $(this).val();
+                var provinceCode = selectedOption.data('code');
+                
+                // Load wards for selected province
+                if (provinceCode) {
+                    loadWardsByProvince(provinceCode);
+                }
+                
+                // Update map coordinates (simplified - you can enhance this with actual coordinates from database)
+                var coordinates = {
+                    'Hà Nội': [21.028511, 105.804817],
+                    'Thành phố Hà Nội': [21.028511, 105.804817],
+                    'TP Hồ Chí Minh': [10.762622, 106.660172],
+                    'Thành phố Hồ Chí Minh': [10.762622, 106.660172],
+                    'Đà Nẵng': [16.047079, 108.206230],
+                    'Thành phố Đà Nẵng': [16.047079, 108.206230],
+                    'Hải Phòng': [20.844892, 106.687973],
+                    'Thành phố Hải Phòng': [20.844892, 106.687973],
+                    'Cần Thơ': [10.045162, 105.746857],
+                    'Thành phố Cần Thơ': [10.045162, 105.746857],
+                    'Bình Dương': [10.980273, 106.652199],
+                    'Tỉnh Bình Dương': [10.980273, 106.652199],
+                    'Đồng Nai': [10.951172, 107.036759],
+                    'Tỉnh Đồng Nai': [10.951172, 107.036759]
+                };
+                
+                // Try to find matching coordinates
+                var coords = null;
+                for (var key in coordinates) {
+                    if (cityName && cityName.includes(key) || key.includes(cityName)) {
+                        coords = coordinates[key];
+                        break;
+                    }
+                }
+                
+                if (coords) {
+                    map.setView(coords, 13);
+                    marker.setLatLng(coords);
+                    updateCoordinates(coords[0], coords[1]);
+                }
+            });
+            
+            // Kiểm tra và load quận/huyện nếu tỉnh đã được chọn (khi quay lại bằng back button hoặc edit)
+            const selectedProvinceCode = $('#tinhThanhPho option:selected').data('code');
+            if (selectedProvinceCode) {
+                loadWardsByProvince(selectedProvinceCode);
+            }
+
+            // Allow Enter key to search address
+            $('#diaChiInput').keypress(function(e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    $('#btnSearchAddress').click();
+                }
+            });
+        });
+    </script>
+    
+    <!-- Validation Scripts -->
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+}
+

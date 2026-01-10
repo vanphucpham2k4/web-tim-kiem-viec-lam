@@ -1,0 +1,36 @@
+@if (ViewBag.DanhSachBlogLienQuan != null && ((List<Unicareer.Models.Blog>)ViewBag.DanhSachBlogLienQuan).Any())
+{
+    <div class="sidebar-section">
+        <h3 class="sidebar-section-title">Bài viết liên quan</h3>
+        @foreach (var blogLienQuan in (List<Unicareer.Models.Blog>)ViewBag.DanhSachBlogLienQuan)
+        {
+            var blogUrl = blogLienQuan.Permalink != null 
+                ? $"/Home/BlogDetail?permalink={Uri.EscapeDataString(blogLienQuan.Permalink)}" 
+                : $"/Home/BlogDetail?id={blogLienQuan.MaBlog}";
+            
+            var blogPartialUrl = blogLienQuan.Permalink != null 
+                ? $"/Home/BlogDetailPartial?permalink={Uri.EscapeDataString(blogLienQuan.Permalink)}" 
+                : $"/Home/BlogDetailPartial?id={blogLienQuan.MaBlog}";
+            
+            <a href="@blogUrl" class="blog-related-item" data-blog-url="@blogPartialUrl" data-blog-id="@blogLienQuan.MaBlog">
+                @if (!string.IsNullOrEmpty(blogLienQuan.HinhAnh))
+                {
+                    <img src="@blogLienQuan.HinhAnh" alt="@blogLienQuan.TieuDe" class="blog-related-item-image" onerror="this.style.display='none'" />
+                }
+                else
+                {
+                    <div class="blog-related-item-image" style="background: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #999; font-size: 24px;">
+                        <i class="bi bi-file-text"></i>
+                    </div>
+                }
+                <div class="blog-related-item-content">
+                    <div class="blog-related-item-title">@blogLienQuan.TieuDe</div>
+                    <div class="blog-related-item-date">
+                        <i class="bi bi-calendar"></i> @blogLienQuan.NgayDang.ToString("dd/MM/yyyy")
+                    </div>
+                </div>
+            </a>
+        }
+    </div>
+}
+

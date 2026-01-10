@@ -1,0 +1,1738 @@
+@model Unicareer.Models.Blog
+
+@{
+    var isCreateNew = Model.MaBlog == 0;
+    var isPublished = Model.DaDang; // Đã đăng (true) hoặc bản nháp (false)
+    ViewData["Title"] = isCreateNew ? "Thêm Blog Mới" : "Sửa Blog";
+}
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background-color: #f5f5f5;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .blog-editor-container {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 70px);
+        background: white;
+    }
+
+    /* Top Bar */
+    .editor-top-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px 30px;
+        border-bottom: 1px solid #e0e0e0;
+        background: white;
+        position: sticky;
+        top: 70px;
+        z-index: 100;
+    }
+
+    .title-input {
+        flex: 1;
+        border: none;
+        outline: none;
+        font-size: 24px;
+        font-weight: 500;
+        padding: 10px 15px;
+        background: transparent;
+        color: #333;
+    }
+
+    .title-input::placeholder {
+        color: #999;
+    }
+
+    .top-bar-actions {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .btn-preview {
+        background: transparent;
+        border: 1px solid #e0e0e0;
+        padding: 8px 16px;
+        border-radius: 6px;
+        color: #666;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 14px;
+        transition: all 0.2s;
+        position: relative;
+    }
+
+    .btn-preview:hover {
+        background: #f5f5f5;
+        border-color: #ccc;
+    }
+
+    .preview-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .preview-dropdown-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: 5px;
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        min-width: 200px;
+        z-index: 1000;
+        overflow: hidden;
+    }
+
+    .preview-dropdown-menu.show {
+        display: block;
+    }
+
+    .preview-dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        color: #666;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.2s;
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+    }
+
+    .preview-dropdown-item:hover {
+        background: #f5f5f5;
+    }
+
+    .preview-dropdown-item i {
+        font-size: 16px;
+        color: #999;
+    }
+
+    .preview-dropdown-item.danger {
+        color: #dc3545;
+    }
+
+    .preview-dropdown-item.danger:hover {
+        background: #fee2e2;
+    }
+
+    .btn-publish {
+        background: #ff6b35;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+
+    .btn-publish:hover {
+        background: #e55a2b;
+    }
+
+    .save-status {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: #666;
+        font-size: 12px;
+    }
+
+    /* Main Content Area */
+    .editor-main-content {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+    }
+
+    .editor-content-area {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        background: white;
+    }
+
+    /* Rich Text Editor */
+    .quill-editor-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 20px 40px;
+        position: relative;
+    }
+
+    .quill-toolbar {
+        border-bottom: 1px solid #e0e0e0;
+        padding: 10px 0;
+    }
+
+    .quill-editor-container {
+        flex: 1;
+        margin-top: 20px;
+        min-height: 400px;
+    }
+
+    .ql-editor {
+        min-height: 400px;
+        font-size: 16px;
+        line-height: 1.6;
+        color: #333;
+    }
+
+    .ql-editor.ql-blank::before {
+        color: #999;
+        font-style: normal;
+    }
+
+    /* AI Enhancement Button */
+    .ai-enhancement {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 40px;
+        height: 40px;
+        background: #e3f2fd;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        z-index: 10;
+    }
+
+    .ai-enhancement:hover {
+        background: #bbdefb;
+        transform: scale(1.1);
+    }
+
+    /* Right Sidebar */
+    .editor-sidebar {
+        width: 320px;
+        background: #fafafa;
+        border-left: 1px solid #e0e0e0;
+        overflow-y: auto;
+        padding: 20px;
+    }
+
+    .sidebar-section {
+        margin-bottom: 25px;
+    }
+
+    .sidebar-section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        cursor: pointer;
+    }
+
+    .sidebar-section-title {
+        font-weight: 600;
+        font-size: 14px;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .sidebar-section-content {
+        display: block;
+    }
+
+    .sidebar-section-content.collapsed {
+        display: none;
+    }
+
+    .form-group-sidebar {
+        margin-bottom: 15px;
+    }
+
+    .form-group-sidebar label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        color: #666;
+        margin-bottom: 8px;
+    }
+
+    .form-group-sidebar input,
+    .form-group-sidebar select,
+    .form-group-sidebar textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 14px;
+        background: white;
+    }
+
+    .form-group-sidebar input:focus,
+    .form-group-sidebar select:focus,
+    .form-group-sidebar textarea:focus {
+        outline: none;
+        border-color: #ff6b35;
+        box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.1);
+    }
+
+    .form-group-sidebar textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    .image-upload-area {
+        border: 2px dashed #e0e0e0;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        background: white;
+        position: relative;
+    }
+
+    .image-upload-area:hover {
+        border-color: #ff6b35;
+        background: #fff5f2;
+    }
+
+    .image-upload-area.has-image {
+        border-style: solid;
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .image-preview {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        display: none;
+    }
+
+    .image-upload-area.has-image .image-preview {
+        display: block;
+    }
+
+    .image-upload-icon {
+        font-size: 32px;
+        color: #ccc;
+        margin-bottom: 10px;
+    }
+
+    .image-upload-text {
+        font-size: 13px;
+        color: #999;
+    }
+
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+        width: auto;
+        cursor: pointer;
+    }
+
+    .checkbox-group label {
+        margin: 0;
+        cursor: pointer;
+        font-size: 14px;
+        color: #333;
+    }
+
+    .date-time-input {
+        display: flex;
+        gap: 10px;
+    }
+
+    .date-time-input input {
+        flex: 1;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .tags-input {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 10px;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        background: white;
+        min-height: 50px;
+    }
+
+    .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: #e3f2fd;
+        color: #1976d2;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 12px;
+    }
+
+    .tag-remove {
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .tag-input {
+        border: none;
+        outline: none;
+        flex: 1;
+        min-width: 120px;
+        font-size: 13px;
+        padding: 5px;
+    }
+
+    @@media (max-width: 1024px) {
+        .editor-sidebar {
+            width: 280px;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .editor-main-content {
+            flex-direction: column;
+        }
+
+        .editor-sidebar {
+            width: 100%;
+            border-left: none;
+            border-top: 1px solid #e0e0e0;
+        }
+    }
+</style>
+
+<!-- Quill Editor CSS -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
+<div class="blog-editor-container">
+    <!-- Top Bar -->
+    <div class="editor-top-bar">
+        <input type="text" id="blogTitle" class="title-input" placeholder="Tiêu đề" value="@(Model.TieuDe ?? "")" required />
+        <div class="top-bar-actions">
+            <div class="save-status">
+                <i class="bi bi-cloud-check"></i>
+                <span>Đã lưu</span>
+            </div>
+            <div class="preview-dropdown">
+                <button type="button" class="btn-preview" onclick="togglePreviewDropdown(event)">
+                    <i class="bi bi-eye"></i>
+                    Xem trước
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+                <div class="preview-dropdown-menu" id="previewDropdown">
+                    <button type="button" class="preview-dropdown-item" onclick="xemTruocBaiDang()">
+                        <i class="bi bi-eye"></i>
+                        <span>Xem trước bài đăng</span>
+                    </button>
+                    <button type="button" class="preview-dropdown-item" onclick="luuBaiDang()">
+                        <i class="bi bi-save"></i>
+                        <span>Lưu</span>
+                    </button>
+                    <button type="button" class="preview-dropdown-item danger" id="revertToDraftOption" onclick="quayVeBanNhap()" style="display: none;">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                        <span>Quay về bản nháp</span>
+                    </button>
+                </div>
+            </div>
+            @if (isPublished)
+            {
+                <button type="submit" form="blogForm" class="btn-publish">
+                    <i class="bi bi-send"></i>
+                    Cập nhật
+                </button>
+            }
+            else
+            {
+                <button type="submit" form="blogForm" name="action" value="dang" class="btn-publish">
+                    <i class="bi bi-send"></i>
+                    Đăng
+                </button>
+            }
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="editor-main-content">
+        <!-- Content Area -->
+        <div class="editor-content-area">
+            <div class="quill-editor-wrapper" style="position: relative;">
+                <div id="editor-toolbar" class="quill-toolbar">
+                    <!-- Quill toolbar will be inserted here -->
+                </div>
+                <div id="editor-container" class="quill-editor-container"></div>
+                <div class="ai-enhancement" title="AI Enhancement">
+                    <i class="bi bi-magic" style="color: #2196f3;"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar -->
+        <div class="editor-sidebar">
+            <form id="blogForm" asp-action="SuaBlog" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                
+                <input type="hidden" asp-for="MaBlog" id="hiddenMaBlog" />
+                <input type="hidden" asp-for="UserId" />
+                <input type="hidden" asp-for="NgayDang" />
+                <input type="hidden" asp-for="LuotXem" />
+                <input type="hidden" asp-for="TieuDe" id="hiddenTieuDe" />
+                <input type="hidden" asp-for="TacGia" value="@Model.TacGia" />
+                <input type="hidden" asp-for="ApiArticleId" value="@Model.ApiArticleId" />
+                <input type="hidden" asp-for="NguonBaiViet" value="@Model.NguonBaiViet" />
+                @* Store content in a safer way - using data attribute with JSON encoding *@
+                <input type="hidden" asp-for="NoiDung" id="NoiDung" data-content="@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.NoiDung ?? ""))" />
+                <script type="text/javascript">
+                    // Store full content in a JavaScript variable to avoid HTML attribute limitations
+                    window.blogContent = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.NoiDung ?? ""));
+                </script>
+                <input type="hidden" asp-for="MoTaNgan" id="MoTaNganHidden" value="@Model.MoTaNgan" />
+                <input type="hidden" asp-for="HinhAnh" id="hiddenHinhAnh" value="@Model.HinhAnh" />
+                <input type="hidden" asp-for="IsPermalinkAuto" name="IsPermalinkAuto" id="hiddenIsPermalinkAuto" value="@(Model.IsPermalinkAuto ? "true" : "false")" />
+                <input type="hidden" id="hiddenDaDang" value="@(Model.DaDang ? "true" : "false")" />
+                <input type="hidden" id="hiddenHienThi" value="@(Model.HienThi ? "true" : "false")" />
+                <input type="hidden" name="action" id="hiddenAction" value="" />
+
+                <!-- Cài đặt bài đăng -->
+                <div class="sidebar-section">
+                    <div class="sidebar-section-header" onclick="toggleSection(this)">
+                        <span class="sidebar-section-title">Cài đặt bài đăng</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </div>
+                    <div class="sidebar-section-content">
+                        <!-- Thể loại -->
+                        <div class="form-group-sidebar">
+                            <label asp-for="MaTheLoai">Thể loại</label>
+                            <select asp-for="MaTheLoai" class="form-control">
+                                <option value="">Chọn thể loại</option>
+                                @{
+                                    var danhSachTheLoai = ViewBag.DanhSachTheLoai as List<Unicareer.Models.TheLoaiBlog> ?? new List<Unicareer.Models.TheLoaiBlog>();
+                                }
+                                @foreach (var theLoai in danhSachTheLoai)
+                                {
+                                    <option value="@theLoai.MaTheLoai" selected="@(Model.MaTheLoai == theLoai.MaTheLoai)">@theLoai.TenTheLoai</option>
+                                }
+                            </select>
+                            <small style="color: #999; font-size: 11px; margin-top: 5px; display: block;">
+                                <a href="@Url.Action("TheLoaiBlog", "Admin", new { area = "Admin" })" target="_blank">Quản lý thể loại</a>
+                            </small>
+                        </div>
+
+                        <!-- Hình ảnh -->
+                        <div class="form-group-sidebar">
+                            <label>Hình ảnh</label>
+                            <div class="image-upload-area @(!string.IsNullOrEmpty(Model.HinhAnh) ? "has-image" : "")" onclick="document.getElementById('hinhAnhFile').click()">
+                                @if (string.IsNullOrEmpty(Model.HinhAnh))
+                                {
+                                    <i class="bi bi-image image-upload-icon"></i>
+                                    <div class="image-upload-text">Click để upload hình ảnh</div>
+                                }
+                                <img id="imagePreview" class="image-preview" src="@Model.HinhAnh" />
+                            </div>
+                            <input type="file" id="hinhAnhFile" name="hinhAnhFile" accept="image/*" class="hidden" />
+                            <small style="color: #999; font-size: 11px; margin-top: 5px; display: block;">
+                                Để trống nếu không muốn thay đổi hình ảnh
+                            </small>
+                        </div>
+
+                        <!-- Nhãn (Tags) -->
+                        <div class="form-group-sidebar">
+                            <label>Nhãn</label>
+                            <div class="tags-input" id="tagsContainer">
+                                <input type="text" class="tag-input" id="tagInput" placeholder="Nhập nhãn và nhấn Enter" />
+                            </div>
+                            <input type="hidden" id="tagsHidden" name="Tags" value="@Model.Tags" />
+                        </div>
+
+                        <!-- Được xuất bản vào -->
+                        <div class="form-group-sidebar">
+                            <label>Được xuất bản vào</label>
+                            <div class="date-time-input">
+                                @{
+                                    var ngayDang = isCreateNew ? DateTime.Now : Model.NgayDang;
+                                }
+                                <input type="date" id="publishDate" value="@ngayDang.ToString("yyyy-MM-dd")" />
+                                <input type="time" id="publishTime" value="@ngayDang.ToString("HH:mm")" />
+                            </div>
+                        </div>
+
+                        <!-- Liên kết cố định (Permalink) -->
+                        <div class="form-group-sidebar">
+                            <div class="sidebar-section-header" onclick="togglePermalinkSection(this)" style="margin-bottom: 10px; cursor: pointer;">
+                                <span class="sidebar-section-title" style="font-size: 13px;">Liên kết cố định</span>
+                                <i class="bi bi-chevron-up" id="permalinkChevron"></i>
+                            </div>
+                            <div id="permalinkContent" class="sidebar-section-content">
+                                @{
+                                    var baseUrl = $"{Context.Request.Scheme}://{Context.Request.Host}";
+                                    var isDraft = !Model.DaDang || !Model.HienThi;
+                                    var canEditPermalink = isCreateNew || isDraft; // Cho phép chỉnh sửa nếu tạo mới hoặc là bản nháp
+                                }
+                                @if (canEditPermalink)
+                                {
+                                    <!-- Tạo mới hoặc bản nháp: có thể chỉnh sửa -->
+                                    <!-- Full URL Display - Chỉ hiển thị khi blog đã đăng -->
+                                    @if (!isDraft)
+                                    {
+                                        <div style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 6px; font-size: 12px; color: #1976d2; word-break: break-all; user-select: all; cursor: text;">
+                                            <span id="fullPermalinkUrl">@baseUrl/Home/BlogDetail?permalink=</span><span id="permalinkSlugDisplay">blog-post</span>
+                                        </div>
+                                    }
+                                    
+                                    <!-- Radio Options -->
+                                    <div style="margin-bottom: 15px;">
+                                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                                            <input type="radio" id="permalinkAuto" name="permalinkType" value="auto" @(Model.IsPermalinkAuto ? "checked" : "") onchange="togglePermalinkType()" style="width: auto; cursor: pointer;" />
+                                            <label for="permalinkAuto" style="margin: 0; font-size: 13px; cursor: pointer; color: #333;">Liên kết cố định tự động</label>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <input type="radio" id="permalinkCustom" name="permalinkType" value="custom" @(!Model.IsPermalinkAuto ? "checked" : "") onchange="togglePermalinkType()" style="width: auto; cursor: pointer;" />
+                                            <label for="permalinkCustom" style="margin: 0; font-size: 13px; cursor: pointer; color: #333;">Liên kết cố định tùy chỉnh</label>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Custom Permalink Input - Chỉ hiển thị slug, không hiển thị URL prefix -->
+                                    <div id="customPermalinkContainer" style="display: none;">
+                                        <div style="display: flex; align-items: center; border-bottom: 2px solid #ff6b35; padding-bottom: 5px; margin-bottom: 5px;">
+                                            <input type="text" id="customPermalink" oninput="updatePermalinkValue()" style="flex: 1; border: none; outline: none; padding: 5px 0; font-size: 13px; color: #333; text-decoration: underline;" maxlength="8000" placeholder="blog-post" value="@(Model.Permalink ?? "")" />
+                                            <span style="color: #999; font-size: 13px; margin-left: 5px;">.html</span>
+                                        </div>
+                                        <small style="color: #999; font-size: 11px;" id="permalinkCharCount">0 / 8.000</small>
+                                    </div>
+                                    
+                                    <input type="hidden" id="permalinkValue" name="Permalink" asp-for="Permalink" />
+                                }
+                                else
+                                {
+                                    <!-- Blog đã đăng: chỉ xem -->
+                                    var permalinkSlug = Model.Permalink ?? "blog-post";
+                                    var fullUrl = !string.IsNullOrEmpty(Model.Permalink) 
+                                        ? $"{baseUrl}/Home/BlogDetail?permalink={Uri.EscapeDataString(permalinkSlug)}" 
+                                        : $"{baseUrl}/Home/BlogDetail?id={Model.MaBlog}";
+                                    <div style="padding: 15px; background: #f5f5f5; border-radius: 6px; font-size: 13px; color: #1976d2; word-break: break-all; border: 1px solid #e0e0e0; user-select: all; cursor: text;">@fullUrl</div>
+                                    
+                                    <input type="hidden" id="permalinkValue" name="Permalink" value="@(Model.Permalink ?? "")" />
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Mô tả ngắn -->
+                        <div class="form-group-sidebar">
+                            <label asp-for="MoTaNgan">Mô tả ngắn</label>
+                            <textarea id="moTaNganInput" placeholder="Mô tả ngắn gọn về bài viết...">@Model.MoTaNgan</textarea>
+                        </div>
+
+                        <!-- Tùy chọn -->
+                        <div class="form-group-sidebar">
+                            <label class="sidebar-section-title" style="margin-bottom: 10px;">Tùy chọn</label>
+                            <div class="checkbox-group">
+                                <input type="checkbox" asp-for="HienThi" id="hienThi" />
+                                <label for="hienThi">Hiển thị trên trang chủ @(Model.HienThi ? "(✓)" : "(✗)")</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Quill Editor JS -->
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+<script>
+    let quill;
+    let tags = [];
+    let autoSaveTimer = null;
+    let isSaving = false;
+    let isSubmitting = false;
+    let savedMaBlog = null;
+    let isInitializing = true; // Flag để theo dõi quá trình khởi tạo
+    let isPublished = @(isPublished ? "true" : "false"); // Blog đã được đăng công khai chưa
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Quill Editor
+        quill = new Quill('#editor-container', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'size': ['small', false, 'large', 'huge'] }],
+                    [{ 'font': [] }],
+                    [{ 'align': [] }],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    ['blockquote', 'code-block'],
+                    ['link', 'image', 'video'],
+                    ['emoji'],
+                    ['clean']
+                ]
+            },
+            placeholder: 'Bắt đầu viết bài của bạn...'
+        });
+
+        // Update hidden textarea when editor content changes
+        // GẮN event listener TRƯỚC (nhưng có kiểm tra isInitializing để tránh trigger khi load)
+        quill.on('text-change', function(delta, oldDelta, source) {
+            document.getElementById('NoiDung').value = quill.root.innerHTML;
+            // Chỉ auto-save nếu không phải đang khởi tạo
+            if (!isInitializing) {
+                autoSave();
+            }
+        });
+
+        // Load existing content (SAU khi khởi tạo Quill và gắn event listener)
+        // Lấy content từ JavaScript variable (tránh vấn đề HTML attribute limit)
+        let existingContent = window.blogContent || '';
+        
+        // Fallback: lấy từ hidden input nếu không có trong window.blogContent
+        if (!existingContent) {
+            const hiddenInput = document.getElementById('NoiDung');
+            if (hiddenInput) {
+                // Thử lấy từ data attribute (JSON encoded)
+                const dataContent = hiddenInput.getAttribute('data-content');
+                if (dataContent) {
+                    try {
+                        existingContent = JSON.parse(dataContent);
+                    } catch (e) {
+                        console.warn('Failed to parse data-content, using value attribute');
+                        existingContent = hiddenInput.value || '';
+                    }
+                } else {
+                    existingContent = hiddenInput.value || '';
+                }
+            }
+        }
+        
+        if (existingContent && existingContent.trim()) {
+            try {
+                // Convert HTML to Delta và set với source 'silent' để KHÔNG trigger text-change event
+                // Quill có thể parse HTML trực tiếp
+                const delta = quill.clipboard.convert(existingContent);
+                quill.setContents(delta, 'silent');
+                
+                // Verify content was loaded
+                const loadedContent = quill.root.innerHTML;
+                
+                // Nếu content bị mất quá nhiều (> 50%), thử cách khác
+                if (loadedContent.length < existingContent.length * 0.5) {
+                    console.warn('⚠️ Content có vẻ bị mất một phần, thử load trực tiếp HTML');
+                    // Thử set HTML trực tiếp
+                    quill.root.innerHTML = existingContent;
+                }
+            } catch (error) {
+                console.error('❌ Error loading content into Quill:', error);
+                // Fallback: set HTML trực tiếp
+                try {
+                    quill.root.innerHTML = existingContent;
+                } catch (fallbackError) {
+                    console.error('❌ Fallback also failed:', fallbackError);
+                }
+            }
+        } else {
+            console.warn('⚠️ No existing content to load');
+        }
+        
+        // Cập nhật hidden input với content đầy đủ
+        if (existingContent && document.getElementById('NoiDung')) {
+            document.getElementById('NoiDung').value = existingContent;
+        }
+
+        // Load existing title và permalink
+        const blogTitleInput = document.getElementById('blogTitle');
+        const isCreateNew = @(isCreateNew ? "true" : "false");
+        const isDraft = @((!Model.DaDang || !Model.HienThi) ? "true" : "false");
+        const canEditPermalink = isCreateNew || isDraft; // Cho phép chỉnh sửa nếu tạo mới hoặc là bản nháp
+        
+        if (canEditPermalink) {
+            // Load Permalink từ Model nếu có (chỉ lấy phần slug, không lấy prefix URL)
+            const modelPermalink = '@(Model.Permalink ?? "")';
+            const customInput = document.getElementById('customPermalink');
+            if (modelPermalink && customInput) {
+                // Nếu Permalink có chứa "=" thì chỉ lấy phần sau dấu =
+                let slug = modelPermalink;
+                if (slug.includes('=')) {
+                    slug = slug.split('=').pop() || slug;
+                }
+                // Nếu Permalink có chứa "/" thì chỉ lấy phần cuối (slug)
+                if (slug.includes('/')) {
+                    slug = slug.split('/').pop() || slug;
+                }
+                // Loại bỏ .html nếu có
+                if (slug.endsWith('.html')) {
+                    slug = slug.replace('.html', '');
+                }
+                customInput.value = slug;
+            }
+            
+            // Khởi tạo permalink (tạo mới hoặc bản nháp)
+            if (blogTitleInput && blogTitleInput.value) {
+                const permalinkAuto = document.getElementById('permalinkAuto');
+                if (permalinkAuto && permalinkAuto.checked) {
+                    generatePermalink(blogTitleInput.value);
+                }
+            } else {
+                // Khởi tạo permalink mặc định
+                const slugDisplay = document.getElementById('permalinkSlugDisplay');
+                if (slugDisplay) {
+                    slugDisplay.textContent = 'blog-post';
+                }
+            }
+            
+            // Khởi tạo permalink type
+            const permalinkAuto = document.getElementById('permalinkAuto');
+            if (permalinkAuto) {
+                togglePermalinkType();
+            }
+        } else {
+            // Blog đã đăng: chỉ đảm bảo permalink được hiển thị
+            // Không cần tạo lại permalink khi đã đăng
+        }
+        
+        // Lấy MaBlog từ hidden input
+        const hiddenMaBlog = document.getElementById('hiddenMaBlog');
+        if (hiddenMaBlog && hiddenMaBlog.value) {
+            savedMaBlog = parseInt(hiddenMaBlog.value);
+        }
+        
+        // Kiểm tra trạng thái blog hiện tại
+        checkBlogStatus();
+        
+        // Tự động lưu khi người dùng thoát trang
+        window.addEventListener('beforeunload', function(e) {
+            if (!isSaving) {
+                saveDraftBeforeUnload();
+            }
+        });
+        
+        // Đóng dropdown khi click bên ngoài
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('previewDropdown');
+            const button = document.querySelector('.btn-preview');
+            if (dropdown && !dropdown.contains(event.target) && !button.contains(event.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+
+        // Auto-generate permalink from title
+        document.getElementById('blogTitle').addEventListener('input', function() {
+            const permalinkAuto = document.getElementById('permalinkAuto');
+            if (permalinkAuto && permalinkAuto.checked) {
+                generatePermalink(this.value);
+            }
+            // Chỉ auto-save nếu không phải đang khởi tạo
+            if (!isInitializing) {
+                autoSave();
+            }
+        });
+
+        // Permalink character counter and update
+        const customPermalinkInput = document.getElementById('customPermalink');
+        if (customPermalinkInput) {
+            customPermalinkInput.addEventListener('input', function() {
+                updatePermalinkCharCount();
+                updatePermalinkValue();
+                // Update display (chỉ khi full URL được hiển thị)
+                const slugDisplay = document.getElementById('permalinkSlugDisplay');
+                const fullUrlDiv = document.getElementById('fullPermalinkUrl')?.parentElement;
+                if (slugDisplay && this.value && fullUrlDiv && fullUrlDiv.style.display !== 'none') {
+                    slugDisplay.textContent = this.value;
+                }
+            });
+        }
+
+        // Initialize tags from existing data
+        const existingTags = '@(Model.Tags ?? "")';
+        if (existingTags && existingTags.trim() !== '') {
+            tags = existingTags.split(',').map(t => t.trim()).filter(t => t);
+            updateTagsDisplay();
+        }
+        
+        // Set giá trị cho hidden input IsPermalinkAuto (giữ nguyên giá trị từ Model)
+        const hiddenIsPermalinkAuto = document.getElementById('hiddenIsPermalinkAuto');
+        if (hiddenIsPermalinkAuto) {
+            const isPermalinkAuto = @(Model.IsPermalinkAuto ? "true" : "false");
+            hiddenIsPermalinkAuto.value = isPermalinkAuto ? 'true' : 'false';
+            // Đảm bảo có name attribute
+            if (!hiddenIsPermalinkAuto.hasAttribute('name') || hiddenIsPermalinkAuto.getAttribute('name') !== 'IsPermalinkAuto') {
+                hiddenIsPermalinkAuto.setAttribute('name', 'IsPermalinkAuto');
+            }
+        }
+        
+        // Đảm bảo phần "Liên kết cố định" được mở (không bị collapsed)
+        const permalinkContent = document.getElementById('permalinkContent');
+        if (permalinkContent) {
+            permalinkContent.classList.remove('collapsed');
+        }
+
+        // Tags input (không ảnh hưởng đến autoSave nên có thể gắn bất kỳ lúc nào)
+        document.getElementById('tagInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const tag = this.value.trim();
+                if (tag && !tags.includes(tag)) {
+                    tags.push(tag);
+                    updateTagsDisplay();
+                    this.value = '';
+                }
+            }
+        });
+
+        // ✅ QUAN TRỌNG: Đánh dấu hoàn tất khởi tạo SAU KHI đã load xong TẤT CẢ dữ liệu
+        // Từ giờ trở đi, mọi thay đổi sẽ trigger autoSave()
+        isInitializing = false;
+        
+        // Đảm bảo trạng thái ban đầu là "Đã lưu" sau khi khởi tạo xong
+        const saveStatus = document.querySelector('.save-status span');
+        if (saveStatus) {
+            saveStatus.textContent = 'Đã lưu';
+        }
+
+        // Text nút submit được xác định bởi trạng thái DaDang
+        // DaDang chỉ được thay đổi thông qua nút "Đăng"/"Hủy đăng" ở trang danh sách Blog
+        // Trong form sửa này, text nút là cố định dựa trên giá trị ban đầu
+
+        // Image upload preview
+        document.getElementById('hinhAnhFile').addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('imagePreview');
+                    preview.src = e.target.result;
+                    document.querySelector('.image-upload-area').classList.add('has-image');
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+
+        // Form submit
+        const form = document.getElementById('blogForm');
+        const submitHandler = function(e) {
+            try {
+                // Ngăn submit nhiều lần
+                if (isSubmitting) {
+                    e.preventDefault();
+                    return;
+                }
+                
+                // Prevent default để đảm bảo set giá trị trước khi submit
+                e.preventDefault();
+                
+                // Validate tiêu đề
+                const blogTitle = document.getElementById('blogTitle').value.trim();
+                if (!blogTitle) {
+                    showNotification('Vui lòng nhập tiêu đề bài viết!', 'error');
+                    document.getElementById('blogTitle').focus();
+                    return;
+                }
+                
+                // ✅ Set action value vào hidden input
+                // Nếu blog chưa đăng (isPublished = false) -> action = "dang"
+                const hiddenAction = document.getElementById('hiddenAction');
+                if (hiddenAction) {
+                    if (!isPublished) {
+                        hiddenAction.value = 'dang';
+                    } else {
+                        hiddenAction.value = '';
+                    }
+                }
+                
+                // Ensure content is saved
+                const noiDungElement = document.getElementById('NoiDung');
+                if (noiDungElement) {
+                    noiDungElement.value = quill.root.innerHTML;
+                }
+                
+                // Set Tags - đảm bảo có giá trị
+                const tagsValue = tags.join(',');
+                const tagsHidden = document.getElementById('tagsHidden');
+                if (tagsHidden) {
+                    tagsHidden.value = tagsValue;
+                }
+                
+                // Update permalink (sẽ giữ nguyên nếu là trang sửa)
+                updatePermalinkValue();
+                
+                // Set IsPermalinkAuto từ radio button
+                const permalinkAutoRadio = document.getElementById('permalinkAuto');
+                const isPermalinkAuto = permalinkAutoRadio ? permalinkAutoRadio.checked : true;
+                const hiddenIsPermalinkAuto = document.getElementById('hiddenIsPermalinkAuto');
+                if (hiddenIsPermalinkAuto) {
+                    hiddenIsPermalinkAuto.value = isPermalinkAuto ? 'true' : 'false';
+                    // Đảm bảo có name attribute
+                    if (!hiddenIsPermalinkAuto.hasAttribute('name') || hiddenIsPermalinkAuto.getAttribute('name') !== 'IsPermalinkAuto') {
+                        hiddenIsPermalinkAuto.setAttribute('name', 'IsPermalinkAuto');
+                    }
+                }
+                
+                // Copy tiêu đề từ input bên ngoài vào hidden input trong form
+                const hiddenTieuDe = document.getElementById('hiddenTieuDe');
+                if (hiddenTieuDe) {
+                    hiddenTieuDe.value = blogTitle;
+                }
+                
+                // Copy mô tả ngắn từ textarea hiển thị vào hidden input trong form
+                const moTaNganInput = document.getElementById('moTaNganInput');
+                const moTaNganHidden = document.getElementById('MoTaNganHidden');
+                if (moTaNganInput && moTaNganHidden) {
+                    moTaNganHidden.value = moTaNganInput.value;
+                }
+                
+                // Đánh dấu đang submit
+                isSubmitting = true;
+                
+                // Disable nút submit để tránh double submit
+                const submitButton = document.querySelector('button[type="submit"][form="blogForm"]');
+                if (submitButton) {
+                    submitButton.disabled = true;
+                    const buttonText = isPublished ? 'Đang cập nhật...' : 'Đang đăng...';
+                    submitButton.innerHTML = '<i class="bi bi-hourglass-split"></i> ' + buttonText;
+                }
+                
+                // Submit form bằng cách loại bỏ event listener trước
+                // Loại bỏ event listener để tránh vòng lặp
+                form.removeEventListener('submit', submitHandler);
+                
+                // Submit form trực tiếp (sẽ không trigger event listener nữa)
+                form.submit();
+            } catch (error) {
+                console.error('❌ LỖI TRONG SUBMIT HANDLER:', error);
+                showNotification('Có lỗi xảy ra: ' + error.message + '. Form sẽ được submit ngay.', 'error');
+                
+                // Vẫn cố submit form dù có lỗi
+                isSubmitting = true;
+                form.removeEventListener('submit', submitHandler);
+                form.submit();
+            }
+        };
+        
+        form.addEventListener('submit', submitHandler);
+    });
+
+    function generatePermalink(title) {
+        const slugDisplay = document.getElementById('permalinkSlugDisplay');
+        if (!slugDisplay) return; // Không có permalink editor (blog đã đăng)
+        
+        if (!title) {
+            slugDisplay.textContent = 'blog-post';
+            updatePermalinkValue();
+            updateFullUrl();
+            return;
+        }
+        const permalink = title
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '');
+        
+        slugDisplay.textContent = permalink || 'blog-post';
+        updatePermalinkValue();
+        updateFullUrl();
+    }
+
+    function togglePermalinkType() {
+        const permalinkAuto = document.getElementById('permalinkAuto');
+        if (!permalinkAuto) return; // Không có permalink editor (blog đã đăng)
+        
+        const isAuto = permalinkAuto.checked;
+        const customContainer = document.getElementById('customPermalinkContainer');
+        const customInput = document.getElementById('customPermalink');
+        const hiddenIsPermalinkAuto = document.getElementById('hiddenIsPermalinkAuto');
+        
+        // Cập nhật hidden input ngay lập tức
+        if (hiddenIsPermalinkAuto) {
+            hiddenIsPermalinkAuto.value = isAuto ? 'true' : 'false';
+        }
+        
+        if (isAuto) {
+            // Tự động: ẩn input tùy chỉnh, tạo lại từ tiêu đề
+            if (customContainer) customContainer.style.display = 'none';
+            const title = document.getElementById('blogTitle').value;
+            generatePermalink(title);
+        } else {
+            // Tùy chỉnh: hiển thị input, lấy giá trị hiện tại hoặc từ slug display
+            if (customContainer) customContainer.style.display = 'block';
+            const slugDisplay = document.getElementById('permalinkSlugDisplay');
+            const currentSlug = slugDisplay ? slugDisplay.textContent : 'blog-post';
+            if (customInput) {
+                // Chỉ set giá trị nếu input đang trống
+                if (!customInput.value || customInput.value.trim() === '') {
+                    if (currentSlug && currentSlug !== 'blog-post') {
+                        customInput.value = currentSlug;
+                    }
+                }
+                updatePermalinkCharCount();
+                updatePermalinkValue();
+                // Focus vào input
+                setTimeout(() => customInput.focus(), 100);
+            }
+        }
+    }
+    
+    function updateFullUrl() {
+        const slugDisplay = document.getElementById('permalinkSlugDisplay');
+        const customInput = document.getElementById('customPermalink');
+        const fullPermalinkUrl = document.getElementById('fullPermalinkUrl');
+        const permalinkAuto = document.getElementById('permalinkAuto');
+        if (!permalinkAuto) return; // Không có permalink editor (blog đã đăng)
+        
+        const isAuto = permalinkAuto.checked;
+        
+        let slug = 'blog-post';
+        if (isAuto) {
+            slug = slugDisplay ? slugDisplay.textContent : 'blog-post';
+        } else {
+            slug = customInput ? (customInput.value || (slugDisplay ? slugDisplay.textContent : 'blog-post')) : 'blog-post';
+        }
+        
+        // Cập nhật slug display
+        if (slugDisplay) {
+            slugDisplay.textContent = slug;
+        }
+        
+        // Cập nhật full URL display (chỉ cập nhật phần slug, giữ nguyên prefix)
+        // fullPermalinkUrl đã có sẵn prefix, chỉ cần slugDisplay được cập nhật
+    }
+
+    function updatePermalinkCharCount() {
+        const input = document.getElementById('customPermalink');
+        const charCount = document.getElementById('permalinkCharCount');
+        if (input && charCount) {
+            const count = input.value.length;
+            charCount.textContent = count + ' / 8.000';
+        }
+    }
+
+    function updatePermalinkValue() {
+        const permalinkAuto = document.getElementById('permalinkAuto');
+        const permalinkValue = document.getElementById('permalinkValue');
+        
+        // Nếu không có radio button (blog đã đăng), giữ nguyên giá trị permalink hiện tại
+        if (!permalinkAuto) {
+            return;
+        }
+        
+        const isAuto = permalinkAuto.checked;
+        
+        if (isAuto) {
+            // Tự động: lấy từ slug display
+            const slugDisplay = document.getElementById('permalinkSlugDisplay');
+            if (permalinkValue) {
+                permalinkValue.value = slugDisplay ? slugDisplay.textContent : 'blog-post';
+            }
+        } else {
+            // Tùy chỉnh: lấy từ input (chỉ lấy slug, không có prefix URL)
+            const customInput = document.getElementById('customPermalink');
+            if (customInput && customInput.value) {
+                let slug = customInput.value.trim();
+                // Loại bỏ .html nếu có
+                if (slug.endsWith('.html')) {
+                    slug = slug.replace('.html', '');
+                }
+                // Loại bỏ phần prefix URL nếu có
+                if (slug.includes('=')) {
+                    slug = slug.split('=').pop() || slug;
+                }
+                if (slug.includes('/')) {
+                    slug = slug.split('/').pop() || slug;
+                }
+                if (permalinkValue) {
+                    permalinkValue.value = slug;
+                }
+            } else {
+                const slugDisplay = document.getElementById('permalinkSlugDisplay');
+                if (permalinkValue) {
+                    permalinkValue.value = slugDisplay ? slugDisplay.textContent : 'blog-post';
+                }
+            }
+        }
+    }
+
+    function togglePermalinkSection(header) {
+        const content = document.getElementById('permalinkContent');
+        const icon = document.getElementById('permalinkChevron');
+        if (content) {
+            content.classList.toggle('collapsed');
+            if (icon) {
+                icon.classList.toggle('bi-chevron-up');
+                icon.classList.toggle('bi-chevron-down');
+            }
+        }
+    }
+
+    function updateTagsDisplay() {
+        const container = document.getElementById('tagsContainer');
+        if (!container) return;
+        
+        const existingTags = container.querySelectorAll('.tag');
+        existingTags.forEach(tag => tag.remove());
+
+        tags.forEach(tag => {
+            const tagElement = document.createElement('span');
+            tagElement.className = 'tag';
+            tagElement.innerHTML = `
+                ${tag}
+                <span class="tag-remove" onclick="removeTag('${tag}')">×</span>
+            `;
+            const tagInput = document.getElementById('tagInput');
+            if (tagInput) {
+                container.insertBefore(tagElement, tagInput);
+            }
+        });
+    }
+
+    function removeTag(tag) {
+        tags = tags.filter(t => t !== tag);
+        updateTagsDisplay();
+    }
+
+    function toggleSection(header) {
+        const content = header.nextElementSibling;
+        const icon = header.querySelector('i');
+        content.classList.toggle('collapsed');
+        icon.classList.toggle('bi-chevron-down');
+        icon.classList.toggle('bi-chevron-up');
+    }
+
+    function togglePreviewDropdown(event) {
+        event.stopPropagation();
+        const dropdown = document.getElementById('previewDropdown');
+        dropdown.classList.toggle('show');
+    }
+
+    function xemTruocBaiDang() {
+        // Đóng dropdown
+        document.getElementById('previewDropdown').classList.remove('show');
+        
+        // Validate tiêu đề
+        const blogTitle = document.getElementById('blogTitle').value.trim();
+        if (!blogTitle) {
+            showNotification('Vui lòng nhập tiêu đề bài viết trước khi xem trước!', 'error');
+            document.getElementById('blogTitle').focus();
+            return;
+        }
+        
+        // Cập nhật tất cả dữ liệu vào form trước khi submit
+        document.getElementById('NoiDung').value = quill.root.innerHTML;
+        document.getElementById('hiddenTieuDe').value = blogTitle;
+        
+        const moTaNganInput = document.getElementById('moTaNganInput');
+        if (moTaNganInput) {
+            document.getElementById('MoTaNganHidden').value = moTaNganInput.value;
+        }
+        
+        // Set Tags
+        const tagsValue = tags.length > 0 ? tags.join(',') : '';
+        const tagsHidden = document.getElementById('tagsHidden');
+        if (tagsHidden) {
+            tagsHidden.value = tagsValue;
+        }
+        
+        // Set IsPermalinkAuto
+        const permalinkAutoRadio = document.getElementById('permalinkAuto');
+        const isPermalinkAuto = permalinkAutoRadio ? permalinkAutoRadio.checked : true;
+        const hiddenIsPermalinkAuto = document.getElementById('hiddenIsPermalinkAuto');
+        if (hiddenIsPermalinkAuto) {
+            hiddenIsPermalinkAuto.value = isPermalinkAuto ? 'true' : 'false';
+        }
+        
+        updatePermalinkValue();
+        
+        // Lấy ngày và giờ đăng nếu có
+        const publishDate = document.getElementById('publishDate');
+        const publishTime = document.getElementById('publishTime');
+        let ngayDang = new Date();
+        if (publishDate && publishDate.value) {
+            const dateValue = publishDate.value;
+            const timeValue = publishTime && publishTime.value ? publishTime.value : '00:00';
+            ngayDang = new Date(dateValue + 'T' + timeValue);
+        }
+        
+        // Clone form gốc để submit (mở trong tab mới)
+        const form = document.getElementById('blogForm');
+        const tempForm = form.cloneNode(true);
+        tempForm.id = 'tempPreviewForm';
+        tempForm.action = '@Url.Action("XemTruocBlog", "Admin", new { area = "Admin" })';
+        tempForm.method = 'POST';
+        tempForm.target = '_blank'; // Mở trong tab mới
+        tempForm.style.display = 'none';
+        
+        // Xóa các nút submit và các element không cần thiết
+        const submitButtons = tempForm.querySelectorAll('button[type="submit"]');
+        submitButtons.forEach(btn => btn.remove());
+        
+        // Cập nhật ngày đăng trong form clone
+        const ngayDangInput = tempForm.querySelector('input[name="NgayDang"]');
+        if (ngayDangInput && publishDate && publishDate.value) {
+            ngayDangInput.value = ngayDang.toISOString();
+        }
+        
+        // Đảm bảo file input được clone đúng
+        const originalFileInput = form.querySelector('#hinhAnhFile');
+        const clonedFileInput = tempForm.querySelector('#hinhAnhFile');
+        if (originalFileInput && clonedFileInput && originalFileInput.files && originalFileInput.files.length > 0) {
+            try {
+                // Thử clone file input với files bằng DataTransfer
+                const dataTransfer = new DataTransfer();
+                for (let i = 0; i < originalFileInput.files.length; i++) {
+                    dataTransfer.items.add(originalFileInput.files[i]);
+                }
+                clonedFileInput.files = dataTransfer.files;
+            } catch (e) {
+                // Nếu không clone được file (trình duyệt cũ), vẫn tiếp tục
+                // Hình ảnh cũ từ Model sẽ được hiển thị
+                console.warn('Không thể clone file input, sẽ sử dụng hình ảnh cũ:', e);
+            }
+        }
+        
+        // Cập nhật HinhAnh trong form clone nếu có file mới được chọn
+        // Nếu không có file mới, giá trị từ hidden input sẽ được giữ nguyên
+        const imagePreview = document.getElementById('imagePreview');
+        const hiddenHinhAnh = form.querySelector('#hiddenHinhAnh');
+        const clonedHinhAnh = tempForm.querySelector('#hiddenHinhAnh');
+        
+        // Nếu có file mới (imagePreview có data URL), không cần cập nhật HinhAnh
+        // File sẽ được gửi qua hinhAnhFile
+        // Nếu không có file mới, đảm bảo HinhAnh cũ được giữ lại
+        if (imagePreview && imagePreview.src && imagePreview.src.includes('data:')) {
+            // Có file mới (data URL), không cần làm gì - file sẽ được gửi
+        } else if (hiddenHinhAnh && hiddenHinhAnh.value && clonedHinhAnh) {
+            // Không có file mới, đảm bảo HinhAnh cũ được giữ lại
+            clonedHinhAnh.value = hiddenHinhAnh.value;
+        }
+        
+        // Thêm form vào body và submit
+        document.body.appendChild(tempForm);
+        tempForm.submit();
+        
+        // Xóa form tạm sau khi submit (sau một chút delay)
+        setTimeout(() => {
+            const formToRemove = document.getElementById('tempPreviewForm');
+            if (formToRemove) {
+                document.body.removeChild(formToRemove);
+            }
+        }, 1000);
+    }
+
+    function luuBaiDang() {
+        // Đóng dropdown
+        document.getElementById('previewDropdown').classList.remove('show');
+        
+        // Gọi hàm lưu bản nháp
+        saveDraft(true);
+    }
+
+    function saveDraft(showManualSave = false) {
+        if (isSaving) return;
+        
+        isSaving = true;
+        const saveStatus = document.querySelector('.save-status span');
+        
+        // Chỉ hiển thị "Đang lưu..." nếu là lưu thủ công
+        // Với autoSave, trạng thái đã được set ở autoSave() rồi
+        if (showManualSave && saveStatus) {
+            saveStatus.textContent = 'Đang lưu...';
+        }
+        
+        // Cập nhật tất cả dữ liệu vào form
+        document.getElementById('NoiDung').value = quill.root.innerHTML;
+        const blogTitle = document.getElementById('blogTitle').value;
+        document.getElementById('hiddenTieuDe').value = blogTitle;
+        
+        const moTaNganInput = document.getElementById('moTaNganInput');
+        if (moTaNganInput) {
+            document.getElementById('MoTaNganHidden').value = moTaNganInput.value;
+        }
+        
+        // Set Tags
+        const tagsValue = tags.length > 0 ? tags.join(',') : '';
+        const tagsHidden = document.getElementById('tagsHidden');
+        if (tagsHidden) {
+            tagsHidden.value = tagsValue;
+        }
+        
+        // Set IsPermalinkAuto
+        const permalinkAutoRadio = document.getElementById('permalinkAuto');
+        const isPermalinkAuto = permalinkAutoRadio ? permalinkAutoRadio.checked : true;
+        const hiddenIsPermalinkAuto = document.getElementById('hiddenIsPermalinkAuto');
+        if (hiddenIsPermalinkAuto) {
+            hiddenIsPermalinkAuto.value = isPermalinkAuto ? 'true' : 'false';
+        }
+        
+        updatePermalinkValue();
+        
+        // ✅ Cập nhật hiddenMaBlog trong form trước khi tạo FormData
+        const hiddenMaBlog = document.getElementById('hiddenMaBlog');
+        if (savedMaBlog && savedMaBlog > 0) {
+            if (hiddenMaBlog) {
+                hiddenMaBlog.value = savedMaBlog;
+            }
+        }
+        
+        // Tạo FormData để gửi
+        const form = document.getElementById('blogForm');
+        const formData = new FormData(form);
+        
+        // Lấy anti-forgery token
+        const token = document.querySelector('input[name="__RequestVerificationToken"]');
+        if (token) {
+            formData.set('__RequestVerificationToken', token.value);
+        }
+        
+        // Gửi request lưu bản nháp
+        fetch('@Url.Action("LuuTamBlog", "Admin", new { area = "Admin" })', {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            isSaving = false;
+            if (data.success) {
+                // ✅ QUAN TRỌNG: Cập nhật savedMaBlog và hiddenMaBlog với giá trị trả về từ server
+                // Điều này đảm bảo lần lưu tiếp theo sẽ cập nhật blog hiện có thay vì tạo mới
+                if (data.maBlog && data.maBlog > 0) {
+                    savedMaBlog = data.maBlog;
+                    const hiddenMaBlog = document.getElementById('hiddenMaBlog');
+                    if (hiddenMaBlog) {
+                        hiddenMaBlog.value = data.maBlog;
+                    }
+                    
+                    // Nếu là blog mới (chưa có MaBlog trước đó), cập nhật URL để đảm bảo form luôn có MaBlog
+                    const currentUrl = window.location.href;
+                    if (currentUrl.includes('id=0') || currentUrl.includes('SuaBlog') && !currentUrl.includes('id=')) {
+                        // Cập nhật URL mà không reload trang
+                        const newUrl = '@Url.Action("SuaBlog", "Admin", new { area = "Admin" })?id=' + data.maBlog;
+                        window.history.replaceState({}, '', newUrl);
+                    }
+                }
+                
+                if (saveStatus) {
+                    if (showManualSave) {
+                        saveStatus.textContent = 'Đã lưu bản nháp';
+                    } else {
+                        saveStatus.textContent = 'Đã lưu';
+                    }
+                }
+            } else {
+                if (saveStatus) {
+                    saveStatus.textContent = 'Lỗi khi lưu';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Lỗi:', error);
+            isSaving = false;
+            if (saveStatus) {
+                saveStatus.textContent = 'Lỗi khi lưu';
+            }
+        });
+    }
+
+    function saveDraftBeforeUnload() {
+        // Lưu bản nháp trước khi thoát (chỉ gửi request, không cần chờ response)
+        const blogTitle = document.getElementById('blogTitle').value;
+        if (!blogTitle || blogTitle.trim() === '') {
+            return; // Không lưu nếu chưa có tiêu đề
+        }
+        
+        // Cập nhật dữ liệu
+        document.getElementById('NoiDung').value = quill.root.innerHTML;
+        document.getElementById('hiddenTieuDe').value = blogTitle;
+        
+        const moTaNganInput = document.getElementById('moTaNganInput');
+        if (moTaNganInput) {
+            document.getElementById('MoTaNganHidden').value = moTaNganInput.value;
+        }
+        
+        const tagsValue = tags.length > 0 ? tags.join(',') : '';
+        const tagsHidden = document.getElementById('tagsHidden');
+        if (tagsHidden) {
+            tagsHidden.value = tagsValue;
+        }
+        
+        const isPermalinkAuto = document.getElementById('permalinkAuto').checked;
+        const hiddenIsPermalinkAuto = document.getElementById('hiddenIsPermalinkAuto');
+        if (hiddenIsPermalinkAuto) {
+            hiddenIsPermalinkAuto.value = isPermalinkAuto ? 'true' : 'false';
+        }
+        
+        updatePermalinkValue();
+        
+        // ✅ Cập nhật hiddenMaBlog trong form trước khi tạo FormData
+        const hiddenMaBlog = document.getElementById('hiddenMaBlog');
+        if (savedMaBlog && savedMaBlog > 0) {
+            if (hiddenMaBlog) {
+                hiddenMaBlog.value = savedMaBlog;
+            }
+        }
+        
+        const form = document.getElementById('blogForm');
+        const formData = new FormData(form);
+        
+        // Lấy anti-forgery token
+        const token = document.querySelector('input[name="__RequestVerificationToken"]');
+        if (token) {
+            formData.set('__RequestVerificationToken', token.value);
+        }
+        
+        // Dùng fetch với keepalive để đảm bảo gửi được ngay cả khi trang đang đóng
+        fetch('@Url.Action("LuuTamBlog", "Admin", new { area = "Admin" })', {
+            method: 'POST',
+            body: formData,
+            keepalive: true,
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            // ✅ Cập nhật savedMaBlog nếu server trả về maBlog mới (khi tạo blog mới)
+            if (data.success && data.maBlog && data.maBlog > 0 && (!savedMaBlog || savedMaBlog === 0)) {
+                savedMaBlog = data.maBlog;
+                const hiddenMaBlog = document.getElementById('hiddenMaBlog');
+                if (hiddenMaBlog) {
+                    hiddenMaBlog.value = data.maBlog;
+                }
+            }
+        })
+        .catch(() => {
+            // Bỏ qua lỗi khi trang đang đóng
+        });
+    }
+
+    function checkBlogStatus() {
+        const hiddenDaDang = document.getElementById('hiddenDaDang');
+        const hiddenMaBlog = document.getElementById('hiddenMaBlog');
+        const revertToDraftOption = document.getElementById('revertToDraftOption');
+        
+        if (hiddenDaDang && revertToDraftOption) {
+            const daDang = hiddenDaDang.value === 'true';
+            const maBlog = hiddenMaBlog ? parseInt(hiddenMaBlog.value) : 0;
+            
+            // Chỉ hiển thị "Quay về bản nháp" trong dropdown preview nếu:
+            // 1. Blog đã tồn tại trong database (MaBlog > 0)
+            // 2. Và đã đăng (DaDang = true)
+            if (maBlog > 0 && daDang) {
+                revertToDraftOption.style.display = 'block';
+            } else {
+                // Nếu là blog mới hoặc bản nháp, ẩn option này
+                revertToDraftOption.style.display = 'none';
+            }
+        }
+    }
+
+    function quayVeBanNhap() {
+        // Đóng dropdown
+        document.getElementById('previewDropdown').classList.remove('show');
+        
+        if (!savedMaBlog) {
+            showNotification('Không tìm thấy blog để chuyển về bản nháp!', 'error');
+            return;
+        }
+        
+        // Cập nhật tất cả dữ liệu vào form trước khi gửi
+        document.getElementById('NoiDung').value = quill.root.innerHTML;
+        const blogTitle = document.getElementById('blogTitle').value;
+        document.getElementById('hiddenTieuDe').value = blogTitle;
+        
+        const moTaNganInput = document.getElementById('moTaNganInput');
+        if (moTaNganInput) {
+            document.getElementById('MoTaNganHidden').value = moTaNganInput.value;
+        }
+        
+        const tagsValue = tags.length > 0 ? tags.join(',') : '';
+        const tagsHidden = document.getElementById('tagsHidden');
+        if (tagsHidden) {
+            tagsHidden.value = tagsValue;
+        }
+        
+        const permalinkAutoRadio = document.getElementById('permalinkAuto');
+        const isPermalinkAuto = permalinkAutoRadio ? permalinkAutoRadio.checked : true; // Default true nếu không có radio button (trang sửa)
+        const hiddenIsPermalinkAuto = document.getElementById('hiddenIsPermalinkAuto');
+        if (hiddenIsPermalinkAuto) {
+            hiddenIsPermalinkAuto.value = isPermalinkAuto ? 'true' : 'false';
+        }
+        
+        updatePermalinkValue();
+        
+        if (!confirm('Bạn có chắc muốn chuyển blog này về bản nháp?\n(Sẽ hủy trạng thái đăng và hiển thị)')) {
+            return;
+        }
+        
+        // Tạo FormData để gửi
+        const form = document.getElementById('blogForm');
+        const formData = new FormData(form);
+        
+        // Đảm bảo MaBlog được set
+        formData.set('MaBlog', savedMaBlog);
+        
+        // Lấy anti-forgery token và thêm vào FormData (cần thiết cho ValidateAntiForgeryToken)
+        const token = document.querySelector('input[name="__RequestVerificationToken"]');
+        if (token) {
+            formData.set('__RequestVerificationToken', token.value);
+        }
+        
+        // Gửi request chuyển về bản nháp
+        fetch('@Url.Action("QuayVeBanNhap", "Admin", new { area = "Admin" })', {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            // Kiểm tra content type
+            const contentType = response.headers.get('content-type');
+            
+            if (!response.ok) {
+                // Thử đọc response text để xem lỗi chi tiết
+                return response.text().then(text => {
+                    console.error('Response error text:', text);
+                    throw new Error('HTTP error! status: ' + response.status + ' - ' + text.substring(0, 200));
+                });
+            }
+            
+            // Đảm bảo response là JSON
+            if (contentType && contentType.includes('application/json')) {
+                return response.json();
+            } else {
+                return response.text().then(text => {
+                    console.error('Response is not JSON:', text);
+                    throw new Error('Server không trả về JSON. Response: ' + text.substring(0, 200));
+                });
+            }
+        })
+        .then(data => {
+            if (data.success) {
+                // Cập nhật UI - chuyển về bản nháp
+                document.getElementById('hiddenDaDang').value = 'false';
+                document.getElementById('hiddenHienThi').value = 'false';
+                checkBlogStatus();
+                
+                // Cập nhật text nút submit về "Đăng"
+                isPublished = false;
+                const submitButton = document.querySelector('button[type="submit"][form="blogForm"]');
+                if (submitButton && !submitButton.disabled) {
+                    submitButton.innerHTML = '<i class="bi bi-send"></i> Đăng';
+                }
+                
+                // Hiển thị thông báo thành công
+                showNotification('Đã chuyển blog về bản nháp thành công!', 'success');
+                
+                const saveStatus = document.querySelector('.save-status span');
+                if (saveStatus) {
+                    saveStatus.textContent = 'Đã chuyển về bản nháp';
+                    setTimeout(() => {
+                        saveStatus.textContent = 'Đã lưu';
+                    }, 2000);
+                }
+            } else {
+                showNotification('Có lỗi xảy ra: ' + (data.message || 'Không thể chuyển về bản nháp'), 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Lỗi chi tiết:', error);
+            showNotification('Có lỗi xảy ra khi chuyển về bản nháp: ' + error.message, 'error');
+        });
+    }
+
+    function autoSave() {
+        // Không auto-save nếu đang submit form hoặc đang lưu
+        if (isSaving || isSubmitting) {
+            return;
+        }
+        
+        // Debounce: chỉ lưu sau 3 giây không có thay đổi
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(() => {
+            // Kiểm tra lại trước khi lưu (có thể đã bắt đầu submit)
+            if (isSaving || isSubmitting) {
+                return;
+            }
+            
+            const blogTitle = document.getElementById('blogTitle').value;
+            if (blogTitle && blogTitle.trim() !== '') {
+                // Hiển thị "Đang lưu..." CHỈ KHI thực sự bắt đầu lưu
+                const saveStatus = document.querySelector('.save-status span');
+                if (saveStatus) {
+                    saveStatus.textContent = 'Đang lưu...';
+                }
+                saveDraft(false);
+            }
+        }, 3000);
+        
+        // KHÔNG cập nhật UI ngay lập tức nữa - để người dùng gõ thoải mái
+        // UI sẽ chỉ cập nhật khi thực sự bắt đầu lưu (sau 3 giây)
+    }
+
+    // Show notification function
+    function showNotification(message, type) {
+        var bgColor = type === 'success' ? '#48bb78' : type === 'error' ? '#e53e3e' : '#4299e1';
+        var notification = $('<div>')
+            .css({
+                position: 'fixed',
+                top: '20px',
+                right: '20px',
+                background: bgColor,
+                color: 'white',
+                padding: '15px 25px',
+                borderRadius: '12px',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                zIndex: 9999,
+                fontWeight: '600',
+                animation: 'slideInRight 0.3s ease'
+            })
+            .text(message)
+            .appendTo('body');
+        
+        setTimeout(function() {
+            notification.fadeOut(400, function() {
+                $(this).remove();
+            });
+        }, 3000);
+    }
+</script>
+
+<style>
+    @@keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+</style>

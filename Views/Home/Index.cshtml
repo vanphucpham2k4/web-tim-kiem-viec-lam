@@ -1,8 +1,1546 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@using Microsoft.AspNetCore.Identity
+@using Unicareer.Models
+@inject SignInManager<ApplicationUser> SignInManager
+
+@{
+    ViewData["Title"] = "Tìm Kiếm Việc Làm";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f5f5f5;
+    }
+    /* Banner Section */
+    .banner-section {
+        position: relative;
+        height: 400px;
+        overflow: hidden;
+        background: transparent;
+    }
+    .banner-slider {
+        position: relative;
+        height: 100%;
+        width: 100%;
+    }
+    .banner-slide {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        transition: opacity 1s ease-in-out;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+    .banner-slide.active {
+        opacity: 1;
+    }
+    .banner-content {
+        max-width: 1400px;
+        padding: 0 20px;
+        color: white;
+        text-align: center;
+        z-index: 2;
+    }
+    .banner-content h1 {
+        font-size: 48px;
+        margin-bottom: 20px;
+        text-shadow: 2px 2px 8px rgba(0,0,0,0.7), 0 0 20px rgba(0,0,0,0.5);
+        font-weight: 700;
+    }
+    .banner-content p {
+        font-size: 20px;
+        margin-bottom: 30px;
+        text-shadow: 1px 1px 4px rgba(0,0,0,0.7), 0 0 15px rgba(0,0,0,0.5);
+        font-weight: 500;
+    }
+    .banner-btn {
+        padding: 15px 40px;
+        background: white;
+        color: #10b981;
+        border: none;
+        border-radius: 25px;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .banner-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    }
+    .banner-indicators {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 10px;
+        z-index: 3;
+    }
+    .indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.5);
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .indicator.active {
+        background: white;
+        width: 30px;
+        border-radius: 6px;
+    }
+    /* Search Section */
+    .search-section {
+        background: linear-gradient(135deg, #34d399, #10b981);
+        padding: 40px 20px;
+    }
+    .search-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    .search-bar {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+    .search-input {
+        flex: 1;
+        min-width: 300px;
+        padding: 15px 20px;
+        border: 2px solid #fff;
+        border-radius: 8px;
+        font-size: 16px;
+        background: white;
+    }
+    .search-input::placeholder {
+        color: #999;
+    }
+    .dropdown {
+        padding: 15px 20px;
+        border: 2px solid #fff;
+        border-radius: 8px;
+        font-size: 16px;
+        background: white;
+        cursor: pointer;
+        min-width: 180px;
+    }
+    .search-btn {
+        padding: 15px 20px;
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    }
+    .search-btn:hover {
+        background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+    }
+    /* Filter Section */
+    .filter-section {
+        background: white;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        flex-wrap: wrap;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .filter-section select {
+        padding: 12px 20px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 15px;
+        cursor: pointer;
+        background: white;
+        color: #666;
+        min-width: 150px;
+    }
+    /* Quick Links */
+    .quick-links {
+        max-width: 1400px;
+        margin: 30px auto;
+        padding: 0 20px;
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .quick-links strong {
+        font-size: 16px;
+        color: #333;
+    }
+    .quick-link-btn {
+        padding: 10px 20px;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 25px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 14px;
+        color: #555;
+    }
+    .quick-link-btn:hover {
+        background: #10b981;
+        color: white;
+        border-color: #10b981;
+    }
+    /* Cities Section */
+    .cities-section {
+        max-width: 1400px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+    .cities-section h2 {
+        font-size: 28px;
+        margin-bottom: 30px;
+        color: #333;
+    }
+    .cities-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    .city-card {
+        position: relative;
+        height: 180px;
+        border-radius: 12px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform 0.3s;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .city-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    }
+    .city-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .city-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 100%);
+        z-index: 1;
+    }
+    .city-name {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        color: white;
+        font-size: 24px;
+        font-weight: bold;
+        z-index: 2;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+    .view-more-btn {
+        display: block;
+        margin: 0 auto;
+        padding: 15px 60px;
+        background: #10b981;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.3s;
+        text-align: center;
+        width: fit-content;
+        text-decoration: none;
+    }
+    .view-more-btn:hover {
+        background: #27ae60;
+    }
+    /* Jobs Section */
+    .jobs-section {
+        max-width: 1400px;
+        margin: 60px auto;
+        padding: 0 20px;
+    }
+    .jobs-section h2 {
+        font-size: 28px;
+        margin-bottom: 30px;
+        color: #333;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .jobs-section h2::before {
+        content: '⭐';
+        font-size: 32px;
+    }
+    .jobs-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 25px;
+        margin-bottom: 30px;
+    }
+    .job-card {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: all 0.3s;
+        cursor: pointer;
+        border: 2px solid transparent;
+        position: relative;
+        overflow: hidden;
+    }
+    .job-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(135deg, #34d399, #10b981);
+        transform: scaleY(0);
+        transition: transform 0.3s;
+    }
+    .job-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(46, 204, 113, 0.2);
+        border-color: #10b981;
+    }
+    .job-card:hover::before {
+        transform: scaleY(1);
+    }
+    .job-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+    .job-company-logo {
+        width: 60px;
+        height: 60px;
+        border-radius: 8px;
+        object-fit: cover;
+        background: #ffffff;
+        border: 1px solid #e0e0e0;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: var(--accent-color);
+        font-size: 24px;
+    }
+    .job-info {
+        flex: 1;
+    }
+    .job-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 5px;
+        line-height: 1.3;
+    }
+    .job-company {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 8px;
+    }
+    .job-location {
+        font-size: 13px;
+        color: #999;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .job-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 15px;
+        margin-bottom: 15px;
+    }
+    .job-badge {
+        padding: 5px 12px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .badge-salary {
+        background: #e8f8f5;
+        color: #10b981;
+    }
+    .badge-type {
+        background: #fff3cd;
+        color: #856404;
+    }
+    .badge-level {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+    .badge-urgent {
+        background: #f8d7da;
+        color: #721c24;
+        animation: pulse 2s infinite;
+    }
+    @@keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+    .job-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+    }
+    .job-posted {
+        font-size: 12px;
+        color: #999;
+    }
+    .job-apply-btn {
+        padding: 8px 20px;
+        background: linear-gradient(135deg, #34d399, #10b981);
+        color: white;
+        border: none;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .job-apply-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4);
+    }
+    .job-featured {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: linear-gradient(135deg, #f39c12, #e67e22);
+        color: white;
+        padding: 5px 12px;
+        border-radius: 15px;
+        font-size: 11px;
+        font-weight: bold;
+        box-shadow: 0 2px 8px rgba(243, 156, 18, 0.3);
+    }
+    /* Blog Section */
+    .blog-section {
+        max-width: 1400px;
+        margin: 60px auto;
+        padding: 0 20px;
+        position: relative;
+    }
+    .blog-section h2 {
+        font-size: 28px;
+        margin-bottom: 30px;
+        color: #333;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .blog-section h2::before {
+        content: '🔥';
+        font-size: 32px;
+    }
+    .blog-section .view-more-wrapper {
+        text-align: center;
+        margin-top: 24px;
+    }
+    .blog-container {
+        position: relative;
+        overflow: hidden;
+    }
+    .blog-grid {
+        display: flex;
+        transition: transform 0.5s ease-in-out;
+        gap: 25px;
+    }
+    .blog-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+        cursor: pointer;
+        flex: 0 0 calc(33.333% - 17px);
+        min-width: 300px;
+    }
+    .blog-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    }
+    .blog-indicators {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 30px;
+    }
+    .blog-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #ddd;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .blog-indicator.active {
+        background: #10b981;
+        width: 30px;
+        border-radius: 6px;
+    }
+    .blog-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+    .blog-content {
+        padding: 20px;
+    }
+    .blog-category {
+        display: inline-block;
+        padding: 5px 12px;
+        background: #e8f8f5;
+        color: #10b981;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    .blog-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 10px;
+        line-height: 1.4;
+        cursor: pointer;
+        transition: color 0.3s;
+    }
+    .blog-title:hover {
+        color: #10b981;
+    }
+    .blog-title a {
+        color: inherit;
+        text-decoration: none;
+    }
+    .blog-title a:hover {
+        color: #10b981;
+    }
+    .blog-excerpt {
+        font-size: 14px;
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 15px;
+    }
+    .blog-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        font-size: 13px;
+        color: #999;
+    }
+    .blog-author {
+        display: flex;
+        align-items: center;
+        color: #10b981;
+        font-weight: 500;
+    }
+    .blog-date {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .blog-views {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    @@media (max-width: 768px) {
+        .search-bar {
+            flex-direction: column;
+        }
+        .search-input, .dropdown, .search-btn {
+            width: 100%;
+        }
+        .cities-grid {
+            grid-template-columns: 1fr;
+        }
+        .jobs-grid {
+            grid-template-columns: 1fr;
+        }
+        .blog-card {
+            flex: 0 0 calc(100% - 17px);
+        }
+    }
+</style>
+
+<!-- Search Section -->
+<div class="search-section">
+    <div class="search-container">
+        <div class="search-bar">
+            <input type="text" class="search-input" id="searchKeyword" placeholder="Tìm kiếm việc làm, chức vụ, kỹ năng, công ty, từ khóa...">
+            <select class="dropdown" id="selectTinhThanh">
+                <option value="">Tỉnh/Thành Phố</option>
+                @{
+                    var danhSachTinhThanh = ViewBag.DanhSachTinhThanh as List<Unicareer.Models.Province> ?? new List<Unicareer.Models.Province>();
+                }
+                @foreach (var tinh in danhSachTinhThanh)
+                {
+                    <option value="@tinh.Code">@tinh.FullName</option>
+                }
+            </select>
+            <select class="dropdown" id="selectQuanHuyen">
+                <option value="">Quận/Huyện</option>
+            </select>
+            <button class="search-btn"><i class="bi bi-search"></i></button>
+        </div>
+    </div>
 </div>
+
+<!-- Filter Section -->
+<div class="filter-section">
+    <div class="search-container" style="width: 100%; display: flex; gap: 15px; flex-wrap: wrap;">
+        <select id="filterNganhNghe">
+            <option value="">Ngành nghề</option>
+            @{
+                var danhSachNganhNghe = ViewBag.DanhSachNganhNghe as List<Unicareer.Models.NganhNghe> ?? new List<Unicareer.Models.NganhNghe>();
+            }
+            @foreach (var nganhNghe in danhSachNganhNghe)
+            {
+                <option value="@nganhNghe.TenNganhNghe">@nganhNghe.TenNganhNghe</option>
+            }
+        </select>
+        <select id="filterCapBac">
+            <option value="">Cấp bậc</option>
+            @{
+                var danhSachCapBac = ViewBag.DanhSachCapBac as List<string> ?? new List<string>();
+            }
+            @foreach (var capBac in danhSachCapBac)
+            {
+                <option value="@capBac">@capBac</option>
+            }
+        </select>
+        <select id="filterKinhNghiem">
+            <option value="">Kinh nghiệm</option>
+            @{
+                var danhSachKinhNghiem = ViewBag.DanhSachKinhNghiem as List<string> ?? new List<string>();
+            }
+            @foreach (var kinhNghiem in danhSachKinhNghiem)
+            {
+                <option value="@kinhNghiem">@kinhNghiem</option>
+            }
+        </select>
+        <select id="filterMucLuong">
+            <option value="">Mức lương</option>
+            <option value="Dưới 10 triệu">Dưới 10 triệu</option>
+            <option value="10-15 triệu">10-15 triệu</option>
+            <option value="15-25 triệu">15-25 triệu</option>
+            <option value="Trên 25 triệu">Trên 25 triệu</option>
+        </select>
+        <select id="filterLoaiCongViec">
+            <option value="">Loại công việc</option>
+            @{
+                var danhSachLoaiCongViec = ViewBag.DanhSachLoaiCongViec as List<Unicareer.Models.LoaiCongViec> ?? new List<Unicareer.Models.LoaiCongViec>();
+            }
+            @foreach (var loaiCongViec in danhSachLoaiCongViec)
+            {
+                <option value="@loaiCongViec.TenLoaiCongViec">@loaiCongViec.TenLoaiCongViec</option>
+            }
+        </select>
+    </div>
+</div>
+
+<!-- Quick Links -->
+<div class="quick-links">
+    <strong>Gợi ý tìm kiếm:</strong>
+    @{
+        var danhSachGoiYTimKiem = ViewBag.DanhSachGoiYTimKiem as List<Unicareer.Models.GoiYTimKiem> ?? new List<Unicareer.Models.GoiYTimKiem>();
+    }
+    @foreach (var goiY in danhSachGoiYTimKiem)
+    {
+        <a href="@goiY.Url" class="quick-link-btn" style="text-decoration: none; display: inline-block;">@goiY.Text</a>
+    }
+</div>
+
+<!-- Banner Section -->
+<div class="banner-section">
+    <div class="banner-slider">
+        <div class="banner-slide active" style="background-image: url('https://images.unsplash.com/photo-1521791136064-7986c2920216?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80');">
+            <div class="banner-content">
+                <h1>Tìm Việc Làm Mơ Ước Của Bạn</h1>
+                <p>Hơn 10,000+ cơ hội việc làm đang chờ đón bạn</p>
+                <button class="banner-btn" data-url="/Home/TimViec">Khám Phá Ngay</button>
+            </div>
+        </div>
+        <div class="banner-slide" style="background-image: url('https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80');">
+            <div class="banner-content">
+                <h1>Kết Nối Với Top Nhà Tuyển Dụng</h1>
+                <p>Gặp gỡ những công ty hàng đầu tại Việt Nam</p>
+                <button class="banner-btn" data-url="/Home/CongTy">Xem Công Ty</button>
+            </div>
+        </div>
+        <div class="banner-slide" style="background-image: url('https://images.unsplash.com/photo-1505373877841-8d25f7d46678?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80');">
+            <div class="banner-content">
+                <h1>Nâng Cao Kỹ Năng - Thăng Tiến Sự Nghiệp</h1>
+                <p>Khóa học miễn phí và tài liệu hữu ích dành cho bạn</p>
+                <button class="banner-btn" data-url="/Home/Blog">Học Ngay</button>
+            </div>
+        </div>
+    </div>
+    <div class="banner-indicators">
+        <div class="indicator active" data-slide="0"></div>
+        <div class="indicator" data-slide="1"></div>
+        <div class="indicator" data-slide="2"></div>
+    </div>
+</div>
+
+<!-- Cities Section -->
+<div class="cities-section">
+    <h2>Bạn Muốn Làm Việc Ở Đâu?</h2>
+    <div class="cities-grid">
+        @{
+            var danhSachTinhThanhUuTien = ViewBag.DanhSachTinhThanhUuTien as List<Unicareer.Models.Province> ?? new List<Unicareer.Models.Province>();
+        }
+        @if (danhSachTinhThanhUuTien.Any())
+        {
+            @foreach (var tinhThanh in danhSachTinhThanhUuTien)
+            {
+                // Lấy tên ngắn gọn cho hiển thị (bỏ "Thành phố" hoặc "Tỉnh")
+                var tenHienThi = tinhThanh.FullName;
+                if (tenHienThi.StartsWith("Thành phố "))
+                {
+                    tenHienThi = tenHienThi.Replace("Thành phố ", "");
+                }
+                else if (tenHienThi.StartsWith("Tỉnh "))
+                {
+                    tenHienThi = tenHienThi.Replace("Tỉnh ", "");
+                }
+                
+                // Sử dụng ảnh từ database nếu có, nếu không thì dùng ảnh mặc định
+                var imageUrl = !string.IsNullOrEmpty(tinhThanh.Image) 
+                    ? tinhThanh.Image 
+                    : $"https://images.unsplash.com/photo-1557750255-c76072a7aad1?w=500&sig={tinhThanh.Code}";
+                
+                <div class="city-card" data-fullname="@tinhThanh.FullName">
+                    <img src="@imageUrl" alt="@tenHienThi" onerror="this.src='https://images.unsplash.com/photo-1557750255-c76072a7aad1?w=500'">
+                    <div class="city-name">@tenHienThi</div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center text-muted" style="padding: 40px; grid-column: 1 / -1;">
+                <p>Hiện chưa có dữ liệu tỉnh thành</p>
+            </div>
+        }
+    </div>
+    <a href="/Home/TimViec" class="view-more-btn" style="text-decoration: none;">Xem thêm</a>
+</div>
+
+<!-- Jobs Section -->
+<div class="jobs-section">
+    <h2>Các Việc Làm Tốt Nhất</h2>
+    <div class="jobs-grid">
+        @{
+            var danhSachViecLamNoiBat = ViewBag.DanhSachViecLamNoiBat as List<Unicareer.Models.TinTuyenDung> ?? new List<Unicareer.Models.TinTuyenDung>();
+        }
+        @if (danhSachViecLamNoiBat.Any())
+        {
+            @foreach (var job in danhSachViecLamNoiBat)
+            {
+                var mucLuongDisplay = job.MucLuongThapNhat == 0 && job.MucLuongCaoNhat == 0 
+                    ? "Thỏa thuận" 
+                    : $"{job.MucLuongThapNhat}-{job.MucLuongCaoNhat} triệu";
+                var thoiGianDang = DateTime.Now - job.NgayDang;
+                var thoiGianDangText = thoiGianDang.TotalHours < 1 
+                    ? $"Đăng {(int)thoiGianDang.TotalMinutes} phút trước"
+                    : thoiGianDang.TotalDays < 1 
+                        ? $"Đăng {(int)thoiGianDang.TotalHours} giờ trước"
+                        : $"Đăng {(int)thoiGianDang.TotalDays} ngày trước";
+                var isHot = job.SoLuongUngTuyen > 50;
+                var isUrgent = job.SoLuongUngTuyen > 100;
+                
+                <div class="job-card" data-url="/Home/ChiTietViecLam/@job.MaTinTuyenDung" 
+                     data-nganh="@job.NganhNghe" 
+                     data-capbac="@job.ViTri" 
+                     data-mucluong="@mucLuongDisplay" 
+                     data-loai="@job.LoaiCongViec" 
+                     data-kinhnghiem="@job.KinhNghiem">
+                    @if (isHot)
+                    {
+                        <span class="job-featured">NỔI BẬT</span>
+                    }
+                    @if (isUrgent)
+                    {
+                        <span class="job-badge badge-urgent" style="position: absolute; top: 15px; right: 15px;">KHẨN CẤP</span>
+                    }
+                    <div class="job-header">
+                        @{
+                            var companyLogos = ViewBag.CompanyLogos as Dictionary<string, string?>;
+                            var companyLogo = companyLogos?.ContainsKey(job.CongTy) == true ? companyLogos[job.CongTy] : null;
+                        }
+                        @if (!string.IsNullOrEmpty(companyLogo))
+                        {
+                            <img src="@companyLogo" alt="@job.CongTy" class="job-company-logo">
+                        }
+                        else
+                        {
+                            <div class="job-company-logo" style="width: 100px; height: 100px; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: var(--accent-color); font-weight: bold; font-size: 36px;">
+                                @job.CongTy.Substring(0, 1)
+                            </div>
+                        }
+                        <div class="job-info">
+                            <h3 class="job-title">@job.TenViecLam</h3>
+                            <div class="job-company">@job.CongTy</div>
+                            <div class="job-location">📍 @job.TinhThanhPho</div>
+                        </div>
+                    </div>
+                    <div class="job-badges">
+                        <span class="job-badge badge-salary">@mucLuongDisplay</span>
+                        <span class="job-badge badge-type">@job.LoaiCongViec</span>
+                        <span class="job-badge badge-level">@job.ViTri</span>
+                    </div>
+                    <div class="job-footer">
+                        <span class="job-posted">@thoiGianDangText</span>
+                        <button class="job-apply-btn">Ứng tuyển ngay</button>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center text-muted" style="padding: 40px;">
+                <p>Hiện chưa có việc làm nào</p>
+            </div>
+        }
+    </div>
+    <a href="/Home/TimViec" class="view-more-btn" style="text-decoration: none;">Xem Thêm Việc Làm</a>
+</div>
+
+<!-- Candidates Section -->
+@if (User.IsInRole(Unicareer.Models.SD.Role_NhaTuyenDung) || User.IsInRole(Unicareer.Models.SD.Role_Admin))
+{
+    <div class="candidates-section" style="max-width: 1400px; margin: 60px auto; padding: 0 20px;">
+        <h2 style="font-size: 28px; margin-bottom: 30px; color: #333; display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 32px;">👥</span>
+            Ứng Viên Nổi Bật
+        </h2>
+        <div class="candidates-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px; margin-bottom: 30px;">
+            @{
+                var danhSachUngVienCongKhai = ViewBag.DanhSachUngVienCongKhai as List<Unicareer.Models.UngVien> ?? new List<Unicareer.Models.UngVien>();
+            }
+            @if (danhSachUngVienCongKhai.Any())
+            {
+                @foreach (var ungVien in danhSachUngVienCongKhai)
+                {
+                    <div class="candidate-card" data-url="/Home/ChiTietUngVien/@ungVien.MaUngVien" style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.3s; cursor: pointer; border: 2px solid transparent; position: relative; overflow: hidden;">
+                        <div class="candidate-header" style="display: flex; align-items: flex-start; gap: 15px; margin-bottom: 15px;">
+                            <div class="candidate-avatar" style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #2ecc71, #27ae60); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 24px; flex-shrink: 0;">
+                                @if (!string.IsNullOrEmpty(ungVien.User?.Avatar))
+                                {
+                                    <img src="@ungVien.User.Avatar" alt="@ungVien.HoTen" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                }
+                                else
+                                {
+                                    @ungVien.HoTen.Substring(0, Math.Min(2, ungVien.HoTen.Length)).ToUpper()
+                                }
+                            </div>
+                            <div class="candidate-info" style="flex: 1;">
+                                <h3 class="candidate-name" style="font-size: 18px; font-weight: bold; color: #333; margin-bottom: 5px; line-height: 1.3;">@ungVien.HoTen</h3>
+                                @if (!string.IsNullOrEmpty(ungVien.ViTriMongMuon))
+                                {
+                                    <div class="candidate-position" style="font-size: 14px; color: #666; margin-bottom: 8px;">@ungVien.ViTriMongMuon</div>
+                                }
+                                @if (!string.IsNullOrEmpty(ungVien.NoiLamViecMongMuon))
+                                {
+                                    <div class="candidate-location" style="font-size: 13px; color: #999; display: flex; align-items: center; gap: 5px;">📍 @ungVien.NoiLamViecMongMuon</div>
+                                }
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(ungVien.MoTaBanThan))
+                        {
+                            // Strip HTML tags from candidate description
+                            var candidateDescription = System.Text.RegularExpressions.Regex.Replace(ungVien.MoTaBanThan, "<.*?>", string.Empty);
+                            // Decode HTML entities
+                            candidateDescription = System.Net.WebUtility.HtmlDecode(candidateDescription);
+                            <div class="candidate-description" style="font-size: 14px; color: #666; line-height: 1.6; margin-bottom: 15px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                @candidateDescription
+                            </div>
+                        }
+                        <div class="candidate-badges" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;">
+                            @if (ungVien.MucLuongKyVong.HasValue)
+                            {
+                                <span class="candidate-badge" style="padding: 5px 12px; border-radius: 15px; font-size: 12px; font-weight: 600; background: #e8f8f5; color: #27ae60;">
+                                    @ungVien.MucLuongKyVong.Value.ToString("N0") triệu
+                                </span>
+                            }
+                            @if (!string.IsNullOrEmpty(ungVien.TrangThaiTimViec))
+                            {
+                                <span class="candidate-badge" style="padding: 5px 12px; border-radius: 15px; font-size: 12px; font-weight: 600; background: #d1ecf1; color: #0c5460;">
+                                    @ungVien.TrangThaiTimViec
+                                </span>
+                            }
+                            @if (ungVien.ChuyenNganh != null)
+                            {
+                                <span class="candidate-badge" style="padding: 5px 12px; border-radius: 15px; font-size: 12px; font-weight: 600; background: #fff3cd; color: #856404;">
+                                    @ungVien.ChuyenNganh.TenChuyenNganh
+                                </span>
+                            }
+                        </div>
+                        <div class="candidate-footer" style="display: flex; justify-content: space-between; align-items: center; padding-top: 15px; border-top: 1px solid #eee;">
+                            <span class="candidate-posted" style="font-size: 12px; color: #999;">
+                                Đăng ký @ungVien.NgayDangKy.ToString("dd/MM/yyyy")
+                            </span>
+                            <button class="candidate-view-btn" style="padding: 8px 20px; background: linear-gradient(135deg, #2ecc71, #27ae60); color: white; border: none; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.3s;">
+                                Xem hồ sơ
+                            </button>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12 text-center text-muted" style="padding: 40px; grid-column: 1 / -1;">
+                    <p>Hiện chưa có ứng viên nào đăng hồ sơ công khai</p>
+                </div>
+            }
+        </div>
+    </div>
+    
+    <style>
+        .candidate-card {
+            position: relative;
+        }
+        .candidate-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #34d399, #10b981);
+            transform: scaleY(0);
+            transition: transform 0.3s;
+        }
+        .candidate-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(46, 204, 113, 0.2);
+            border-color: #10b981;
+        }
+        .candidate-card:hover::before {
+            transform: scaleY(1);
+        }
+        .candidate-view-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4);
+        }
+        @@media (max-width: 768px) {
+            .candidates-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+}
+
+<!-- Blog Section -->
+<div class="blog-section">
+    <h2>Blog Hot Về Việc Làm</h2>
+    <div class="blog-container">
+        <div class="blog-grid">
+            @{
+                var danhSachBlog = ViewBag.DanhSachBlog as List<Unicareer.Models.Blog> ?? new List<Unicareer.Models.Blog>();
+            }
+            @if (danhSachBlog.Any())
+            {
+                @foreach (var blog in danhSachBlog)
+                {
+                    var thoiGianDang = DateTime.Now - blog.NgayDang;
+                    var thoiGianDangText = thoiGianDang.TotalHours < 1 
+                        ? $"Đăng {(int)thoiGianDang.TotalMinutes} phút trước"
+                        : thoiGianDang.TotalDays < 1 
+                            ? $"Đăng {(int)thoiGianDang.TotalHours} giờ trước"
+                            : thoiGianDang.TotalDays < 7
+                                ? $"Đăng {(int)thoiGianDang.TotalDays} ngày trước"
+                                : thoiGianDang.TotalDays < 30
+                                    ? $"Đăng {(int)(thoiGianDang.TotalDays / 7)} tuần trước"
+                                    : $"Đăng {(int)(thoiGianDang.TotalDays / 30)} tháng trước";
+                    
+                    var hinhAnh = !string.IsNullOrEmpty(blog.HinhAnh) 
+                        ? blog.HinhAnh 
+                        : "https://images.unsplash.com/photo-1557425493-6f90ae4659fc?w=500";
+                    var blogUrl = !string.IsNullOrEmpty(blog.Permalink) 
+                        ? $"/Home/BlogDetail?permalink={Uri.EscapeDataString(blog.Permalink)}" 
+                        : $"/Home/BlogDetail?id={blog.MaBlog}";
+                    
+                    <div class="blog-card" data-url="@blogUrl">
+                        <img src="@hinhAnh" alt="@blog.TieuDe" class="blog-image" onerror="this.src='https://images.unsplash.com/photo-1557425493-6f90ae4659fc?w=500'">
+                        <div class="blog-content">
+                            @if (blog.TheLoaiBlog != null)
+                            {
+                                <span class="blog-category" style="background: #e8f8f5; color: #10b981;">
+                                    @blog.TheLoaiBlog.TenTheLoai
+                                </span>
+                            }
+                            else if (!string.IsNullOrEmpty(blog.TheLoai))
+                            {
+                                <span class="blog-category">@blog.TheLoai</span>
+                            }
+                            else
+                            {
+                                <span class="blog-category">BLOG</span>
+                            }
+                            <h3 class="blog-title">
+                                <a href="@blogUrl">@blog.TieuDe</a>
+                            </h3>
+                            @{
+                                string excerptText = "";
+                                if (!string.IsNullOrEmpty(blog.MoTaNgan))
+                                {
+                                    excerptText = blog.MoTaNgan;
+                                }
+                                else if (!string.IsNullOrEmpty(blog.NoiDung))
+                                {
+                                    // Strip HTML tags from blog content
+                                    var plainText = System.Text.RegularExpressions.Regex.Replace(blog.NoiDung, "<.*?>", string.Empty);
+                                    // Decode HTML entities
+                                    excerptText = System.Net.WebUtility.HtmlDecode(plainText);
+                                    // Trim and limit length
+                                    if (excerptText.Length > 150)
+                                    {
+                                        excerptText = excerptText.Substring(0, 150).Trim() + "...";
+                                    }
+                                }
+                            }
+                            <p class="blog-excerpt">@excerptText</p>
+                            <div class="blog-meta">
+                                @if (!string.IsNullOrEmpty(blog.TacGia))
+                                {
+                                    <span class="blog-author">✍️ @blog.TacGia</span>
+                                }
+                                <span class="blog-date">📅 @thoiGianDangText</span>
+                                <span class="blog-views">👁 @blog.LuotXem.ToString("N0") lượt xem</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #999;">
+                    <p>Chưa có blog nào được đăng tải</p>
+                </div>
+            }
+        </div>
+        <div class="blog-indicators"></div>
+    </div>
+    @if (danhSachBlog.Any())
+    {
+        <div class="view-more-wrapper">
+            <a href="/Home/Blog" class="view-more-btn">Xem Thêm Bài Viết</a>
+        </div>
+    }
+</div>
+
+<script>
+    // Wait for DOM to be ready
+    document.addEventListener('DOMContentLoaded', function() {
+    
+    // Banner Auto Slider
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.banner-slide');
+    const indicators = document.querySelectorAll('.indicator');
+    
+    function showSlide(index) {
+        slides.forEach(slide => slide.classList.remove('active'));
+        indicators.forEach(indicator => indicator.classList.remove('active'));
+        
+        slides[index].classList.add('active');
+        indicators[index].classList.add('active');
+    }
+    
+    function nextSlide() {
+        currentSlide = (currentSlide + 1) % slides.length;
+        showSlide(currentSlide);
+    }
+    
+    // Auto slide every 5 seconds
+    setInterval(nextSlide, 5000);
+    
+    // Manual indicator click
+    indicators.forEach((indicator, index) => {
+        indicator.addEventListener('click', () => {
+            currentSlide = index;
+            showSlide(currentSlide);
+        });
+    });
+    
+    // Add click handlers for city cards - Navigate to TimViec with city filter
+    document.querySelectorAll('.city-card').forEach(card => {
+        card.addEventListener('click', function() {
+            // Lấy FullName từ data attribute (đã được lưu từ server)
+            const fullName = this.getAttribute('data-fullname');
+            
+            if (fullName) {
+                // Chuyển đến trang TimViec với query parameter sử dụng FullName
+                window.location.href = `/Home/TimViec?tinhThanh=${encodeURIComponent(fullName)}`;
+            } else {
+                // Fallback: sử dụng tên hiển thị nếu không có data-fullname
+                const cityName = this.querySelector('.city-name').textContent.trim();
+                window.location.href = `/Home/TimViec?tinhThanh=${encodeURIComponent(cityName)}`;
+            }
+        });
+    });
+    
+    // Load wards when province is selected
+    const selectTinhThanh = document.getElementById('selectTinhThanh');
+    const selectQuanHuyen = document.getElementById('selectQuanHuyen');
+    
+    function loadWardsByProvince(provinceCode) {
+        // Reset quận/huyện dropdown
+        selectQuanHuyen.innerHTML = '<option value="">Quận/Huyện</option>';
+        
+        if (provinceCode) {
+            // Show loading state
+            selectQuanHuyen.disabled = true;
+            selectQuanHuyen.innerHTML = '<option value="">Đang tải...</option>';
+            
+            // Fetch wards from API
+            fetch(`/Home/GetWardsByProvince?provinceCode=${encodeURIComponent(provinceCode)}`)
+                .then(response => response.json())
+                .then(data => {
+                    selectQuanHuyen.innerHTML = '<option value="">Quận/Huyện</option>';
+                    
+                    if (data && data.length > 0) {
+                        data.forEach(ward => {
+                            const option = document.createElement('option');
+                            option.value = ward.code;
+                            option.textContent = ward.fullName;
+                            selectQuanHuyen.appendChild(option);
+                        });
+                    } else {
+                        selectQuanHuyen.innerHTML = '<option value="">Không có dữ liệu</option>';
+                    }
+                    
+                    selectQuanHuyen.disabled = false;
+                })
+                .catch(error => {
+                    console.error('Error loading wards:', error);
+                    selectQuanHuyen.innerHTML = '<option value="">Lỗi tải dữ liệu</option>';
+                    selectQuanHuyen.disabled = false;
+                });
+        } else {
+            selectQuanHuyen.disabled = false;
+        }
+    }
+    
+    selectTinhThanh.addEventListener('change', function() {
+        loadWardsByProvince(this.value);
+    });
+    
+    // Kiểm tra và load quận/huyện nếu tỉnh đã được chọn (khi quay lại bằng back button)
+    if (selectTinhThanh && selectTinhThanh.value) {
+        loadWardsByProvince(selectTinhThanh.value);
+    }
+    
+    // Function to perform search
+    function performSearch() {
+        const searchValue = document.getElementById('searchKeyword').value.trim();
+        const tinhThanh = selectTinhThanh.value;
+        const quanHuyen = selectQuanHuyen.value;
+        
+        // Build search URL
+        let searchUrl = '/Home/TimViec?';
+        const params = [];
+        
+        if (searchValue) {
+            params.push(`keyword=${encodeURIComponent(searchValue)}`);
+        }
+        if (tinhThanh) {
+            const tinhName = selectTinhThanh.options[selectTinhThanh.selectedIndex].text;
+            params.push(`tinhThanh=${encodeURIComponent(tinhName)}`);
+        }
+        if (quanHuyen) {
+            const quanName = selectQuanHuyen.options[selectQuanHuyen.selectedIndex].text;
+            params.push(`quanHuyen=${encodeURIComponent(quanName)}`);
+        }
+        
+        if (params.length > 0 || searchValue) {
+            window.location.href = searchUrl + params.join('&');
+        } else {
+            window.location.href = '/Home/TimViec';
+        }
+    }
+    
+    // Search button handler
+    document.querySelector('.search-btn').addEventListener('click', function() {
+        performSearch();
+    });
+    
+    // Enter key handler for search input
+    document.getElementById('searchKeyword').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            performSearch();
+        }
+    });
+    
+    // View more button - Now handled by href, no need for click handler
+    
+    // Blog Carousel
+    let currentBlogIndex = 0;
+    let blogAutoSlideInterval;
+    const blogCards = document.querySelectorAll('.blog-card');
+    const blogGrid = document.querySelector('.blog-grid');
+    const blogIndicatorsContainer = document.querySelector('.blog-indicators');
+    const blogContainer = document.querySelector('.blog-container');
+    let nextBlogSlideRef;
+    let prevBlogSlideRef;
+    const swipeThreshold = 60;
+    let pointerStartX = 0;
+    let pointerDeltaX = 0;
+    let isPointerDown = false;
+    
+    function getCardsPerView() {
+        return window.innerWidth > 768 ? 3 : 1;
+    }
+    
+    function initBlogCarousel() {
+        const cardsPerView = getCardsPerView();
+        const totalSlides = Math.ceil(blogCards.length / cardsPerView);
+        
+        // Clear existing indicators
+        blogIndicatorsContainer.innerHTML = '';
+        
+        // Create indicators
+        for (let i = 0; i < totalSlides; i++) {
+            const indicator = document.createElement('div');
+            indicator.className = 'blog-indicator' + (i === 0 ? ' active' : '');
+            indicator.dataset.slide = i;
+            blogIndicatorsContainer.appendChild(indicator);
+        }
+        
+        const blogIndicators = document.querySelectorAll('.blog-indicator');
+        
+        function updateBlogCarousel() {
+            if (blogCards.length === 0) return;
+            const cardWidth = blogCards[0].offsetWidth + 25; // card width + gap
+            const cardsPerView = getCardsPerView();
+            const translateX = -currentBlogIndex * cardWidth * cardsPerView;
+            blogGrid.style.transform = `translateX(${translateX}px)`;
+            
+            blogIndicators.forEach((ind, index) => {
+                ind.classList.toggle('active', index === currentBlogIndex);
+            });
+        }
+        
+        function nextBlogSlide() {
+            const totalSlides = Math.ceil(blogCards.length / getCardsPerView());
+            currentBlogIndex = (currentBlogIndex + 1) % totalSlides;
+            updateBlogCarousel();
+        }
+        
+        function prevBlogSlide() {
+            const totalSlides = Math.ceil(blogCards.length / getCardsPerView());
+            currentBlogIndex = (currentBlogIndex - 1 + totalSlides) % totalSlides;
+            updateBlogCarousel();
+        }
+        
+        nextBlogSlideRef = nextBlogSlide;
+        prevBlogSlideRef = prevBlogSlide;
+        
+        // Clear existing interval
+        if (blogAutoSlideInterval) {
+            clearInterval(blogAutoSlideInterval);
+        }
+        
+        // Auto slide blog every 4 seconds
+        blogAutoSlideInterval = setInterval(nextBlogSlide, 4000);
+        
+        // Indicator click
+        blogIndicators.forEach((indicator, index) => {
+            indicator.addEventListener('click', () => {
+                currentBlogIndex = index;
+                updateBlogCarousel();
+            });
+        });
+        
+        // Initial update
+        updateBlogCarousel();
+    }
+    
+    function finalizeSwipe(e) {
+        if (!isPointerDown) return;
+        
+        // Check if clicking on a link - if so, don't process swipe
+        const target = e.target;
+        if (target.tagName === 'A' || target.closest('a')) {
+            isPointerDown = false;
+            pointerDeltaX = 0;
+            return; // Let the link handle the click naturally
+        }
+        
+        isPointerDown = false;
+        // Only process swipe if there was significant movement
+        if (Math.abs(pointerDeltaX) > swipeThreshold) {
+            if (pointerDeltaX < 0) {
+                nextBlogSlideRef?.();
+            } else {
+                prevBlogSlideRef?.();
+            }
+        }
+        pointerDeltaX = 0;
+    }
+
+    if (blogContainer) {
+        blogContainer.addEventListener('pointerdown', function(e) {
+            // Don't start swipe if clicking on a link or any interactive element
+            const target = e.target;
+            if (target.tagName === 'A' || target.closest('a') || 
+                target.tagName === 'BUTTON' || target.closest('button')) {
+                return; // Let the link/button handle the click
+            }
+            isPointerDown = true;
+            pointerStartX = e.clientX;
+            pointerDeltaX = 0;
+            blogContainer.setPointerCapture?.(e.pointerId);
+        });
+
+        blogContainer.addEventListener('pointermove', function(e) {
+            if (!isPointerDown) return;
+            pointerDeltaX = e.clientX - pointerStartX;
+        });
+
+        const releaseHandler = function(e) {
+            blogContainer.releasePointerCapture?.(e.pointerId);
+            finalizeSwipe(e);
+        };
+
+        blogContainer.addEventListener('pointerup', releaseHandler);
+        blogContainer.addEventListener('pointercancel', releaseHandler);
+        blogContainer.addEventListener('pointerleave', releaseHandler);
+        
+        // Also handle click events to ensure links work
+        blogContainer.addEventListener('click', function(e) {
+            // If clicking on a link, let it work naturally
+            if (e.target.tagName === 'A' || e.target.closest('a')) {
+                // Don't prevent default - let the link navigate
+                return;
+            }
+        }, true); // Use capture phase to handle before other handlers
+    }
+
+    // Initialize on page load
+    initBlogCarousel();
+    
+    // Handle window resize
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            currentBlogIndex = 0; // Reset to first slide
+            initBlogCarousel();
+        }, 250);
+    });
+    
+    // Blog card click handlers - Navigate to blog detail page
+    document.querySelectorAll('.blog-card').forEach(card => {
+        // First, ensure all links inside blog cards work properly
+        const links = card.querySelectorAll('a');
+        links.forEach(link => {
+            link.addEventListener('click', function(e) {
+                // Let the link work naturally - don't prevent default
+                e.stopPropagation(); // Prevent card click handler from firing
+            });
+        });
+        
+        // Then add click handler for the card itself (non-link areas)
+        card.addEventListener('click', function(e) {
+            // If clicking on a link, it's already handled above
+            if (e.target.tagName === 'A' || e.target.closest('a')) {
+                return;
+            }
+            // Only navigate if clicking on non-link areas of the card
+            const url = this.getAttribute('data-url');
+            if (url) {
+                window.location.href = url;
+            }
+        });
+    });
+    
+    // Job card click handlers - Navigate to job detail page
+    document.querySelectorAll('.job-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            // Don't navigate if clicking the apply button
+            if (e.target.classList.contains('job-apply-btn')) {
+                e.stopPropagation();
+                const url = this.getAttribute('data-url');
+                if (url) {
+                    window.location.href = url;
+                }
+                return;
+            }
+            const url = this.getAttribute('data-url');
+            if (url) {
+                window.location.href = url;
+            }
+        });
+    });
+    
+    // Candidate card click handlers - Navigate to candidate detail page
+    document.querySelectorAll('.candidate-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            // Don't navigate if clicking the view button
+            if (e.target.classList.contains('candidate-view-btn')) {
+                e.stopPropagation();
+                const url = this.getAttribute('data-url');
+                if (url) {
+                    window.location.href = url;
+                }
+                return;
+            }
+            const url = this.getAttribute('data-url');
+            if (url) {
+                window.location.href = url;
+            }
+        });
+    });
+    
+    // Candidate view button handlers
+    document.querySelectorAll('.candidate-view-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const card = this.closest('.candidate-card');
+            const url = card.getAttribute('data-url');
+            if (url) {
+                window.location.href = url;
+            }
+        });
+    });
+    
+    // Job apply button handlers
+    var isUserSignedIn = @(SignInManager.IsSignedIn(User) ? "true" : "false");
+    document.querySelectorAll('.job-apply-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            
+            // Kiểm tra đăng nhập
+            if (!isUserSignedIn) {
+                // Chuyển hướng đến trang đăng nhập với returnUrl
+                const card = this.closest('.job-card');
+                const url = card.getAttribute('data-url');
+                window.location.href = '/Account/Login?ReturnUrl=' + encodeURIComponent(url || '/Home/TimViec');
+                return;
+            }
+            
+            const card = this.closest('.job-card');
+            const url = card.getAttribute('data-url');
+            if (url) {
+                window.location.href = url;
+            }
+        });
+    });
+    
+    // Banner buttons
+    document.querySelectorAll('.banner-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const url = this.getAttribute('data-url');
+            if (url) {
+                window.location.href = url;
+            }
+        });
+    });
+    
+    // Filter jobs based on dropdown selections
+    function filterJobs() {
+        const nganhNghe = document.getElementById('filterNganhNghe').value;
+        const capBac = document.getElementById('filterCapBac').value;
+        const kinhNghiem = document.getElementById('filterKinhNghiem').value;
+        const mucLuong = document.getElementById('filterMucLuong').value;
+        const loaiCongViec = document.getElementById('filterLoaiCongViec').value;
+        
+        const jobCards = document.querySelectorAll('.jobs-grid .job-card');
+        let visibleCount = 0;
+        
+        jobCards.forEach(card => {
+            const cardNganh = card.getAttribute('data-nganh') || '';
+            const cardCapBac = card.getAttribute('data-capbac') || '';
+            const cardKinhNghiem = card.getAttribute('data-kinhnghiem') || '';
+            const cardMucLuong = card.getAttribute('data-mucluong') || '';
+            const cardLoai = card.getAttribute('data-loai') || '';
+            
+            // Check if job matches all selected filters
+            const matchNganh = !nganhNghe || cardNganh === nganhNghe;
+            const matchCapBac = !capBac || cardCapBac === capBac;
+            const matchKinhNghiem = !kinhNghiem || cardKinhNghiem === kinhNghiem;
+            
+            // Salary matching - check if selected range matches
+            let matchMucLuong = true;
+            if (mucLuong && cardMucLuong) {
+                // Extract numbers from salary strings (e.g., "15-25 triệu" -> [15, 25])
+                const extractNumbers = (str) => {
+                    const matches = str.match(/\d+/g);
+                    return matches ? matches.map(Number) : [];
+                };
+                
+                const cardNumbers = extractNumbers(cardMucLuong);
+                const cardMin = cardNumbers[0] || 0;
+                const cardMax = cardNumbers[1] || cardNumbers[0] || 0;
+                const cardAvg = (cardMin + cardMax) / 2;
+                
+                if (mucLuong === 'Dưới 10 triệu') {
+                    matchMucLuong = cardMax < 10;
+                } else if (mucLuong === '10-15 triệu') {
+                    matchMucLuong = cardAvg >= 10 && cardAvg <= 15;
+                } else if (mucLuong === '15-25 triệu') {
+                    matchMucLuong = cardAvg >= 15 && cardAvg <= 25;
+                } else if (mucLuong === 'Trên 25 triệu') {
+                    matchMucLuong = cardMin >= 25;
+                }
+            }
+            
+            const matchLoai = !loaiCongViec || cardLoai === loaiCongViec;
+            
+            if (matchNganh && matchCapBac && matchKinhNghiem && matchMucLuong && matchLoai) {
+                card.style.display = 'block';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+    
+    // Add event listeners to filter dropdowns
+    document.getElementById('filterNganhNghe').addEventListener('change', filterJobs);
+    document.getElementById('filterCapBac').addEventListener('change', filterJobs);
+    document.getElementById('filterKinhNghiem').addEventListener('change', filterJobs);
+    document.getElementById('filterMucLuong').addEventListener('change', filterJobs);
+    document.getElementById('filterLoaiCongViec').addEventListener('change', filterJobs);
+    
+    }); // End DOMContentLoaded
+</script>

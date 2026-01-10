@@ -1,0 +1,314 @@
+@model Unicareer.Models.TinUngTuyen
+@using Unicareer.Models.Enums
+
+@{
+    ViewData["Title"] = "Chi tiết tin ứng tuyển";
+    var trangThaiEnum = TrangThaiXuLyHelper.FromString(Model.TrangThaiXuLy);
+    var trangThaiDisplay = trangThaiEnum.HasValue 
+        ? TrangThaiXuLyHelper.ToString(trangThaiEnum.Value) 
+        : Model.TrangThaiXuLy;
+    var badgeClass = trangThaiEnum.HasValue 
+        ? TrangThaiXuLyHelper.GetBadgeClass(trangThaiEnum.Value) 
+        : "bg-secondary";
+}
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+        color: white;
+        box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3);
+    }
+
+    .page-header h1 {
+        font-weight: 700;
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .page-header p {
+        opacity: 0.95;
+        font-size: 1.1rem;
+    }
+
+    .info-card {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 25px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        border: 1px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+
+    .info-card:hover {
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        transform: translateY(-2px);
+    }
+
+    .info-card h4 {
+        color: #2d3748;
+        font-weight: 600;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid #10b981;
+        display: inline-block;
+    }
+
+    .info-card h4 i {
+        color: #10b981;
+        margin-right: 10px;
+        font-size: 1.3rem;
+    }
+
+    .info-row {
+        display: flex;
+        padding: 15px 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #4a5568;
+        min-width: 180px;
+        font-size: 0.95rem;
+    }
+
+    .info-value {
+        color: #2d3748;
+        flex: 1;
+        font-size: 0.95rem;
+    }
+
+    .badge {
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .badge.bg-success {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%) !important;
+    }
+
+    .badge.bg-warning {
+        background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%) !important;
+    }
+
+    .badge.bg-info {
+        background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%) !important;
+    }
+
+    .badge.bg-primary {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    }
+
+    .badge.bg-danger {
+        background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%) !important;
+    }
+
+    .badge.bg-secondary {
+        background: linear-gradient(135deg, #a0aec0 0%, #718096 100%) !important;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border: none;
+        border-radius: 12px;
+        padding: 12px 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+    }
+
+    .btn-secondary {
+        background: #718096;
+        border: none;
+        border-radius: 12px;
+        padding: 12px 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+        background: #4a5568;
+        transform: translateY(-2px);
+    }
+
+    .btn-info {
+        background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+        border: none;
+        border-radius: 12px;
+        padding: 12px 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(66, 153, 225, 0.4);
+        color: white;
+    }
+
+    .btn-info:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(66, 153, 225, 0.5);
+        color: white;
+    }
+
+    .notes-section {
+        background: #f7fafc;
+        border-left: 4px solid #10b981;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 15px;
+    }
+
+    .notes-section h6 {
+        color: #2d3748;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .notes-section p {
+        color: #4a5568;
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .info-card {
+        animation: slideUp 0.5s ease forwards;
+    }
+
+    .info-card:nth-child(1) { animation-delay: 0.1s; }
+    .info-card:nth-child(2) { animation-delay: 0.2s; }
+    .info-card:nth-child(3) { animation-delay: 0.3s; }
+    .info-card:nth-child(4) { animation-delay: 0.4s; }
+</style>
+
+<div class="page-header">
+    <h1><i class="bi bi-file-earmark-text"></i> Chi tiết tin ứng tuyển</h1>
+    <p>Thông tin chi tiết về đơn ứng tuyển của bạn</p>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Thông tin cơ bản -->
+        <div class="info-card">
+            <h4><i class="bi bi-info-circle"></i> Thông tin cơ bản</h4>
+            <div class="info-row">
+                <div class="info-label">Mã đơn ứng tuyển:</div>
+                <div class="info-value"><strong>#@Model.MaTinUngTuyen</strong></div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Vị trí ứng tuyển:</div>
+                <div class="info-value"><strong>@Model.ViTriUngTuyen</strong></div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Công ty:</div>
+                <div class="info-value">@Model.CongTy</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Ngày ứng tuyển:</div>
+                <div class="info-value">@Model.NgayUngTuyen.ToString("dd/MM/yyyy HH:mm")</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Trạng thái:</div>
+                <div class="info-value">
+                    <span class="badge @badgeClass">@trangThaiDisplay</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thông tin liên hệ -->
+        <div class="info-card">
+            <h4><i class="bi bi-person"></i> Thông tin liên hệ</h4>
+            <div class="info-row">
+                <div class="info-label">Họ và tên:</div>
+                <div class="info-value">@Model.HoTen</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Trường đại học:</div>
+                <div class="info-value">@((Model.TruongDaiHoc?.TenTruong) ?? "Không có")</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Email:</div>
+                <div class="info-value">
+                    <a href="mailto:@Model.Email">@Model.Email</a>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Số điện thoại:</div>
+                <div class="info-value">
+                    <a href="tel:@Model.SoDienThoai">@Model.SoDienThoai</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ghi chú -->
+        @if (!string.IsNullOrEmpty(Model.GhiChu))
+        {
+            <div class="info-card">
+                <h4><i class="bi bi-sticky"></i> Ghi chú</h4>
+                <div class="notes-section">
+                    <h6>Thông tin bổ sung:</h6>
+                    <p>@Model.GhiChu</p>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="col-md-4">
+        <!-- Hành động -->
+        <div class="info-card">
+            <h4><i class="bi bi-lightning"></i> Hành động</h4>
+            <div class="d-grid gap-2">
+                @if (!string.IsNullOrEmpty(Model.MaTinTuyenDung) && int.TryParse(Model.MaTinTuyenDung, out int maTinTuyenDung))
+                {
+                    <a href="@Url.Action("ChiTietViecLam", "Home", new { area = "", id = maTinTuyenDung })" class="btn btn-info" target="_blank">
+                        <i class="bi bi-briefcase"></i> Xem tin tuyển dụng
+                    </a>
+                }
+                @if (!string.IsNullOrEmpty(Model.LinkCV))
+                {
+                    <a href="@Model.LinkCV" target="_blank" class="btn btn-primary">
+                        <i class="bi bi-file-earmark-pdf"></i> Xem CV đã gửi
+                    </a>
+                }
+                <a href="@Url.Action("QuanLyTinUngTuyen", "Candidate")" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Quay lại danh sách
+                </a>
+            </div>
+        </div>
+
+        <!-- Thông tin hữu ích -->
+        <div class="info-card">
+            <h4><i class="bi bi-lightbulb"></i> Mẹo</h4>
+            <div class="notes-section">
+                <p><strong>Đang xem xét:</strong> Hồ sơ của bạn đang được nhà tuyển dụng xem xét. Vui lòng chờ phản hồi.</p>
+                <p class="mt-3"><strong>Chờ phỏng vấn:</strong> Bạn đã được chọn để phỏng vấn. Nhà tuyển dụng sẽ liên hệ với bạn sớm.</p>
+                <p class="mt-3"><strong>Đã phỏng vấn:</strong> Cuộc phỏng vấn đã hoàn tất. Chờ kết quả từ nhà tuyển dụng.</p>
+                <p class="mt-3"><strong>Tuyển dụng:</strong> Chúc mừng! Bạn đã được tuyển dụng. Nhà tuyển dụng sẽ liên hệ để thông báo chi tiết.</p>
+                <p class="mt-3"><strong>Từ chối:</strong> Rất tiếc, bạn không phù hợp với vị trí này. Hãy tiếp tục tìm kiếm cơ hội khác.</p>
+            </div>
+        </div>
+    </div>
+</div>
