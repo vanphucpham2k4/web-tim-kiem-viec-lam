@@ -1,1 +1,26 @@
+# Build artifacts
+[Bb]in/
+[Oo]bj/
+
+# IDE/editor files
 .vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Logs and temp files
+*.log
+logs/
+tmp/
+temp/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Local development config
+appsettings.Development.json
