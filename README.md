@@ -129,13 +129,3 @@ Gợi ý: với môi trường CV/portfolio, bạn nên đổi mật khẩu admi
 - Tối ưu CI/CD và đóng gói container
 - Mở rộng tìm kiếm việc làm theo gợi ý cá nhân hóa
 
-## Liên hệ
-
-Nếu bạn là nhà tuyển dụng hoặc reviewer kỹ thuật, có thể liên hệ với tác giả dự án qua:
-
-- Email: `your-email@example.com`
-- LinkedIn: `https://www.linkedin.com/in/your-profile`
-
----
-
-Unicareer được xây dựng với mục tiêu giải bài toán tuyển dụng thực tế, đồng thời thể hiện năng lực phát triển ứng dụng web full-stack trên nền tảng .NET.
